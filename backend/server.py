@@ -37,6 +37,8 @@ conversations_router = APIRouter(prefix="/conversations", tags=["conversations"]
 settings_router = APIRouter(prefix="/settings", tags=["settings"])
 widget_router = APIRouter(prefix="/widget", tags=["widget"])
 admin_router = APIRouter(prefix="/admin", tags=["admin"])
+users_router = APIRouter(prefix="/users", tags=["users"])
+profile_router = APIRouter(prefix="/profile", tags=["profile"])
 
 security = HTTPBearer()
 
