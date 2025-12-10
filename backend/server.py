@@ -252,6 +252,20 @@ async def get_super_admin_user(credentials: HTTPAuthorizationCredentials = Depen
         raise HTTPException(status_code=403, detail="Super admin access required")
     return user
 
+def can_manage_users(user: dict) -> bool:
+    """Check if user can manage other users (owner or admin)"""
+    return user.get("role") in ["owner", "admin"] or is_super_admin(user)
+
+async def get_tenant_admin_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """Dependency that ensures user can manage tenant users"""
+    payload = decode_token(credentials.credentials)
+    user = await db.users.find_one({"id": payload["user_id"]}, {"_id": 0})
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+    if not can_manage_users(user):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
+
 # ============== AI SERVICE ==============
 
 async def generate_ai_response(messages: List[dict], settings: dict) -> str:
