@@ -494,6 +494,46 @@ async def update_settings(settings_data: SettingsUpdate, current_user: dict = De
     
     return settings
 
+@settings_router.post("/brand-logo")
+async def upload_brand_logo(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload brand logo image file"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPEG, PNG, GIF, WebP, SVG")
+    
+    # Validate file size (max 5MB)
+    contents = await file.read()
+    if len(contents) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large. Maximum size: 5MB")
+    
+    # Generate unique filename
+    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    filename = f"logo_{tenant_id}_{uuid.uuid4().hex[:8]}.{ext}"
+    filepath = UPLOADS_DIR / filename
+    
+    # Save file
+    with open(filepath, "wb") as f:
+        f.write(contents)
+    
+    # Generate URL (relative to API)
+    logo_url = f"/api/uploads/{filename}"
+    
+    # Update settings
+    await db.settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {"brand_logo": logo_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Brand logo uploaded", "brand_logo": logo_url}
+
 # ============== CONVERSATIONS ROUTES ==============
 
 @conversations_router.get("", response_model=List[ConversationResponse])
