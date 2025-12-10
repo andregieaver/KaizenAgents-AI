@@ -16,7 +16,9 @@ import {
   Menu,
   X,
   ChevronRight,
-  Shield
+  Shield,
+  Users,
+  User
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -35,6 +37,7 @@ const DashboardLayout = () => {
   const navItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
     { path: '/dashboard/conversations', icon: Inbox, label: 'Conversations' },
+    { path: '/dashboard/team', icon: Users, label: 'Team' },
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
 
