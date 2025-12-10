@@ -1003,6 +1003,7 @@ api_router.include_router(tenants_router)
 api_router.include_router(conversations_router)
 api_router.include_router(settings_router)
 api_router.include_router(widget_router)
+api_router.include_router(admin_router)
 
 app.include_router(api_router)
 
