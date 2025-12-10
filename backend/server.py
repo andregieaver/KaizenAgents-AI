@@ -156,6 +156,49 @@ class WidgetSessionResponse(BaseModel):
 class WidgetMessageCreate(BaseModel):
     content: str
 
+# ============== USER MANAGEMENT MODELS ==============
+
+class UserInvite(BaseModel):
+    email: EmailStr
+    name: str
+    role: Literal["admin", "agent", "viewer"] = "agent"
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    role: Optional[Literal["owner", "admin", "agent", "viewer"]] = None
+
+class TeamMemberResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    email: str
+    name: str
+    role: str
+    avatar_url: Optional[str] = None
+    created_at: str
+    last_login: Optional[str] = None
+
+# ============== PROFILE MODELS ==============
+
+class ProfileUpdate(BaseModel):
+    name: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+class ProfileResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    email: str
+    name: str
+    role: str
+    avatar_url: Optional[str] = None
+    tenant_id: Optional[str] = None
+    tenant_name: Optional[str] = None
+    created_at: str
+    is_super_admin: bool = False
+
 # ============== HELPERS ==============
 
 def hash_password(password: str) -> str:
