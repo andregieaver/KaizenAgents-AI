@@ -130,3 +130,74 @@ code {
 ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground) / 0.5);
 }
+
+/* Neumorphic Button Styles */
+@layer components {
+    .btn-neumorphic {
+        border-radius: 2rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        box-shadow: 
+            5px 5px 10px rgba(0, 0, 0, 0.15),
+            -5px -5px 10px rgba(255, 255, 255, 0.7);
+    }
+
+    .btn-neumorphic:hover {
+        box-shadow: 
+            3px 3px 8px rgba(0, 0, 0, 0.15),
+            -3px -3px 8px rgba(255, 255, 255, 0.7);
+    }
+
+    .btn-neumorphic:active,
+    .btn-neumorphic-pressed {
+        box-shadow: 
+            inset 5px 5px 10px rgba(0, 0, 0, 0.15),
+            inset -2px -2px 8px rgba(255, 255, 255, 0.7);
+    }
+
+    .dark .btn-neumorphic {
+        box-shadow: 
+            5px 5px 10px rgba(0, 0, 0, 0.5),
+            -5px -5px 10px rgba(255, 255, 255, 0.05);
+    }
+
+    .dark .btn-neumorphic:hover {
+        box-shadow: 
+            3px 3px 8px rgba(0, 0, 0, 0.5),
+            -3px -3px 8px rgba(255, 255, 255, 0.05);
+    }
+
+    .dark .btn-neumorphic:active,
+    .dark .btn-neumorphic-pressed {
+        box-shadow: 
+            inset 5px 5px 10px rgba(0, 0, 0, 0.5),
+            inset -2px -2px 8px rgba(255, 255, 255, 0.05);
+    }
+
+    .card-neumorphic {
+        border-radius: 1.5rem;
+        box-shadow: 
+            8px 8px 16px rgba(0, 0, 0, 0.1),
+            -8px -8px 16px rgba(255, 255, 255, 0.7);
+    }
+
+    .dark .card-neumorphic {
+        box-shadow: 
+            8px 8px 16px rgba(0, 0, 0, 0.5),
+            -8px -8px 16px rgba(255, 255, 255, 0.03);
+    }
+
+    .input-neumorphic {
+        border-radius: 1rem;
+        box-shadow: 
+            inset 3px 3px 6px rgba(0, 0, 0, 0.1),
+            inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+        border: none;
+    }
+
+    .dark .input-neumorphic {
+        box-shadow: 
+            inset 3px 3px 6px rgba(0, 0, 0, 0.5),
+            inset -3px -3px 6px rgba(255, 255, 255, 0.03);
+    }
+}
