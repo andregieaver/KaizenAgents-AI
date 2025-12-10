@@ -220,17 +220,62 @@ const Settings = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="brand_logo">Brand Logo URL</Label>
-                <Input
-                  id="brand_logo"
-                  value={settings?.brand_logo || ''}
-                  onChange={(e) => setSettings({ ...settings, brand_logo: e.target.value })}
-                  onBlur={(e) => handleSave('brand_logo', e.target.value)}
-                  placeholder="https://example.com/logo.png"
-                  className="h-10 max-w-md"
-                  data-testid="brand-logo-input"
-                />
-                <p className="text-xs text-muted-foreground">Optional logo URL for the widget</p>
+                <Label>Brand Logo</Label>
+                <div className="flex items-start gap-4">
+                  {settings?.brand_logo ? (
+                    <div className="relative">
+                      <img
+                        src={getLogoSrc(settings.brand_logo)}
+                        alt="Brand logo"
+                        className="h-24 w-24 object-contain rounded-sm border border-border bg-muted p-2"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={handleRemoveLogo}
+                        disabled={uploadingLogo}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="h-24 w-24 rounded-sm border border-dashed border-border bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-2">
+                    <input
+                      ref={logoInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                      data-testid="logo-file-input"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => logoInputRef.current?.click()}
+                      disabled={uploadingLogo}
+                      className="w-full max-w-xs"
+                    >
+                      {uploadingLogo ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          {settings?.brand_logo ? 'Change Logo' : 'Upload Logo'}
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Upload a logo for the chat widget header. Max 5MB. Supported: JPEG, PNG, GIF, WebP, SVG
+                    </p>
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-2">
