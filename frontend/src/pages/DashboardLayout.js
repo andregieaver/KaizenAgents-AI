@@ -149,8 +149,8 @@ const DashboardLayout = () => {
             data-testid="nav-profile"
           >
             <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
-              {user?.avatar_url ? (
-                <img src={user.avatar_url} alt={user.name} className="h-full w-full object-cover" />
+              {getAvatarSrc(user?.avatar_url) ? (
+                <img src={getAvatarSrc(user.avatar_url)} alt={user.name} className="h-full w-full object-cover" />
               ) : (
                 <span className="text-sm font-medium text-primary">
                   {user?.name?.charAt(0).toUpperCase()}
