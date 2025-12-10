@@ -365,7 +365,7 @@ const Settings = () => {
                   rows={4}
                   data-testid="ai-persona-input"
                 />
-                <p className="text-xs text-muted-foreground">Define the AI's personality and behavior</p>
+                <p className="text-xs text-muted-foreground">Define the AI&apos;s personality and behavior</p>
               </div>
             </CardContent>
           </Card>
