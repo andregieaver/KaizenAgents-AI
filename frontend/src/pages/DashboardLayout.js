@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/button';
 import { ScrollArea } from '../components/ui/scroll-area';
+import { Separator } from '../components/ui/separator';
 import {
   MessageSquare,
   LayoutDashboard,
@@ -14,7 +15,8 @@ import {
   Sun,
   Menu,
   X,
-  ChevronRight
+  ChevronRight,
+  Shield
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -35,6 +37,11 @@ const DashboardLayout = () => {
     { path: '/dashboard/conversations', icon: Inbox, label: 'Conversations' },
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
+
+  // Add admin link for super admins
+  const adminNavItem = user?.is_super_admin 
+    ? { path: '/dashboard/admin', icon: Shield, label: 'Super Admin', isAdmin: true }
+    : null;
 
   const isActive = (path) => {
     if (path === '/dashboard') {
