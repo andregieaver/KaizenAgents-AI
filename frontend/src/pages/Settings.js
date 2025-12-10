@@ -186,6 +186,87 @@ const Settings = () => {
                 </div>
                 <p className="text-xs text-muted-foreground">Used for buttons and accents in the widget</p>
               </div>
+
+              <Separator />
+
+              <div className="space-y-2">
+                <Label>Date Format</Label>
+                <Select
+                  value={settings?.date_format || 'MM/DD/YYYY'}
+                  onValueChange={(value) => {
+                    setSettings({ ...settings, date_format: value });
+                    handleSave('date_format', value);
+                  }}
+                >
+                  <SelectTrigger className="h-10 max-w-md" data-testid="date-format-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="MM/DD/YYYY">MM/DD/YYYY (12/31/2024)</SelectItem>
+                    <SelectItem value="DD/MM/YYYY">DD/MM/YYYY (31/12/2024)</SelectItem>
+                    <SelectItem value="YYYY-MM-DD">YYYY-MM-DD (2024-12-31)</SelectItem>
+                    <SelectItem value="DD.MM.YYYY">DD.MM.YYYY (31.12.2024)</SelectItem>
+                    <SelectItem value="DD MMM YYYY">DD MMM YYYY (31 Dec 2024)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Choose how dates are displayed across the platform</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Time Format</Label>
+                <Select
+                  value={settings?.time_format || '12h'}
+                  onValueChange={(value) => {
+                    setSettings({ ...settings, time_format: value });
+                    handleSave('time_format', value);
+                  }}
+                >
+                  <SelectTrigger className="h-10 max-w-md" data-testid="time-format-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="12h">12-hour (3:45 PM)</SelectItem>
+                    <SelectItem value="24h">24-hour (15:45)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Choose between 12-hour or 24-hour time display</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Timezone</Label>
+                <Select
+                  value={settings?.timezone || 'UTC'}
+                  onValueChange={(value) => {
+                    setSettings({ ...settings, timezone: value });
+                    handleSave('timezone', value);
+                  }}
+                >
+                  <SelectTrigger className="h-10 max-w-md" data-testid="timezone-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="UTC">UTC (Coordinated Universal Time)</SelectItem>
+                    <SelectItem value="America/New_York">America/New York (EST/EDT)</SelectItem>
+                    <SelectItem value="America/Chicago">America/Chicago (CST/CDT)</SelectItem>
+                    <SelectItem value="America/Denver">America/Denver (MST/MDT)</SelectItem>
+                    <SelectItem value="America/Los_Angeles">America/Los Angeles (PST/PDT)</SelectItem>
+                    <SelectItem value="Europe/London">Europe/London (GMT/BST)</SelectItem>
+                    <SelectItem value="Europe/Paris">Europe/Paris (CET/CEST)</SelectItem>
+                    <SelectItem value="Europe/Berlin">Europe/Berlin (CET/CEST)</SelectItem>
+                    <SelectItem value="Europe/Rome">Europe/Rome (CET/CEST)</SelectItem>
+                    <SelectItem value="Europe/Madrid">Europe/Madrid (CET/CEST)</SelectItem>
+                    <SelectItem value="Europe/Oslo">Europe/Oslo (CET/CEST)</SelectItem>
+                    <SelectItem value="Asia/Dubai">Asia/Dubai (GST)</SelectItem>
+                    <SelectItem value="Asia/Kolkata">Asia/Kolkata (IST)</SelectItem>
+                    <SelectItem value="Asia/Singapore">Asia/Singapore (SGT)</SelectItem>
+                    <SelectItem value="Asia/Tokyo">Asia/Tokyo (JST)</SelectItem>
+                    <SelectItem value="Asia/Shanghai">Asia/Shanghai (CST)</SelectItem>
+                    <SelectItem value="Australia/Sydney">Australia/Sydney (AEDT/AEST)</SelectItem>
+                    <SelectItem value="Pacific/Auckland">Pacific/Auckland (NZDT/NZST)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Select your local timezone for accurate time display</p>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
