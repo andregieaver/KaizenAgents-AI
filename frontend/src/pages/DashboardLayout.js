@@ -132,17 +132,27 @@ const DashboardLayout = () => {
 
         {/* User Section */}
         <div className="p-4 border-t border-border">
-          <div className="flex items-center gap-3 mb-3">
-            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-sm font-medium text-primary">
-                {user?.name?.charAt(0).toUpperCase()}
-              </span>
+          <Link 
+            to="/dashboard/profile" 
+            className="flex items-center gap-3 mb-3 p-2 -m-2 rounded-sm hover:bg-muted transition-colors"
+            onClick={() => setSidebarOpen(false)}
+            data-testid="nav-profile"
+          >
+            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+              {user?.avatar_url ? (
+                <img src={user.avatar_url} alt={user.name} className="h-full w-full object-cover" />
+              ) : (
+                <span className="text-sm font-medium text-primary">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </span>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user?.name}</p>
               <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
-          </div>
+            <User className="h-4 w-4 text-muted-foreground" />
+          </Link>
           <div className="flex gap-2">
             <Button
               variant="outline"
