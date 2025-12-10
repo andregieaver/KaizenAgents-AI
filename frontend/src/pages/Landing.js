@@ -155,11 +155,11 @@ const Landing = () => {
                   <span className="text-muted-foreground"> </span>
                   <span className="text-signal-600">src</span>
                   <span className="text-muted-foreground">=</span>
-                  <span className="text-green-600">"widget.js"</span>
+                  <span className="text-green-600">&quot;widget.js&quot;</span>
                   <span className="text-muted-foreground"> </span>
                   <span className="text-signal-600">data-tenant</span>
                   <span className="text-muted-foreground">=</span>
-                  <span className="text-green-600">"your-id"</span>
+                  <span className="text-green-600">&quot;your-id&quot;</span>
                   <span className="text-muted-foreground">&gt;&lt;/</span>
                   <span className="text-primary">script</span>
                   <span className="text-muted-foreground">&gt;</span>
