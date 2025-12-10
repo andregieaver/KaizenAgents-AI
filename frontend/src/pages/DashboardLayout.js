@@ -22,6 +22,16 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+const getAvatarSrc = (url) => {
+  if (!url) return null;
+  if (url.startsWith('/api/')) {
+    return `${BACKEND_URL}${url}`;
+  }
+  return url;
+};
+
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
