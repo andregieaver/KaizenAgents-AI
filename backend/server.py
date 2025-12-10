@@ -96,6 +96,9 @@ class SettingsUpdate(BaseModel):
     ai_tone: Optional[Literal["formal", "casual", "friendly"]] = None
     openai_api_key: Optional[str] = None
     ai_model: Optional[str] = None
+    date_format: Optional[str] = None
+    time_format: Optional[Literal["12h", "24h"]] = None
+    timezone: Optional[str] = None
 
 class SettingsResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -111,6 +114,9 @@ class SettingsResponse(BaseModel):
     ai_tone: str
     openai_api_key: Optional[str] = None
     ai_model: str
+    date_format: str
+    time_format: str
+    timezone: str
     updated_at: str
 
 class ConversationCreate(BaseModel):
