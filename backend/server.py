@@ -366,6 +366,7 @@ async def update_current_tenant(tenant_data: TenantCreate, current_user: dict = 
 
 # ============== SETTINGS ROUTES ==============
 
+@settings_router.get("", response_model=SettingsResponse)
 @settings_router.get("/", response_model=SettingsResponse)
 async def get_settings(current_user: dict = Depends(get_current_user)):
     tenant_id = current_user.get("tenant_id")
@@ -383,6 +384,7 @@ async def get_settings(current_user: dict = Depends(get_current_user)):
     
     return settings
 
+@settings_router.put("", response_model=SettingsResponse)
 @settings_router.put("/", response_model=SettingsResponse)
 async def update_settings(settings_data: SettingsUpdate, current_user: dict = Depends(get_current_user)):
     tenant_id = current_user.get("tenant_id")
