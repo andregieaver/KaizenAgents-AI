@@ -14,6 +14,7 @@ import Conversations from "./pages/Conversations";
 import ConversationDetail from "./pages/ConversationDetail";
 import Settings from "./pages/Settings";
 import WidgetDemo from "./pages/WidgetDemo";
+import SuperAdmin from "./pages/SuperAdmin";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -87,6 +88,7 @@ function AppRoutes() {
         <Route path="conversations" element={<Conversations />} />
         <Route path="conversations/:id" element={<ConversationDetail />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="admin" element={<SuperAdmin />} />
       </Route>
 
       {/* Catch all */}
