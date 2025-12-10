@@ -138,8 +138,8 @@ const Settings = () => {
   };
 
   const handleRemoveLogo = async () => {
-    await handleSave('brand_logo', null);
-    toast.success('Brand logo removed');
+    await handleSave('brand_logo', '');
+    setSettings({ ...settings, brand_logo: '' });
   };
 
   const getLogoSrc = (url) => {
