@@ -26,8 +26,8 @@ JWT_SECRET = os.environ.get('JWT_SECRET', 'your-super-secret-key-change-in-produ
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = 24
 
-# Create the main app
-app = FastAPI(title="AI Support Hub API")
+# Create the main app - redirect_slashes=False prevents 307 redirects that lose auth headers
+app = FastAPI(title="AI Support Hub API", redirect_slashes=False)
 
 # Create routers
 api_router = APIRouter(prefix="/api")
