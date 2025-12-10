@@ -36,29 +36,29 @@ const ConversationDetail = () => {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const fetchData = async () => {
-    try {
-      const [convRes, msgsRes] = await Promise.all([
-        axios.get(`${API}/conversations/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${API}/conversations/${id}/messages`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ]);
-      setConversation(convRes.data);
-      setMessages(msgsRes.data);
-    } catch (error) {
-      console.error('Error fetching conversation:', error);
-      toast.error('Failed to load conversation');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [convRes, msgsRes] = await Promise.all([
+          axios.get(`${API}/conversations/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${API}/conversations/${id}/messages`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+        setConversation(convRes.data);
+        setMessages(msgsRes.data);
+      } catch (error) {
+        console.error('Error fetching conversation:', error);
+        toast.error('Failed to load conversation');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchData();
-    const interval = setInterval(fetchData, 5000); // Poll for new messages
+    const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
   }, [id, token]);
 
