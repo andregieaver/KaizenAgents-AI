@@ -1,0 +1,130 @@
+{
+  "identity": {
+    "name": "E1",
+    "archetype": "The Anti-AI Designer",
+    "mission": "Create a customer support platform that feels like a Swiss control room—precise, authoritative, yet human.",
+    "principles": [
+      "Fusion over Imitation: Mix Swiss Poster aesthetics with SaaS utility.",
+      "Emotion First: Clarity is the ultimate empathy in support.",
+      "Content is King: Data density over decorative fluff.",
+      "Contrast: High contrast for readability and hierarchy."
+    ]
+  },
+  "typography": {
+    "fonts": {
+      "headings": {
+        "family": "Outfit",
+        "weights": ["500", "700"],
+        "usage": "Headings, Hero Text, Big Numbers"
+      },
+      "body": {
+        "family": "Plus Jakarta Sans",
+        "weights": ["400", "500", "600"],
+        "usage": "Paragraphs, UI Labels, Chat Text"
+      },
+      "mono": {
+        "family": "JetBrains Mono",
+        "weights": ["400"],
+        "usage": "API Keys, Code Snippets, IDs"
+      }
+    },
+    "rules": [
+      "Headings > 32px must use tracking-tight.",
+      "Overlines must be uppercase and tracking-widest.",
+      "Line height: leading-none for headings, leading-relaxed for body."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "name": "International Klein Blue",
+        "hex": "#0047AB",
+        "tailwind": "blue-700",
+        "usage": "Primary Actions, Active States, Brand Identity"
+      },
+      "secondary": {
+        "name": "Signal Orange",
+        "hex": "#FF4500",
+        "tailwind": "orange-600",
+        "usage": "Alerts, 'Human' moments, Chat Bubbles (User)"
+      },
+      "neutral": {
+        "name": "Slate",
+        "tailwind_scale": "slate",
+        "usage": "Backgrounds, Borders, Text"
+      },
+      "background": {
+        "light": "#FFFFFF",
+        "dark": "#0F172A"
+      }
+    },
+    "rules": [
+      "No gradients for backgrounds. Use solid colors or subtle noise textures.",
+      "Text contrast must meet APCA standards.",
+      "Dark mode backgrounds should be tinted blue (Slate), not pure black."
+    ]
+  },
+  "layout": {
+    "spacing_scale": [1, 2, 4, 6, 8, 12, 16, 20, 24, 32, 40, 48, 64],
+    "grids": {
+      "dashboard": {
+        "name": "Control Room Grid",
+        "columns": "grid-cols-1 md:grid-cols-4 lg:grid-cols-12",
+        "gap": "gap-4",
+        "rules": "Dense, high information density. No jagged bottoms."
+      },
+      "landing": {
+        "name": "Tetris Grid",
+        "columns": "grid-cols-1 md:grid-cols-8 lg:grid-cols-12",
+        "gap": "gap-8 lg:gap-12",
+        "rules": "Asymmetrical, artistic, generous whitespace."
+      }
+    }
+  },
+  "components": {
+    "buttons": {
+      "style": "Sharp or minimal radius (rounded-sm).",
+      "animation": "Scale down slightly on click (active:scale-95)."
+    },
+    "cards": {
+      "style": "Flat, 1px border (border-border), no shadow by default.",
+      "hover": "Subtle lift and shadow on hover for interactive cards."
+    },
+    "chat_widget": {
+      "style": "Friendly contrast: rounded-2xl or rounded-3xl to differentiate from the rigid dashboard.",
+      "animation": "Smooth entrance from bottom-right."
+    },
+    "inputs": {
+      "style": "Shadcn default but with increased height (h-10 or h-12) for better touch targets."
+    }
+  },
+  "assets": {
+    "images": [
+      {
+        "category": "hero_background",
+        "url": "https://images.unsplash.com/photo-1747727547295-8619e5c5f4c6?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwxfHxtaW5pbWFsaXN0JTIwYWJzdHJhY3QlMjBvZmZpY2UlMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzY1Mzg3MTAzfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Minimalist modern building facade - use for stability/structure vibe."
+      },
+      {
+        "category": "ai_feature",
+        "url": "https://images.unsplash.com/photo-1737505599162-d9932323a889?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDQ2Mzl8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHRlY2hub2xvZ3klMjBjb25uZWN0aW9uJTIwbm9kZXN8ZW58MHx8fHwxNzY1Mzg3MTA2fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Abstract 3D molecular structure - use for AI/Neural Network visualization."
+      },
+      {
+        "category": "abstract_texture",
+        "url": "https://images.unsplash.com/photo-1747727350761-a607eae63dc0?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwyfHxtaW5pbWFsaXN0JTIwYWJzdHJhY3QlMjBvZmZpY2UlMjBhcmNoaXRlY3R1cmV8ZW58MHx8fHwxNzY1Mzg3MTAzfDA&ixlib=rb-4.1.0&q=85",
+        "description": "Pale sky and building fabric - use for subtle backgrounds."
+      }
+    ],
+    "icons": "Lucide React (default). Use Phosphor Icons for marketing if needed."
+  },
+  "universal_guidelines": [
+    "Avoid 'AI Slop': No generic centered layouts or overuse of gradients.",
+    "Dark Mode: Use slate-900/950, never pure black #000000.",
+    "Micro-interactions: Every button and link must have a hover state.",
+    "Data-TestID: All interactive elements must have data-testid attributes.",
+    "Toasts: Use 'sonner' for notifications.",
+    "Export: Named exports for components, default exports for pages."
+  ],
+  "instructions_to_main_agent": "Implement the design system strictly. Start by setting up the font family in tailwind.config.js. Use the provided image URLs for the landing page. Ensure the dashboard follows the 'Control Room' grid density."
+}
