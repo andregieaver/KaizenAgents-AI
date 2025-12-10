@@ -89,6 +89,68 @@ const Settings = () => {
     setApiKey('');
   };
 
+  const handleLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload JPEG, PNG, GIF, WebP, or SVG');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large. Maximum size is 5MB');
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await axios.post(
+        `${API}/settings/brand-logo`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      // Update local state with new logo URL
+      const newLogoUrl = response.data.brand_logo;
+      setSettings({ ...settings, brand_logo: newLogoUrl });
+      toast.success('Brand logo updated!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload logo');
+    } finally {
+      setUploadingLogo(false);
+      // Reset file input
+      if (logoInputRef.current) {
+        logoInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    await handleSave('brand_logo', null);
+    toast.success('Brand logo removed');
+  };
+
+  const getLogoSrc = (url) => {
+    if (!url) return null;
+    // If it's a relative URL from our API, prepend the backend URL
+    if (url.startsWith('/api/')) {
+      return `${BACKEND_URL}${url}`;
+    }
+    return url;
+  };
+
   const copyEmbedCode = () => {
     const code = `<script src="${window.location.origin}/widget.js" data-tenant-id="${user?.tenant_id}"></script>`;
     navigator.clipboard.writeText(code);
