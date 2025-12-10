@@ -123,6 +123,65 @@ const Profile = () => {
     }
   };
 
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload JPEG, PNG, GIF, or WebP');
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large. Maximum size is 5MB');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await axios.post(
+        `${API}/profile/avatar`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      // Update local state with new avatar URL
+      const newAvatarUrl = response.data.avatar_url;
+      setAvatarUrl(newAvatarUrl);
+      setProfile(prev => ({ ...prev, avatar_url: newAvatarUrl }));
+      toast.success('Profile picture updated!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload image');
+    } finally {
+      setUploadingAvatar(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const getAvatarSrc = (url) => {
+    if (!url) return null;
+    // If it's a relative URL from our API, prepend the backend URL
+    if (url.startsWith('/api/')) {
+      return `${BACKEND_URL}${url}`;
+    }
+    return url;
+  };
+
+
   const getRoleBadge = (role, isSuperAdmin) => {
     if (isSuperAdmin) {
       return (
