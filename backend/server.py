@@ -1273,10 +1273,46 @@ async def change_password(
 
 @profile_router.post("/avatar")
 async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload avatar image file"""
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPEG, PNG, GIF, WebP")
+    
+    # Validate file size (max 5MB)
+    contents = await file.read()
+    if len(contents) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large. Maximum size: 5MB")
+    
+    # Generate unique filename
+    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    filename = f"{current_user['id']}_{uuid.uuid4().hex[:8]}.{ext}"
+    filepath = UPLOADS_DIR / filename
+    
+    # Save file
+    with open(filepath, "wb") as f:
+        f.write(contents)
+    
+    # Generate URL (relative to API)
+    avatar_url = f"/api/uploads/{filename}"
+    
+    # Update user
+    await db.users.update_one(
+        {"id": current_user["id"]},
+        {"$set": {"avatar_url": avatar_url}}
+    )
+    
+    return {"message": "Avatar uploaded", "avatar_url": avatar_url}
+
+@profile_router.post("/avatar-url")
+async def update_avatar_url(
     avatar_url: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Update avatar URL (for simplicity, accepts URL; in production would handle file upload)"""
+    """Update avatar via URL"""
     await db.users.update_one(
         {"id": current_user["id"]},
         {"$set": {"avatar_url": avatar_url}}
