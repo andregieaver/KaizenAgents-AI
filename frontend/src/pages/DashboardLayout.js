@@ -103,6 +103,27 @@ const DashboardLayout = () => {
                 {item.label}
               </Link>
             ))}
+            
+            {/* Super Admin Link */}
+            {adminNavItem && (
+              <>
+                <Separator className="my-3" />
+                <Link
+                  to={adminNavItem.path}
+                  onClick={() => setSidebarOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                    isActive(adminNavItem.path)
+                      ? "bg-destructive text-destructive-foreground"
+                      : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                  )}
+                  data-testid="nav-super-admin"
+                >
+                  <adminNavItem.icon className="h-4 w-4" />
+                  {adminNavItem.label}
+                </Link>
+              </>
+            )}
           </nav>
         </ScrollArea>
 
