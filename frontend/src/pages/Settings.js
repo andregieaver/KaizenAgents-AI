@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -19,7 +19,11 @@ import {
   Copy,
   Check,
   Eye,
-  EyeOff
+  EyeOff,
+  Upload,
+  Image as ImageIcon,
+  X,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
