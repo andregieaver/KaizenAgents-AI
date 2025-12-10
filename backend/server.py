@@ -490,7 +490,7 @@ async def update_settings(settings_data: SettingsUpdate, current_user: dict = De
 @conversations_router.get("", response_model=List[ConversationResponse])
 @conversations_router.get("/", response_model=List[ConversationResponse])
 async def list_conversations(
-    status: Optional[str] = None,
+    conversation_status: Optional[str] = None,
     current_user: dict = Depends(get_current_user)
 ):
     tenant_id = current_user.get("tenant_id")
@@ -498,8 +498,8 @@ async def list_conversations(
         raise HTTPException(status_code=404, detail="No tenant associated")
     
     query = {"tenant_id": tenant_id}
-    if status:
-        query["status"] = status
+    if conversation_status:
+        query["status"] = conversation_status
     
     conversations = await db.conversations.find(query, {"_id": 0}).sort("updated_at", -1).to_list(100)
     return conversations
