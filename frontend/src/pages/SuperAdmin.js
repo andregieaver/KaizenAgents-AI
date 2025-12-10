@@ -83,23 +83,6 @@ const SuperAdmin = () => {
   if (!loading && !user?.is_super_admin) {
     return <Navigate to="/dashboard" replace />;
   }
-      const [statsRes, settingsRes, tenantsRes, usersRes] = await Promise.all([
-        axios.get(`${API}/admin/platform-stats`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/admin/platform-settings`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/admin/tenants`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/admin/users`, { headers: { Authorization: `Bearer ${token}` } })
-      ]);
-      setPlatformStats(statsRes.data);
-      setPlatformSettings(settingsRes.data);
-      setTenants(tenantsRes.data);
-      setUsers(usersRes.data);
-    } catch (error) {
-      console.error('Error fetching admin data:', error);
-      toast.error('Failed to load admin data');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const updatePlatformSettings = async (field, value) => {
     try {
