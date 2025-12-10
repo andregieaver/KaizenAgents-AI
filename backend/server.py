@@ -309,9 +309,6 @@ Do not make up information. If unsure, say so."""
             role = "Customer" if msg.get("author_type") == "customer" else "Assistant"
             context += f"{role}: {msg.get('content')}\n"
         
-        # Get the latest message
-        latest_msg = messages[-1].get("content", "") if messages else ""
-        
         user_message = UserMessage(text=f"Previous conversation:\n{context}\n\nPlease respond to the latest customer message.")
         
         response = await chat.send_message(user_message)
