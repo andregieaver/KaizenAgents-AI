@@ -36,6 +36,7 @@ tenants_router = APIRouter(prefix="/tenants", tags=["tenants"])
 conversations_router = APIRouter(prefix="/conversations", tags=["conversations"])
 settings_router = APIRouter(prefix="/settings", tags=["settings"])
 widget_router = APIRouter(prefix="/widget", tags=["widget"])
+admin_router = APIRouter(prefix="/admin", tags=["admin"])
 
 security = HTTPBearer()
 
