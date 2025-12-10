@@ -234,27 +234,66 @@ const Profile = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Avatar Section */}
-              <div className="flex items-center gap-4">
-                <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-border">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt={profile?.name} className="h-full w-full object-cover" />
-                  ) : (
-                    <User className="h-8 w-8 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <Label htmlFor="avatar_url">Avatar URL</Label>
-                  <div className="flex gap-2 mt-1">
-                    <Input
-                      id="avatar_url"
-                      value={avatarUrl}
-                      onChange={(e) => setAvatarUrl(e.target.value)}
-                      placeholder="https://example.com/avatar.jpg"
-                      className="h-9"
-                      data-testid="avatar-url-input"
-                    />
+              <div className="flex items-start gap-6">
+                <div className="relative group">
+                  <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center overflow-hidden border-2 border-border">
+                    {getAvatarSrc(avatarUrl) ? (
+                      <img src={getAvatarSrc(avatarUrl)} alt={profile?.name} className="h-full w-full object-cover" />
+                    ) : (
+                      <User className="h-10 w-10 text-muted-foreground" />
+                    )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">Enter a URL for your profile picture</p>
+                  {/* Upload overlay */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer disabled:cursor-not-allowed"
+                    data-testid="avatar-upload-overlay"
+                  >
+                    {uploadingAvatar ? (
+                      <Loader2 className="h-6 w-6 text-white animate-spin" />
+                    ) : (
+                      <Camera className="h-6 w-6 text-white" />
+                    )}
+                  </button>
+                  {/* Hidden file input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleAvatarUpload}
+                    className="hidden"
+                    data-testid="avatar-file-input"
+                  />
+                </div>
+                <div className="flex-1 pt-2">
+                  <h3 className="font-medium mb-1">Profile Picture</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Click the image or use the button below to upload a new photo.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    data-testid="avatar-upload-btn"
+                  >
+                    {uploadingAvatar ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Uploading...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Image
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    JPEG, PNG, GIF or WebP. Max 5MB.
+                  </p>
                 </div>
               </div>
 
