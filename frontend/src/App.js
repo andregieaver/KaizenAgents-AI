@@ -15,6 +15,8 @@ import ConversationDetail from "./pages/ConversationDetail";
 import Settings from "./pages/Settings";
 import WidgetDemo from "./pages/WidgetDemo";
 import SuperAdmin from "./pages/SuperAdmin";
+import Team from "./pages/Team";
+import Profile from "./pages/Profile";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -87,7 +89,9 @@ function AppRoutes() {
         <Route index element={<Dashboard />} />
         <Route path="conversations" element={<Conversations />} />
         <Route path="conversations/:id" element={<ConversationDetail />} />
+        <Route path="team" element={<Team />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="profile" element={<Profile />} />
         <Route path="admin" element={<SuperAdmin />} />
       </Route>
 
