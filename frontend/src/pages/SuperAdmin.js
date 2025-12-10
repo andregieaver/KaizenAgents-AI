@@ -52,17 +52,37 @@ const SuperAdmin = () => {
   const [selectedTenant, setSelectedTenant] = useState(null);
   const [tenantDetails, setTenantDetails] = useState(null);
 
-  // Check if user is super admin
-  if (!user?.is_super_admin) {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  useEffect(() => {
-    fetchData();
-  }, [token]);
-
   const fetchData = async () => {
     try {
+      const [statsRes, settingsRes, tenantsRes, usersRes] = await Promise.all([
+        axios.get(`${API}/admin/platform-stats`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/admin/platform-settings`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/admin/tenants`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/admin/users`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+      setPlatformStats(statsRes.data);
+      setPlatformSettings(settingsRes.data);
+      setTenants(tenantsRes.data);
+      setUsers(usersRes.data);
+    } catch (error) {
+      console.error('Error fetching admin data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.is_super_admin) {
+      fetchData();
+    } else {
+      setLoading(false);
+    }
+  }, [token, user?.is_super_admin]);
+
+  // Check if user is super admin (after hooks)
+  if (!loading && !user?.is_super_admin) {
+    return <Navigate to="/dashboard" replace />;
+  }
       const [statsRes, settingsRes, tenantsRes, usersRes] = await Promise.all([
         axios.get(`${API}/admin/platform-stats`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/admin/platform-settings`, { headers: { Authorization: `Bearer ${token}` } }),
