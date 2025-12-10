@@ -340,20 +340,22 @@ async def login(credentials: UserLogin):
             "name": user["name"],
             "role": user["role"],
             "tenant_id": user.get("tenant_id"),
-            "created_at": user["created_at"]
+            "created_at": user["created_at"],
+            "is_super_admin": is_super_admin(user)
         }
     }
 
-@auth_router.get("/me", response_model=UserResponse)
+@auth_router.get("/me", response_model=dict)
 async def get_me(current_user: dict = Depends(get_current_user)):
-    return UserResponse(
-        id=current_user["id"],
-        email=current_user["email"],
-        name=current_user["name"],
-        role=current_user["role"],
-        tenant_id=current_user.get("tenant_id"),
-        created_at=current_user["created_at"]
-    )
+    return {
+        "id": current_user["id"],
+        "email": current_user["email"],
+        "name": current_user["name"],
+        "role": current_user["role"],
+        "tenant_id": current_user.get("tenant_id"),
+        "created_at": current_user["created_at"],
+        "is_super_admin": is_super_admin(current_user)
+    }
 
 # ============== TENANT ROUTES ==============
 
