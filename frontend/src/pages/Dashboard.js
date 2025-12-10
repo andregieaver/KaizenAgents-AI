@@ -53,7 +53,7 @@ const Dashboard = () => {
         <h1 className="font-heading text-2xl lg:text-3xl font-bold tracking-tight mb-2">
           Welcome back, {user?.name?.split(' ')[0]}
         </h1>
-        <p className="text-muted-foreground">Here's what's happening with your support today.</p>
+        <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your support today.</p>
       </div>
 
       {/* Stats Grid */}
