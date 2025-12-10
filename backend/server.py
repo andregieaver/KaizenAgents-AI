@@ -361,6 +361,9 @@ async def register(user_data: UserCreate):
         "ai_tone": "friendly",
         "openai_api_key": None,
         "ai_model": "gpt-4o-mini",
+        "date_format": "MM/DD/YYYY",
+        "time_format": "12h",
+        "timezone": "UTC",
         "updated_at": now
     }
     await db.settings.insert_one(settings_doc)
