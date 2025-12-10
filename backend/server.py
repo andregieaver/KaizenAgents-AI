@@ -616,7 +616,7 @@ async def update_conversation_mode(
 @conversations_router.patch("/{conversation_id}/status", response_model=ConversationResponse)
 async def update_conversation_status(
     conversation_id: str,
-    status: Literal["open", "waiting", "resolved"],
+    new_status: Literal["open", "waiting", "resolved"],
     current_user: dict = Depends(get_current_user)
 ):
     tenant_id = current_user.get("tenant_id")
@@ -627,7 +627,7 @@ async def update_conversation_status(
     
     result = await db.conversations.find_one_and_update(
         {"id": conversation_id, "tenant_id": tenant_id},
-        {"$set": {"status": status, "updated_at": now}},
+        {"$set": {"status": new_status, "updated_at": now}},
         return_document=True
     )
     
