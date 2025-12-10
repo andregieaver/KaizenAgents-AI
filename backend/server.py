@@ -406,6 +406,7 @@ async def update_settings(settings_data: SettingsUpdate, current_user: dict = De
 
 # ============== CONVERSATIONS ROUTES ==============
 
+@conversations_router.get("", response_model=List[ConversationResponse])
 @conversations_router.get("/", response_model=List[ConversationResponse])
 async def list_conversations(
     status: Optional[str] = None,
