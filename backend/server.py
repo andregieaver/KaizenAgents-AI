@@ -1296,6 +1296,8 @@ api_router.include_router(conversations_router)
 api_router.include_router(settings_router)
 api_router.include_router(widget_router)
 api_router.include_router(admin_router)
+api_router.include_router(users_router)
+api_router.include_router(profile_router)
 
 app.include_router(api_router)
 
