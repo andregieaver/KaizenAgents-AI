@@ -1861,20 +1861,28 @@ async def test_agent_conversation(
             import openai
             client = openai.OpenAI(api_key=provider["api_key"])
             
-            # Newer models (gpt-4o, gpt-5, etc.) use max_completion_tokens instead of max_tokens
+            # Newer models have different parameter requirements
+            model_lower = agent["model"].lower()
             newer_models = ["gpt-4o", "gpt-5", "o1", "o3"]
-            uses_new_param = any(model_prefix in agent["model"].lower() for model_prefix in newer_models)
+            uses_new_param = any(model_prefix in model_lower for model_prefix in newer_models)
+            
+            # GPT-5 and o-series models have more restrictions
+            restrictive_models = ["gpt-5", "o1", "o3"]
+            is_restrictive = any(model_prefix in model_lower for model_prefix in restrictive_models)
             
             params = {
                 "model": agent["model"],
                 "messages": [
                     {"role": "system", "content": agent["system_prompt"]},
                     {"role": "user", "content": message}
-                ],
-                "temperature": agent["temperature"]
+                ]
             }
             
-            # Use appropriate parameter based on model
+            # Only add temperature for models that support it
+            if not is_restrictive:
+                params["temperature"] = agent["temperature"]
+            
+            # Use appropriate token limit parameter based on model
             if uses_new_param:
                 params["max_completion_tokens"] = agent["max_tokens"]
             else:
