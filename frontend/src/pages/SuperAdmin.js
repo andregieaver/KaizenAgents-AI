@@ -104,6 +104,62 @@ const SuperAdmin = () => {
     }
   };
 
+  const handlePlatformLogoUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error('Invalid file type. Please upload JPEG, PNG, GIF, WebP, or SVG');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File too large. Maximum size is 5MB');
+      return;
+    }
+
+    setUploadingPlatformLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await axios.post(
+        `${API}/admin/platform-logo`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      setPlatformSettings({ ...platformSettings, platform_logo: response.data.platform_logo });
+      toast.success('Platform logo updated!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload logo');
+    } finally {
+      setUploadingPlatformLogo(false);
+      if (platformLogoInputRef.current) {
+        platformLogoInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleRemovePlatformLogo = async () => {
+    await updatePlatformSettings('platform_logo', '');
+    setPlatformSettings({ ...platformSettings, platform_logo: '' });
+  };
+
+  const getPlatformLogoSrc = (url) => {
+    if (!url) return null;
+    if (url.startsWith('/api/')) {
+      return `${process.env.REACT_APP_BACKEND_URL}${url}`;
+    }
+    return url;
+  };
+
   const viewTenantDetails = async (tenantId) => {
     try {
       const response = await axios.get(
