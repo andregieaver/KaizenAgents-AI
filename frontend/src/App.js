@@ -17,6 +17,7 @@ import WidgetDemo from "./pages/WidgetDemo";
 import SuperAdmin from "./pages/SuperAdmin";
 import Team from "./pages/Team";
 import Profile from "./pages/Profile";
+import Providers from "./pages/Providers";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
