@@ -308,8 +308,8 @@ const SuperAdmin = () => {
           <div className="grid lg:grid-cols-2 gap-6">
             <Card className="border border-border">
               <CardHeader>
-                <CardTitle className="font-heading">All Tenants</CardTitle>
-                <CardDescription>{tenants.length} total tenants</CardDescription>
+                <CardTitle className="font-heading">All Companies</CardTitle>
+                <CardDescription>{tenants.length} total companies</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 <ScrollArea className="h-[500px]">
