@@ -492,7 +492,7 @@ const Settings = () => {
                 <p className="text-sm text-muted-foreground">Copy this code and paste it before the closing &lt;/body&gt; tag on your website.</p>
                 <div className="relative">
                   <pre className="bg-muted p-4 rounded-sm overflow-x-auto text-sm font-mono">
-                    <code>{`<script src="${window.location.origin}/widget.js" data-tenant-id="${user?.tenant_id}"></script>`}</code>
+                    <code>{`<script src="${process.env.REACT_APP_BACKEND_URL?.replace('/api', '')}/widget.js" data-tenant-id="${user?.tenant_id}" async></script>`}</code>
                   </pre>
                   <Button
                     variant="outline"
