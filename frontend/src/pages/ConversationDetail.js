@@ -198,7 +198,12 @@ const ConversationDetail = () => {
           <h2 className="font-heading font-semibold">Conversations</h2>
           <Badge variant="secondary">{conversations.length}</Badge>
         </div>
-        <ConversationsList />
+        <ConversationsList 
+          conversations={conversations} 
+          id={id} 
+          navigate={navigate} 
+          setSidebarOpen={setSidebarOpen} 
+        />
       </div>
 
       {/* Mobile Sidebar */}
@@ -208,7 +213,12 @@ const ConversationDetail = () => {
             <h2 className="font-heading font-semibold">Conversations</h2>
             <Badge variant="secondary">{conversations.length}</Badge>
           </div>
-          <ConversationsList />
+          <ConversationsList 
+            conversations={conversations} 
+            id={id} 
+            navigate={navigate} 
+            setSidebarOpen={setSidebarOpen} 
+          />
         </SheetContent>
       </Sheet>
 
