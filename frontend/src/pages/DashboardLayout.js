@@ -114,10 +114,14 @@ const DashboardLayout = () => {
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-border">
           <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center">
-              <MessageSquare className="h-4 w-4 text-primary-foreground" />
+            <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
+              {getBrandLogoSrc(brandLogo) ? (
+                <img src={getBrandLogoSrc(brandLogo)} alt={brandName} className="h-full w-full object-cover" />
+              ) : (
+                <MessageSquare className="h-4 w-4 text-primary-foreground" />
+              )}
             </div>
-            <span className="font-heading font-bold">{platformName}</span>
+            <span className="font-heading font-bold">{brandName}</span>
           </Link>
           <Button 
             variant="ghost" 
