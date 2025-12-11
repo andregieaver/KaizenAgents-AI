@@ -221,59 +221,128 @@ class AIAgentHubTester:
         
         return success
 
-    def test_widget_session_creation(self):
-        """Test widget session creation (public endpoint)"""
-        if not self.tenant_id:
-            print("❌ No tenant ID available for widget session test")
+    def test_agent_conversation(self):
+        """Test agent conversation endpoint"""
+        if not self.agent_id:
+            print("❌ No agent ID available for conversation test")
             return False
             
-        session_data = {
-            "tenant_id": self.tenant_id,
-            "customer_name": "Demo Customer",
-            "customer_email": "demo@example.com"
+        # Test with agent's name question
+        test_data = {
+            "message": "What is your name?",
+            "history": []
         }
         
         success, response = self.run_test(
-            "Widget Session Creation",
+            "Agent Test - Name Question",
             "POST",
-            "widget/session",
+            f"admin/agents/{self.agent_id}/test",
             200,
-            data=session_data
+            data=test_data
         )
         
-        if success and 'session_token' in response:
-            self.session_token = response['session_token']
-            self.conversation_id = response['conversation_id']
-            print(f"   Session token: {self.session_token[:20]}...")
-            print(f"   Conversation ID: {self.conversation_id}")
-            return True
-        return False
+        if success and 'response' in response:
+            print(f"   Agent Response: {response['response'][:100]}...")
+        
+        return success
 
-    def test_widget_message_sending(self):
-        """Test sending message through widget"""
-        if not self.conversation_id or not self.session_token:
-            print("❌ No conversation ID or session token available")
+    def test_agent_knowledge_limitation(self):
+        """Test agent refuses general knowledge questions"""
+        if not self.agent_id:
+            print("❌ No agent ID available for knowledge limitation test")
             return False
             
-        message_data = {
-            "content": "Hello, I need help with my order"
+        # Test with general knowledge question
+        test_data = {
+            "message": "Who was Obama?",
+            "history": []
         }
         
         success, response = self.run_test(
-            "Widget Message Sending",
+            "Agent Test - Knowledge Limitation",
             "POST",
-            f"widget/messages/{self.conversation_id}?token={self.session_token}",
+            f"admin/agents/{self.agent_id}/test",
             200,
-            data=message_data
+            data=test_data
+        )
+        
+        if success and 'response' in response:
+            response_text = response['response'].lower()
+            print(f"   Agent Response: {response['response'][:100]}...")
+            
+            # Check if agent properly refuses general knowledge
+            refusal_indicators = ['knowledge base', 'support team', 'contact', 'don\'t have', 'not available']
+            if any(indicator in response_text for indicator in refusal_indicators):
+                print("   ✅ Agent correctly refused general knowledge question")
+            else:
+                print("   ⚠️ Agent may have answered general knowledge question")
+        
+        return success
+
+    def test_company_agent_config_get(self):
+        """Test GET /api/settings/agent-config"""
+        success, response = self.run_test(
+            "Get Company Agent Configuration",
+            "GET",
+            "settings/agent-config",
+            200
         )
         
         if success:
-            if 'customer_message' in response:
-                print("   Customer message saved successfully")
-            if 'ai_message' in response and response['ai_message']:
-                print("   AI response generated successfully")
+            print(f"   Agent ID: {response.get('agent_id')}")
+            print(f"   Agent Name: {response.get('agent_name')}")
+            print(f"   Custom Instructions: {response.get('custom_instructions', 'None')[:50]}...")
+            print(f"   Uploaded Docs: {len(response.get('uploaded_docs', []))}")
+            
+            # Store for later tests
+            if response.get('uploaded_docs'):
+                print("   Documents found:")
+                for doc in response.get('uploaded_docs', []):
+                    print(f"     - {doc.get('filename')} ({doc.get('file_size')} bytes)")
+        
+        return success
+
+    def test_document_upload(self):
+        """Test document upload with RAG processing"""
+        # Create a test document
+        test_content = """
+        Company Policy Document
+        
+        Our company offers 24/7 customer support through multiple channels.
+        We provide refunds within 30 days of purchase for any reason.
+        Our premium support includes priority response within 2 hours.
+        
+        Contact Information:
+        - Email: support@company.com
+        - Phone: 1-800-SUPPORT
+        - Live Chat: Available on our website
+        
+        Return Policy:
+        All items can be returned within 30 days.
+        Refunds are processed within 5-7 business days.
+        """
+        
+        # Create file-like object
+        file_content = io.BytesIO(test_content.encode('utf-8'))
+        files = {'file': ('company_policy.txt', file_content, 'text/plain')}
+        
+        success, response = self.run_test(
+            "Document Upload with RAG",
+            "POST",
+            "settings/agent-config/upload-document",
+            200,
+            files=files
+        )
+        
+        if success:
+            print(f"   Upload Status: {response.get('status', 'unknown')}")
+            print(f"   Chunks Processed: {response.get('chunks_processed', 0)}")
+            print(f"   Filename: {response.get('filename', 'unknown')}")
+            
+            if response.get('chunks_processed', 0) > 0:
+                print("   ✅ Document successfully processed with RAG")
             else:
-                print("   Note: AI response not generated (likely no OpenAI key configured)")
+                print("   ⚠️ Document uploaded but no chunks processed")
         
         return success
 
