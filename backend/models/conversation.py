@@ -1,0 +1,27 @@
+from pydantic import BaseModel, ConfigDict
+from typing import Optional, Literal
+
+class ConversationCreate(BaseModel):
+    customer_name: Optional[str] = None
+    customer_email: Optional[str] = None
+    source: Literal["widget", "email", "api"] = "widget"
+
+class ConversationResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    tenant_id: str
+    customer_id: Optional[str] = None
+    customer_name: Optional[str] = None
+    customer_email: Optional[str] = None
+    status: str
+    mode: str
+    source: str
+    assigned_agent_id: Optional[str] = None
+    last_message: Optional[str] = None
+    last_message_at: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+class MessageCreate(BaseModel):
+    content: str
+    author_type: Literal["customer", "agent"] = "customer"
