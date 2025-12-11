@@ -1,35 +1,24 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.staticfiles import StaticFiles
-from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict, EmailStr
-from typing import List, Optional, Literal
+from pydantic import BaseModel
+from typing import List, Optional
 import uuid
-from datetime import datetime, timezone, timedelta
-import bcrypt
-import jwt
-import base64
+from datetime import datetime, timezone
+
+# Import from modular structure
+from models import *
+from middleware import get_current_user, get_super_admin_user, get_admin_or_owner_user
+from middleware.database import db
+from middleware.auth import create_token, hash_password, verify_password
+from utils import mask_api_key, get_provider_models
 
 ROOT_DIR = Path(__file__).parent
 UPLOADS_DIR = ROOT_DIR / "uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
-
-load_dotenv(ROOT_DIR / '.env')
-
-# MongoDB connection
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
-
-# JWT Config
-JWT_SECRET = os.environ.get('JWT_SECRET', 'your-super-secret-key-change-in-production')
-JWT_ALGORITHM = 'HS256'
-JWT_EXPIRATION_HOURS = 24
 
 # Create the main app - redirect_slashes=False prevents 307 redirects that lose auth headers
 app = FastAPI(title="AI Support Hub API", redirect_slashes=False)
@@ -45,8 +34,6 @@ admin_router = APIRouter(prefix="/admin", tags=["admin"])
 users_router = APIRouter(prefix="/users", tags=["users"])
 profile_router = APIRouter(prefix="/profile", tags=["profile"])
 
-security = HTTPBearer()
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -54,7 +41,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ============== MODELS ==============
+# ============== RESPONSE MODELS (Keep inline for now) ==============
 
 class UserCreate(BaseModel):
     email: EmailStr
