@@ -472,7 +472,7 @@ const Agents = () => {
                       setSelectedAgent(agent);
                       setShowTestDialog(true);
                       setTestMessage('');
-                      setTestResponse(null);
+                      setConversationHistory([]);
                     }}
                   >
                     <TestTube className="h-4 w-4" />
