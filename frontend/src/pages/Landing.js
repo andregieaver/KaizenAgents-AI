@@ -12,20 +12,32 @@ const Landing = () => {
   const { isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [platformName, setPlatformName] = useState('AI Support Hub');
+  const [platformLogo, setPlatformLogo] = useState(null);
 
   useEffect(() => {
-    const fetchPlatformName = async () => {
+    const fetchPlatformInfo = async () => {
       try {
         const response = await axios.get(`${API}/public/platform-info`);
         if (response.data?.platform_name) {
           setPlatformName(response.data.platform_name);
         }
+        if (response.data?.platform_logo) {
+          setPlatformLogo(response.data.platform_logo);
+        }
       } catch (error) {
-        console.debug('Could not fetch platform name, using default');
+        console.debug('Could not fetch platform info, using defaults');
       }
     };
-    fetchPlatformName();
+    fetchPlatformInfo();
   }, []);
+
+  const getPlatformLogoSrc = (url) => {
+    if (!url) return null;
+    if (url.startsWith('/api/')) {
+      return `${process.env.REACT_APP_BACKEND_URL}${url}`;
+    }
+    return url;
+  };
 
   return (
     <div className="min-h-screen bg-background" data-testid="landing-page">
