@@ -240,6 +240,18 @@ backend:
           agent: "testing"
           comment: "Widget correctly refuses general knowledge questions (capital of France test) with proper response: 'I don't have that information in my knowledge base. Please contact our support team for assistance.' Knowledge base enforcement working correctly."
 
+  - task: "Widget Endpoint Comprehensive Testing"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "WIDGET ENDPOINT COMPREHENSIVE TESTING COMPLETED - All widget functionality working perfectly! Tested with specific tenant ID '1c752635-c958-435d-8a48-a1f1209cccd4' as requested. ✅ Session Creation: POST /api/widget/session successfully creates sessions with valid session_token and conversation_id. ✅ Message & AI Response: POST /api/widget/messages/{conversation_id}?token={session_token} successfully processes customer messages and generates AI responses immediately. AI responses are not empty (446 characters) and contain relevant document content from RAG system. ✅ Message Persistence: Both customer and AI messages are properly saved in database and retrievable via GET endpoint. ✅ Conversation Flow: Follow-up messages work correctly maintaining conversation context. Widget API fully functional with proper authentication, RAG integration, and database persistence."
+
   - task: "File Upload to GCS - User Avatars"
     implemented: true
     working: true
