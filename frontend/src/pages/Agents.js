@@ -29,7 +29,8 @@ import {
   MessageSquare,
   X,
   Send,
-  User
+  User,
+  Edit
 } from 'lucide-react';
 import { toast } from 'sonner';
 
