@@ -733,6 +733,88 @@ const Agents = () => {
                 />
               </div>
             </div>
+
+            <Separator className="my-4" />
+
+            {/* Language Configuration */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-base">Response Language</Label>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Configure the language for AI responses
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-4 pl-4 border-l-2 border-muted">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-response-language">Preferred Language</Label>
+                  <LanguageSelector
+                    value={editAgent.response_language}
+                    onValueChange={(lang) => setEditAgent({ ...editAgent, response_language: lang })}
+                    placeholder="Select language..."
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    AI will attempt to respond in this language
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between space-x-2 p-3 rounded-lg bg-muted/50">
+                  <div className="flex-1">
+                    <Label htmlFor="edit-force-language" className="cursor-pointer">
+                      Force Language
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Always use selected language, ignore auto-detection
+                    </p>
+                  </div>
+                  <Switch
+                    id="edit-force-language"
+                    checked={editAgent.force_language}
+                    onCheckedChange={(checked) => setEditAgent({ ...editAgent, force_language: checked })}
+                  />
+                </div>
+
+                {!editAgent.force_language && (
+                  <div className="space-y-2">
+                    <Label>Auto-Detection Method</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setEditAgent({ ...editAgent, language_detection_method: 'browser' })}
+                        className={cn(
+                          "p-3 rounded-lg border-2 text-sm transition-all",
+                          editAgent.language_detection_method === 'browser'
+                            ? "border-primary bg-primary/10"
+                            : "border-border hover:border-primary/50"
+                        )}
+                      >
+                        <div className="font-medium">Browser Language</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Detect from user's browser settings
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditAgent({ ...editAgent, language_detection_method: 'ip' })}
+                        className={cn(
+                          "p-3 rounded-lg border-2 text-sm transition-all",
+                          editAgent.language_detection_method === 'ip'
+                            ? "border-primary bg-primary/10"
+                            : "border-border hover:border-primary/50"
+                        )}
+                      >
+                        <div className="font-medium">IP Geolocation</div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          Detect from user's location
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
           
           <div className="flex justify-end gap-2">
