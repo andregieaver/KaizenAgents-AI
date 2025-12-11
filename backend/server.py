@@ -2269,6 +2269,25 @@ async def upload_company_document(
     with open(filepath, "wb") as f:
         f.write(contents)
     
+    # Get company's agent to find the provider API key
+    config = await db.company_agent_configs.find_one({"company_id": company_id}, {"_id": 0})
+    if not config or not config.get("agent_id"):
+        raise HTTPException(
+            status_code=400,
+            detail="Please configure an AI agent before uploading documents"
+        )
+    
+    agent = await db.agents.find_one({"id": config["agent_id"]}, {"_id": 0})
+    if not agent:
+        raise HTTPException(status_code=404, detail="Configured agent not found")
+    
+    provider = await db.providers.find_one({"id": agent["provider_id"]}, {"_id": 0})
+    if not provider or provider.get("type") != "openai":
+        raise HTTPException(
+            status_code=400,
+            detail="RAG currently only supports OpenAI providers. Please configure an OpenAI agent."
+        )
+    
     # Process document with RAG (extract text, chunk, embed)
     try:
         from rag_service import process_document
@@ -2277,7 +2296,8 @@ async def upload_company_document(
             filepath=str(filepath),
             filename=file.filename,
             company_id=company_id,
-            doc_id=doc_id
+            doc_id=doc_id,
+            api_key=provider["api_key"]
         )
         
         # Store chunks with embeddings in MongoDB
