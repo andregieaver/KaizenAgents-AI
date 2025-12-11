@@ -1063,7 +1063,8 @@ async def list_all_tenants(admin_user: dict = Depends(get_super_admin_user)):
             "conversation_count": conv_count,
             "user_count": user_count,
             "has_api_key": bool(settings and settings.get("openai_api_key")),
-            "brand_name": settings.get("brand_name") if settings else None
+            "brand_name": settings.get("brand_name") if settings else None,
+            "brand_logo": settings.get("brand_logo") if settings else None
         })
     
     return enriched_tenants
