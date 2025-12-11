@@ -14,6 +14,10 @@ JWT_EXPIRATION_HOURS = 24
 
 security = HTTPBearer()
 
+__all__ = ['hash_password', 'verify_password', 'create_token', 'decode_token', 
+           'get_current_user', 'is_super_admin', 'get_super_admin_user', 
+           'can_manage_users', 'get_admin_or_owner_user', 'JWT_SECRET', 'JWT_ALGORITHM']
+
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
