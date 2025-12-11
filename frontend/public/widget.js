@@ -15,13 +15,25 @@
   let isOpen = false;
   let conversationId = null;
   let settings = null;
+  let agentInfo = null;
 
-  // Fetch widget settings
+  // Fetch widget settings and agent info
   async function fetchSettings() {
     try {
       const response = await fetch(`${apiUrl}/widget/${tenantId}/settings`);
       if (response.ok) {
         settings = await response.json();
+        
+        // Fetch agent configuration
+        try {
+          const agentResponse = await fetch(`${apiUrl}/widget/${tenantId}/agent-info`);
+          if (agentResponse.ok) {
+            agentInfo = await agentResponse.json();
+          }
+        } catch (err) {
+          console.log('No agent configured');
+        }
+        
         return settings;
       }
     } catch (error) {
