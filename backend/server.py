@@ -1907,12 +1907,16 @@ async def test_agent_conversation(
             # Inject agent name into system prompt for self-awareness
             enhanced_prompt = f"Your name is {agent['name']}. {agent['system_prompt']}"
             
+            # Build messages with conversation history
+            messages = list(request.history)
+            messages.append({"role": "user", "content": request.message})
+            
             response = client.messages.create(
                 model=agent["model"],
                 max_tokens=agent["max_tokens"],
                 temperature=agent["temperature"],
                 system=enhanced_prompt,
-                messages=[{"role": "user", "content": message}]
+                messages=messages
             )
             reply = response.content[0].text
         
