@@ -413,26 +413,50 @@ async def generate_ai_response(messages: List[dict], settings: dict) -> str:
         # Build enhanced system prompt with STRICT knowledge base enforcement
         brand_name = settings.get("brand_name", "the company")
         
+        # Retrieve relevant context from RAG if documents exist
+        context = ""
+        if has_documents:
+            try:
+                from rag_service import retrieve_relevant_chunks, format_context_for_agent
+                
+                # Get the latest user message
+                latest_message = latest_message if 'latest_message' in locals() else message
+                
+                # Retrieve relevant chunks
+                relevant_chunks = await retrieve_relevant_chunks(
+                    query=latest_message,
+                    company_id=tenant_id,
+                    db=db,
+                    top_k=5
+                )
+                
+                if relevant_chunks:
+                    context = format_context_for_agent(relevant_chunks)
+            except Exception as e:
+                logger.error(f"RAG retrieval error: {str(e)}")
+                # Continue without context if RAG fails
+        
         # START WITH CRITICAL CONSTRAINTS (most important comes first)
         if not has_knowledge_base:
             # NO knowledge base uploaded - reject ALL questions
             base_prompt = f"""Your name is {agent['name']}. You are assisting customers for {brand_name}.
 
 CRITICAL: There is NO knowledge base configured yet. You must respond to ALL customer questions with:
-"I don't have access to any company documentation yet. Please contact our support team at {agent_config.get('custom_instructions', 'support')} for assistance."
+"I don't have access to any company documentation yet. Please contact our support team for assistance."
 
 DO NOT answer any questions. DO NOT use general knowledge. DO NOT be helpful beyond this message.
 Your ONLY job is to direct customers to human support."""
         else:
-            # Knowledge base exists - strict limits
+            # Knowledge base exists - inject retrieved context
             base_prompt = f"""Your name is {agent['name']}.
 
+{context}
+
 CRITICAL INSTRUCTIONS (MUST FOLLOW):
-1. You may ONLY answer questions using the company's uploaded documents and scraped website content.
-2. If information is not in the knowledge base, respond EXACTLY: "I don't have that information in my knowledge base. Please contact our support team for assistance."
+1. You may ONLY answer questions using the information provided above from the company's documents.
+2. If the answer is not in the provided information, respond EXACTLY: "I don't have that information in my knowledge base. Please contact our support team for assistance."
 3. NEVER use general knowledge, world facts, or information outside the provided documents.
-4. NEVER answer questions about topics not covered in the documentation.
-5. If unsure whether information is in the knowledge base, say you don't have it.
+4. Cite the source document when answering (e.g., "According to [filename]...").
 
 {agent['system_prompt']}
 
