@@ -107,7 +107,7 @@ const DashboardLayout = () => {
             <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center">
               <MessageSquare className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-heading font-bold">Support Hub</span>
+            <span className="font-heading font-bold">{platformName}</span>
           </Link>
           <Button 
             variant="ghost" 
