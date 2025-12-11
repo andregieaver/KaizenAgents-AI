@@ -2332,19 +2332,27 @@ async def upload_company_document(
         chunks_count = len(chunk_docs)
         
     except Exception as e:
-        # If processing fails, delete the file and return error
-        if filepath.exists():
-            filepath.unlink()
+        # Clean up temp file if processing fails
+        import os
+        if os.path.exists(filepath):
+            os.unlink(filepath)
+        # Also delete from storage
+        await storage.delete_file(doc_url)
         raise HTTPException(
             status_code=500,
             detail=f"Failed to process document: {str(e)}"
         )
+    finally:
+        # Clean up temp file
+        import os
+        if os.path.exists(filepath):
+            os.unlink(filepath)
     
     # Create document info
     doc_info = {
         "id": doc_id,
         "filename": file.filename,
-        "filepath": f"/api/uploads/company_docs/{company_id}/{safe_filename}",
+        "filepath": doc_url,  # Use storage URL
         "upload_date": datetime.now(timezone.utc).isoformat(),
         "file_size": file_size,
         "chunks_count": chunks_count,
