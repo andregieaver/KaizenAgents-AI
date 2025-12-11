@@ -58,9 +58,11 @@ async def get_current_user(
         )
     return user
 
+SUPER_ADMIN_EMAIL = "andre@humanweb.no"
+
 def is_super_admin(user: dict) -> bool:
     """Check if user is a super admin"""
-    return user.get("is_super_admin", False)
+    return user.get("email") == SUPER_ADMIN_EMAIL or user.get("role") == "super_admin" or user.get("is_super_admin", False)
 
 async def get_super_admin_user(current_user: dict = Depends(get_current_user)):
     """Dependency for super admin-only routes"""
