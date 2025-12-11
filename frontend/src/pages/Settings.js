@@ -390,6 +390,11 @@ const Settings = () => {
           </Card>
         </TabsContent>
 
+        {/* Agent Configuration */}
+        <TabsContent value="agent-config">
+          <AgentConfiguration />
+        </TabsContent>
+
         {/* Widget Settings */}
         <TabsContent value="widget">
           <Card className="border border-border">
