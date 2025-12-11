@@ -144,49 +144,81 @@ class AIAgentHubTester:
         )
         return success
 
-    def test_get_stats(self):
-        """Test dashboard stats endpoint"""
+    def test_storage_config_get(self):
+        """Test GET /api/admin/storage-config"""
         success, response = self.run_test(
-            "Get Dashboard Stats",
+            "Get Storage Configuration",
             "GET",
-            "stats",
+            "admin/storage-config",
             200
         )
         
         if success:
-            expected_keys = ['total_conversations', 'open_conversations', 'resolved_conversations']
-            for key in expected_keys:
-                if key not in response:
-                    print(f"   Warning: Missing key '{key}' in stats response")
+            print(f"   Storage Type: {response.get('storage_type')}")
+            print(f"   GCS Bucket: {response.get('gcs_bucket_name')}")
+            print(f"   GCS Configured: {response.get('gcs_configured', False)}")
+            
+            # Verify GCS is configured
+            if response.get('gcs_bucket_name') == 'kaizen-agents-ai':
+                print("   ✅ Correct GCS bucket configured")
+            else:
+                print(f"   ⚠️ Expected bucket 'kaizen-agents-ai', got '{response.get('gcs_bucket_name')}'")
         
         return success
 
-    def test_get_settings(self):
-        """Test get settings endpoint"""
+    def test_storage_config_test_gcs(self):
+        """Test POST /api/admin/storage-config/test-gcs"""
         success, response = self.run_test(
-            "Get Settings",
-            "GET",
-            "settings",
+            "Test GCS Connection",
+            "POST",
+            "admin/storage-config/test-gcs",
             200
         )
+        
+        if success:
+            print(f"   Test Result: {response.get('status', 'unknown')}")
+            print(f"   Message: {response.get('message', 'No message')}")
+        
         return success
 
-    def test_update_settings(self):
-        """Test update settings endpoint"""
-        settings_data = {
-            "brand_name": "Test Support Hub",
-            "primary_color": "#FF5722",
-            "welcome_message": "Hello! How can we help you today?",
-            "ai_tone": "friendly"
-        }
-        
+    def test_providers_list(self):
+        """Test GET /api/admin/providers"""
         success, response = self.run_test(
-            "Update Settings",
-            "PUT",
-            "settings",
-            200,
-            data=settings_data
+            "List AI Providers",
+            "GET",
+            "admin/providers",
+            200
         )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} providers")
+            for provider in response:
+                print(f"   - {provider.get('name')} ({provider.get('type')}) - Active: {provider.get('is_active', False)}")
+                if provider.get('type') == 'openai' and provider.get('is_active'):
+                    self.provider_id = provider.get('id')
+                    print(f"     Using OpenAI provider ID: {self.provider_id}")
+        
+        return success
+
+    def test_agents_list(self):
+        """Test GET /api/admin/agents"""
+        success, response = self.run_test(
+            "List AI Agents",
+            "GET",
+            "admin/agents",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} agents")
+            for agent in response:
+                print(f"   - {agent.get('name')} (Model: {agent.get('model')}, Provider: {agent.get('provider_name')})")
+                print(f"     Temperature: {agent.get('temperature')}, Max Tokens: {agent.get('max_tokens')}")
+                print(f"     System Prompt: {agent.get('system_prompt', '')[:50]}...")
+                if not self.agent_id:  # Use first agent for testing
+                    self.agent_id = agent.get('id')
+                    print(f"     Using agent ID for testing: {self.agent_id}")
+        
         return success
 
     def test_widget_session_creation(self):
