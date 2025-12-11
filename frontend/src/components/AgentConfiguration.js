@@ -63,8 +63,13 @@ const AgentConfiguration = () => {
       setFormData({
         agent_id: configRes.data.agent_id || '',
         custom_instructions: configRes.data.custom_instructions || '',
-        scraping_domains: configRes.data.scraping_domains?.join(', ') || ''
+        scraping_domains: configRes.data.scraping_domains?.join(', ') || '',
+        scraping_max_depth: configRes.data.scraping_max_depth || 2,
+        scraping_max_pages: configRes.data.scraping_max_pages || 50
       });
+      
+      // Fetch scraping status
+      fetchScrapingStatus();
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load agent configuration');
