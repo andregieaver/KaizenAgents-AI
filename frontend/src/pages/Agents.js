@@ -727,6 +727,17 @@ const Agents = () => {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Version History Dialog */}
+      <AgentVersionHistory
+        agentId={versionHistoryAgent?.id}
+        agentName={versionHistoryAgent?.name}
+        open={showVersionHistory}
+        onOpenChange={setShowVersionHistory}
+        onRollback={() => {
+          fetchData();
+          setShowVersionHistory(false);
+        }}
+      />
     </div>
   );
 };
