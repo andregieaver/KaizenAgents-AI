@@ -349,9 +349,9 @@ const SuperAdmin = () => {
             {/* Tenant Details */}
             <Card className="border border-border">
               <CardHeader>
-                <CardTitle className="font-heading">Tenant Details</CardTitle>
+                <CardTitle className="font-heading">Company Details</CardTitle>
                 <CardDescription>
-                  {selectedTenant ? 'View and manage tenant' : 'Select a tenant to view details'}
+                  {selectedTenant ? 'View and manage company' : 'Select a company to view details'}
                 </CardDescription>
               </CardHeader>
               <CardContent>
