@@ -21,8 +21,10 @@ import {
   User
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const getAvatarSrc = (url) => {
   if (!url) return null;
