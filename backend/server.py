@@ -202,6 +202,31 @@ class TestConversationRequest(BaseModel):
     message: str
     history: List[dict] = []  # [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
 
+# ============== COMPANY AGENT CONFIG MODELS ==============
+
+class CompanyAgentConfigUpdate(BaseModel):
+    agent_id: Optional[str] = None
+    custom_instructions: Optional[str] = None
+    scraping_domains: Optional[List[str]] = None
+
+class DocumentInfo(BaseModel):
+    filename: str
+    filepath: str
+    upload_date: str
+    file_size: int
+
+class CompanyAgentConfigResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    company_id: str
+    agent_id: Optional[str] = None
+    agent_name: Optional[str] = None
+    custom_instructions: Optional[str] = None
+    uploaded_docs: List[DocumentInfo] = []
+    scraping_domains: List[str] = []
+    is_active: bool
+    updated_at: str
+
 class ConversationResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
