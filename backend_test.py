@@ -1,9 +1,10 @@
 import requests
 import sys
 import json
+import io
 from datetime import datetime
 
-class AICustomerSupportTester:
+class AIAgentHubTester:
     def __init__(self, base_url="https://ai-agent-hub-55.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
@@ -13,6 +14,9 @@ class AICustomerSupportTester:
         self.tests_passed = 0
         self.conversation_id = None
         self.session_token = None
+        self.provider_id = None
+        self.agent_id = None
+        self.test_results = []
 
     def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
         """Run a single API test"""
