@@ -462,7 +462,6 @@ const SuperAdmin = () => {
                               <p className="text-xs text-muted-foreground truncate">{tenant.id}</p>
                             </div>
                           </div>
-                          </div>
                           <div className="flex items-center gap-3">
                             <div className="text-right text-xs text-muted-foreground">
                               <p>{tenant.conversation_count} conversations</p>
