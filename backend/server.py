@@ -1007,6 +1007,43 @@ async def update_platform_settings(
     settings = await db.platform_settings.find_one({"id": "platform"}, {"_id": 0})
     return settings
 
+@admin_router.post("/platform-logo")
+async def upload_platform_logo(
+    file: UploadFile = File(...),
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Upload platform logo image file (super admin only)"""
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPEG, PNG, GIF, WebP, SVG")
+    
+    # Validate file size (max 5MB)
+    contents = await file.read()
+    if len(contents) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large. Maximum size: 5MB")
+    
+    # Generate unique filename
+    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    filename = f"platform_logo_{uuid.uuid4().hex[:8]}.{ext}"
+    filepath = UPLOADS_DIR / filename
+    
+    # Save file
+    with open(filepath, "wb") as f:
+        f.write(contents)
+    
+    # Generate URL (relative to API)
+    logo_url = f"/api/uploads/{filename}"
+    
+    # Update platform settings
+    await db.platform_settings.update_one(
+        {"id": "platform"},
+        {"$set": {"platform_logo": logo_url, "updated_at": datetime.now(timezone.utc).isoformat()}},
+        upsert=True
+    )
+    
+    return {"message": "Platform logo uploaded", "platform_logo": logo_url}
+
 @admin_router.get("/tenants")
 async def list_all_tenants(admin_user: dict = Depends(get_super_admin_user)):
     """List all tenants (super admin only)"""
