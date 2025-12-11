@@ -252,21 +252,115 @@ const AgentConfiguration = () => {
           </div>
 
           {/* Web Scraping Domains */}
-          <div className="space-y-2">
-            <Label htmlFor="scraping-domains">
-              <Globe className="h-4 w-4 inline mr-2" />
-              Web Scraping Domains
-              <span className="text-xs text-muted-foreground ml-2">(Optional, Phase 4)</span>
-            </Label>
-            <Input
-              id="scraping-domains"
-              placeholder="example.com, docs.example.com"
-              value={formData.scraping_domains}
-              onChange={(e) => setFormData({ ...formData, scraping_domains: e.target.value })}
-            />
-            <p className="text-xs text-muted-foreground">
-              Comma-separated list of domains to scrape for agent context
-            </p>
+          <div className="space-y-3 p-4 border border-border rounded-lg bg-muted/30">
+            <div className="space-y-2">
+              <Label htmlFor="scraping-domains">
+                <Globe className="h-4 w-4 inline mr-2" />
+                Web Scraping Domains
+              </Label>
+              <Input
+                id="scraping-domains"
+                placeholder="https://example.com, https://docs.example.com"
+                value={formData.scraping_domains}
+                onChange={(e) => setFormData({ ...formData, scraping_domains: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Comma-separated list of domain URLs to scrape for agent context
+              </p>
+            </div>
+
+            {/* Scraping Configuration */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="max-depth" className="text-xs">
+                  Max Depth
+                </Label>
+                <Input
+                  id="max-depth"
+                  type="number"
+                  min="1"
+                  max="5"
+                  value={formData.scraping_max_depth}
+                  onChange={(e) => setFormData({ ...formData, scraping_max_depth: e.target.value })}
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground">Levels to crawl (1-5)</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="max-pages" className="text-xs">
+                  Max Pages/Domain
+                </Label>
+                <Input
+                  id="max-pages"
+                  type="number"
+                  min="1"
+                  max="200"
+                  value={formData.scraping_max_pages}
+                  onChange={(e) => setFormData({ ...formData, scraping_max_pages: e.target.value })}
+                  className="text-sm"
+                />
+                <p className="text-xs text-muted-foreground">Pages limit (1-200)</p>
+              </div>
+            </div>
+
+            {/* Scraping Status */}
+            {scrapingStatus && scrapingStatus.domains.length > 0 && (
+              <div className="flex items-center justify-between p-3 bg-background border border-border rounded-md">
+                <div className="flex items-center gap-2">
+                  {scrapingStatus.status === 'in_progress' && (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                      <span className="text-sm">Scraping in progress...</span>
+                    </>
+                  )}
+                  {scrapingStatus.status === 'completed' && (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span className="text-sm">{scrapingStatus.pages_scraped} pages scraped</span>
+                    </>
+                  )}
+                  {scrapingStatus.status === 'failed' && (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                      <span className="text-sm">Scraping failed</span>
+                    </>
+                  )}
+                  {scrapingStatus.status === 'idle' && (
+                    <>
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Ready to scrape</span>
+                    </>
+                  )}
+                </div>
+                {scrapingStatus.last_scraped_at && (
+                  <span className="text-xs text-muted-foreground">
+                    Last: {new Date(scrapingStatus.last_scraped_at).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Trigger Scraping Button */}
+            {formData.scraping_domains && (
+              <Button
+                variant="outline"
+                onClick={() => handleTriggerScraping(false)}
+                disabled={scraping || scrapingStatus?.status === 'in_progress'}
+                className="w-full"
+              >
+                {scraping ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Scraping...
+                  </>
+                ) : (
+                  <>
+                    <Globe className="h-4 w-4 mr-2" />
+                    Trigger Web Scraping
+                  </>
+                )}
+              </Button>
+            )}
           </div>
 
           {/* Save Button */}
