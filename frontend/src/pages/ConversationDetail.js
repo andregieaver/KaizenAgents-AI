@@ -8,6 +8,7 @@ import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Separator } from '../components/ui/separator';
+import { Sheet, SheetContent, SheetTrigger } from '../components/ui/sheet';
 import {
   MessageSquare,
   Send,
@@ -17,7 +18,9 @@ import {
   ArrowLeft,
   CheckCircle,
   Hand,
-  Sparkles
+  Sparkles,
+  Menu,
+  X
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { toast } from 'sonner';
