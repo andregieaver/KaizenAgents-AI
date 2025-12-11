@@ -167,6 +167,45 @@ def process_document(filepath: str, filename: str, company_id: str, doc_id: str,
     return chunk_docs
 
 
+def process_web_content(content: str, source_url: str, title: str, company_id: str, content_hash: str, api_key: str) -> List[Dict]:
+    """
+    Process scraped web content: chunk it, generate embeddings
+    Returns list of chunk documents ready to insert into MongoDB
+    """
+    # Clean text
+    text = re.sub(r'\s+', ' ', content).strip()
+    
+    if not text or len(text.strip()) < 100:
+        raise ValueError("Web content is too short")
+    
+    # Chunk text
+    chunks = chunk_text(text)
+    
+    if not chunks:
+        raise ValueError("No chunks generated from web content")
+    
+    # Generate embeddings for all chunks
+    embeddings = generate_embeddings(chunks, api_key)
+    
+    # Create chunk documents
+    chunk_docs = []
+    for idx, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
+        chunk_doc = {
+            "company_id": company_id,
+            "source_type": "web",
+            "source_url": source_url,
+            "title": title,
+            "content_hash": content_hash,
+            "chunk_index": idx,
+            "text": chunk,
+            "embedding": embedding,
+            "token_count": estimate_tokens(chunk)
+        }
+        chunk_docs.append(chunk_doc)
+    
+    return chunk_docs
+
+
 def cosine_similarity(a: List[float], b: List[float]) -> float:
     """Calculate cosine similarity between two vectors"""
     dot_product = sum(x * y for x, y in zip(a, b))
