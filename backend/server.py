@@ -202,6 +202,22 @@ class TestConversationRequest(BaseModel):
     message: str
     history: List[dict] = []  # [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
 
+# ============== STORAGE CONFIG MODELS ==============
+
+class StorageConfigCreate(BaseModel):
+    storage_type: Literal["local", "gcs", "s3", "azure"]
+    gcs_service_account_json: Optional[str] = None
+    gcs_bucket_name: Optional[str] = None
+    gcs_region: Optional[str] = "us-central1"
+
+class StorageConfigResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    storage_type: str
+    gcs_bucket_name: Optional[str] = None
+    gcs_region: Optional[str] = None
+    gcs_configured: bool = False
+    updated_at: Optional[str] = None
+
 # ============== COMPANY AGENT CONFIG MODELS ==============
 
 class CompanyAgentConfigUpdate(BaseModel):
