@@ -18,6 +18,7 @@ import SuperAdmin from "./pages/SuperAdmin";
 import Team from "./pages/Team";
 import Profile from "./pages/Profile";
 import Providers from "./pages/Providers";
+import Agents from "./pages/Agents";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
