@@ -422,7 +422,7 @@ const Agents = () => {
 
               {/* Actions */}
               <div className="space-y-2">
-                <div className="flex gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <input
                     type="file"
                     ref={avatarInputRef}
@@ -433,24 +433,27 @@ const Agents = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
                     onClick={() => avatarInputRef.current?.click()}
                     disabled={uploadingAvatar === agent.id}
                   >
                     {uploadingAvatar === agent.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
-                      <>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Avatar
-                      </>
+                      <Upload className="h-4 w-4" />
                     )}
                   </Button>
                   
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    onClick={() => openEditDialog(agent)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={() => {
                       setSelectedAgent(agent);
                       setShowTestDialog(true);
@@ -458,8 +461,7 @@ const Agents = () => {
                       setTestResponse(null);
                     }}
                   >
-                    <TestTube className="h-4 w-4 mr-2" />
-                    Test
+                    <TestTube className="h-4 w-4" />
                   </Button>
                 </div>
                 
