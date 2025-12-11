@@ -270,6 +270,66 @@ backend:
           agent: "testing"
           comment: "Fixed storage service ACL handling. POST /api/admin/agents/{agent_id}/avatar successfully uploads agent avatars to GCS bucket. Returns GCS URLs that are publicly accessible. Agent avatar upload fully functional."
 
+  - task: "Web Scraping Status Endpoint"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "GET /api/settings/agent-config/scrape-status returns correct initial status 'idle', shows configured domains ['humanweb.ai'], and pages_scraped: 0. Endpoint working correctly."
+
+  - task: "Web Scraping Configuration Update"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "PATCH /api/settings/agent-config successfully updates scraping configuration. Set scraping_domains to ['https://example.com'], scraping_max_depth to 1, scraping_max_pages to 5. Configuration update verified through GET endpoint."
+
+  - task: "Web Scraping Trigger"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "POST /api/settings/agent-config/scrape successfully triggers web scraping of example.com. Returns status 'success', pages_scraped: 1, chunks_created: 1. Scraping completes within expected timeframe with rate limiting."
+
+  - task: "Web Scraping Chunks Storage"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Web scraping chunks successfully stored in MongoDB document_chunks collection. Verified through scrape-status endpoint showing pages_scraped: 1. Chunks have source_type='web' and source_url containing 'example.com' as expected."
+
+  - task: "Web Scraping Status After Completion"
+    implemented: true
+    working: true
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Scraping status correctly updates from 'idle' -> 'in_progress' -> 'completed'. Shows pages_scraped > 0, last_scraped_at timestamp populated. Status transitions working correctly throughout scraping lifecycle."
+
 frontend:
   - task: "Agents Page Navigation and Access"
     implemented: true
