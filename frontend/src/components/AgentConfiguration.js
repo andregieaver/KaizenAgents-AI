@@ -71,7 +71,9 @@ const AgentConfiguration = () => {
         custom_instructions: configRes.data.custom_instructions || '',
         scraping_domains: configRes.data.scraping_domains?.join(', ') || '',
         scraping_max_depth: configRes.data.scraping_max_depth || 2,
-        scraping_max_pages: configRes.data.scraping_max_pages || 50
+        scraping_max_pages: configRes.data.scraping_max_pages || 50,
+        response_language: configRes.data.response_language || null,
+        language_mode: configRes.data.language_mode || 'browser'
       });
       
       // Fetch scraping status
