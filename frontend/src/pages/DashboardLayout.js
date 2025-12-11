@@ -19,7 +19,8 @@ import {
   Shield,
   Users,
   User,
-  Bot
+  Bot,
+  Database
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import axios from 'axios';
