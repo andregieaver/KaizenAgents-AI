@@ -104,10 +104,10 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
     return chunks
 
 
-def generate_embeddings(texts: List[str]) -> List[List[float]]:
+def generate_embeddings(texts: List[str], api_key: str) -> List[List[float]]:
     """Generate embeddings using OpenAI text-embedding-3-small"""
     try:
-        client = OpenAI(api_key=EMERGENT_LLM_KEY)
+        client = OpenAI(api_key=api_key)
         
         # OpenAI allows batch embedding (up to 2048 texts)
         embeddings = []
