@@ -249,6 +249,16 @@ class CompanyAgentConfigResponse(BaseModel):
     is_active: bool
     updated_at: str
 
+class ScrapingTriggerRequest(BaseModel):
+    force_refresh: bool = False  # Re-scrape even if recently scraped
+
+class ScrapingStatusResponse(BaseModel):
+    status: str  # 'idle', 'in_progress', 'completed', 'failed'
+    pages_scraped: int = 0
+    last_scraped_at: Optional[str] = None
+    error_message: Optional[str] = None
+    domains: List[str] = []
+
 class ConversationResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
