@@ -1840,13 +1840,17 @@ async def rollback_agent_version(
     
     return {"status": "success", "message": f"Rolled back to version {version}", "new_version": new_version}
 
+class TestConversationRequest(BaseModel):
+    message: str
+    history: List[dict] = []  # [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
+
 @admin_router.post("/agents/{agent_id}/test")
 async def test_agent_conversation(
     agent_id: str,
-    message: str = "Hello, can you help me?",
+    request: TestConversationRequest,
     admin_user: dict = Depends(get_super_admin_user)
 ):
-    """Test agent in sandbox (ephemeral)"""
+    """Test agent in sandbox with conversation history support"""
     agent = await db.agents.find_one({"id": agent_id}, {"_id": 0})
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
@@ -1873,12 +1877,14 @@ async def test_agent_conversation(
             # Inject agent name into system prompt for self-awareness
             enhanced_prompt = f"Your name is {agent['name']}. {agent['system_prompt']}"
             
+            # Build messages with conversation history
+            messages = [{"role": "system", "content": enhanced_prompt}]
+            messages.extend(request.history)
+            messages.append({"role": "user", "content": request.message})
+            
             params = {
                 "model": agent["model"],
-                "messages": [
-                    {"role": "system", "content": enhanced_prompt},
-                    {"role": "user", "content": message}
-                ]
+                "messages": messages
             }
             
             # Only add temperature for models that support it
