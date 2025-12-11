@@ -9,12 +9,13 @@ from typing import List, Optional, Literal
 import uuid
 from datetime import datetime, timezone
 import jwt
+from datetime import timedelta
 
 # Import from modular structure
 from models import *
 from middleware import get_current_user, get_super_admin_user, get_admin_or_owner_user
 from middleware.database import db
-from middleware.auth import create_token, hash_password, verify_password, is_super_admin
+from middleware.auth import create_token, hash_password, verify_password, is_super_admin, JWT_SECRET, JWT_ALGORITHM
 from utils import mask_api_key, get_provider_models
 
 ROOT_DIR = Path(__file__).parent
