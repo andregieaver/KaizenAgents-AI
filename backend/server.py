@@ -2409,6 +2409,117 @@ async def delete_company_document(
     
     return {"status": "success", "message": "Document deleted"}
 
+# ============== STORAGE CONFIGURATION ROUTES ==============
+
+@admin_router.get("/storage-config", response_model=StorageConfigResponse)
+async def get_storage_config(admin_user: dict = Depends(get_super_admin_user)):
+    """Get storage configuration (Super Admin only)"""
+    config = await db.storage_config.find_one({}, {"_id": 0})
+    
+    if not config:
+        return {
+            "storage_type": "local",
+            "gcs_bucket_name": None,
+            "gcs_region": None,
+            "gcs_configured": False,
+            "updated_at": None
+        }
+    
+    return {
+        "storage_type": config.get("storage_type", "local"),
+        "gcs_bucket_name": config.get("gcs_bucket_name"),
+        "gcs_region": config.get("gcs_region"),
+        "gcs_configured": bool(config.get("gcs_service_account_json")),
+        "updated_at": config.get("updated_at")
+    }
+
+@admin_router.post("/storage-config")
+async def update_storage_config(
+    config: StorageConfigCreate,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Update storage configuration (Super Admin only)"""
+    
+    # Validate GCS configuration
+    if config.storage_type == "gcs":
+        if not config.gcs_service_account_json or not config.gcs_bucket_name:
+            raise HTTPException(
+                status_code=400,
+                detail="GCS requires service account JSON and bucket name"
+            )
+        
+        # Validate JSON format
+        try:
+            import json
+            json.loads(config.gcs_service_account_json)
+        except:
+            raise HTTPException(status_code=400, detail="Invalid service account JSON")
+    
+    # Prepare config document
+    config_doc = {
+        "storage_type": config.storage_type,
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": admin_user["id"]
+    }
+    
+    if config.storage_type == "gcs":
+        config_doc.update({
+            "gcs_service_account_json": config.gcs_service_account_json,
+            "gcs_bucket_name": config.gcs_bucket_name,
+            "gcs_region": config.gcs_region or "us-central1"
+        })
+    
+    # Upsert configuration (only one config document)
+    await db.storage_config.update_one(
+        {},
+        {"$set": config_doc},
+        upsert=True
+    )
+    
+    return {"status": "success", "message": "Storage configuration updated"}
+
+@admin_router.post("/storage-config/test-gcs")
+async def test_gcs_connection(admin_user: dict = Depends(get_super_admin_user)):
+    """Test GCS connection with current configuration"""
+    config = await db.storage_config.find_one({}, {"_id": 0})
+    
+    if not config or config.get("storage_type") != "gcs":
+        raise HTTPException(status_code=400, detail="GCS not configured")
+    
+    try:
+        from google.cloud import storage
+        import json
+        import tempfile
+        
+        # Create credentials from JSON
+        service_account_info = json.loads(config["gcs_service_account_json"])
+        
+        # Test connection
+        client = storage.Client.from_service_account_info(service_account_info)
+        bucket = client.bucket(config["gcs_bucket_name"])
+        
+        # Check if bucket exists and is accessible
+        exists = bucket.exists()
+        
+        if exists:
+            return {
+                "status": "success",
+                "message": f"Successfully connected to bucket: {config['gcs_bucket_name']}",
+                "bucket_exists": True
+            }
+        else:
+            return {
+                "status": "warning",
+                "message": f"Bucket '{config['gcs_bucket_name']}' does not exist. You may need to create it.",
+                "bucket_exists": False
+            }
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"GCS connection failed: {str(e)}"
+        )
+
 # ============== PROFILE ROUTES ==============
 
 @profile_router.get("", response_model=ProfileResponse)
