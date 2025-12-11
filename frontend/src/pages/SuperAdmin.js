@@ -174,7 +174,7 @@ const SuperAdmin = () => {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
         <StatCard
           icon={<Building2 className="h-5 w-5" />}
-          label="Total Tenants"
+          label="Total Companies"
           value={platformStats?.total_tenants || 0}
           color="blue"
         />
