@@ -367,6 +367,18 @@ frontend:
           agent: "testing"
           comment: "Create Agent dialog opens successfully. Form fields work correctly: Agent Name input, Provider dropdown (OpenAI selection works), Model dropdown (gpt-4 selection works after provider selection), System Prompt textarea, Temperature slider (0.7 default), Max Tokens input (2000 default). Form validation and submission functionality verified."
 
+  - task: "Language Configuration for AI Agents"
+    implemented: true
+    working: true
+    file: "/app/frontend/src/pages/Agents.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "Language Configuration feature successfully implemented and tested in Create Agent dialog. All required elements present and functional: 'Response Language' heading, searchable language dropdown with 70+ languages (tested Spanish, French searches), 'Force Language' toggle switch that correctly hides/shows auto-detection section, 'Auto-Detection Method' buttons (Browser Language & IP Geolocation) that are clickable and selectable. Language selector properly opens with search functionality and allows language selection. Toggle behavior works correctly - when Force Language is enabled, auto-detection section is hidden; when disabled, section is restored. All UI elements properly styled and functional as specified in requirements."
+
   - task: "Agent Test Functionality"
     implemented: true
     working: false
