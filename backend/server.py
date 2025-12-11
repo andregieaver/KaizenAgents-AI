@@ -1870,10 +1870,13 @@ async def test_agent_conversation(
             restrictive_models = ["gpt-5", "o1", "o3"]
             is_restrictive = any(model_prefix in model_lower for model_prefix in restrictive_models)
             
+            # Inject agent name into system prompt for self-awareness
+            enhanced_prompt = f"Your name is {agent['name']}. {agent['system_prompt']}"
+            
             params = {
                 "model": agent["model"],
                 "messages": [
-                    {"role": "system", "content": agent["system_prompt"]},
+                    {"role": "system", "content": enhanced_prompt},
                     {"role": "user", "content": message}
                 ]
             }
