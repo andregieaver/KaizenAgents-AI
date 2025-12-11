@@ -94,6 +94,7 @@ function AppRoutes() {
         <Route path="settings" element={<Settings />} />
         <Route path="profile" element={<Profile />} />
         <Route path="admin" element={<SuperAdmin />} />
+        <Route path="providers" element={<Providers />} />
       </Route>
 
       {/* Catch all */}
