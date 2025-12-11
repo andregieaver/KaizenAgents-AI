@@ -70,10 +70,7 @@ const Agents = () => {
     system_prompt: '',
     temperature: 0.7,
     max_tokens: 2000,
-    is_marketplace: false,
-    response_language: null,
-    force_language: false,
-    language_detection_method: 'browser'
+    is_marketplace: false
   });
 
   const [editAgent, setEditAgent] = useState({
@@ -82,10 +79,7 @@ const Agents = () => {
     model: '',
     system_prompt: '',
     temperature: 0.7,
-    max_tokens: 2000,
-    response_language: null,
-    force_language: false,
-    language_detection_method: 'browser'
+    max_tokens: 2000
   });
 
   const [formErrors, setFormErrors] = useState({});
@@ -149,10 +143,7 @@ const Agents = () => {
         system_prompt: '',
         temperature: 0.7,
         max_tokens: 2000,
-        is_marketplace: false,
-        response_language: null,
-        force_language: false,
-        language_detection_method: 'browser'
+        is_marketplace: false
       });
       fetchData();
     } catch (error) {
@@ -168,10 +159,7 @@ const Agents = () => {
       model: agent.model,
       system_prompt: agent.system_prompt,
       temperature: agent.temperature,
-      max_tokens: agent.max_tokens,
-      response_language: agent.response_language || null,
-      force_language: agent.force_language || false,
-      language_detection_method: agent.language_detection_method || 'browser'
+      max_tokens: agent.max_tokens
     });
     setShowEditDialog(true);
   };
