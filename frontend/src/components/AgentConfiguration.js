@@ -243,6 +243,91 @@ const AgentConfiguration = () => {
             )}
           </div>
 
+          {/* Language Configuration */}
+          <div className="space-y-4 p-4 border border-border rounded-lg bg-muted/30">
+            <div className="flex items-center gap-2">
+              <Languages className="h-5 w-5 text-primary" />
+              <div>
+                <Label className="text-base">Response Language</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Configure the language for AI responses
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Language Selector */}
+              <div className="space-y-2">
+                <Label htmlFor="response-language">Preferred Language</Label>
+                <LanguageSelector
+                  value={formData.response_language}
+                  onValueChange={(lang) => setFormData({ ...formData, response_language: lang })}
+                  placeholder="Select language..."
+                />
+                {formData.response_language && (
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <CheckCircle2 className="h-3 w-3 text-green-600" />
+                    Selected: {getLanguageName(formData.response_language)}
+                  </div>
+                )}
+              </div>
+
+              {/* Language Mode - 3 Options */}
+              <div className="space-y-2">
+                <Label>Language Detection</Label>
+                <div className="grid grid-cols-1 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, language_mode: 'force' })}
+                    className={cn(
+                      "p-3 rounded-lg border-2 text-left transition-all",
+                      formData.language_mode === 'force'
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <div className="font-medium text-sm">Force Language</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Always use the selected language, ignore user preferences
+                    </div>
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, language_mode: 'browser' })}
+                    className={cn(
+                      "p-3 rounded-lg border-2 text-left transition-all",
+                      formData.language_mode === 'browser'
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <div className="font-medium text-sm">Browser Language</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Auto-detect from user's browser settings (Accept-Language header)
+                    </div>
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, language_mode: 'geo' })}
+                    className={cn(
+                      "p-3 rounded-lg border-2 text-left transition-all",
+                      formData.language_mode === 'geo'
+                        ? "border-primary bg-primary/10"
+                        : "border-border hover:border-primary/50"
+                    )}
+                  >
+                    <div className="font-medium text-sm">Geo Location</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      Auto-detect from user's IP address/location
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Custom Instructions */}
           <div className="space-y-2">
             <Label htmlFor="custom-instructions">
