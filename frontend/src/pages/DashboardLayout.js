@@ -18,7 +18,8 @@ import {
   ChevronRight,
   Shield,
   Users,
-  User
+  User,
+  Bot
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import axios from 'axios';
@@ -92,6 +93,10 @@ const DashboardLayout = () => {
   const providersNavItem = user?.is_super_admin
     ? { path: '/dashboard/providers', icon: MessageSquare, label: 'AI Providers', isAdmin: true }
     : null;
+  
+  const agentsNavItem = user?.is_super_admin
+    ? { path: '/dashboard/agents', icon: Bot, label: 'Agents', isAdmin: true }
+    : null;
 
   const isActive = (path) => {
     if (path === '/dashboard') {
@@ -159,7 +164,7 @@ const DashboardLayout = () => {
             ))}
             
             {/* Super Admin Links */}
-            {(adminNavItem || providersNavItem) && (
+            {(adminNavItem || providersNavItem || agentsNavItem) && (
               <>
                 <Separator className="my-3" />
                 {providersNavItem && (
@@ -175,6 +180,21 @@ const DashboardLayout = () => {
                   >
                     <providersNavItem.icon className="h-4 w-4" />
                     {providersNavItem.label}
+                  </Link>
+                )}
+                {agentsNavItem && (
+                  <Link
+                    to={agentsNavItem.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                      isActive(agentsNavItem.path)
+                        ? "bg-destructive text-destructive-foreground"
+                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                    )}
+                  >
+                    <agentsNavItem.icon className="h-4 w-4" />
+                    {agentsNavItem.label}
                   </Link>
                 )}
                 {adminNavItem && (
