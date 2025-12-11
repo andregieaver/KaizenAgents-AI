@@ -13,6 +13,8 @@ class CompanyAgentConfigUpdate(BaseModel):
     scraping_domains: Optional[List[str]] = None
     scraping_max_depth: Optional[int] = None
     scraping_max_pages: Optional[int] = None
+    response_language: Optional[str] = None
+    language_mode: Optional[str] = None  # 'force', 'browser', 'geo'
 
 class CompanyAgentConfigResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -27,6 +29,8 @@ class CompanyAgentConfigResponse(BaseModel):
     scraping_max_pages: int = 50
     scraping_status: Optional[str] = None
     last_scraped_at: Optional[str] = None
+    response_language: Optional[str] = None
+    language_mode: str = "browser"  # 'force', 'browser', 'geo'
     is_active: bool
     updated_at: str
 
