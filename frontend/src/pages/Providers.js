@@ -46,6 +46,7 @@ const Providers = () => {
 
   useEffect(() => {
     fetchProviders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const fetchProviders = async () => {
