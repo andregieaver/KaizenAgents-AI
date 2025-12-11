@@ -410,7 +410,11 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Agent Test Functionality"
+    - "Web Scraping Status Endpoint"
+    - "Web Scraping Configuration Update"
+    - "Web Scraping Trigger"
+    - "Web Scraping Chunks Storage"
+    - "Web Scraping Status After Completion"
   stuck_tasks:
     - "Agent Test Functionality"
   test_all: false
