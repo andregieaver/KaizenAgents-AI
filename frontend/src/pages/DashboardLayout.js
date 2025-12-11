@@ -35,11 +35,32 @@ const getAvatarSrc = (url) => {
 };
 
 const DashboardLayout = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [platformName, setPlatformName] = useState('Support Hub');
+
+  useEffect(() => {
+    const fetchPlatformSettings = async () => {
+      try {
+        const response = await axios.get(`${API}/admin/platform-settings`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.data?.platform_name) {
+          setPlatformName(response.data.platform_name);
+        }
+      } catch (error) {
+        // If not accessible (non-admin) or error, keep default
+        console.debug('Platform settings not accessible, using default name');
+      }
+    };
+
+    if (token) {
+      fetchPlatformSettings();
+    }
+  }, [token]);
 
   const handleLogout = () => {
     logout();
