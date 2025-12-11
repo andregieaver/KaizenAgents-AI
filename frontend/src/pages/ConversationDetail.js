@@ -44,16 +44,20 @@ const ConversationDetail = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [convRes, msgsRes] = await Promise.all([
+        const [convRes, msgsRes, convsRes] = await Promise.all([
           axios.get(`${API}/conversations/${id}`, {
             headers: { Authorization: `Bearer ${token}` }
           }),
           axios.get(`${API}/conversations/${id}/messages`, {
             headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get(`${API}/conversations`, {
+            headers: { Authorization: `Bearer ${token}` }
           })
         ]);
         setConversation(convRes.data);
         setMessages(msgsRes.data);
+        setConversations(convsRes.data);
       } catch (error) {
         console.error('Error fetching conversation:', error);
         toast.error('Failed to load conversation');
