@@ -116,7 +116,7 @@ const DashboardLayout = () => {
           <Link to="/dashboard" className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
               {getBrandLogoSrc(brandLogo) ? (
-                <img src={getBrandLogoSrc(brandLogo)} alt={brandName} className="h-full w-full object-cover" />
+                <img src={getBrandLogoSrc(brandLogo)} alt={brandName} className="h-full w-full object-contain" />
               ) : (
                 <MessageSquare className="h-4 w-4 text-primary-foreground" />
               )}
