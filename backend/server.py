@@ -198,6 +198,10 @@ class AgentResponse(BaseModel):
     created_at: str
     updated_at: str
 
+class TestConversationRequest(BaseModel):
+    message: str
+    history: List[dict] = []  # [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
+
 class ConversationResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
