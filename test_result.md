@@ -370,7 +370,7 @@ frontend:
   - task: "Language Configuration for AI Agents"
     implemented: true
     working: true
-    file: "/app/frontend/src/pages/Agents.js"
+    file: "/app/frontend/src/components/AgentConfiguration.js"
     stuck_count: 0
     priority: "high"
     needs_retesting: false
@@ -378,6 +378,9 @@ frontend:
         - working: true
           agent: "testing"
           comment: "Language Configuration feature successfully implemented and tested in Create Agent dialog. All required elements present and functional: 'Response Language' heading, searchable language dropdown with 70+ languages (tested Spanish, French searches), 'Force Language' toggle switch that correctly hides/shows auto-detection section, 'Auto-Detection Method' buttons (Browser Language & IP Geolocation) that are clickable and selectable. Language selector properly opens with search functionality and allows language selection. Toggle behavior works correctly - when Force Language is enabled, auto-detection section is hidden; when disabled, section is restored. All UI elements properly styled and functional as specified in requirements."
+        - working: true
+          agent: "testing"
+          comment: "RELOCATED LANGUAGE CONFIGURATION TESTING COMPLETED - Feature successfully relocated to Settings → Agent tab as requested! Fixed ESLint compilation error (react-hooks/exhaustive-deps rule) that was preventing frontend from loading. Comprehensive testing performed: ✅ Language Configuration correctly positioned in Settings → Agent tab (NOT in Agents page), ✅ Located below agent selection, above custom instructions as specified, ✅ 'Response Language' heading with Languages icon present, ✅ Searchable language dropdown functional (tested Spanish selection), ✅ THREE mutually exclusive language mode buttons working correctly: Force Language, Browser Language, Geo Location, ✅ All buttons clickable with proper visual selection state, ✅ Save Configuration button works with success message, ✅ VERIFIED NO language configuration in Agents page Create/Edit dialogs (correct). Feature relocation completed successfully and ready for production use."
 
   - task: "Agent Test Functionality"
     implemented: true
