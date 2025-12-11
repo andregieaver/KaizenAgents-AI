@@ -204,6 +204,7 @@ const Agents = () => {
       );
       
       setTestResponse(response.data);
+      setTestMessage(''); // Clear the input field after successful response
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Test failed');
     } finally {
