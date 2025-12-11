@@ -1941,17 +1941,19 @@ async def upload_agent_avatar(
     if len(contents) > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large. Maximum size: 5MB")
     
+    # Get storage service
+    from storage_service import get_storage_service
+    storage = await get_storage_service(db)
+    
     # Generate filename
     ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
     filename = f"agent_{agent_id}_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = UPLOADS_DIR / filename
+    destination_path = f"agents/{filename}"
     
-    # Save file
-    with open(filepath, "wb") as f:
-        f.write(contents)
+    # Upload to configured storage
+    avatar_url = await storage.upload_file(contents, destination_path, file.content_type)
     
     # Update agent
-    avatar_url = f"/api/uploads/{filename}"
     await db.agents.update_one(
         {"id": agent_id},
         {"$set": {"avatar_url": avatar_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
