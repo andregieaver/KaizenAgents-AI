@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Separator } from '../components/ui/separator';
 import { Switch } from '../components/ui/switch';
+import AgentConfiguration from '../components/AgentConfiguration';
 import {
   Settings as SettingsIcon,
   Palette,
@@ -23,7 +24,8 @@ import {
   Upload,
   Image as ImageIcon,
   X,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 
