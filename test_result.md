@@ -449,7 +449,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Language Configuration for AI Agents"
+    - "Widget Endpoint Comprehensive Testing"
   stuck_tasks:
     - "Agent Test Functionality"
   test_all: false
