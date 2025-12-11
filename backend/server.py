@@ -476,18 +476,6 @@ You are assisting customers for {brand_name}."""
             if agent_config.get("custom_instructions"):
                 base_prompt += f"\n\nCompany instructions:\n{agent_config['custom_instructions']}"
         
-        # Build conversation history
-        conversation_messages = []
-        for msg in messages[-10:]:  # Last 10 messages for context
-            role = "user" if msg.get("author_type") == "customer" else "assistant"
-            conversation_messages.append({
-                "role": role,
-                "content": msg.get("content")
-            })
-        
-        # Get the latest user message
-        latest_message = conversation_messages[-1]["content"] if conversation_messages else "Hello"
-        
         # Remove the latest message from history for proper context building
         history = []
         if len(conversation_messages) > 1:
