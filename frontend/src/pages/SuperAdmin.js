@@ -414,14 +414,14 @@ const SuperAdmin = () => {
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive" className="w-full" data-testid="delete-tenant-btn">
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Tenant
+                          Delete Company
                         </Button>
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            This will permanently delete the tenant and ALL associated data including
+                            This will permanently delete the company and ALL associated data including
                             users, conversations, messages, and settings. This action cannot be undone.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
