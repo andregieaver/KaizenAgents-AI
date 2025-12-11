@@ -8,6 +8,7 @@ from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import List, Optional, Literal
 import uuid
 from datetime import datetime, timezone
+import jwt
 
 # Import from modular structure
 from models import *
