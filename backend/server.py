@@ -2056,8 +2056,19 @@ SIMULATE STRICT KNOWLEDGE BASE BEHAVIOR:
             import anthropic
             client = anthropic.Anthropic(api_key=provider["api_key"])
             
-            # Inject agent name into system prompt for self-awareness
-            enhanced_prompt = f"Your name is {agent['name']}. {agent['system_prompt']}"
+            # Build STRICT system prompt (same as production widget)
+            enhanced_prompt = f"""Your name is {agent['name']}.
+
+CRITICAL INSTRUCTIONS FOR TESTING:
+This is a test environment. In production, you will ONLY answer from company documentation.
+
+SIMULATE STRICT KNOWLEDGE BASE BEHAVIOR:
+1. You may ONLY answer questions that would typically be found in company documentation (products, services, policies, FAQs).
+2. For general knowledge questions (world facts, celebrities, history, geography, etc.), respond EXACTLY: "I don't have that information in my knowledge base. Please contact our support team for assistance."
+3. NEVER answer questions about topics unrelated to a typical company's operations.
+4. Format your responses with proper line breaks and paragraphs for readability.
+
+{agent['system_prompt']}"""
             
             # Build messages with conversation history
             messages = list(request.history)
