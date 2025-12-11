@@ -59,6 +59,10 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const refreshUser = () => {
+    fetchUser();
+  };
+
   const value = {
     user,
     token,
@@ -66,6 +70,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    refreshUser,
     isAuthenticated: !!user
   };
 
