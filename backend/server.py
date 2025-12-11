@@ -2301,7 +2301,7 @@ async def delete_company_document(
     filename: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Delete company documentation"""
+    """Delete company documentation and associated embeddings"""
     if not current_user.get("tenant_id"):
         raise HTTPException(status_code=400, detail="User not associated with a company")
     
@@ -2321,6 +2321,15 @@ async def delete_company_document(
     
     if not doc_to_delete:
         raise HTTPException(status_code=404, detail="Document not found")
+    
+    # Delete associated chunks and embeddings from MongoDB
+    doc_id = doc_to_delete.get("id")
+    if doc_id:
+        result = await db.document_chunks.delete_many({
+            "company_id": company_id,
+            "document_id": doc_id
+        })
+        logger.info(f"Deleted {result.deleted_count} chunks for document {filename}")
     
     # Delete file from filesystem
     filepath_parts = doc_to_delete["filepath"].split("/")
