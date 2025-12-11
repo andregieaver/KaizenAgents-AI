@@ -113,14 +113,15 @@ const ConversationDetail = () => {
   const handleStatusChange = async (status) => {
     try {
       const response = await axios.patch(
-        `${API}/conversations/${id}/status?status=${status}`,
+        `${API}/conversations/${id}/status?new_status=${status}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setConversation(response.data);
       toast.success(`Status changed to ${status}`);
     } catch (error) {
-      toast.error('Failed to change status');
+      console.error('Status change error:', error);
+      toast.error(error.response?.data?.detail || 'Failed to change status');
     }
   };
 
