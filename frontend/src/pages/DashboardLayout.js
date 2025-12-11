@@ -158,24 +158,41 @@ const DashboardLayout = () => {
               </Link>
             ))}
             
-            {/* Super Admin Link */}
-            {adminNavItem && (
+            {/* Super Admin Links */}
+            {(adminNavItem || providersNavItem) && (
               <>
                 <Separator className="my-3" />
-                <Link
-                  to={adminNavItem.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                    isActive(adminNavItem.path)
-                      ? "bg-destructive text-destructive-foreground"
-                      : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                  )}
-                  data-testid="nav-super-admin"
-                >
-                  <adminNavItem.icon className="h-4 w-4" />
-                  {adminNavItem.label}
-                </Link>
+                {providersNavItem && (
+                  <Link
+                    to={providersNavItem.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                      isActive(providersNavItem.path)
+                        ? "bg-destructive text-destructive-foreground"
+                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                    )}
+                  >
+                    <providersNavItem.icon className="h-4 w-4" />
+                    {providersNavItem.label}
+                  </Link>
+                )}
+                {adminNavItem && (
+                  <Link
+                    to={adminNavItem.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                      isActive(adminNavItem.path)
+                        ? "bg-destructive text-destructive-foreground"
+                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                    )}
+                    data-testid="nav-super-admin"
+                  >
+                    <adminNavItem.icon className="h-4 w-4" />
+                    {adminNavItem.label}
+                  </Link>
+                )}
               </>
             )}
           </nav>
