@@ -44,15 +44,6 @@ logger = logging.getLogger(__name__)
 # ============== ADDITIONAL RESPONSE MODELS (not yet extracted) ==============
 # These models are specific to endpoints and will remain here for now
 
-class MessageResponse(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    id: str
-    conversation_id: str
-    author_type: str
-    author_id: Optional[str] = None
-    content: str
-    created_at: str
-
 class WidgetSessionCreate(BaseModel):
     tenant_id: str
     customer_name: Optional[str] = None
