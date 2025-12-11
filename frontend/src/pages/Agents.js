@@ -168,7 +168,10 @@ const Agents = () => {
       model: agent.model,
       system_prompt: agent.system_prompt,
       temperature: agent.temperature,
-      max_tokens: agent.max_tokens
+      max_tokens: agent.max_tokens,
+      response_language: agent.response_language || null,
+      force_language: agent.force_language || false,
+      language_detection_method: agent.language_detection_method || 'browser'
     });
     setShowEditDialog(true);
   };
