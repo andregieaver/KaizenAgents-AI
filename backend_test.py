@@ -783,7 +783,8 @@ def main():
         "Company Config": ["Get Company Agent Config", "Document Upload with RAG"],
         "RAG System": ["RAG Retrieval Check", "Widget RAG Message", "Widget General Knowledge Refusal"],
         "Widget API": ["Widget Session Creation"],
-        "File Upload": ["File Upload to GCS - User Avatar", "Agent Avatar Upload to GCS"]
+        "File Upload": ["File Upload to GCS - User Avatar", "Agent Avatar Upload to GCS"],
+        "Web Scraping": ["Get Initial Scraping Status", "Update Scraping Configuration", "Trigger Web Scraping", "Verify Chunks in Database", "Get Scraping Status After Completion"]
     }
     
     for category, category_tests in categories.items():
