@@ -98,6 +98,10 @@ const DashboardLayout = () => {
   const agentsNavItem = user?.is_super_admin
     ? { path: '/dashboard/agents', icon: Bot, label: 'Agents', isAdmin: true }
     : null;
+  
+  const storageNavItem = user?.is_super_admin
+    ? { path: '/dashboard/storage', icon: Database, label: 'Storage', isAdmin: true }
+    : null;
 
   const isActive = (path) => {
     if (path === '/dashboard') {
