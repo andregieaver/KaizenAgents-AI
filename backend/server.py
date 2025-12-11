@@ -764,17 +764,17 @@ async def upload_brand_logo(
     if len(contents) > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large. Maximum size: 5MB")
     
+    # Get storage service
+    from storage_service import get_storage_service
+    storage = await get_storage_service(db)
+    
     # Generate unique filename
     ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
     filename = f"logo_{tenant_id}_{uuid.uuid4().hex[:8]}.{ext}"
-    filepath = UPLOADS_DIR / filename
+    destination_path = f"logos/{filename}"
     
-    # Save file
-    with open(filepath, "wb") as f:
-        f.write(contents)
-    
-    # Generate URL (relative to API)
-    logo_url = f"/api/uploads/{filename}"
+    # Upload to configured storage
+    logo_url = await storage.upload_file(contents, destination_path, file.content_type)
     
     # Update settings
     await db.settings.update_one(
