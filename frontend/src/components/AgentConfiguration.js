@@ -109,7 +109,9 @@ const AgentConfiguration = () => {
             ? formData.scraping_domains.split(',').map(d => d.trim()).filter(Boolean)
             : [],
           scraping_max_depth: parseInt(formData.scraping_max_depth),
-          scraping_max_pages: parseInt(formData.scraping_max_pages)
+          scraping_max_pages: parseInt(formData.scraping_max_pages),
+          response_language: formData.response_language || null,
+          language_mode: formData.language_mode
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
