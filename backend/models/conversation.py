@@ -25,3 +25,12 @@ class ConversationResponse(BaseModel):
 class MessageCreate(BaseModel):
     content: str
     author_type: Literal["customer", "agent"] = "customer"
+
+class MessageResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    conversation_id: str
+    author_type: str
+    author_id: Optional[str] = None
+    content: str
+    created_at: str
