@@ -199,7 +199,7 @@ const AgentConfiguration = () => {
             </Label>
             <Textarea
               id="custom-instructions"
-              placeholder="Add company-specific instructions, e.g., 'Always mention our 24/7 support hotline at 1-800-HELP'"
+              placeholder="Add company-specific instructions, e.g., &quot;Always mention our 24/7 support hotline at 1-800-HELP&quot;"
               rows={4}
               value={formData.custom_instructions}
               onChange={(e) => setFormData({ ...formData, custom_instructions: e.target.value })}
