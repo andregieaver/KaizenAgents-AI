@@ -336,24 +336,9 @@ const Providers = () => {
               </div>
             </CardContent>
           </Card>
-        ))}
-
-        {providers.length === 0 && (
-          <Card className="col-span-full border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Database className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="font-heading font-semibold mb-2">No providers configured</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Add your first AI provider to get started
-              </p>
-              <Button onClick={() => setShowAddDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Provider
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
