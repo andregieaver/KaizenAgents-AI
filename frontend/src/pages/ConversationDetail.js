@@ -390,6 +390,8 @@ const ConversationDetail = () => {
           </Card>
         </div>
       </div>
+        </div>
+      </div>
     </div>
   );
 };
