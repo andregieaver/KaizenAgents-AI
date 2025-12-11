@@ -124,6 +124,40 @@ const Agents = () => {
     }
   };
 
+  const openEditDialog = (agent) => {
+    setEditingAgent(agent);
+    setEditAgent({
+      name: agent.name,
+      provider_id: agent.provider_id,
+      model: agent.model,
+      system_prompt: agent.system_prompt,
+      temperature: agent.temperature,
+      max_tokens: agent.max_tokens
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateAgent = async () => {
+    if (!editAgent.name || !editAgent.model || !editAgent.system_prompt) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      await axios.put(
+        `${API}/admin/agents/${editingAgent.id}`,
+        editAgent,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Agent updated successfully');
+      setShowEditDialog(false);
+      setEditingAgent(null);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update agent');
+    }
+  };
+
   const handleAvatarUpload = async (agentId, file) => {
     if (!file) return;
 
