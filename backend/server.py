@@ -124,6 +124,80 @@ class ConversationCreate(BaseModel):
     customer_email: Optional[str] = None
     source: Literal["widget", "email", "api"] = "widget"
 
+# ============== PROVIDER MODELS ==============
+
+class ProviderCreate(BaseModel):
+    name: str
+    type: Literal["openai", "anthropic", "google"]
+    api_key: str
+    base_url: Optional[str] = None
+
+class ProviderUpdate(BaseModel):
+    name: Optional[str] = None
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    is_active: Optional[bool] = None
+
+class ProviderResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    type: str
+    is_active: bool
+    masked_api_key: Optional[str] = None
+    total_calls: int
+    total_tokens: int
+    total_cost: float
+    last_error: Optional[str] = None
+    models: List[str] = []
+    created_at: str
+    updated_at: str
+
+class ProviderErrorResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    provider_id: str
+    error_message: str
+    error_type: str
+    timestamp: str
+
+# ============== AGENT MODELS ==============
+
+class AgentCreate(BaseModel):
+    name: str
+    provider_id: str
+    model: str
+    system_prompt: str
+    temperature: float = 0.7
+    max_tokens: int = 2000
+    is_marketplace: bool = False
+
+class AgentUpdate(BaseModel):
+    name: Optional[str] = None
+    model: Optional[str] = None
+    system_prompt: Optional[str] = None
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
+    is_active: Optional[bool] = None
+    is_marketplace: Optional[bool] = None
+
+class AgentResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    avatar_url: Optional[str] = None
+    provider_id: str
+    provider_name: str
+    model: str
+    system_prompt: str
+    temperature: float
+    max_tokens: int
+    version: int
+    is_active: bool
+    is_marketplace: bool
+    created_at: str
+    updated_at: str
+
 class ConversationResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     id: str
