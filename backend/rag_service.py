@@ -13,8 +13,6 @@ import pdfplumber
 import pandas as pd
 from openai import OpenAI
 
-# Emergent LLM Key for embeddings
-EMERGENT_LLM_KEY = "sk-emergent-dA96a94C7Ad40C0676"
 EMBEDDING_MODEL = "text-embedding-3-small"
 CHUNK_SIZE = 800  # tokens (roughly 600 words)
 CHUNK_OVERLAP = 100  # tokens
