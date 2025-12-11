@@ -16,9 +16,13 @@ import {
   Trash2,
   Globe,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Languages
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { LanguageSelector } from './LanguageSelector';
+import { cn } from '../lib/utils';
+import { getLanguageName } from '../data/languages';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -36,7 +40,9 @@ const AgentConfiguration = () => {
     custom_instructions: '',
     scraping_domains: '',
     scraping_max_depth: 2,
-    scraping_max_pages: 50
+    scraping_max_pages: 50,
+    response_language: null,
+    language_mode: 'browser'
   });
   const [scraping, setScraping] = useState(false);
   const [scrapingStatus, setScrapingStatus] = useState(null);
