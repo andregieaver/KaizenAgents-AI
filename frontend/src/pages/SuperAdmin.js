@@ -445,9 +445,23 @@ const SuperAdmin = () => {
                         data-testid="tenant-row"
                       >
                         <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{tenant.brand_name || tenant.name}</p>
-                            <p className="text-xs text-muted-foreground">{tenant.id}</p>
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center overflow-hidden flex-shrink-0">
+                              {tenant.brand_logo ? (
+                                <img 
+                                  src={tenant.brand_logo.startsWith('/api/') ? `${process.env.REACT_APP_BACKEND_URL}${tenant.brand_logo}` : tenant.brand_logo} 
+                                  alt={tenant.brand_name || tenant.name} 
+                                  className="h-full w-full object-contain" 
+                                />
+                              ) : (
+                                <Building2 className="h-5 w-5 text-primary" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{tenant.brand_name || tenant.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{tenant.id}</p>
+                            </div>
+                          </div>
                           </div>
                           <div className="flex items-center gap-3">
                             <div className="text-right text-xs text-muted-foreground">
