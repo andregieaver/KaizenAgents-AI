@@ -431,11 +431,12 @@ async def generate_ai_response(messages: List[dict], settings: dict) -> str:
             try:
                 from rag_service import retrieve_relevant_chunks, format_context_for_agent
                 
-                # Retrieve relevant chunks
+                # Retrieve relevant chunks using provider's API key
                 relevant_chunks = await retrieve_relevant_chunks(
                     query=latest_message,
                     company_id=tenant_id,
                     db=db,
+                    api_key=provider["api_key"],
                     top_k=5
                 )
                 
