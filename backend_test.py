@@ -88,48 +88,15 @@ class AIAgentHubTester:
             self.test_results.append(result)
             return False, {}
 
-    def test_health_check(self):
-        """Test health check endpoint"""
-        return self.run_test("Health Check", "GET", "health", 200)
-
-    def test_register(self):
-        """Test user registration"""
-        test_user_data = {
-            "email": f"test_{datetime.now().strftime('%H%M%S')}@example.com",
-            "password": "TestPass123!",
-            "name": "Test User"
-        }
-        
-        success, response = self.run_test(
-            "User Registration",
-            "POST",
-            "auth/register",
-            200,
-            data=test_user_data
-        )
-        
-        if success and 'token' in response:
-            self.token = response['token']
-            self.user_data = response['user']
-            self.tenant_id = response['user'].get('tenant_id')
-            print(f"   Registered user: {self.user_data['email']}")
-            print(f"   Tenant ID: {self.tenant_id}")
-            return True
-        return False
-
-    def test_login(self):
-        """Test user login with registered user"""
-        if not self.user_data:
-            print("❌ No user data available for login test")
-            return False
-            
+    def test_super_admin_login(self):
+        """Test Super Admin login"""
         login_data = {
-            "email": self.user_data['email'],
-            "password": "TestPass123!"
+            "email": "andre@humanweb.no",
+            "password": "Pernilla66!"
         }
         
         success, response = self.run_test(
-            "User Login",
+            "Super Admin Login",
             "POST",
             "auth/login",
             200,
@@ -138,13 +105,39 @@ class AIAgentHubTester:
         
         if success and 'token' in response:
             self.token = response['token']
+            self.user_data = response['user']
+            self.tenant_id = response['user'].get('tenant_id')
+            print(f"   Logged in as: {self.user_data['email']}")
+            print(f"   Is Super Admin: {response['user'].get('is_super_admin', False)}")
+            print(f"   Tenant ID: {self.tenant_id}")
             return True
         return False
 
-    def test_get_me(self):
-        """Test get current user endpoint"""
+    def test_auth_me(self):
+        """Test /api/auth/me endpoint"""
         success, response = self.run_test(
-            "Get Current User",
+            "Auth Me Endpoint",
+            "GET",
+            "auth/me",
+            200
+        )
+        
+        if success:
+            print(f"   User ID: {response.get('id')}")
+            print(f"   Role: {response.get('role')}")
+            print(f"   Super Admin: {response.get('is_super_admin', False)}")
+        
+        return success
+
+    def test_jwt_token_validation(self):
+        """Test JWT token generation and validation"""
+        if not self.token:
+            print("❌ No token available for validation")
+            return False
+            
+        # Test that token works for protected endpoint
+        success, response = self.run_test(
+            "JWT Token Validation",
             "GET",
             "auth/me",
             200
