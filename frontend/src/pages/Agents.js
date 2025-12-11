@@ -30,7 +30,8 @@ import {
   X,
   Send,
   User,
-  Edit
+  Edit,
+  RotateCcw
 } from 'lucide-react';
 import { toast } from 'sonner';
 
