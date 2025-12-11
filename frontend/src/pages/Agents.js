@@ -34,6 +34,7 @@ import {
   RotateCcw
 } from 'lucide-react';
 import { toast } from 'sonner';
+import AgentVersionHistory from '../components/AgentVersionHistory';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -46,8 +47,10 @@ const Agents = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showTestDialog, setShowTestDialog] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [editingAgent, setEditingAgent] = useState(null);
+  const [versionHistoryAgent, setVersionHistoryAgent] = useState(null);
   const [testMessage, setTestMessage] = useState('');
   const [conversationHistory, setConversationHistory] = useState([]);
   const [testing, setTesting] = useState(false);
