@@ -510,24 +510,9 @@ const Agents = () => {
               </div>
             </CardContent>
           </Card>
-        ))}
-
-        {agents.filter(a => a.is_active).length === 0 && (
-          <Card className="col-span-full border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Bot className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="font-heading font-semibold mb-2">No agents created</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Create your first AI agent to get started
-              </p>
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Agent
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Edit Agent Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
