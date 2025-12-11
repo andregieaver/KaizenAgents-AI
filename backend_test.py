@@ -742,6 +742,13 @@ def main():
         # 7. File Upload with GCS
         ("File Upload to GCS - User Avatar", tester.test_file_upload_gcs),
         ("Agent Avatar Upload to GCS", tester.test_agent_avatar_upload),
+        
+        # 8. Web Scraping Tests (Phase 4b: RAG Web Scraping)
+        ("Get Initial Scraping Status", tester.test_scraping_status_initial),
+        ("Update Scraping Configuration", tester.test_update_scraping_config),
+        ("Trigger Web Scraping", tester.test_trigger_scraping),
+        ("Verify Chunks in Database", tester.test_verify_chunks_created),
+        ("Get Scraping Status After Completion", tester.test_scraping_status_after_completion),
     ]
     
     print(f"\n📋 Running {len(tests)} comprehensive test scenarios...")
