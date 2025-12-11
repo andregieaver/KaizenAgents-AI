@@ -47,11 +47,14 @@ class StorageService:
         else:
             blob.upload_from_string(file_content)
         
-        # Make blob publicly accessible
-        blob.make_public()
-        
-        # Return public URL
-        return blob.public_url
+        # Try to make blob publicly accessible (may fail with uniform bucket-level access)
+        try:
+            blob.make_public()
+            return blob.public_url
+        except Exception as e:
+            # If uniform bucket-level access is enabled, return the public URL anyway
+            # The bucket should be configured for public access at the bucket level
+            return f"https://storage.googleapis.com/{self.bucket_name}/{blob_name}"
     
     def _upload_to_local(self, file_content: bytes, destination_path: str) -> str:
         """Upload to local filesystem"""
