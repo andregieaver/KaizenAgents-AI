@@ -256,7 +256,7 @@ const SuperAdmin = () => {
               <Separator />
 
               <div className="space-y-2">
-                <Label htmlFor="max_tenants">Maximum Tenants</Label>
+                <Label htmlFor="max_tenants">Maximum Companies</Label>
                 <Input
                   id="max_tenants"
                   type="number"
