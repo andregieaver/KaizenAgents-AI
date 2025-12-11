@@ -2274,19 +2274,25 @@ async def upload_company_document(
     if file_size > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="File too large. Maximum size: 5MB")
     
-    # Create company-specific directory
-    company_docs_dir = UPLOADS_DIR / "company_docs" / company_id
-    company_docs_dir.mkdir(parents=True, exist_ok=True)
+    # Get storage service
+    from storage_service import get_storage_service
+    storage = await get_storage_service(db)
     
     # Generate unique document ID and filename
     doc_id = str(uuid.uuid4())
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     safe_filename = f"{timestamp}_{file.filename}"
-    filepath = company_docs_dir / safe_filename
+    destination_path = f"company_docs/{company_id}/{safe_filename}"
     
-    # Save file
-    with open(filepath, "wb") as f:
-        f.write(contents)
+    # Upload to configured storage
+    doc_url = await storage.upload_file(contents, destination_path, file.content_type)
+    
+    # For RAG processing, we need a local temp file
+    import tempfile
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=Path(file.filename).suffix)
+    temp_file.write(contents)
+    temp_file.close()
+    filepath = temp_file.name
     
     # Get company's agent to find the provider API key
     config = await db.company_agent_configs.find_one({"company_id": company_id}, {"_id": 0})
