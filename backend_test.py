@@ -329,7 +329,7 @@ class AIAgentHubTester:
         success, response = self.run_test(
             "Document Upload with RAG",
             "POST",
-            "settings/agent-config/upload-document",
+            "settings/agent-config/upload-doc",
             200,
             files=files
         )
