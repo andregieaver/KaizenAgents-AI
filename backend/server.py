@@ -1860,15 +1860,27 @@ async def test_agent_conversation(
         if provider["type"] == "openai":
             import openai
             client = openai.OpenAI(api_key=provider["api_key"])
-            response = client.chat.completions.create(
-                model=agent["model"],
-                messages=[
+            
+            # Newer models (gpt-4o, gpt-5, etc.) use max_completion_tokens instead of max_tokens
+            newer_models = ["gpt-4o", "gpt-5", "o1", "o3"]
+            uses_new_param = any(model_prefix in agent["model"].lower() for model_prefix in newer_models)
+            
+            params = {
+                "model": agent["model"],
+                "messages": [
                     {"role": "system", "content": agent["system_prompt"]},
                     {"role": "user", "content": message}
                 ],
-                temperature=agent["temperature"],
-                max_tokens=agent["max_tokens"]
-            )
+                "temperature": agent["temperature"]
+            }
+            
+            # Use appropriate parameter based on model
+            if uses_new_param:
+                params["max_completion_tokens"] = agent["max_tokens"]
+            else:
+                params["max_tokens"] = agent["max_tokens"]
+            
+            response = client.chat.completions.create(**params)
             reply = response.choices[0].message.content
         
         elif provider["type"] == "anthropic":
