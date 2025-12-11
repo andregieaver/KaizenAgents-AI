@@ -1947,6 +1947,10 @@ async def update_company_agent_config(
         update_data["scraping_max_depth"] = config_update.scraping_max_depth
     if config_update.scraping_max_pages is not None:
         update_data["scraping_max_pages"] = config_update.scraping_max_pages
+    if config_update.response_language is not None:
+        update_data["response_language"] = config_update.response_language
+    if config_update.language_mode is not None:
+        update_data["language_mode"] = config_update.language_mode
     
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
     
