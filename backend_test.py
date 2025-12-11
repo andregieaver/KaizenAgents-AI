@@ -18,10 +18,12 @@ class AIAgentHubTester:
         self.agent_id = None
         self.test_results = []
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None):
+    def run_test(self, name, method, endpoint, expected_status, data=None, headers=None, files=None):
         """Run a single API test"""
         url = f"{self.base_url}/{endpoint}"
-        test_headers = {'Content-Type': 'application/json'}
+        test_headers = {}
+        if not files:  # Only set Content-Type for non-file uploads
+            test_headers['Content-Type'] = 'application/json'
         if self.token:
             test_headers['Authorization'] = f'Bearer {self.token}'
         if headers:
@@ -35,31 +37,55 @@ class AIAgentHubTester:
             if method == 'GET':
                 response = requests.get(url, headers=test_headers, timeout=30)
             elif method == 'POST':
-                response = requests.post(url, json=data, headers=test_headers, timeout=30)
+                if files:
+                    response = requests.post(url, files=files, data=data, headers={k: v for k, v in test_headers.items() if k != 'Content-Type'}, timeout=30)
+                else:
+                    response = requests.post(url, json=data, headers=test_headers, timeout=30)
             elif method == 'PUT':
                 response = requests.put(url, json=data, headers=test_headers, timeout=30)
             elif method == 'PATCH':
                 response = requests.patch(url, json=data, headers=test_headers, timeout=30)
 
             success = response.status_code == expected_status
+            result = {
+                'name': name,
+                'success': success,
+                'status_code': response.status_code,
+                'expected_status': expected_status
+            }
+            
             if success:
                 self.tests_passed += 1
                 print(f"✅ Passed - Status: {response.status_code}")
                 try:
-                    return success, response.json()
+                    response_data = response.json()
+                    result['response'] = response_data
+                    self.test_results.append(result)
+                    return success, response_data
                 except:
+                    result['response'] = {}
+                    self.test_results.append(result)
                     return success, {}
             else:
                 print(f"❌ Failed - Expected {expected_status}, got {response.status_code}")
                 try:
                     error_data = response.json()
                     print(f"   Error: {error_data}")
+                    result['error'] = error_data
                 except:
                     print(f"   Response: {response.text}")
+                    result['error'] = response.text
+                self.test_results.append(result)
                 return False, {}
 
         except Exception as e:
             print(f"❌ Failed - Error: {str(e)}")
+            result = {
+                'name': name,
+                'success': False,
+                'error': str(e)
+            }
+            self.test_results.append(result)
             return False, {}
 
     def test_health_check(self):
