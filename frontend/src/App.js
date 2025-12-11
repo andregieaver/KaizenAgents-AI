@@ -98,6 +98,7 @@ function AppRoutes() {
         <Route path="admin" element={<SuperAdmin />} />
         <Route path="providers" element={<Providers />} />
         <Route path="agents" element={<Agents />} />
+        <Route path="storage" element={<StorageConfig />} />
       </Route>
 
       {/* Catch all */}
