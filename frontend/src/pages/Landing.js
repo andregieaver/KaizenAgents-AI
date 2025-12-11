@@ -1,12 +1,31 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/button';
 import { MessageSquare, Zap, Shield, BarChart3, Moon, Sun, ArrowRight, Bot, Users, Code } from 'lucide-react';
+import axios from 'axios';
+
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const Landing = () => {
   const { isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [platformName, setPlatformName] = useState('AI Support Hub');
+
+  useEffect(() => {
+    const fetchPlatformName = async () => {
+      try {
+        const response = await axios.get(`${API}/public/platform-info`);
+        if (response.data?.platform_name) {
+          setPlatformName(response.data.platform_name);
+        }
+      } catch (error) {
+        console.debug('Could not fetch platform name, using default');
+      }
+    };
+    fetchPlatformName();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background" data-testid="landing-page">
