@@ -1897,11 +1897,15 @@ async def test_agent_conversation(
         elif provider["type"] == "anthropic":
             import anthropic
             client = anthropic.Anthropic(api_key=provider["api_key"])
+            
+            # Inject agent name into system prompt for self-awareness
+            enhanced_prompt = f"Your name is {agent['name']}. {agent['system_prompt']}"
+            
             response = client.messages.create(
                 model=agent["model"],
                 max_tokens=agent["max_tokens"],
                 temperature=agent["temperature"],
-                system=agent["system_prompt"],
+                system=enhanced_prompt,
                 messages=[{"role": "user", "content": message}]
             )
             reply = response.content[0].text
