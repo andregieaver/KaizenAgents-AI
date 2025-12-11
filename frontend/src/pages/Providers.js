@@ -210,8 +210,17 @@ const Providers = () => {
       </div>
 
       {/* Providers Grid */}
-      <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {providers.map((provider) => (
+      {loading ? (
+        <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[1, 2].map((i) => (
+            <ProviderCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : providers.length === 0 ? (
+        <NoProvidersState onCreate={() => setShowAddDialog(true)} />
+      ) : (
+        <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {providers.map((provider) => (
           <Card key={provider.id} className="border border-border">
             <CardHeader>
               <div className="flex items-start justify-between">
