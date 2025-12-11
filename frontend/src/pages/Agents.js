@@ -108,10 +108,23 @@ const Agents = () => {
   };
 
   const handleCreateAgent = async () => {
-    if (!newAgent.name || !newAgent.provider_id || !newAgent.model || !newAgent.system_prompt) {
-      toast.error('Please fill in all required fields');
+    // Validate form
+    const errors = validateForm(newAgent, agentValidation);
+    
+    if (!newAgent.provider_id) {
+      errors.provider_id = 'Please select a provider';
+    }
+    if (!newAgent.model) {
+      errors.model = 'Please select a model';
+    }
+
+    if (hasErrors(errors)) {
+      setFormErrors(errors);
+      toast.error('Please fix the errors in the form');
       return;
     }
+
+    setFormErrors({});
 
     try {
       await axios.post(
