@@ -116,36 +116,9 @@ async def get_tenant_settings(tenant_id: str) -> dict:
     settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
     return settings
 
-# Super Admin Configuration
-SUPER_ADMIN_EMAIL = "andre@humanweb.no"
-
-def is_super_admin(user: dict) -> bool:
-    """Check if user is super admin"""
-    return user.get("email") == SUPER_ADMIN_EMAIL or user.get("role") == "super_admin"
-
-async def get_super_admin_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Dependency that ensures user is super admin"""
-    payload = decode_token(credentials.credentials)
-    user = await db.users.find_one({"id": payload["user_id"]}, {"_id": 0})
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-    if not is_super_admin(user):
-        raise HTTPException(status_code=403, detail="Super admin access required")
-    return user
-
-def can_manage_users(user: dict) -> bool:
-    """Check if user can manage other users (owner or admin)"""
-    return user.get("role") in ["owner", "admin"] or is_super_admin(user)
-
-async def get_tenant_admin_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    """Dependency that ensures user can manage tenant users"""
-    payload = decode_token(credentials.credentials)
-    user = await db.users.find_one({"id": payload["user_id"]}, {"_id": 0})
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-    if not can_manage_users(user):
-        raise HTTPException(status_code=403, detail="Admin access required")
-    return user
+# ============== LEGACY ALIASES FOR BACKWARDS COMPATIBILITY ==============
+# Alias for routes still using old name
+get_tenant_admin_user = get_admin_or_owner_user
 
 # ============== AI SERVICE ==============
 
