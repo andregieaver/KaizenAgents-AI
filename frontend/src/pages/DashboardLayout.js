@@ -88,6 +88,10 @@ const DashboardLayout = () => {
   const adminNavItem = user?.is_super_admin 
     ? { path: '/dashboard/admin', icon: Shield, label: 'Super Admin', isAdmin: true }
     : null;
+  
+  const providersNavItem = user?.is_super_admin
+    ? { path: '/dashboard/providers', icon: MessageSquare, label: 'AI Providers', isAdmin: true }
+    : null;
 
   const isActive = (path) => {
     if (path === '/dashboard') {
