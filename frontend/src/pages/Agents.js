@@ -496,6 +496,116 @@ const Agents = () => {
         )}
       </div>
 
+      {/* Edit Agent Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit AI Agent</DialogTitle>
+            <DialogDescription>
+              Update agent configuration (creates new version)
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-agent-name">Agent Name *</Label>
+              <Input
+                id="edit-agent-name"
+                placeholder="e.g., Customer Support Specialist"
+                value={editAgent.name}
+                onChange={(e) => setEditAgent({ ...editAgent, name: e.target.value })}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-provider">Provider *</Label>
+                <select
+                  id="edit-provider"
+                  className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
+                  value={editAgent.provider_id}
+                  onChange={(e) => setEditAgent({ ...editAgent, provider_id: e.target.value, model: '' })}
+                  disabled
+                >
+                  <option value="">Select provider</option>
+                  {providers.map((provider) => (
+                    <option key={provider.id} value={provider.id}>
+                      {provider.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">Provider cannot be changed</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-model">Model *</Label>
+                <select
+                  id="edit-model"
+                  className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
+                  value={editAgent.model}
+                  onChange={(e) => setEditAgent({ ...editAgent, model: e.target.value })}
+                >
+                  <option value="">Select model</option>
+                  {editAgent.provider_id && providers
+                    .find(p => p.id === editAgent.provider_id)
+                    ?.models.map((model) => (
+                      <option key={model} value={model}>
+                        {model}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="edit-system-prompt">System Prompt *</Label>
+              <Textarea
+                id="edit-system-prompt"
+                placeholder="You are a helpful customer support assistant..."
+                rows={6}
+                value={editAgent.system_prompt}
+                onChange={(e) => setEditAgent({ ...editAgent, system_prompt: e.target.value })}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-temperature">Temperature: {editAgent.temperature}</Label>
+                <input
+                  type="range"
+                  id="edit-temperature"
+                  min="0"
+                  max="2"
+                  step="0.1"
+                  value={editAgent.temperature}
+                  onChange={(e) => setEditAgent({ ...editAgent, temperature: parseFloat(e.target.value) })}
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="edit-max-tokens">Max Tokens</Label>
+                <Input
+                  type="number"
+                  id="edit-max-tokens"
+                  value={editAgent.max_tokens}
+                  onChange={(e) => setEditAgent({ ...editAgent, max_tokens: parseInt(e.target.value) })}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateAgent}>
+              Update Agent
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Test Dialog */}
       <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
         <DialogContent className="max-w-2xl">
