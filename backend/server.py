@@ -413,14 +413,23 @@ async def generate_ai_response(messages: List[dict], settings: dict) -> str:
         # Build enhanced system prompt with STRICT knowledge base enforcement
         brand_name = settings.get("brand_name", "the company")
         
+        # Build conversation history first to get latest message
+        conversation_messages = []
+        for msg in messages[-10:]:  # Last 10 messages for context
+            role = "user" if msg.get("author_type") == "customer" else "assistant"
+            conversation_messages.append({
+                "role": role,
+                "content": msg.get("content")
+            })
+        
+        # Get the latest user message for RAG retrieval
+        latest_message = conversation_messages[-1]["content"] if conversation_messages else "Hello"
+        
         # Retrieve relevant context from RAG if documents exist
         context = ""
         if has_documents:
             try:
                 from rag_service import retrieve_relevant_chunks, format_context_for_agent
-                
-                # Get the latest user message
-                latest_message = latest_message if 'latest_message' in locals() else message
                 
                 # Retrieve relevant chunks
                 relevant_chunks = await retrieve_relevant_chunks(
@@ -432,6 +441,7 @@ async def generate_ai_response(messages: List[dict], settings: dict) -> str:
                 
                 if relevant_chunks:
                     context = format_context_for_agent(relevant_chunks)
+                    logger.info(f"Retrieved {len(relevant_chunks)} relevant chunks for query")
             except Exception as e:
                 logger.error(f"RAG retrieval error: {str(e)}")
                 # Continue without context if RAG fails
