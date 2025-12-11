@@ -40,27 +40,37 @@ const DashboardLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [platformName, setPlatformName] = useState('Support Hub');
+  const [brandName, setBrandName] = useState('Support Hub');
+  const [brandLogo, setBrandLogo] = useState(null);
 
   useEffect(() => {
-    const fetchPlatformSettings = async () => {
+    const fetchBrandSettings = async () => {
       try {
-        const response = await axios.get(`${API}/admin/platform-settings`, {
+        // Fetch user's company brand settings
+        const response = await axios.get(`${API}/settings`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        if (response.data?.platform_name) {
-          setPlatformName(response.data.platform_name);
+        if (response.data) {
+          setBrandName(response.data.brand_name || 'Support Hub');
+          setBrandLogo(response.data.brand_logo || null);
         }
       } catch (error) {
-        // If not accessible (non-admin) or error, keep default
-        console.debug('Platform settings not accessible, using default name');
+        console.debug('Could not fetch brand settings, using defaults');
       }
     };
 
     if (token) {
-      fetchPlatformSettings();
+      fetchBrandSettings();
     }
   }, [token]);
+
+  const getBrandLogoSrc = (url) => {
+    if (!url) return null;
+    if (url.startsWith('/api/')) {
+      return `${BACKEND_URL}${url}`;
+    }
+    return url;
+  };
 
   const handleLogout = () => {
     logout();
