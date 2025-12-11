@@ -149,7 +149,10 @@ const Agents = () => {
         system_prompt: '',
         temperature: 0.7,
         max_tokens: 2000,
-        is_marketplace: false
+        is_marketplace: false,
+        response_language: null,
+        force_language: false,
+        language_detection_method: 'browser'
       });
       fetchData();
     } catch (error) {
