@@ -415,6 +415,14 @@ async def generate_ai_response(messages: List[dict], settings: dict) -> str:
         
         base_prompt += f"\n\nYou are assisting customers for {brand_name}. Be helpful and professional."
         
+        # CRITICAL: Add strict knowledge base constraint
+        base_prompt += """\n\nIMPORTANT CONSTRAINTS:
+- You may ONLY answer questions using information from the company's uploaded documents and scraped website content.
+- If a question cannot be answered using the available documentation, politely say "I don't have that information in my knowledge base. Please contact our support team for assistance."
+- DO NOT make up information or provide answers based on general knowledge outside the company's provided documentation.
+- DO NOT speculate or infer information that isn't explicitly stated in the documentation.
+- Always be honest about the limitations of your knowledge."""
+        
         # Build conversation history
         conversation_messages = []
         for msg in messages[-10:]:  # Last 10 messages for context
