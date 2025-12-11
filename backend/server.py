@@ -1601,6 +1601,332 @@ async def delete_provider(
     
     return {"status": "success", "message": "Provider deactivated"}
 
+# ============== AGENT MANAGEMENT ROUTES ==============
+
+@admin_router.post("/agents", response_model=AgentResponse)
+async def create_agent(
+    agent_data: AgentCreate,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Create new AI agent persona"""
+    agent_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Verify provider exists
+    provider = await db.providers.find_one({"id": agent_data.provider_id, "is_active": True}, {"_id": 0})
+    if not provider:
+        raise HTTPException(status_code=404, detail="Provider not found or inactive")
+    
+    # Create agent
+    agent_doc = {
+        "id": agent_id,
+        "name": agent_data.name,
+        "avatar_url": None,
+        "provider_id": agent_data.provider_id,
+        "model": agent_data.model,
+        "system_prompt": agent_data.system_prompt,
+        "temperature": agent_data.temperature,
+        "max_tokens": agent_data.max_tokens,
+        "version": 1,
+        "is_active": True,
+        "is_marketplace": agent_data.is_marketplace,
+        "created_at": now,
+        "updated_at": now,
+        "created_by": admin_user["id"]
+    }
+    await db.agents.insert_one(agent_doc)
+    
+    # Create initial version
+    version_doc = {
+        "id": str(uuid.uuid4()),
+        "agent_id": agent_id,
+        "version": 1,
+        "config": {
+            "model": agent_data.model,
+            "system_prompt": agent_data.system_prompt,
+            "temperature": agent_data.temperature,
+            "max_tokens": agent_data.max_tokens
+        },
+        "created_at": now,
+        "created_by": admin_user["id"]
+    }
+    await db.agent_versions.insert_one(version_doc)
+    
+    # Return agent with provider name
+    agent = await db.agents.find_one({"id": agent_id}, {"_id": 0})
+    agent["provider_name"] = provider["name"]
+    
+    return agent
+
+@admin_router.get("/agents", response_model=List[AgentResponse])
+async def list_agents(admin_user: dict = Depends(get_super_admin_user)):
+    """List all AI agents"""
+    agents = await db.agents.find({}, {"_id": 0}).to_list(100)
+    
+    # Enrich with provider names
+    result = []
+    for agent in agents:
+        provider = await db.providers.find_one({"id": agent["provider_id"]}, {"_id": 0, "name": 1})
+        agent["provider_name"] = provider["name"] if provider else "Unknown"
+        result.append(agent)
+    
+    return result
+
+@admin_router.get("/agents/{agent_id}", response_model=AgentResponse)
+async def get_agent(
+    agent_id: str,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Get agent details"""
+    agent = await db.agents.find_one({"id": agent_id}, {"_id": 0})
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    provider = await db.providers.find_one({"id": agent["provider_id"]}, {"_id": 0, "name": 1})
+    agent["provider_name"] = provider["name"] if provider else "Unknown"
+    
+    return agent
+
+@admin_router.put("/agents/{agent_id}", response_model=AgentResponse)
+async def update_agent(
+    agent_id: str,
+    agent_data: AgentUpdate,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Update agent (creates new version)"""
+    agent = await db.agents.find_one({"id": agent_id}, {"_id": 0})
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    update_data = {k: v for k, v in agent_data.model_dump().items() if v is not None}
+    
+    # Check if config changed (model, system_prompt, temperature, max_tokens)
+    config_fields = ['model', 'system_prompt', 'temperature', 'max_tokens']
+    config_changed = any(field in update_data for field in config_fields)
+    
+    if config_changed:
+        # Increment version
+        new_version = agent["version"] + 1
+        update_data["version"] = new_version
+        
+        # Create version snapshot
+        version_doc = {
+            "id": str(uuid.uuid4()),
+            "agent_id": agent_id,
+            "version": new_version,
+            "config": {
+                "model": update_data.get("model", agent["model"]),
+                "system_prompt": update_data.get("system_prompt", agent["system_prompt"]),
+                "temperature": update_data.get("temperature", agent["temperature"]),
+                "max_tokens": update_data.get("max_tokens", agent["max_tokens"])
+            },
+            "created_at": now,
+            "created_by": admin_user["id"]
+        }
+        await db.agent_versions.insert_one(version_doc)
+    
+    update_data["updated_at"] = now
+    
+    await db.agents.update_one({"id": agent_id}, {"$set": update_data})
+    
+    # Return updated agent
+    agent = await db.agents.find_one({"id": agent_id}, {"_id": 0})
+    provider = await db.providers.find_one({"id": agent["provider_id"]}, {"_id": 0, "name": 1})
+    agent["provider_name"] = provider["name"] if provider else "Unknown"
+    
+    return agent
+
+@admin_router.post("/agents/{agent_id}/avatar")
+async def upload_agent_avatar(
+    agent_id: str,
+    file: UploadFile = File(...),
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Upload agent avatar image"""
+    agent = await db.agents.find_one({"id": agent_id}, {"_id": 0})
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type")
+    
+    # Validate file size (5MB)
+    contents = await file.read()
+    if len(contents) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large. Maximum size: 5MB")
+    
+    # Generate filename
+    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    filename = f"agent_{agent_id}_{uuid.uuid4().hex[:8]}.{ext}"
+    filepath = UPLOADS_DIR / filename
+    
+    # Save file
+    with open(filepath, "wb") as f:
+        f.write(contents)
+    
+    # Update agent
+    avatar_url = f"/api/uploads/{filename}"
+    await db.agents.update_one(
+        {"id": agent_id},
+        {"$set": {"avatar_url": avatar_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"avatar_url": avatar_url}
+
+@admin_router.get("/agents/{agent_id}/versions")
+async def get_agent_versions(
+    agent_id: str,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Get agent version history"""
+    versions = await db.agent_versions.find(
+        {"agent_id": agent_id},
+        {"_id": 0}
+    ).sort("version", -1).to_list(100)
+    
+    return versions
+
+@admin_router.post("/agents/{agent_id}/rollback/{version}")
+async def rollback_agent_version(
+    agent_id: str,
+    version: int,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Rollback agent to specific version"""
+    agent = await db.agents.find_one({"id": agent_id}, {"_id": 0})
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Get version config
+    version_doc = await db.agent_versions.find_one(
+        {"agent_id": agent_id, "version": version},
+        {"_id": 0}
+    )
+    if not version_doc:
+        raise HTTPException(status_code=404, detail="Version not found")
+    
+    # Apply version config
+    config = version_doc["config"]
+    now = datetime.now(timezone.utc).isoformat()
+    new_version = agent["version"] + 1
+    
+    await db.agents.update_one(
+        {"id": agent_id},
+        {"$set": {
+            "model": config["model"],
+            "system_prompt": config["system_prompt"],
+            "temperature": config["temperature"],
+            "max_tokens": config["max_tokens"],
+            "version": new_version,
+            "updated_at": now
+        }}
+    )
+    
+    # Create new version entry for rollback
+    rollback_version_doc = {
+        "id": str(uuid.uuid4()),
+        "agent_id": agent_id,
+        "version": new_version,
+        "config": config,
+        "created_at": now,
+        "created_by": admin_user["id"],
+        "is_rollback": True,
+        "rolled_back_from": version
+    }
+    await db.agent_versions.insert_one(rollback_version_doc)
+    
+    return {"status": "success", "message": f"Rolled back to version {version}", "new_version": new_version}
+
+@admin_router.post("/agents/{agent_id}/test")
+async def test_agent_conversation(
+    agent_id: str,
+    message: str = "Hello, can you help me?",
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Test agent in sandbox (ephemeral)"""
+    agent = await db.agents.find_one({"id": agent_id}, {"_id": 0})
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    provider = await db.providers.find_one({"id": agent["provider_id"]}, {"_id": 0})
+    if not provider:
+        raise HTTPException(status_code=404, detail="Provider not found")
+    
+    try:
+        # Generate AI response based on provider type
+        if provider["type"] == "openai":
+            import openai
+            client = openai.OpenAI(api_key=provider["api_key"])
+            response = client.chat.completions.create(
+                model=agent["model"],
+                messages=[
+                    {"role": "system", "content": agent["system_prompt"]},
+                    {"role": "user", "content": message}
+                ],
+                temperature=agent["temperature"],
+                max_tokens=agent["max_tokens"]
+            )
+            reply = response.choices[0].message.content
+        
+        elif provider["type"] == "anthropic":
+            import anthropic
+            client = anthropic.Anthropic(api_key=provider["api_key"])
+            response = client.messages.create(
+                model=agent["model"],
+                max_tokens=agent["max_tokens"],
+                temperature=agent["temperature"],
+                system=agent["system_prompt"],
+                messages=[{"role": "user", "content": message}]
+            )
+            reply = response.content[0].text
+        
+        elif provider["type"] == "google":
+            # Placeholder for Google AI
+            reply = "Google AI integration pending"
+        
+        else:
+            raise HTTPException(status_code=400, detail="Unknown provider type")
+        
+        return {
+            "status": "success",
+            "user_message": message,
+            "agent_response": reply,
+            "agent_name": agent["name"],
+            "model": agent["model"]
+        }
+        
+    except Exception as e:
+        # Log error
+        error_doc = {
+            "id": str(uuid.uuid4()),
+            "provider_id": provider["id"],
+            "error_message": str(e),
+            "error_type": type(e).__name__,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await db.provider_errors.insert_one(error_doc)
+        
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.delete("/agents/{agent_id}")
+async def delete_agent(
+    agent_id: str,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Soft delete agent"""
+    result = await db.agents.update_one(
+        {"id": agent_id},
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    return {"status": "success", "message": "Agent deactivated"}
+
 # ============== PROFILE ROUTES ==============
 
 @profile_router.get("", response_model=ProfileResponse)
