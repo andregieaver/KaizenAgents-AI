@@ -1070,6 +1070,28 @@ async def send_widget_message(conversation_id: str, message_data: WidgetMessageC
         "ai_message": ai_message
     }
 
+@widget_router.get("/{tenant_id}/agent-info")
+async def get_widget_agent_info(tenant_id: str):
+    """Get agent information for widget header"""
+    try:
+        # Get company's agent configuration
+        agent_config = await db.company_agent_configs.find_one({"company_id": tenant_id}, {"_id": 0})
+        if not agent_config or not agent_config.get("agent_id"):
+            return {"name": None, "avatar_url": None}
+        
+        # Get the agent
+        agent = await db.agents.find_one({"id": agent_config["agent_id"], "is_active": True}, {"_id": 0})
+        if not agent:
+            return {"name": None, "avatar_url": None}
+        
+        return {
+            "name": agent.get("name"),
+            "avatar_url": agent.get("avatar_url")
+        }
+    except Exception as e:
+        logger.error(f"Error fetching agent info: {str(e)}")
+        return {"name": None, "avatar_url": None}
+
 @widget_router.get("/config/{tenant_id}")
 async def get_widget_config(tenant_id: str):
     """Get public widget configuration for embedding"""
