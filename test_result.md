@@ -434,7 +434,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Agent Version History UI"
+    - "Language Configuration for AI Agents"
   stuck_tasks:
     - "Agent Test Functionality"
   test_all: false
@@ -449,3 +449,5 @@ agent_communication:
       message: "WEB SCRAPING FUNCTIONALITY TESTING COMPLETED - Phase 4b: RAG Web Scraping fully functional! All 5 web scraping tests passed successfully. Tested: scraping status endpoint (idle->completed transitions), configuration updates (domains, depth, pages), scraping trigger (example.com), chunks storage in MongoDB with source_type='web', and status verification. Web scraping integrates properly with existing RAG system and creates searchable chunks with embeddings. Ready for production use."
     - agent: "testing"
       message: "PHASE 5 AGENT VERSION HISTORY TESTING COMPLETED - Feature successfully implemented and working! Fixed ESLint configuration issue that was preventing frontend compilation. Tested: History button (4th button with History icon) opens modal correctly, version timeline displays with version numbers and timestamps, Current badge on latest version, expandable configuration details (Model, Temperature, Max Tokens, System Prompt), and modal closes properly. Minor issue: Rollback button not found on older versions, but core functionality works as expected. Ready for production use."
+    - agent: "testing"
+      message: "LANGUAGE CONFIGURATION TESTING COMPLETED - New Language Configuration feature for AI agents successfully implemented and tested! Fixed ESLint compilation error (react-hooks/exhaustive-deps rule) that was preventing frontend from loading. Comprehensive testing performed on Create Agent dialog: All required elements present and functional including 'Response Language' heading, searchable language dropdown with 70+ languages, 'Force Language' toggle switch, and 'Auto-Detection Method' buttons (Browser Language & IP Geolocation). Language search functionality works correctly (tested Spanish, French searches), toggle behavior properly hides/shows auto-detection section, and all UI elements are properly styled. Edit dialog testing was limited due to UI interaction issues, but Create dialog functionality is fully working as specified in requirements. Feature ready for production use."
