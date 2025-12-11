@@ -703,6 +703,25 @@ async def update_conversation_status(
 
 # ============== WIDGET (PUBLIC) ROUTES ==============
 
+@app.get("/api/widget/{tenant_id}/settings")
+async def get_widget_settings(tenant_id: str):
+    """Public endpoint to get widget configuration"""
+    settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    if not settings:
+        return {
+            "brand_name": "Support Chat",
+            "brand_logo": None,
+            "primary_color": "#0047AB",
+            "welcome_message": "Hi! How can we help you today?"
+        }
+    
+    return {
+        "brand_name": settings.get("brand_name", "Support Chat"),
+        "brand_logo": settings.get("brand_logo"),
+        "primary_color": settings.get("primary_color", "#0047AB"),
+        "welcome_message": settings.get("welcome_message", "Hi! How can we help you today?")
+    }
+
 @widget_router.post("/session", response_model=WidgetSessionResponse)
 async def create_widget_session(session_data: WidgetSessionCreate):
     """Public endpoint for widget to create a session"""
