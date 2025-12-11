@@ -638,7 +638,7 @@ const Agents = () => {
 
       {/* Test Dialog */}
       <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+        <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -657,6 +657,30 @@ const Agents = () => {
                 Clear
               </Button>
             </div>
+            
+            {/* Agent Configuration Info */}
+            {selectedAgent && (
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg text-sm space-y-2">
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Model</p>
+                    <p className="font-mono text-xs">{selectedAgent.model}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Temperature</p>
+                    <p className="font-mono text-xs">{selectedAgent.temperature}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Max Tokens</p>
+                    <p className="font-mono text-xs">{selectedAgent.max_tokens}</p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Version</p>
+                  <Badge variant="secondary" className="text-xs">v{selectedAgent.version}</Badge>
+                </div>
+              </div>
+            )}
           </DialogHeader>
           
           <div className="flex-1 flex flex-col space-y-4 min-h-0">
