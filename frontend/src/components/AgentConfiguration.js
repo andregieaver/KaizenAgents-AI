@@ -34,8 +34,12 @@ const AgentConfiguration = () => {
   const [formData, setFormData] = useState({
     agent_id: '',
     custom_instructions: '',
-    scraping_domains: ''
+    scraping_domains: '',
+    scraping_max_depth: 2,
+    scraping_max_pages: 50
   });
+  const [scraping, setScraping] = useState(false);
+  const [scrapingStatus, setScrapingStatus] = useState(null);
 
   useEffect(() => {
     fetchData();
