@@ -506,45 +506,91 @@ class AIAgentHubTester:
         return success
 
 def main():
-    print("🚀 Starting AI Customer Support Platform API Tests")
-    print("=" * 60)
+    print("🚀 Starting AI Agent Hub Comprehensive Backend Testing")
+    print("=" * 70)
     
-    tester = AICustomerSupportTester()
+    tester = AIAgentHubTester()
     
-    # Test sequence
+    # Comprehensive test sequence based on review request
     tests = [
-        ("Health Check", tester.test_health_check),
-        ("User Registration", tester.test_register),
-        ("User Login", tester.test_login),
-        ("Get Current User", tester.test_get_me),
-        ("Dashboard Stats", tester.test_get_stats),
-        ("Get Settings", tester.test_get_settings),
-        ("Update Settings", tester.test_update_settings),
+        # 1. Authentication & User Management
+        ("Super Admin Login", tester.test_super_admin_login),
+        ("Auth Me Endpoint", tester.test_auth_me),
+        ("JWT Token Validation", tester.test_jwt_token_validation),
+        
+        # 2. Storage Configuration
+        ("Get Storage Configuration", tester.test_storage_config_get),
+        ("Test GCS Connection", tester.test_storage_config_test_gcs),
+        
+        # 3. Agent Management System
+        ("List AI Providers", tester.test_providers_list),
+        ("List AI Agents", tester.test_agents_list),
+        ("Agent Conversation Test", tester.test_agent_conversation),
+        ("Agent Knowledge Limitation", tester.test_agent_knowledge_limitation),
+        
+        # 4. Company Agent Configuration
+        ("Get Company Agent Config", tester.test_company_agent_config_get),
+        ("Document Upload with RAG", tester.test_document_upload),
+        
+        # 5. RAG System
+        ("RAG Retrieval Check", tester.test_rag_retrieval),
+        
+        # 6. Widget API with RAG
         ("Widget Session Creation", tester.test_widget_session_creation),
-        ("Widget Message Sending", tester.test_widget_message_sending),
-        ("List Conversations", tester.test_conversations_list),
-        ("Conversation Detail", tester.test_conversation_detail),
-        ("Conversation Messages", tester.test_conversation_messages),
-        ("Widget Config", tester.test_widget_config),
+        ("Widget RAG Message", tester.test_widget_rag_message),
+        ("Widget General Knowledge Refusal", tester.test_widget_general_knowledge_refusal),
+        
+        # 7. File Upload with GCS
+        ("File Upload to GCS - User Avatar", tester.test_file_upload_gcs),
+        ("Agent Avatar Upload to GCS", tester.test_agent_avatar_upload),
     ]
     
-    print(f"\n📋 Running {len(tests)} test scenarios...")
+    print(f"\n📋 Running {len(tests)} comprehensive test scenarios...")
+    print("   Testing all major AI Agent Hub features as requested")
+    
+    failed_tests = []
     
     for test_name, test_func in tests:
         try:
-            test_func()
+            success = test_func()
+            if not success:
+                failed_tests.append(test_name)
         except Exception as e:
             print(f"❌ {test_name} - Unexpected error: {str(e)}")
+            failed_tests.append(test_name)
     
-    # Print results
-    print("\n" + "=" * 60)
+    # Print detailed results
+    print("\n" + "=" * 70)
     print(f"📊 Test Results: {tester.tests_passed}/{tester.tests_run} tests passed")
     
+    if failed_tests:
+        print(f"\n❌ Failed Tests ({len(failed_tests)}):")
+        for test in failed_tests:
+            print(f"   - {test}")
+    
+    # Print summary by category
+    print(f"\n📋 Test Summary by Category:")
+    categories = {
+        "Authentication": ["Super Admin Login", "Auth Me Endpoint", "JWT Token Validation"],
+        "Storage Config": ["Get Storage Configuration", "Test GCS Connection"],
+        "Agent Management": ["List AI Providers", "List AI Agents", "Agent Conversation Test", "Agent Knowledge Limitation"],
+        "Company Config": ["Get Company Agent Config", "Document Upload with RAG"],
+        "RAG System": ["RAG Retrieval Check", "Widget RAG Message", "Widget General Knowledge Refusal"],
+        "Widget API": ["Widget Session Creation"],
+        "File Upload": ["File Upload to GCS - User Avatar", "Agent Avatar Upload to GCS"]
+    }
+    
+    for category, category_tests in categories.items():
+        passed = sum(1 for test in category_tests if test not in failed_tests)
+        total = len(category_tests)
+        status = "✅" if passed == total else "❌" if passed == 0 else "⚠️"
+        print(f"   {status} {category}: {passed}/{total}")
+    
     if tester.tests_passed == tester.tests_run:
-        print("🎉 All tests passed!")
+        print("\n🎉 All tests passed! AI Agent Hub backend is working correctly.")
         return 0
     else:
-        print(f"⚠️  {tester.tests_run - tester.tests_passed} tests failed")
+        print(f"\n⚠️  {tester.tests_run - tester.tests_passed} tests failed - see details above")
         return 1
 
 if __name__ == "__main__":
