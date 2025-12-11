@@ -383,45 +383,111 @@ async def get_tenant_admin_user(credentials: HTTPAuthorizationCredentials = Depe
 # ============== AI SERVICE ==============
 
 async def generate_ai_response(messages: List[dict], settings: dict) -> str:
-    """Generate AI response using OpenAI via emergentintegrations"""
+    """Generate AI response using company's configured agent"""
     try:
-        openai_key = settings.get("openai_api_key")
-        if not openai_key:
+        # Get tenant_id from settings
+        tenant_id = settings.get("tenant_id")
+        if not tenant_id:
             return "I apologize, but the AI assistant is not configured yet. Please contact support."
         
-        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        # Get company's agent configuration
+        agent_config = await db.company_agent_configs.find_one({"company_id": tenant_id}, {"_id": 0})
+        if not agent_config or not agent_config.get("agent_id"):
+            return "I apologize, but no AI agent has been configured for your company yet. Please contact your administrator."
         
-        # Build system message from settings
-        persona = settings.get("ai_persona", "You are a helpful customer support assistant.")
-        tone = settings.get("ai_tone", "friendly")
-        brand_name = settings.get("brand_name", "our company")
+        # Get the agent
+        agent = await db.agents.find_one({"id": agent_config["agent_id"], "is_active": True}, {"_id": 0})
+        if not agent:
+            return "I apologize, but the configured AI agent is not available. Please contact support."
         
-        system_message = f"""{persona}
+        # Get the provider
+        provider = await db.providers.find_one({"id": agent["provider_id"], "is_active": True}, {"_id": 0})
+        if not provider:
+            return "I apologize, but the AI provider is not available. Please contact support."
         
-You work for {brand_name}. Respond in a {tone} tone.
-Be concise and helpful. If you can't help with something, politely suggest contacting a human agent.
-Do not make up information. If unsure, say so."""
+        # Build enhanced system prompt with agent identity and custom instructions
+        brand_name = settings.get("brand_name", "the company")
+        base_prompt = f"Your name is {agent['name']}. {agent['system_prompt']}"
         
-        # Initialize chat
-        chat = LlmChat(
-            api_key=openai_key,
-            session_id=str(uuid.uuid4()),
-            system_message=system_message
-        )
+        # Add company-specific custom instructions
+        if agent_config.get("custom_instructions"):
+            base_prompt += f"\n\nAdditional company-specific instructions:\n{agent_config['custom_instructions']}"
         
-        model = settings.get("ai_model", "gpt-4o-mini")
-        chat.with_model("openai", model)
+        base_prompt += f"\n\nYou are assisting customers for {brand_name}. Be helpful and professional."
         
-        # Build conversation context (last 10 messages)
-        context = ""
-        for msg in messages[-10:]:
-            role = "Customer" if msg.get("author_type") == "customer" else "Assistant"
-            context += f"{role}: {msg.get('content')}\n"
+        # Build conversation history
+        conversation_messages = []
+        for msg in messages[-10:]:  # Last 10 messages for context
+            role = "user" if msg.get("author_type") == "customer" else "assistant"
+            conversation_messages.append({
+                "role": role,
+                "content": msg.get("content")
+            })
         
-        user_message = UserMessage(text=f"Previous conversation:\n{context}\n\nPlease respond to the latest customer message.")
+        # Get the latest user message
+        latest_message = conversation_messages[-1]["content"] if conversation_messages else "Hello"
         
-        response = await chat.send_message(user_message)
-        return response
+        # Remove the latest message from history for proper context building
+        history = []
+        if len(conversation_messages) > 1:
+            for msg in conversation_messages[:-1]:
+                history.append(msg)
+        
+        # Generate response based on provider type
+        if provider["type"] == "openai":
+            import openai
+            client = openai.OpenAI(api_key=provider["api_key"])
+            
+            # Handle different model requirements
+            model_lower = agent["model"].lower()
+            newer_models = ["gpt-4o", "gpt-5", "o1", "o3"]
+            uses_new_param = any(model_prefix in model_lower for model_prefix in newer_models)
+            
+            restrictive_models = ["gpt-5", "o1", "o3"]
+            is_restrictive = any(model_prefix in model_lower for model_prefix in restrictive_models)
+            
+            # Build messages
+            api_messages = [{"role": "system", "content": base_prompt}]
+            api_messages.extend(history)
+            api_messages.append({"role": "user", "content": latest_message})
+            
+            params = {
+                "model": agent["model"],
+                "messages": api_messages
+            }
+            
+            # Add temperature if supported
+            if not is_restrictive:
+                params["temperature"] = agent["temperature"]
+            
+            # Add token limit
+            if uses_new_param:
+                params["max_completion_tokens"] = agent["max_tokens"]
+            else:
+                params["max_tokens"] = agent["max_tokens"]
+            
+            response = client.chat.completions.create(**params)
+            return response.choices[0].message.content
+        
+        elif provider["type"] == "anthropic":
+            import anthropic
+            client = anthropic.Anthropic(api_key=provider["api_key"])
+            
+            # Build messages for Anthropic
+            api_messages = list(history)
+            api_messages.append({"role": "user", "content": latest_message})
+            
+            response = client.messages.create(
+                model=agent["model"],
+                max_tokens=agent["max_tokens"],
+                temperature=agent["temperature"],
+                system=base_prompt,
+                messages=api_messages
+            )
+            return response.content[0].text
+        
+        else:
+            return "I apologize, but the configured AI provider is not supported yet."
         
     except Exception as e:
         logger.error(f"AI generation error: {str(e)}")
