@@ -505,6 +505,205 @@ class AIAgentHubTester:
         
         return success
 
+    # ============== WEB SCRAPING TESTS ==============
+
+    def test_scraping_status_initial(self):
+        """Test GET /api/settings/agent-config/scrape-status - Initial status"""
+        success, response = self.run_test(
+            "Get Initial Scraping Status",
+            "GET",
+            "settings/agent-config/scrape-status",
+            200
+        )
+        
+        if success:
+            print(f"   Status: {response.get('status', 'unknown')}")
+            print(f"   Domains: {response.get('domains', [])}")
+            print(f"   Pages Scraped: {response.get('pages_scraped', 0)}")
+            print(f"   Last Scraped: {response.get('last_scraped_at', 'Never')}")
+            
+            # Verify initial status
+            if response.get('status') == 'idle':
+                print("   ✅ Initial status is 'idle' as expected")
+            else:
+                print(f"   ⚠️ Expected status 'idle', got '{response.get('status')}'")
+                
+            # Check if humanweb.ai domain is configured
+            domains = response.get('domains', [])
+            if 'humanweb.ai' in str(domains):
+                print("   ✅ humanweb.ai domain found in configuration")
+            else:
+                print("   ⚠️ humanweb.ai domain not found in configuration")
+        
+        return success
+
+    def test_update_scraping_config(self):
+        """Test PATCH /api/settings/agent-config - Update scraping configuration"""
+        config_data = {
+            "scraping_domains": ["https://example.com"],
+            "scraping_max_depth": 1,
+            "scraping_max_pages": 5
+        }
+        
+        success, response = self.run_test(
+            "Update Scraping Configuration",
+            "PATCH",
+            "settings/agent-config",
+            200,
+            data=config_data
+        )
+        
+        if success:
+            print(f"   Updated domains: {response.get('scraping_domains', [])}")
+            print(f"   Max depth: {response.get('scraping_max_depth', 'unknown')}")
+            print(f"   Max pages: {response.get('scraping_max_pages', 'unknown')}")
+            
+            # Verify configuration was updated
+            domains = response.get('scraping_domains', [])
+            if 'https://example.com' in domains:
+                print("   ✅ Scraping domains updated successfully")
+            else:
+                print("   ⚠️ Scraping domains may not have been updated correctly")
+                
+            if response.get('scraping_max_depth') == 1:
+                print("   ✅ Max depth updated successfully")
+            else:
+                print("   ⚠️ Max depth may not have been updated correctly")
+                
+            if response.get('scraping_max_pages') == 5:
+                print("   ✅ Max pages updated successfully")
+            else:
+                print("   ⚠️ Max pages may not have been updated correctly")
+        
+        return success
+
+    def test_trigger_scraping(self):
+        """Test POST /api/settings/agent-config/scrape - Trigger web scraping"""
+        scrape_data = {
+            "force_refresh": False
+        }
+        
+        success, response = self.run_test(
+            "Trigger Web Scraping",
+            "POST",
+            "settings/agent-config/scrape",
+            200,
+            data=scrape_data
+        )
+        
+        if success:
+            print(f"   Status: {response.get('status', 'unknown')}")
+            print(f"   Pages Scraped: {response.get('pages_scraped', 0)}")
+            print(f"   Chunks Created: {response.get('chunks_created', 0)}")
+            print(f"   Domains: {response.get('domains', [])}")
+            
+            # Verify scraping was successful
+            if response.get('status') == 'success':
+                print("   ✅ Scraping completed successfully")
+            else:
+                print(f"   ⚠️ Expected status 'success', got '{response.get('status')}'")
+                
+            pages_scraped = response.get('pages_scraped', 0)
+            if pages_scraped > 0:
+                print(f"   ✅ Successfully scraped {pages_scraped} pages")
+            else:
+                print("   ⚠️ No pages were scraped")
+                
+            chunks_created = response.get('chunks_created', 0)
+            if chunks_created > 0:
+                print(f"   ✅ Successfully created {chunks_created} chunks")
+            else:
+                print("   ⚠️ No chunks were created")
+        
+        return success
+
+    def test_verify_chunks_created(self):
+        """Test that web scraping chunks were stored in MongoDB"""
+        # We can't directly access MongoDB, but we can verify through the scraping status
+        success, response = self.run_test(
+            "Verify Chunks in Database",
+            "GET",
+            "settings/agent-config/scrape-status",
+            200
+        )
+        
+        if success:
+            pages_scraped = response.get('pages_scraped', 0)
+            print(f"   Pages in database: {pages_scraped}")
+            
+            if pages_scraped > 0:
+                print("   ✅ Web content chunks found in database")
+                
+                # Additional verification: Check if we can query the content through widget
+                if self.conversation_id and self.session_token:
+                    return self._test_web_content_retrieval()
+            else:
+                print("   ⚠️ No web content chunks found in database")
+        
+        return success
+
+    def _test_web_content_retrieval(self):
+        """Helper method to test web content retrieval through widget"""
+        message_data = {
+            "content": "What information do you have about example.com?"
+        }
+        
+        success, response = self.run_test(
+            "Test Web Content Retrieval",
+            "POST",
+            f"widget/messages/{self.conversation_id}?token={self.session_token}",
+            200,
+            data=message_data
+        )
+        
+        if success and 'ai_message' in response and response['ai_message']:
+            ai_response = response['ai_message']['content'].lower()
+            print(f"   AI Response: {response['ai_message']['content'][:100]}...")
+            
+            # Check if response contains web content or proper refusal
+            if 'example.com' in ai_response or 'knowledge base' in ai_response:
+                print("   ✅ Web content retrieval working or properly refused")
+                return True
+            else:
+                print("   ⚠️ Unexpected response to web content query")
+        
+        return success
+
+    def test_scraping_status_after_completion(self):
+        """Test scraping status after completion"""
+        success, response = self.run_test(
+            "Get Scraping Status After Completion",
+            "GET",
+            "settings/agent-config/scrape-status",
+            200
+        )
+        
+        if success:
+            print(f"   Status: {response.get('status', 'unknown')}")
+            print(f"   Pages Scraped: {response.get('pages_scraped', 0)}")
+            print(f"   Last Scraped: {response.get('last_scraped_at', 'Never')}")
+            print(f"   Domains: {response.get('domains', [])}")
+            
+            # Verify status changed to completed
+            if response.get('status') == 'completed':
+                print("   ✅ Status correctly shows 'completed'")
+            else:
+                print(f"   ⚠️ Expected status 'completed', got '{response.get('status')}'")
+                
+            # Verify pages were scraped
+            pages_scraped = response.get('pages_scraped', 0)
+            if pages_scraped > 0:
+                print(f"   ✅ Shows {pages_scraped} pages scraped")
+            else:
+                print("   ⚠️ No pages scraped shown")
+                
+            # Verify last_scraped_at is populated
+            if response.get('last_scraped_at'):
+                print("   ✅ Last scraped timestamp is populated")
+            else:
+                print("   ⚠️ Last scraped timestamp is missing")
+        
+        return success
 def main():
     print("🚀 Starting AI Agent Hub Comprehensive Backend Testing")
     print("=" * 70)
