@@ -19,6 +19,7 @@ import Team from "./pages/Team";
 import Profile from "./pages/Profile";
 import Providers from "./pages/Providers";
 import Agents from "./pages/Agents";
+import StorageConfig from "./pages/StorageConfig";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
