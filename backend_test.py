@@ -718,6 +718,141 @@ class AIAgentHubTester:
                 print("   ⚠️ Last scraped timestamp is missing")
         
         return success
+
+    # ============== WIDGET ENDPOINT SPECIFIC TESTS ==============
+
+    def test_widget_endpoint_specific(self):
+        """Test widget endpoint with specific tenant ID as requested in review"""
+        # Use the specific tenant ID from the review request
+        test_tenant_id = "1c752635-c958-435d-8a48-a1f1209cccd4"
+        
+        print(f"\n🎯 Testing Widget Endpoint with Tenant ID: {test_tenant_id}")
+        
+        # Step 1: Create Widget Session
+        session_data = {
+            "tenant_id": test_tenant_id,
+            "customer_name": "Test User",
+            "customer_email": "test@example.com"
+        }
+        
+        success, response = self.run_test(
+            "Widget Session Creation - Specific Tenant",
+            "POST",
+            "widget/session",
+            200,
+            data=session_data
+        )
+        
+        if not success:
+            print("❌ Widget session creation failed - cannot continue with widget tests")
+            return False
+            
+        # Extract session details
+        session_token = response.get('session_token')
+        conversation_id = response.get('conversation_id')
+        
+        if not session_token or not conversation_id:
+            print("❌ Missing session_token or conversation_id in response")
+            return False
+            
+        print(f"   ✅ Session created successfully")
+        print(f"   Session Token: {session_token[:20]}...")
+        print(f"   Conversation ID: {conversation_id}")
+        
+        # Step 2: Send Message and Get AI Response
+        message_data = {
+            "content": "Hello, I need help"
+        }
+        
+        success, response = self.run_test(
+            "Widget Message - AI Response Test",
+            "POST",
+            f"widget/messages/{conversation_id}?token={session_token}",
+            200,
+            data=message_data
+        )
+        
+        if not success:
+            print("❌ Widget message sending failed")
+            return False
+            
+        # Verify response structure
+        customer_message = response.get('customer_message')
+        ai_message = response.get('ai_message')
+        
+        if not customer_message:
+            print("❌ Customer message not found in response")
+            return False
+            
+        if not ai_message:
+            print("❌ AI message not found in response")
+            return False
+            
+        print(f"   ✅ Customer message saved: {customer_message.get('content', '')[:50]}...")
+        print(f"   ✅ AI response generated: {ai_message.get('content', '')[:100]}...")
+        
+        # Verify AI response is not empty
+        ai_content = ai_message.get('content', '').strip()
+        if not ai_content:
+            print("❌ AI response content is empty")
+            return False
+        else:
+            print(f"   ✅ AI response is not empty ({len(ai_content)} characters)")
+            
+        # Step 3: Verify Message Saved (by retrieving messages)
+        success, response = self.run_test(
+            "Widget Messages Retrieval - Verify Saved",
+            "GET",
+            f"widget/messages/{conversation_id}?token={session_token}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to retrieve messages for verification")
+            return False
+            
+        messages = response.get('messages', [])
+        if len(messages) < 2:
+            print(f"❌ Expected at least 2 messages, found {len(messages)}")
+            return False
+            
+        # Verify both customer and AI messages are saved
+        customer_msgs = [msg for msg in messages if msg.get('author_type') == 'customer']
+        ai_msgs = [msg for msg in messages if msg.get('author_type') == 'ai']
+        
+        if len(customer_msgs) < 1:
+            print("❌ Customer message not found in database")
+            return False
+            
+        if len(ai_msgs) < 1:
+            print("❌ AI message not found in database")
+            return False
+            
+        print(f"   ✅ Messages verified in database: {len(customer_msgs)} customer, {len(ai_msgs)} AI")
+        
+        # Additional verification: Test another message to ensure conversation flow
+        follow_up_data = {
+            "content": "Can you tell me more about your services?"
+        }
+        
+        success, response = self.run_test(
+            "Widget Follow-up Message Test",
+            "POST",
+            f"widget/messages/{conversation_id}?token={session_token}",
+            200,
+            data=follow_up_data
+        )
+        
+        if success:
+            ai_message = response.get('ai_message')
+            if ai_message and ai_message.get('content'):
+                print(f"   ✅ Follow-up conversation working: {ai_message.get('content')[:80]}...")
+            else:
+                print("   ⚠️ Follow-up message sent but no AI response")
+        else:
+            print("   ⚠️ Follow-up message test failed")
+            
+        return True
 def main():
     print("🚀 Starting AI Agent Hub Comprehensive Backend Testing")
     print("=" * 70)
