@@ -35,7 +35,11 @@ import {
   Database,
   Bell,
   Eye,
-  ChevronRight
+  ChevronRight,
+  Upload,
+  Image as ImageIcon,
+  X,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow, format } from 'date-fns';
