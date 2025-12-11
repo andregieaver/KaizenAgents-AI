@@ -28,6 +28,45 @@ import { cn } from '../lib/utils';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Move ConversationsList outside to avoid nested component definition
+const ConversationsList = ({ conversations, id, navigate, setSidebarOpen }) => (
+  <ScrollArea className="h-[calc(100vh-12rem)]">
+    <div className="space-y-2 pr-4">
+      {conversations.map((conv) => (
+        <button
+          key={conv.id}
+          onClick={() => {
+            navigate(`/dashboard/conversations/${conv.id}`);
+            setSidebarOpen(false);
+          }}
+          className={cn(
+            "w-full text-left p-3 rounded-sm transition-colors",
+            "hover:bg-muted/50",
+            conv.id === id ? "bg-muted" : ""
+          )}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm truncate">
+                {conv.customer_name || 'Anonymous'}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                {conv.customer_email || 'No email'}
+              </p>
+            </div>
+            <StatusBadge status={conv.status} />
+          </div>
+          {conv.last_message_at && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {formatDistanceToNow(new Date(conv.last_message_at), { addSuffix: true })}
+            </p>
+          )}
+        </button>
+      ))}
+    </div>
+  </ScrollArea>
+);
+
 const ConversationDetail = () => {
   const { id } = useParams();
   const { token } = useAuth();
