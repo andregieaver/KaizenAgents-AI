@@ -14,3 +14,5 @@ db = client[os.environ['DB_NAME']]
 def get_db():
     """Dependency to get database instance"""
     return db
+
+__all__ = ["db", "client", "get_db"]
