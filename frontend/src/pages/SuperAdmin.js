@@ -440,7 +440,7 @@ const SuperAdmin = () => {
                 ) : (
                   <div className="text-center py-12">
                     <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-muted-foreground">Select a tenant from the list</p>
+                    <p className="text-muted-foreground">Select a company from the list</p>
                   </div>
                 )}
               </CardContent>
