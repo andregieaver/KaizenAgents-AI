@@ -2244,6 +2244,10 @@ async def update_company_agent_config(
         update_data["custom_instructions"] = config_update.custom_instructions
     if config_update.scraping_domains is not None:
         update_data["scraping_domains"] = config_update.scraping_domains
+    if config_update.scraping_max_depth is not None:
+        update_data["scraping_max_depth"] = config_update.scraping_max_depth
+    if config_update.scraping_max_pages is not None:
+        update_data["scraping_max_pages"] = config_update.scraping_max_pages
     
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
     
