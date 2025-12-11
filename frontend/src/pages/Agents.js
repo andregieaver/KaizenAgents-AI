@@ -304,8 +304,17 @@ const Agents = () => {
                   id="agent-name"
                   placeholder="e.g., Customer Support Specialist"
                   value={newAgent.name}
-                  onChange={(e) => setNewAgent({ ...newAgent, name: e.target.value })}
+                  onChange={(e) => {
+                    setNewAgent({ ...newAgent, name: e.target.value });
+                    if (formErrors.name) {
+                      setFormErrors({ ...formErrors, name: null });
+                    }
+                  }}
+                  className={formErrors.name ? 'border-destructive' : ''}
                 />
+                {formErrors.name && (
+                  <p className="text-xs text-destructive">{formErrors.name}</p>
+                )}
               </div>
               
               <div className="grid grid-cols-2 gap-4">
