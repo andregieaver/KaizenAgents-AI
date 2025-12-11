@@ -574,7 +574,7 @@ const Settings = () => {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-3">
-                <Label>Your Tenant ID</Label>
+                <Label>Your Company ID</Label>
                 <div className="flex gap-2 max-w-md">
                   <Input
                     value={user?.tenant_id || ''}
@@ -586,7 +586,7 @@ const Settings = () => {
                     variant="outline"
                     onClick={() => {
                       navigator.clipboard.writeText(user?.tenant_id || '');
-                      toast.success('Tenant ID copied!');
+                      toast.success('Company ID copied!');
                     }}
                   >
                     <Copy className="h-4 w-4" />
