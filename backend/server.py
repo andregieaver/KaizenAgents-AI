@@ -920,6 +920,7 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
 
 class PlatformSettingsUpdate(BaseModel):
     platform_name: Optional[str] = None
+    platform_logo: Optional[str] = None
     maintenance_mode: Optional[bool] = None
     max_tenants: Optional[int] = None
     default_ai_model: Optional[str] = None
