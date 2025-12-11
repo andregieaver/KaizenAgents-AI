@@ -757,7 +757,7 @@ async def get_widget_messages(conversation_id: str, token: str):
     return {"messages": messages}
 
 @widget_router.post("/messages/{conversation_id}")
-async def send_widget_message(conversation_id: str, message_data: WidgetMessageCreate, token: str):
+async def send_widget_message(conversation_id: str, token: str, message_data: WidgetMessageCreate):
     """Send message from widget and get AI response"""
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
