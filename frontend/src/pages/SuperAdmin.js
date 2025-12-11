@@ -300,6 +300,65 @@ const SuperAdmin = () => {
                 />
               </div>
 
+              <div className="space-y-2">
+                <Label>Platform Logo</Label>
+                <div className="flex items-start gap-4">
+                  {platformSettings?.platform_logo ? (
+                    <div className="relative">
+                      <img
+                        src={getPlatformLogoSrc(platformSettings.platform_logo)}
+                        alt="Platform logo"
+                        className="h-24 w-24 object-contain rounded-sm border border-border bg-muted p-2"
+                      />
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+                        onClick={handleRemovePlatformLogo}
+                        disabled={uploadingPlatformLogo}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="h-24 w-24 rounded-sm border border-dashed border-border bg-muted flex items-center justify-center">
+                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-2">
+                    <input
+                      ref={platformLogoInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml"
+                      onChange={handlePlatformLogoUpload}
+                      className="hidden"
+                      data-testid="platform-logo-file-input"
+                    />
+                    <Button
+                      variant="outline"
+                      onClick={() => platformLogoInputRef.current?.click()}
+                      disabled={uploadingPlatformLogo}
+                      className="w-full max-w-xs"
+                    >
+                      {uploadingPlatformLogo ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          {platformSettings?.platform_logo ? 'Change Logo' : 'Upload Logo'}
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      Upload a logo for the platform. Max 5MB. Supported: JPEG, PNG, GIF, WebP, SVG
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex items-center justify-between max-w-md">
                 <div>
                   <Label>Maintenance Mode</Label>
