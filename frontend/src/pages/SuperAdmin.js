@@ -597,11 +597,22 @@ const SuperAdmin = () => {
                   {users.map((u) => (
                     <div key={u.id} className="p-4 flex items-center justify-between" data-testid="user-row">
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
-                          {u.is_super_admin ? (
+                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden relative">
+                          {u.avatar_url ? (
+                            <img 
+                              src={u.avatar_url.startsWith('/api/') ? `${process.env.REACT_APP_BACKEND_URL}${u.avatar_url}` : u.avatar_url} 
+                              alt={u.name} 
+                              className="h-full w-full object-cover" 
+                            />
+                          ) : u.is_super_admin ? (
                             <Crown className="h-5 w-5 text-amber-500" />
                           ) : (
-                            <span className="text-sm font-medium">{u.name?.charAt(0).toUpperCase()}</span>
+                            <span className="text-sm font-medium text-primary">{u.name?.charAt(0).toUpperCase()}</span>
+                          )}
+                          {u.is_super_admin && u.avatar_url && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-amber-500/20 backdrop-blur-[1px]">
+                              <Crown className="h-5 w-5 text-amber-500" />
+                            </div>
                           )}
                         </div>
                         <div>
