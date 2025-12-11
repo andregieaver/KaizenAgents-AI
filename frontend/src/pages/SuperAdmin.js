@@ -55,6 +55,8 @@ const SuperAdmin = () => {
   const [users, setUsers] = useState([]);
   const [selectedTenant, setSelectedTenant] = useState(null);
   const [tenantDetails, setTenantDetails] = useState(null);
+  const [uploadingPlatformLogo, setUploadingPlatformLogo] = useState(false);
+  const platformLogoInputRef = useRef(null);
 
   const fetchData = async () => {
     try {
