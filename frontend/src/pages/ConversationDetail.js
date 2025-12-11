@@ -148,35 +148,109 @@ const ConversationDetail = () => {
     );
   }
 
-  return (
-    <div className="p-6 lg:p-8 page-transition" data-testid="conversation-detail">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/dashboard/conversations')}
-            data-testid="back-btn"
+  const ConversationsList = () => (
+    <ScrollArea className="h-[calc(100vh-12rem)]">
+      <div className="space-y-2 pr-4">
+        {conversations.map((conv) => (
+          <button
+            key={conv.id}
+            onClick={() => {
+              navigate(`/dashboard/conversations/${conv.id}`);
+              setSidebarOpen(false);
+            }}
+            className={cn(
+              "w-full text-left p-3 rounded-sm transition-colors",
+              "hover:bg-muted/50",
+              conv.id === id ? "bg-muted" : ""
+            )}
           >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="font-heading text-xl font-bold tracking-tight">
-              {conversation.customer_name || 'Anonymous'}
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              {conversation.customer_email || 'No email provided'}
-            </p>
-          </div>
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate">
+                  {conv.customer_name || 'Anonymous'}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {conv.customer_email || 'No email'}
+                </p>
+              </div>
+              <StatusBadge status={conv.status} />
+            </div>
+            {conv.last_message_at && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {formatDistanceToNow(new Date(conv.last_message_at), { addSuffix: true })}
+              </p>
+            )}
+          </button>
+        ))}
+      </div>
+    </ScrollArea>
+  );
+
+  return (
+    <div className="flex h-[calc(100vh-4rem)]">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block w-80 border-r border-border p-6 bg-background">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-heading font-semibold">Conversations</h2>
+          <Badge variant="secondary">{conversations.length}</Badge>
         </div>
-        <div className="flex items-center gap-2">
-          <StatusBadge status={conversation.status} />
-          <ModeBadge mode={conversation.mode} />
-        </div>
+        <ConversationsList />
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
+      {/* Mobile Sidebar */}
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetContent side="left" className="w-80 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-heading font-semibold">Conversations</h2>
+            <Badge variant="secondary">{conversations.length}</Badge>
+          </div>
+          <ConversationsList />
+        </SheetContent>
+      </Sheet>
+
+      {/* Main Content */}
+      <div className="flex-1 overflow-auto">
+        <div className="p-6 lg:p-8">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden"
+                    onClick={() => setSidebarOpen(true)}
+                  >
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+              </Sheet>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/dashboard/conversations')}
+                className="hidden lg:flex"
+                data-testid="back-btn"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </Button>
+              <div>
+                <h1 className="font-heading text-xl font-bold tracking-tight">
+                  {conversation.customer_name || 'Anonymous'}
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {conversation.customer_email || 'No email provided'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <StatusBadge status={conversation.status} />
+              <ModeBadge mode={conversation.mode} />
+            </div>
+          </div>
+
+          <div className="grid lg:grid-cols-3 gap-6">
         {/* Messages */}
         <div className="lg:col-span-2">
           <Card className="border border-border h-[600px] flex flex-col">
