@@ -205,7 +205,7 @@ const AgentConfiguration = () => {
               onChange={(e) => setFormData({ ...formData, custom_instructions: e.target.value })}
             />
             <p className="text-xs text-muted-foreground">
-              These instructions will be added to the agent's base prompt
+              These instructions will be added to the agent&apos;s base prompt
             </p>
           </div>
 
