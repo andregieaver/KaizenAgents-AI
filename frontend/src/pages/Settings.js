@@ -180,7 +180,7 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
           <TabsTrigger value="general" className="gap-2" data-testid="tab-general">
             <SettingsIcon className="h-4 w-4 hidden sm:block" />
             General
@@ -192,10 +192,6 @@ const Settings = () => {
           <TabsTrigger value="widget" className="gap-2" data-testid="tab-widget">
             <Palette className="h-4 w-4 hidden sm:block" />
             Widget
-          </TabsTrigger>
-          <TabsTrigger value="ai" className="gap-2" data-testid="tab-ai">
-            <Bot className="h-4 w-4 hidden sm:block" />
-            AI
           </TabsTrigger>
           <TabsTrigger value="embed" className="gap-2" data-testid="tab-embed">
             <Code className="h-4 w-4 hidden sm:block" />
