@@ -153,12 +153,44 @@ const Settings = () => {
     return url;
   };
 
-  const copyEmbedCode = () => {
-    const code = `<script src="${window.location.origin}/widget.js" data-tenant-id="${user?.tenant_id}"></script>`;
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    toast.success('Embed code copied!');
-    setTimeout(() => setCopied(false), 2000);
+  const copyEmbedCode = async () => {
+    const code = `<script src="${process.env.REACT_APP_BACKEND_URL?.replace('/api', '')}/widget.js" data-tenant-id="${user?.tenant_id}" async></script>`;
+    
+    try {
+      // Try modern Clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(code);
+        setCopied(true);
+        toast.success('Embed code copied!');
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        // Fallback for browsers/contexts where Clipboard API is blocked
+        const textArea = document.createElement('textarea');
+        textArea.value = code;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+          const successful = document.execCommand('copy');
+          if (successful) {
+            setCopied(true);
+            toast.success('Embed code copied!');
+            setTimeout(() => setCopied(false), 2000);
+          } else {
+            throw new Error('Copy command failed');
+          }
+        } finally {
+          document.body.removeChild(textArea);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      toast.error('Failed to copy. Please copy manually.');
+    }
   };
 
   if (loading) {
