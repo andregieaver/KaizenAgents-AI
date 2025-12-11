@@ -1989,6 +1989,190 @@ async def delete_agent(
     
     return {"status": "success", "message": "Agent deactivated"}
 
+# ============== COMPANY AGENT CONFIGURATION ROUTES ==============
+
+@settings_router.get("/agent-config", response_model=CompanyAgentConfigResponse)
+async def get_company_agent_config(current_user: dict = Depends(get_current_user)):
+    """Get company's agent configuration"""
+    if not current_user.get("tenant_id"):
+        raise HTTPException(status_code=400, detail="User not associated with a company")
+    
+    company_id = current_user["tenant_id"]
+    config = await db.company_agent_configs.find_one({"company_id": company_id}, {"_id": 0})
+    
+    if not config:
+        # Create default config
+        config_id = str(uuid.uuid4())
+        config = {
+            "id": config_id,
+            "company_id": company_id,
+            "agent_id": None,
+            "custom_instructions": None,
+            "uploaded_docs": [],
+            "scraping_domains": [],
+            "is_active": True,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        await db.company_agent_configs.insert_one(config)
+    
+    # Get agent name if agent is selected
+    agent_name = None
+    if config.get("agent_id"):
+        agent = await db.agents.find_one({"id": config["agent_id"]}, {"_id": 0, "name": 1})
+        agent_name = agent.get("name") if agent else None
+    
+    config["agent_name"] = agent_name
+    return config
+
+@settings_router.patch("/agent-config")
+async def update_company_agent_config(
+    config_update: CompanyAgentConfigUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update company's agent configuration"""
+    if not current_user.get("tenant_id"):
+        raise HTTPException(status_code=400, detail="User not associated with a company")
+    
+    company_id = current_user["tenant_id"]
+    
+    # Verify agent exists if provided
+    if config_update.agent_id:
+        agent = await db.agents.find_one({"id": config_update.agent_id, "is_active": True}, {"_id": 0})
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found or inactive")
+    
+    # Build update document
+    update_data = {}
+    if config_update.agent_id is not None:
+        update_data["agent_id"] = config_update.agent_id
+    if config_update.custom_instructions is not None:
+        update_data["custom_instructions"] = config_update.custom_instructions
+    if config_update.scraping_domains is not None:
+        update_data["scraping_domains"] = config_update.scraping_domains
+    
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    # Update or create config
+    result = await db.company_agent_configs.update_one(
+        {"company_id": company_id},
+        {"$set": update_data},
+        upsert=True
+    )
+    
+    return {"status": "success", "message": "Configuration updated"}
+
+@settings_router.post("/agent-config/upload-doc")
+async def upload_company_document(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload company documentation for RAG"""
+    if not current_user.get("tenant_id"):
+        raise HTTPException(status_code=400, detail="User not associated with a company")
+    
+    company_id = current_user["tenant_id"]
+    
+    # Validate file type
+    allowed_types = [
+        "application/pdf",
+        "text/plain",
+        "text/markdown",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/csv"
+    ]
+    allowed_extensions = [".pdf", ".txt", ".md", ".docx", ".csv"]
+    
+    file_ext = Path(file.filename).suffix.lower() if file.filename else ""
+    if file.content_type not in allowed_types and file_ext not in allowed_extensions:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: PDF, TXT, MD, DOCX, CSV"
+        )
+    
+    # Validate file size (5MB)
+    contents = await file.read()
+    file_size = len(contents)
+    if file_size > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large. Maximum size: 5MB")
+    
+    # Create company-specific directory
+    company_docs_dir = UPLOADS_DIR / "company_docs" / company_id
+    company_docs_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate unique filename
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    safe_filename = f"{timestamp}_{file.filename}"
+    filepath = company_docs_dir / safe_filename
+    
+    # Save file
+    with open(filepath, "wb") as f:
+        f.write(contents)
+    
+    # Create document info
+    doc_info = {
+        "filename": file.filename,
+        "filepath": f"/api/uploads/company_docs/{company_id}/{safe_filename}",
+        "upload_date": datetime.now(timezone.utc).isoformat(),
+        "file_size": file_size
+    }
+    
+    # Add to company config
+    await db.company_agent_configs.update_one(
+        {"company_id": company_id},
+        {
+            "$push": {"uploaded_docs": doc_info},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        },
+        upsert=True
+    )
+    
+    return {"status": "success", "document": doc_info}
+
+@settings_router.delete("/agent-config/docs/{filename}")
+async def delete_company_document(
+    filename: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete company documentation"""
+    if not current_user.get("tenant_id"):
+        raise HTTPException(status_code=400, detail="User not associated with a company")
+    
+    company_id = current_user["tenant_id"]
+    
+    # Get current config
+    config = await db.company_agent_configs.find_one({"company_id": company_id}, {"_id": 0})
+    if not config:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+    
+    # Find document
+    doc_to_delete = None
+    for doc in config.get("uploaded_docs", []):
+        if doc["filename"] == filename:
+            doc_to_delete = doc
+            break
+    
+    if not doc_to_delete:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    # Delete file from filesystem
+    filepath_parts = doc_to_delete["filepath"].split("/")
+    safe_filename = filepath_parts[-1]
+    file_path = UPLOADS_DIR / "company_docs" / company_id / safe_filename
+    
+    if file_path.exists():
+        file_path.unlink()
+    
+    # Remove from database
+    await db.company_agent_configs.update_one(
+        {"company_id": company_id},
+        {
+            "$pull": {"uploaded_docs": {"filename": filename}},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    
+    return {"status": "success", "message": "Document deleted"}
+
 # ============== PROFILE ROUTES ==============
 
 @profile_router.get("", response_model=ProfileResponse)
