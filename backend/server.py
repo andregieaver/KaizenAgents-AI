@@ -1388,6 +1388,219 @@ async def remove_team_member(
     await db.users.delete_one({"id": user_id})
     return {"message": f"User {user['email']} removed from team"}
 
+# ============== PROVIDER MANAGEMENT ROUTES ==============
+
+@admin_router.post("/providers", response_model=ProviderResponse)
+async def create_provider(
+    provider_data: ProviderCreate,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Create or update AI provider configuration"""
+    provider_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    # Check if provider type already exists
+    existing = await db.providers.find_one({"type": provider_data.type})
+    if existing:
+        # Update existing provider
+        await db.providers.update_one(
+            {"type": provider_data.type},
+            {"$set": {
+                "name": provider_data.name,
+                "api_key": provider_data.api_key,
+                "base_url": provider_data.base_url,
+                "is_active": True,
+                "updated_at": now
+            }}
+        )
+        provider_id = existing["id"]
+    else:
+        # Create new provider
+        provider_doc = {
+            "id": provider_id,
+            "name": provider_data.name,
+            "type": provider_data.type,
+            "api_key": provider_data.api_key,
+            "base_url": provider_data.base_url,
+            "is_active": True,
+            "total_calls": 0,
+            "total_tokens": 0,
+            "total_cost": 0.0,
+            "models": [],
+            "created_at": now,
+            "updated_at": now
+        }
+        await db.providers.insert_one(provider_doc)
+    
+    # Return provider with masked key
+    provider = await db.providers.find_one({"id": provider_id}, {"_id": 0})
+    if provider and provider.get("api_key"):
+        key = provider["api_key"]
+        provider["masked_api_key"] = f"{key[:8]}...{key[-4:]}" if len(key) > 12 else "****"
+        del provider["api_key"]
+    
+    return {**provider, "last_error": None}
+
+@admin_router.get("/providers", response_model=List[ProviderResponse])
+async def list_providers(admin_user: dict = Depends(get_super_admin_user)):
+    """List all AI providers"""
+    providers = await db.providers.find({}, {"_id": 0}).to_list(100)
+    
+    # Mask API keys and get last error
+    result = []
+    for provider in providers:
+        if provider.get("api_key"):
+            key = provider["api_key"]
+            provider["masked_api_key"] = f"{key[:8]}...{key[-4:]}" if len(key) > 12 else "****"
+            del provider["api_key"]
+        
+        # Get last error
+        last_error_doc = await db.provider_errors.find_one(
+            {"provider_id": provider["id"]},
+            {"_id": 0, "error_message": 1},
+            sort=[("timestamp", -1)]
+        )
+        provider["last_error"] = last_error_doc.get("error_message") if last_error_doc else None
+        
+        result.append(provider)
+    
+    return result
+
+@admin_router.post("/providers/{provider_id}/test")
+async def test_provider_connection(
+    provider_id: str,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Test provider API connection"""
+    provider = await db.providers.find_one({"id": provider_id}, {"_id": 0})
+    if not provider:
+        raise HTTPException(status_code=404, detail="Provider not found")
+    
+    try:
+        # Test connection based on provider type
+        if provider["type"] == "openai":
+            import openai
+            client = openai.OpenAI(api_key=provider["api_key"])
+            models = client.models.list()
+            return {"status": "success", "message": "Connection successful", "models_count": len(list(models))}
+        
+        elif provider["type"] == "anthropic":
+            import anthropic
+            client = anthropic.Anthropic(api_key=provider["api_key"])
+            # Test with a simple message
+            message = client.messages.create(
+                model="claude-3-haiku-20240307",
+                max_tokens=10,
+                messages=[{"role": "user", "content": "Test"}]
+            )
+            return {"status": "success", "message": "Connection successful"}
+        
+        elif provider["type"] == "google":
+            # Test Google AI connection
+            return {"status": "success", "message": "Connection test not implemented for Google"}
+        
+        return {"status": "error", "message": "Unknown provider type"}
+        
+    except Exception as e:
+        # Log error
+        error_doc = {
+            "id": str(uuid.uuid4()),
+            "provider_id": provider_id,
+            "error_message": str(e),
+            "error_type": type(e).__name__,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await db.provider_errors.insert_one(error_doc)
+        
+        return {"status": "error", "message": str(e)}
+
+@admin_router.post("/providers/{provider_id}/scan-models")
+async def scan_provider_models(
+    provider_id: str,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Scan and update available models for provider"""
+    provider = await db.providers.find_one({"id": provider_id}, {"_id": 0})
+    if not provider:
+        raise HTTPException(status_code=404, detail="Provider not found")
+    
+    try:
+        models = []
+        
+        if provider["type"] == "openai":
+            import openai
+            client = openai.OpenAI(api_key=provider["api_key"])
+            models_list = client.models.list()
+            models = [model.id for model in models_list if "gpt" in model.id.lower()]
+        
+        elif provider["type"] == "anthropic":
+            # Anthropic doesn't have a list models API, hardcode known models
+            models = [
+                "claude-3-5-sonnet-20241022",
+                "claude-3-5-haiku-20241022",
+                "claude-3-opus-20240229",
+                "claude-3-sonnet-20240229",
+                "claude-3-haiku-20240307"
+            ]
+        
+        elif provider["type"] == "google":
+            # Google AI hardcoded models
+            models = [
+                "gemini-2.0-flash-exp",
+                "gemini-1.5-pro",
+                "gemini-1.5-flash"
+            ]
+        
+        # Update provider with models
+        await db.providers.update_one(
+            {"id": provider_id},
+            {"$set": {"models": models, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {"status": "success", "models": models, "count": len(models)}
+        
+    except Exception as e:
+        # Log error
+        error_doc = {
+            "id": str(uuid.uuid4()),
+            "provider_id": provider_id,
+            "error_message": str(e),
+            "error_type": type(e).__name__,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+        await db.provider_errors.insert_one(error_doc)
+        
+        raise HTTPException(status_code=500, detail=str(e))
+
+@admin_router.get("/providers/{provider_id}/errors", response_model=List[ProviderErrorResponse])
+async def get_provider_errors(
+    provider_id: str,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Get error log for provider"""
+    errors = await db.provider_errors.find(
+        {"provider_id": provider_id},
+        {"_id": 0}
+    ).sort("timestamp", -1).limit(50).to_list(50)
+    
+    return errors
+
+@admin_router.delete("/providers/{provider_id}")
+async def delete_provider(
+    provider_id: str,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Soft delete provider"""
+    result = await db.providers.update_one(
+        {"id": provider_id},
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Provider not found")
+    
+    return {"status": "success", "message": "Provider deactivated"}
+
 # ============== PROFILE ROUTES ==============
 
 @profile_router.get("", response_model=ProfileResponse)
