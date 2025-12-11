@@ -168,27 +168,17 @@
         
         .chat-message {
           display: flex;
-          gap: 8px;
-          max-width: 80%;
+          flex-direction: column;
+          max-width: 75%;
+          margin-bottom: 16px;
         }
         
         .chat-message.customer {
           align-self: flex-end;
-          flex-direction: row-reverse;
         }
         
-        .chat-message-avatar {
-          width: 32px;
-          height: 32px;
-          border-radius: 16px;
-          background: ${settings?.primary_color || '#0047AB'};
-          color: white;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 14px;
-          font-weight: 600;
-          flex-shrink: 0;
+        .chat-message.ai {
+          align-self: flex-start;
         }
         
         .chat-message-content {
@@ -198,17 +188,28 @@
           font-size: 14px;
           line-height: 1.5;
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+          word-wrap: break-word;
         }
         
         .chat-message.customer .chat-message-content {
           background: ${settings?.primary_color || '#0047AB'};
           color: white;
+          border-bottom-right-radius: 4px;
+        }
+        
+        .chat-message.ai .chat-message-content {
+          border-bottom-left-radius: 4px;
         }
         
         .chat-message-time {
           font-size: 11px;
           color: #999;
           margin-top: 4px;
+          padding: 0 4px;
+        }
+        
+        .chat-message.customer .chat-message-time {
+          text-align: right;
         }
         
         #emergent-chat-form {
