@@ -1840,10 +1840,6 @@ async def rollback_agent_version(
     
     return {"status": "success", "message": f"Rolled back to version {version}", "new_version": new_version}
 
-class TestConversationRequest(BaseModel):
-    message: str
-    history: List[dict] = []  # [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
-
 @admin_router.post("/agents/{agent_id}/test")
 async def test_agent_conversation(
     agent_id: str,
