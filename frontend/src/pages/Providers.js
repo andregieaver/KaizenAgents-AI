@@ -134,14 +134,6 @@ const Providers = () => {
     return icons[type] || '🤖';
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}
