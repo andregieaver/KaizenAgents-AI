@@ -40,6 +40,7 @@ import { NoAgentsState, ErrorState } from '../components/EmptyStates';
 import { validateForm, agentValidation, hasErrors } from '../utils/validation';
 import { LanguageSelector } from '../components/LanguageSelector';
 import { Switch } from '../components/ui/switch';
+import { cn } from '../lib/utils';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
