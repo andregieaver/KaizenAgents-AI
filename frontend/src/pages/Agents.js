@@ -48,7 +48,7 @@ const Agents = () => {
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [editingAgent, setEditingAgent] = useState(null);
   const [testMessage, setTestMessage] = useState('');
-  const [testResponse, setTestResponse] = useState(null);
+  const [conversationHistory, setConversationHistory] = useState([]);
   const [testing, setTesting] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(null);
   const avatarInputRef = useRef(null);
