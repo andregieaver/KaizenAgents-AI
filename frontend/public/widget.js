@@ -185,11 +185,11 @@
         
         .chat-message-content {
           background: white;
-          padding: 12px 16px;
+          padding: 14px 18px;
           border-radius: 12px;
           font-size: 14px;
-          line-height: 1.5;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+          line-height: 1.6;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
           word-wrap: break-word;
         }
         
