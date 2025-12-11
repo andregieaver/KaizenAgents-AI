@@ -194,22 +194,35 @@ const Agents = () => {
     }
 
     setTesting(true);
-    setTestResponse(null);
     
     try {
       const response = await axios.post(
-        `${API}/admin/agents/${selectedAgent.id}/test?message=${encodeURIComponent(testMessage)}`,
-        {},
+        `${API}/admin/agents/${selectedAgent.id}/test`,
+        {
+          message: testMessage,
+          history: conversationHistory
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      setTestResponse(response.data);
-      setTestMessage(''); // Clear the input field after successful response
+      // Add user message and agent response to conversation history
+      const newHistory = [
+        ...conversationHistory,
+        { role: 'user', content: testMessage },
+        { role: 'assistant', content: response.data.agent_response }
+      ];
+      
+      setConversationHistory(newHistory);
+      setTestMessage(''); // Clear the input field
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Test failed');
     } finally {
       setTesting(false);
     }
+  };
+
+  const clearConversation = () => {
+    setConversationHistory([]);
   };
 
   const handleDeleteAgent = async (agentId) => {
