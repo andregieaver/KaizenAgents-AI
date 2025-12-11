@@ -206,7 +206,7 @@ const SuperAdmin = () => {
           </TabsTrigger>
           <TabsTrigger value="tenants" className="gap-2" data-testid="admin-tab-tenants">
             <Building2 className="h-4 w-4 hidden sm:block" />
-            Tenants
+            Companies
           </TabsTrigger>
           <TabsTrigger value="users" className="gap-2" data-testid="admin-tab-users">
             <Users className="h-4 w-4 hidden sm:block" />
