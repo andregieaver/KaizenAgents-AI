@@ -224,6 +224,8 @@ class CompanyAgentConfigUpdate(BaseModel):
     agent_id: Optional[str] = None
     custom_instructions: Optional[str] = None
     scraping_domains: Optional[List[str]] = None
+    scraping_max_depth: Optional[int] = None
+    scraping_max_pages: Optional[int] = None
 
 class DocumentInfo(BaseModel):
     filename: str
@@ -240,6 +242,10 @@ class CompanyAgentConfigResponse(BaseModel):
     custom_instructions: Optional[str] = None
     uploaded_docs: List[DocumentInfo] = []
     scraping_domains: List[str] = []
+    scraping_max_depth: int = 2
+    scraping_max_pages: int = 50
+    scraping_status: Optional[str] = None
+    last_scraped_at: Optional[str] = None
     is_active: bool
     updated_at: str
 
