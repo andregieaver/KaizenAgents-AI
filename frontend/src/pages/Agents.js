@@ -381,8 +381,17 @@ const Agents = () => {
       </div>
 
       {/* Agents Grid */}
-      <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {agents.filter(a => a.is_active).map((agent) => (
+      {loading ? (
+        <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <AgentCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : agents.filter(a => a.is_active).length === 0 ? (
+        <NoAgentsState onCreate={() => setShowCreateDialog(true)} />
+      ) : (
+        <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          {agents.filter(a => a.is_active).map((agent) => (
           <Card key={agent.id} className="border border-border">
             <CardHeader>
               <div className="flex items-start justify-between">
