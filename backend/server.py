@@ -324,6 +324,20 @@ Do not make up information. If unsure, say so."""
         logger.error(f"AI generation error: {str(e)}")
         return "I apologize, but I'm having trouble processing your request. Please try again or contact support."
 
+# ============== PUBLIC ROUTES ==============
+
+@app.get("/api/public/platform-info")
+async def get_public_platform_info():
+    """Get public platform information (no auth required)"""
+    try:
+        settings = await db.platform_settings.find_one({}, {"_id": 0, "platform_name": 1})
+        return {
+            "platform_name": settings.get("platform_name", "AI Support Hub") if settings else "AI Support Hub"
+        }
+    except Exception as e:
+        logger.error(f"Error fetching public platform info: {str(e)}")
+        return {"platform_name": "AI Support Hub"}
+
 # ============== AUTH ROUTES ==============
 
 @auth_router.post("/register", response_model=dict)
