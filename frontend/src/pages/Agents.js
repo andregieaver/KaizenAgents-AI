@@ -42,8 +42,10 @@ const Agents = () => {
   const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
   const [showTestDialog, setShowTestDialog] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
+  const [editingAgent, setEditingAgent] = useState(null);
   const [testMessage, setTestMessage] = useState('');
   const [testResponse, setTestResponse] = useState(null);
   const [testing, setTesting] = useState(false);
@@ -58,6 +60,15 @@ const Agents = () => {
     temperature: 0.7,
     max_tokens: 2000,
     is_marketplace: false
+  });
+
+  const [editAgent, setEditAgent] = useState({
+    name: '',
+    provider_id: '',
+    model: '',
+    system_prompt: '',
+    temperature: 0.7,
+    max_tokens: 2000
   });
 
   useEffect(() => {
