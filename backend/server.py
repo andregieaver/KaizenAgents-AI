@@ -2204,7 +2204,7 @@ async def upload_company_document(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
-    """Upload company documentation for RAG"""
+    """Upload company documentation for RAG with immediate processing"""
     if not current_user.get("tenant_id"):
         raise HTTPException(status_code=400, detail="User not associated with a company")
     
@@ -2237,7 +2237,8 @@ async def upload_company_document(
     company_docs_dir = UPLOADS_DIR / "company_docs" / company_id
     company_docs_dir.mkdir(parents=True, exist_ok=True)
     
-    # Generate unique filename
+    # Generate unique document ID and filename
+    doc_id = str(uuid.uuid4())
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     safe_filename = f"{timestamp}_{file.filename}"
     filepath = company_docs_dir / safe_filename
@@ -2246,12 +2247,41 @@ async def upload_company_document(
     with open(filepath, "wb") as f:
         f.write(contents)
     
+    # Process document with RAG (extract text, chunk, embed)
+    try:
+        from rag_service import process_document
+        
+        chunk_docs = process_document(
+            filepath=str(filepath),
+            filename=file.filename,
+            company_id=company_id,
+            doc_id=doc_id
+        )
+        
+        # Store chunks with embeddings in MongoDB
+        if chunk_docs:
+            await db.document_chunks.insert_many(chunk_docs)
+        
+        chunks_count = len(chunk_docs)
+        
+    except Exception as e:
+        # If processing fails, delete the file and return error
+        if filepath.exists():
+            filepath.unlink()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to process document: {str(e)}"
+        )
+    
     # Create document info
     doc_info = {
+        "id": doc_id,
         "filename": file.filename,
         "filepath": f"/api/uploads/company_docs/{company_id}/{safe_filename}",
         "upload_date": datetime.now(timezone.utc).isoformat(),
-        "file_size": file_size
+        "file_size": file_size,
+        "chunks_count": chunks_count,
+        "status": "processed"
     }
     
     # Add to company config
@@ -2264,7 +2294,7 @@ async def upload_company_document(
         upsert=True
     )
     
-    return {"status": "success", "document": doc_info}
+    return {"status": "success", "document": doc_info, "chunks_processed": chunks_count}
 
 @settings_router.delete("/agent-config/docs/{filename}")
 async def delete_company_document(
