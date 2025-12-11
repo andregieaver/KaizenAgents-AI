@@ -179,13 +179,13 @@ def cosine_similarity(a: List[float], b: List[float]) -> float:
     return dot_product / (magnitude_a * magnitude_b)
 
 
-async def retrieve_relevant_chunks(query: str, company_id: str, db, top_k: int = 5) -> List[Dict]:
+async def retrieve_relevant_chunks(query: str, company_id: str, db, api_key: str, top_k: int = 5) -> List[Dict]:
     """
     Retrieve most relevant document chunks for a query
     Returns list of chunks with similarity scores
     """
     # Generate embedding for the query
-    query_embeddings = generate_embeddings([query])
+    query_embeddings = generate_embeddings([query], api_key)
     query_embedding = query_embeddings[0]
     
     # Get all chunks for this company
