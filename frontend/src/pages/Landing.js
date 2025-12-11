@@ -46,8 +46,12 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center">
-                <MessageSquare className="h-4 w-4 text-primary-foreground" />
+              <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
+                {getPlatformLogoSrc(platformLogo) ? (
+                  <img src={getPlatformLogoSrc(platformLogo)} alt={platformName} className="h-full w-full object-contain" />
+                ) : (
+                  <MessageSquare className="h-4 w-4 text-primary-foreground" />
+                )}
               </div>
               <span className="font-heading font-bold text-lg">{platformName}</span>
             </div>
