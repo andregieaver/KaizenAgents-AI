@@ -1929,7 +1929,7 @@ async def test_agent_conversation(
         
         return {
             "status": "success",
-            "user_message": message,
+            "user_message": request.message,
             "agent_response": reply,
             "agent_name": agent["name"],
             "model": agent["model"]
