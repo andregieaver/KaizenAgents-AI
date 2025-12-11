@@ -554,26 +554,40 @@ class AIAgentHubTester:
         )
         
         if success:
-            print(f"   Updated domains: {response.get('scraping_domains', [])}")
-            print(f"   Max depth: {response.get('scraping_max_depth', 'unknown')}")
-            print(f"   Max pages: {response.get('scraping_max_pages', 'unknown')}")
+            print(f"   Update Status: {response.get('status', 'unknown')}")
+            print(f"   Message: {response.get('message', 'No message')}")
             
-            # Verify configuration was updated
-            domains = response.get('scraping_domains', [])
-            if 'https://example.com' in domains:
-                print("   ✅ Scraping domains updated successfully")
-            else:
-                print("   ⚠️ Scraping domains may not have been updated correctly")
+            # Verify the update by getting the current configuration
+            verify_success, verify_response = self.run_test(
+                "Verify Updated Configuration",
+                "GET",
+                "settings/agent-config",
+                200
+            )
+            
+            if verify_success:
+                print(f"   Updated domains: {verify_response.get('scraping_domains', [])}")
+                print(f"   Max depth: {verify_response.get('scraping_max_depth', 'unknown')}")
+                print(f"   Max pages: {verify_response.get('scraping_max_pages', 'unknown')}")
                 
-            if response.get('scraping_max_depth') == 1:
-                print("   ✅ Max depth updated successfully")
+                # Verify configuration was updated
+                domains = verify_response.get('scraping_domains', [])
+                if 'https://example.com' in domains:
+                    print("   ✅ Scraping domains updated successfully")
+                else:
+                    print("   ⚠️ Scraping domains may not have been updated correctly")
+                    
+                if verify_response.get('scraping_max_depth') == 1:
+                    print("   ✅ Max depth updated successfully")
+                else:
+                    print("   ⚠️ Max depth may not have been updated correctly")
+                    
+                if verify_response.get('scraping_max_pages') == 5:
+                    print("   ✅ Max pages updated successfully")
+                else:
+                    print("   ⚠️ Max pages may not have been updated correctly")
             else:
-                print("   ⚠️ Max depth may not have been updated correctly")
-                
-            if response.get('scraping_max_pages') == 5:
-                print("   ✅ Max pages updated successfully")
-            else:
-                print("   ⚠️ Max pages may not have been updated correctly")
+                print("   ⚠️ Could not verify configuration update")
         
         return success
 
