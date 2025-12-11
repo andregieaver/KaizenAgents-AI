@@ -37,6 +37,7 @@ import { toast } from 'sonner';
 import AgentVersionHistory from '../components/AgentVersionHistory';
 import { AgentCardSkeleton } from '../components/LoadingStates';
 import { NoAgentsState, ErrorState } from '../components/EmptyStates';
+import { validateForm, agentValidation, hasErrors } from '../utils/validation';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -77,6 +78,9 @@ const Agents = () => {
     temperature: 0.7,
     max_tokens: 2000
   });
+
+  const [formErrors, setFormErrors] = useState({});
+  const [editFormErrors, setEditFormErrors] = useState({});
 
   useEffect(() => {
     fetchData();
