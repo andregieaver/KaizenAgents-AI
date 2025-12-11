@@ -78,6 +78,17 @@ const AgentConfiguration = () => {
     }
   };
 
+  const fetchScrapingStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/settings/agent-config/scrape-status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setScrapingStatus(response.data);
+    } catch (error) {
+      console.error('Error fetching scraping status:', error);
+    }
+  };
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -88,7 +99,9 @@ const AgentConfiguration = () => {
           custom_instructions: formData.custom_instructions || null,
           scraping_domains: formData.scraping_domains
             ? formData.scraping_domains.split(',').map(d => d.trim()).filter(Boolean)
-            : []
+            : [],
+          scraping_max_depth: parseInt(formData.scraping_max_depth),
+          scraping_max_pages: parseInt(formData.scraping_max_pages)
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -99,6 +112,25 @@ const AgentConfiguration = () => {
       toast.error(error.response?.data?.detail || 'Failed to save configuration');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleTriggerScraping = async (forceRefresh = false) => {
+    setScraping(true);
+    try {
+      const response = await axios.post(
+        `${API}/settings/agent-config/scrape`,
+        { force_refresh: forceRefresh },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success(`Successfully scraped ${response.data.pages_scraped} pages and created ${response.data.chunks_created} chunks`);
+      fetchScrapingStatus();
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to trigger scraping');
+    } finally {
+      setScraping(false);
     }
   };
 
