@@ -623,45 +623,85 @@ const Agents = () => {
 
       {/* Test Dialog */}
       <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle>Test Agent: {selectedAgent?.name}</DialogTitle>
-            <DialogDescription>
-              Send test messages to see how the agent responds
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>Test Agent: {selectedAgent?.name}</DialogTitle>
+                <DialogDescription>
+                  Full conversation test with context awareness
+                </DialogDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearConversation}
+                disabled={conversationHistory.length === 0}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Clear
+              </Button>
+            </div>
           </DialogHeader>
           
-          <div className="space-y-4">
-            {testResponse && (
-              <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <User className="h-4 w-4 text-primary" />
-                  </div>
-                  <div className="flex-1 bg-muted p-3 rounded-sm">
-                    <p className="text-sm">{testResponse.user_message}</p>
-                  </div>
+          <div className="flex-1 flex flex-col space-y-4 min-h-0">
+            {/* Conversation History */}
+            <ScrollArea className="flex-1 pr-4">
+              {conversationHistory.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <Bot className="h-12 w-12 text-muted-foreground mb-3" />
+                  <p className="text-sm text-muted-foreground">
+                    Start a conversation to test the agent
+                  </p>
                 </div>
-                
-                <div className="flex items-start gap-3">
-                  <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-white" />
-                  </div>
-                  <div className="flex-1 bg-primary/10 p-3 rounded-sm">
-                    <p className="text-sm">{testResponse.agent_response}</p>
-                  </div>
+              ) : (
+                <div className="space-y-3">
+                  {conversationHistory.map((msg, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <div className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                        msg.role === 'user' 
+                          ? 'bg-primary/10' 
+                          : 'bg-primary'
+                      }`}>
+                        {msg.role === 'user' ? (
+                          <User className="h-4 w-4 text-primary" />
+                        ) : (
+                          <Bot className="h-4 w-4 text-white" />
+                        )}
+                      </div>
+                      <div className={`flex-1 p-3 rounded-sm ${
+                        msg.role === 'user' 
+                          ? 'bg-muted' 
+                          : 'bg-primary/10'
+                      }`}>
+                        <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {testing && (
+                    <div className="flex items-start gap-3">
+                      <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
+                        <Loader2 className="h-4 w-4 text-white animate-spin" />
+                      </div>
+                      <div className="flex-1 bg-primary/10 p-3 rounded-sm">
+                        <p className="text-sm text-muted-foreground">Thinking...</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              )}
+            </ScrollArea>
             
-            <div className="flex gap-2">
+            {/* Input Area */}
+            <div className="flex gap-2 pt-2 border-t">
               <Input
                 placeholder="Type your test message..."
                 value={testMessage}
                 onChange={(e) => setTestMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleTestAgent()}
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleTestAgent()}
+                disabled={testing}
               />
-              <Button onClick={handleTestAgent} disabled={testing}>
+              <Button onClick={handleTestAgent} disabled={testing || !testMessage.trim()}>
                 {testing ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
