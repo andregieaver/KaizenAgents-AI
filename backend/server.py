@@ -330,13 +330,14 @@ Do not make up information. If unsure, say so."""
 async def get_public_platform_info():
     """Get public platform information (no auth required)"""
     try:
-        settings = await db.platform_settings.find_one({}, {"_id": 0, "platform_name": 1})
+        settings = await db.platform_settings.find_one({}, {"_id": 0, "platform_name": 1, "platform_logo": 1})
         return {
-            "platform_name": settings.get("platform_name", "AI Support Hub") if settings else "AI Support Hub"
+            "platform_name": settings.get("platform_name", "AI Support Hub") if settings else "AI Support Hub",
+            "platform_logo": settings.get("platform_logo") if settings else None
         }
     except Exception as e:
         logger.error(f"Error fetching public platform info: {str(e)}")
-        return {"platform_name": "AI Support Hub"}
+        return {"platform_name": "AI Support Hub", "platform_logo": None}
 
 # ============== AUTH ROUTES ==============
 
