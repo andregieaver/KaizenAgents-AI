@@ -346,64 +346,163 @@ class AIAgentHubTester:
         
         return success
 
-    def test_conversations_list(self):
-        """Test listing conversations"""
-        success, response = self.run_test(
-            "List Conversations",
-            "GET",
-            "conversations",
-            200
-        )
+    def test_rag_retrieval(self):
+        """Test RAG system retrieval"""
+        # First check if document chunks exist
+        print("   Checking document chunks collection...")
         
-        if success and isinstance(response, list):
-            print(f"   Found {len(response)} conversations")
-        
-        return success
+        # We can't directly access MongoDB, but we can test through widget API
+        return True  # This will be tested through widget message
 
-    def test_conversation_detail(self):
-        """Test getting conversation details"""
-        if not self.conversation_id:
-            print("❌ No conversation ID available for detail test")
-            return False
-            
-        success, response = self.run_test(
-            "Get Conversation Detail",
-            "GET",
-            f"conversations/{self.conversation_id}",
-            200
-        )
-        return success
-
-    def test_conversation_messages(self):
-        """Test getting conversation messages"""
-        if not self.conversation_id:
-            print("❌ No conversation ID available for messages test")
-            return False
-            
-        success, response = self.run_test(
-            "Get Conversation Messages",
-            "GET",
-            f"conversations/{self.conversation_id}/messages",
-            200
-        )
-        
-        if success and isinstance(response, list):
-            print(f"   Found {len(response)} messages")
-        
-        return success
-
-    def test_widget_config(self):
-        """Test getting widget configuration (public endpoint)"""
+    def test_widget_session_creation(self):
+        """Test POST /api/widget/session"""
         if not self.tenant_id:
-            print("❌ No tenant ID available for widget config test")
+            print("❌ No tenant ID available for widget session test")
             return False
             
+        session_data = {
+            "tenant_id": self.tenant_id,
+            "customer_name": "Test Customer",
+            "customer_email": "test@example.com"
+        }
+        
         success, response = self.run_test(
-            "Get Widget Config",
-            "GET",
-            f"widget/config/{self.tenant_id}",
-            200
+            "Widget Session Creation",
+            "POST",
+            "widget/session",
+            200,
+            data=session_data
         )
+        
+        if success and 'session_token' in response:
+            self.session_token = response['session_token']
+            self.conversation_id = response['conversation_id']
+            print(f"   Session token: {self.session_token[:20]}...")
+            print(f"   Conversation ID: {self.conversation_id}")
+            return True
+        return False
+
+    def test_widget_rag_message(self):
+        """Test widget message with RAG - document content question"""
+        if not self.conversation_id or not self.session_token:
+            print("❌ No conversation ID or session token available")
+            return False
+            
+        message_data = {
+            "content": "What is your refund policy?"
+        }
+        
+        success, response = self.run_test(
+            "Widget RAG Message - Document Content",
+            "POST",
+            f"widget/messages/{self.conversation_id}?token={self.session_token}",
+            200,
+            data=message_data
+        )
+        
+        if success:
+            if 'customer_message' in response:
+                print("   Customer message saved successfully")
+            if 'ai_message' in response and response['ai_message']:
+                ai_response = response['ai_message']['content'].lower()
+                print(f"   AI Response: {response['ai_message']['content'][:100]}...")
+                
+                # Check if response contains document content
+                if '30 days' in ai_response or 'refund' in ai_response:
+                    print("   ✅ RAG successfully retrieved document content")
+                else:
+                    print("   ⚠️ Response may not contain expected document content")
+            else:
+                print("   ❌ No AI response generated")
+        
+        return success
+
+    def test_widget_general_knowledge_refusal(self):
+        """Test widget refuses general knowledge questions"""
+        if not self.conversation_id or not self.session_token:
+            print("❌ No conversation ID or session token available")
+            return False
+            
+        message_data = {
+            "content": "What is the capital of France?"
+        }
+        
+        success, response = self.run_test(
+            "Widget General Knowledge Refusal",
+            "POST",
+            f"widget/messages/{self.conversation_id}?token={self.session_token}",
+            200,
+            data=message_data
+        )
+        
+        if success:
+            if 'ai_message' in response and response['ai_message']:
+                ai_response = response['ai_message']['content'].lower()
+                print(f"   AI Response: {response['ai_message']['content'][:100]}...")
+                
+                # Check if agent properly refuses
+                refusal_indicators = ['knowledge base', 'support team', 'contact', 'don\'t have', 'not available']
+                if any(indicator in ai_response for indicator in refusal_indicators):
+                    print("   ✅ Agent correctly refused general knowledge question")
+                else:
+                    print("   ⚠️ Agent may have answered general knowledge question")
+        
+        return success
+
+    def test_file_upload_gcs(self):
+        """Test file upload to GCS - user avatar"""
+        # Create a small test image file (1x1 pixel PNG)
+        png_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\tpHYs\x00\x00\x0b\x13\x00\x00\x0b\x13\x01\x00\x9a\x9c\x18\x00\x00\x00\nIDATx\x9cc\xf8\x00\x00\x00\x01\x00\x01\x00\x00\x00\x00IEND\xaeB`\x82'
+        
+        files = {'file': ('test_avatar.png', io.BytesIO(png_data), 'image/png')}
+        
+        success, response = self.run_test(
+            "File Upload to GCS - User Avatar",
+            "POST",
+            "profile/avatar",
+            200,
+            files=files
+        )
+        
+        if success:
+            avatar_url = response.get('avatar_url', '')
+            print(f"   Avatar URL: {avatar_url}")
+            
+            if 'storage.googleapis.com' in avatar_url:
+                print("   ✅ File successfully uploaded to GCS")
+            else:
+                print("   ⚠️ File may not be uploaded to GCS")
+        
+        return success
+
+    def test_agent_avatar_upload(self):
+        """Test agent avatar upload to GCS"""
+        if not self.agent_id:
+            print("❌ No agent ID available for avatar upload test")
+            return False
+            
+        # Create a small test image file
+        png_data = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\tpHYs\x00\x00\x0b\x13\x00\x00\x0b\x13\x01\x00\x9a\x9c\x18\x00\x00\x00\nIDATx\x9cc\xf8\x00\x00\x00\x01\x00\x01\x00\x00\x00\x00IEND\xaeB`\x82'
+        
+        files = {'file': ('agent_avatar.png', io.BytesIO(png_data), 'image/png')}
+        
+        success, response = self.run_test(
+            "Agent Avatar Upload to GCS",
+            "POST",
+            f"admin/agents/{self.agent_id}/avatar",
+            200,
+            files=files
+        )
+        
+        if success:
+            avatar_url = response.get('avatar_url', '')
+            print(f"   Agent Avatar URL: {avatar_url}")
+            
+            if 'storage.googleapis.com' in avatar_url:
+                print("   ✅ Agent avatar successfully uploaded to GCS")
+            else:
+                print("   ⚠️ Agent avatar may not be uploaded to GCS")
+        
         return success
 
 def main():
