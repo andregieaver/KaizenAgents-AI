@@ -405,23 +405,42 @@ async def generate_ai_response(messages: List[dict], settings: dict) -> str:
         if not provider:
             return "I apologize, but the AI provider is not available. Please contact support."
         
-        # Build enhanced system prompt with agent identity and custom instructions
+        # Check if company has any knowledge base (documents or domains)
+        has_documents = len(agent_config.get("uploaded_docs", [])) > 0
+        has_domains = len(agent_config.get("scraping_domains", [])) > 0
+        has_knowledge_base = has_documents or has_domains
+        
+        # Build enhanced system prompt with STRICT knowledge base enforcement
         brand_name = settings.get("brand_name", "the company")
-        base_prompt = f"Your name is {agent['name']}. {agent['system_prompt']}"
         
-        # Add company-specific custom instructions
-        if agent_config.get("custom_instructions"):
-            base_prompt += f"\n\nAdditional company-specific instructions:\n{agent_config['custom_instructions']}"
-        
-        base_prompt += f"\n\nYou are assisting customers for {brand_name}. Be helpful and professional."
-        
-        # CRITICAL: Add strict knowledge base constraint
-        base_prompt += """\n\nIMPORTANT CONSTRAINTS:
-- You may ONLY answer questions using information from the company's uploaded documents and scraped website content.
-- If a question cannot be answered using the available documentation, politely say "I don't have that information in my knowledge base. Please contact our support team for assistance."
-- DO NOT make up information or provide answers based on general knowledge outside the company's provided documentation.
-- DO NOT speculate or infer information that isn't explicitly stated in the documentation.
-- Always be honest about the limitations of your knowledge."""
+        # START WITH CRITICAL CONSTRAINTS (most important comes first)
+        if not has_knowledge_base:
+            # NO knowledge base uploaded - reject ALL questions
+            base_prompt = f"""Your name is {agent['name']}. You are assisting customers for {brand_name}.
+
+CRITICAL: There is NO knowledge base configured yet. You must respond to ALL customer questions with:
+"I don't have access to any company documentation yet. Please contact our support team at {agent_config.get('custom_instructions', 'support')} for assistance."
+
+DO NOT answer any questions. DO NOT use general knowledge. DO NOT be helpful beyond this message.
+Your ONLY job is to direct customers to human support."""
+        else:
+            # Knowledge base exists - strict limits
+            base_prompt = f"""Your name is {agent['name']}.
+
+CRITICAL INSTRUCTIONS (MUST FOLLOW):
+1. You may ONLY answer questions using the company's uploaded documents and scraped website content.
+2. If information is not in the knowledge base, respond EXACTLY: "I don't have that information in my knowledge base. Please contact our support team for assistance."
+3. NEVER use general knowledge, world facts, or information outside the provided documents.
+4. NEVER answer questions about topics not covered in the documentation.
+5. If unsure whether information is in the knowledge base, say you don't have it.
+
+{agent['system_prompt']}
+
+You are assisting customers for {brand_name}."""
+            
+            # Add company-specific custom instructions
+            if agent_config.get("custom_instructions"):
+                base_prompt += f"\n\nCompany instructions:\n{agent_config['custom_instructions']}"
         
         # Build conversation history
         conversation_messages = []
