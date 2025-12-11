@@ -127,7 +127,7 @@ def generate_embeddings(texts: List[str], api_key: str) -> List[List[float]]:
         raise Exception(f"Error generating embeddings: {str(e)}")
 
 
-def process_document(filepath: str, filename: str, company_id: str, doc_id: str) -> List[Dict]:
+def process_document(filepath: str, filename: str, company_id: str, doc_id: str, api_key: str) -> List[Dict]:
     """
     Process a document: extract text, chunk it, generate embeddings
     Returns list of chunk documents ready to insert into MongoDB
@@ -148,7 +148,7 @@ def process_document(filepath: str, filename: str, company_id: str, doc_id: str)
         raise ValueError("No chunks generated from document")
     
     # Generate embeddings for all chunks
-    embeddings = generate_embeddings(chunks)
+    embeddings = generate_embeddings(chunks, api_key)
     
     # Create chunk documents
     chunk_docs = []
