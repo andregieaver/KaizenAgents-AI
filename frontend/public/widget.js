@@ -438,7 +438,7 @@
     }
   }
 
-  function addMessage(content, type) {
+  function addMessage(content, type, timestamp) {
     const messagesContainer = document.getElementById('emergent-chat-messages');
     const welcome = document.getElementById('emergent-chat-welcome');
     if (welcome) {
@@ -448,24 +448,22 @@
     const messageDiv = document.createElement('div');
     messageDiv.className = `chat-message ${type}`;
     
-    const avatar = document.createElement('div');
-    avatar.className = 'chat-message-avatar';
-    avatar.textContent = type === 'customer' ? 'Y' : 'A';
-    
-    const content_div = document.createElement('div');
     const bubble = document.createElement('div');
     bubble.className = 'chat-message-content';
     bubble.textContent = content;
     
     const time = document.createElement('div');
     time.className = 'chat-message-time';
-    time.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const messageTime = timestamp ? new Date(timestamp) : new Date();
+    time.textContent = messageTime.toLocaleString([], { 
+      month: 'short', 
+      day: 'numeric', 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
     
-    content_div.appendChild(bubble);
-    content_div.appendChild(time);
-    
-    messageDiv.appendChild(avatar);
-    messageDiv.appendChild(content_div);
+    messageDiv.appendChild(bubble);
+    messageDiv.appendChild(time);
     
     messagesContainer.appendChild(messageDiv);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
