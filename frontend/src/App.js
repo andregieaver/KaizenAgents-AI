@@ -96,6 +96,7 @@ function AppRoutes() {
         <Route path="profile" element={<Profile />} />
         <Route path="admin" element={<SuperAdmin />} />
         <Route path="providers" element={<Providers />} />
+        <Route path="agents" element={<Agents />} />
       </Route>
 
       {/* Catch all */}
