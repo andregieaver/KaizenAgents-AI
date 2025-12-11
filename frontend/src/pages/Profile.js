@@ -160,6 +160,8 @@ const Profile = () => {
       const newAvatarUrl = response.data.avatar_url;
       setAvatarUrl(newAvatarUrl);
       setProfile(prev => ({ ...prev, avatar_url: newAvatarUrl }));
+      // Refresh user in AuthContext so sidebar updates
+      refreshUser();
       toast.success('Profile picture updated!');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to upload image');
