@@ -2445,6 +2445,186 @@ async def delete_company_document(
     
     return {"status": "success", "message": "Document deleted"}
 
+# ============== WEB SCRAPING ROUTES ==============
+
+@settings_router.post("/agent-config/scrape")
+async def trigger_web_scraping(
+    scrape_request: ScrapingTriggerRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Trigger web scraping for configured domains"""
+    if not current_user.get("tenant_id"):
+        raise HTTPException(status_code=400, detail="User not associated with a company")
+    
+    company_id = current_user["tenant_id"]
+    
+    # Get company config
+    config = await db.company_agent_configs.find_one({"company_id": company_id}, {"_id": 0})
+    if not config:
+        raise HTTPException(status_code=404, detail="Configuration not found")
+    
+    domains = config.get("scraping_domains", [])
+    if not domains:
+        raise HTTPException(status_code=400, detail="No domains configured for scraping")
+    
+    # Check if already scraping
+    scraping_status = config.get("scraping_status")
+    if scraping_status == "in_progress":
+        raise HTTPException(status_code=409, detail="Scraping already in progress")
+    
+    # Get scraping settings
+    max_depth = config.get("scraping_max_depth", 2)
+    max_pages = config.get("scraping_max_pages", 50)
+    
+    # Get OpenAI API key for embeddings
+    openai_provider = await db.providers.find_one({"type": "openai", "is_active": True}, {"_id": 0})
+    if not openai_provider:
+        raise HTTPException(status_code=400, detail="OpenAI provider not configured")
+    
+    openai_key = openai_provider["api_key"]
+    
+    # Update status to in_progress
+    await db.company_agent_configs.update_one(
+        {"company_id": company_id},
+        {
+            "$set": {
+                "scraping_status": "in_progress",
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    try:
+        # Import scraping service
+        from scraping_service import scrape_domains, prepare_scraped_content_for_rag
+        from rag_service import process_web_content
+        
+        logger.info(f"Starting web scraping for company {company_id}: {domains}")
+        
+        # Scrape domains
+        scraped_data = scrape_domains(domains, max_depth=max_depth, max_pages_per_domain=max_pages)
+        
+        # Prepare documents
+        documents = prepare_scraped_content_for_rag(scraped_data, company_id)
+        
+        total_pages = len(documents)
+        total_chunks = 0
+        
+        # Process each document: chunk and generate embeddings
+        for doc in documents:
+            try:
+                # Check if this content already exists (by content_hash)
+                existing = await db.document_chunks.find_one({
+                    "company_id": company_id,
+                    "source_type": "web",
+                    "content_hash": doc["content_hash"]
+                })
+                
+                if existing and not scrape_request.force_refresh:
+                    logger.info(f"Skipping {doc['source_url']} (already exists)")
+                    continue
+                
+                # Delete old chunks if force refresh
+                if existing and scrape_request.force_refresh:
+                    await db.document_chunks.delete_many({
+                        "company_id": company_id,
+                        "source_type": "web",
+                        "content_hash": doc["content_hash"]
+                    })
+                
+                # Process web content into chunks with embeddings
+                chunk_docs = process_web_content(
+                    content=doc["content"],
+                    source_url=doc["source_url"],
+                    title=doc["title"],
+                    company_id=company_id,
+                    content_hash=doc["content_hash"],
+                    api_key=openai_key
+                )
+                
+                # Insert chunks into database
+                if chunk_docs:
+                    await db.document_chunks.insert_many(chunk_docs)
+                    total_chunks += len(chunk_docs)
+                    logger.info(f"Processed {doc['source_url']}: {len(chunk_docs)} chunks")
+            
+            except Exception as e:
+                logger.error(f"Error processing {doc['source_url']}: {e}")
+                continue
+        
+        # Update config with success status
+        await db.company_agent_configs.update_one(
+            {"company_id": company_id},
+            {
+                "$set": {
+                    "scraping_status": "completed",
+                    "last_scraped_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
+        return {
+            "status": "success",
+            "pages_scraped": total_pages,
+            "chunks_created": total_chunks,
+            "domains": domains
+        }
+    
+    except Exception as e:
+        logger.error(f"Scraping failed for company {company_id}: {e}")
+        
+        # Update status to failed
+        await db.company_agent_configs.update_one(
+            {"company_id": company_id},
+            {
+                "$set": {
+                    "scraping_status": "failed",
+                    "scraping_error": str(e),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
+        raise HTTPException(status_code=500, detail=f"Scraping failed: {str(e)}")
+
+@settings_router.get("/agent-config/scrape-status", response_model=ScrapingStatusResponse)
+async def get_scraping_status(current_user: dict = Depends(get_current_user)):
+    """Get current scraping status"""
+    if not current_user.get("tenant_id"):
+        raise HTTPException(status_code=400, detail="User not associated with a company")
+    
+    company_id = current_user["tenant_id"]
+    
+    # Get company config
+    config = await db.company_agent_configs.find_one({"company_id": company_id}, {"_id": 0})
+    if not config:
+        return ScrapingStatusResponse(
+            status="idle",
+            pages_scraped=0,
+            domains=[]
+        )
+    
+    # Count scraped pages
+    pages_count = await db.document_chunks.count_documents({
+        "company_id": company_id,
+        "source_type": "web"
+    })
+    
+    # Get unique pages (by content_hash)
+    unique_pages = await db.document_chunks.distinct(
+        "content_hash",
+        {"company_id": company_id, "source_type": "web"}
+    )
+    
+    return ScrapingStatusResponse(
+        status=config.get("scraping_status", "idle"),
+        pages_scraped=len(unique_pages),
+        last_scraped_at=config.get("last_scraped_at"),
+        error_message=config.get("scraping_error"),
+        domains=config.get("scraping_domains", [])
+    )
+
 # ============== STORAGE CONFIGURATION ROUTES ==============
 
 @admin_router.get("/storage-config", response_model=StorageConfigResponse)
