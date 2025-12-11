@@ -898,6 +898,9 @@ def main():
         ("Trigger Web Scraping", tester.test_trigger_scraping),
         ("Verify Chunks in Database", tester.test_verify_chunks_created),
         ("Get Scraping Status After Completion", tester.test_scraping_status_after_completion),
+        
+        # 9. Widget Endpoint Specific Tests (Review Request)
+        ("Widget Endpoint Comprehensive Test", tester.test_widget_endpoint_specific),
     ]
     
     print(f"\n📋 Running {len(tests)} comprehensive test scenarios...")
