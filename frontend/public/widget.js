@@ -509,8 +509,20 @@
     input.disabled = true;
     document.getElementById('emergent-chat-send').disabled = true;
 
-    // Display user message immediately
-    addMessage(message, 'customer');
+    // Generate a temporary ID for the customer message
+    const tempMsgId = `temp_${Date.now()}`;
+    
+    // Display user message immediately and save to history
+    const customerMsg = {
+      id: tempMsgId,
+      content: message,
+      type: 'customer',
+      timestamp: new Date().toISOString()
+    };
+    addMessageToUI(message, 'customer', customerMsg.timestamp, false);
+    messageHistory.push(customerMsg);
+    saveState();
+    
     input.value = '';
 
     try {
@@ -535,6 +547,10 @@
         console.log('Session created:', sessionData.conversation_id);
         sessionToken = sessionData.session_token;
         conversationId = sessionData.conversation_id;
+        saveState();
+        
+        // Start polling for agent messages
+        startPolling();
       }
 
       // Send message and get AI response
@@ -556,14 +572,22 @@
       
       // Display AI response if available
       if (data.ai_message) {
-        addMessage(data.ai_message.content, 'ai', data.ai_message.created_at);
+        const aiMsg = {
+          id: data.ai_message.id || `ai_${Date.now()}`,
+          content: data.ai_message.content,
+          type: 'ai',
+          timestamp: data.ai_message.created_at
+        };
+        addMessageToUI(aiMsg.content, 'ai', aiMsg.timestamp, false);
+        messageHistory.push(aiMsg);
+        saveState();
       } else {
         console.error('No AI message in response:', data);
-        addMessage('Sorry, no response was generated. Please try again.', 'ai');
+        addMessageToUI('Sorry, no response was generated. Please try again.', 'ai', null, false);
       }
     } catch (error) {
       console.error('Chat Widget Error:', error);
-      addMessage(`Error: ${error.message}. Please check console for details.`, 'ai');
+      addMessageToUI(`Error: ${error.message}. Please check console for details.`, 'ai', null, false);
     } finally {
       input.disabled = false;
       document.getElementById('emergent-chat-send').disabled = false;
