@@ -408,7 +408,7 @@
         
         const sessionData = await sessionResponse.json();
         console.log('Session created:', sessionData.conversation_id);
-        sessionToken = sessionData.token;
+        sessionToken = sessionData.session_token;
         conversationId = sessionData.conversation_id;
       }
 
