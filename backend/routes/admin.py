@@ -13,6 +13,20 @@ from middleware import get_current_user, get_super_admin_user, get_admin_or_owne
 from middleware.database import db
 from middleware.auth import create_token, hash_password, verify_password, is_super_admin, JWT_SECRET, JWT_ALGORITHM
 
+# Admin-specific models
+class PlatformSettingsUpdate(BaseModel):
+    platform_name: Optional[str] = None
+    platform_logo: Optional[str] = None
+    maintenance_mode: Optional[bool] = None
+    max_tenants: Optional[int] = None
+    default_ai_model: Optional[str] = None
+    announcement: Optional[str] = None
+
+class TenantAdminUpdate(BaseModel):
+    is_active: Optional[bool] = None
+    max_conversations: Optional[int] = None
+    features: Optional[List[str]] = None
+
 router = APIRouter(prefix="/admin", tags=["admin"])
 
 class PlatformSettingsUpdate(BaseModel):
