@@ -500,6 +500,7 @@ const Breadcrumb = () => {
     const labels = {
       dashboard: 'Dashboard',
       conversations: 'Conversations',
+      analytics: 'Analytics',
       settings: 'Settings',
       agents: 'Agents',
       team: 'Team',
