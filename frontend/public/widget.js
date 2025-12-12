@@ -533,6 +533,9 @@
     // Disable input while sending
     input.disabled = true;
     document.getElementById('emergent-chat-send').disabled = true;
+    
+    // Pause polling while sending to prevent duplicates
+    stopPolling();
 
     // Generate a temporary ID for the customer message
     const tempMsgId = `temp_${Date.now()}`;
@@ -573,9 +576,6 @@
         sessionToken = sessionData.session_token;
         conversationId = sessionData.conversation_id;
         saveState();
-        
-        // Start polling for agent messages
-        startPolling();
       }
 
       // Send message and get AI response
@@ -594,6 +594,14 @@
 
       const data = await response.json();
       console.log('Response received:', data);
+      
+      // Update customer message with real ID if provided
+      if (data.customer_message && data.customer_message.id) {
+        const tempMsg = messageHistory.find(m => m.id === tempMsgId);
+        if (tempMsg) {
+          tempMsg.id = data.customer_message.id;
+        }
+      }
       
       // Display AI response if available
       if (data.ai_message) {
@@ -617,6 +625,11 @@
       input.disabled = false;
       document.getElementById('emergent-chat-send').disabled = false;
       input.focus();
+      
+      // Resume polling after message is sent
+      if (conversationId && sessionToken) {
+        startPolling();
+      }
     }
   }
 
