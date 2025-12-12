@@ -603,7 +603,7 @@ async def add_agent_message(
 @conversations_router.patch("/{conversation_id}/mode", response_model=ConversationResponse)
 async def update_conversation_mode(
     conversation_id: str,
-    mode: Literal["ai", "agent", "hybrid"],
+    mode: Literal["ai", "agent", "assisted", "hybrid"],
     current_user: dict = Depends(get_current_user)
 ):
     tenant_id = current_user.get("tenant_id")
@@ -619,12 +619,15 @@ async def update_conversation_mode(
     
     old_mode = current_conv.get("mode", "ai")
     
+    # For assisted and agent modes, assign the current user as the agent
+    assigned_agent_id = current_user["id"] if mode in ["agent", "assisted"] else None
+    
     result = await db.conversations.find_one_and_update(
         {"id": conversation_id, "tenant_id": tenant_id},
         {
             "$set": {
                 "mode": mode,
-                "assigned_agent_id": current_user["id"] if mode == "agent" else None,
+                "assigned_agent_id": assigned_agent_id,
                 "updated_at": now
             }
         },
@@ -639,6 +642,7 @@ async def update_conversation_mode(
         mode_messages = {
             "ai": "You are now chatting with our AI assistant.",
             "agent": "A human support agent has joined the conversation.",
+            "assisted": "A human support agent has joined the conversation.",
             "hybrid": "The conversation is now in hybrid mode."
         }
         
@@ -654,6 +658,159 @@ async def update_conversation_mode(
     # Remove _id before returning
     result.pop("_id", None)
     return result
+
+@conversations_router.post("/{conversation_id}/suggestions")
+async def get_ai_suggestions(
+    conversation_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate AI response suggestions for assisted mode"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get conversation
+    conversation = await db.conversations.find_one({"id": conversation_id, "tenant_id": tenant_id})
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    # Get recent messages for context
+    messages = await db.messages.find(
+        {"conversation_id": conversation_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(10).to_list(10)
+    messages.reverse()  # Chronological order
+    
+    if not messages:
+        return {"suggestions": []}
+    
+    # Get the last customer message
+    last_customer_msg = None
+    for msg in reversed(messages):
+        if msg.get("author_type") == "customer":
+            last_customer_msg = msg
+            break
+    
+    if not last_customer_msg:
+        return {"suggestions": []}
+    
+    # Get agent config for this tenant
+    agent_config = await db.company_agent_configs.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    if not agent_config or not agent_config.get("selected_agent_id"):
+        return {"suggestions": ["I'll look into this for you.", "Let me check that.", "Thank you for your patience."]}
+    
+    # Get the agent
+    agent = await db.agents.find_one({"id": agent_config["selected_agent_id"]}, {"_id": 0})
+    if not agent:
+        return {"suggestions": ["I'll look into this for you.", "Let me check that.", "Thank you for your patience."]}
+    
+    # Get RAG context if available
+    rag_context = ""
+    try:
+        from rag_service import get_rag_context
+        rag_context = await get_rag_context(tenant_id, last_customer_msg["content"])
+    except Exception as e:
+        print(f"RAG context error: {e}")
+    
+    # Build conversation history for context
+    conversation_history = ""
+    for msg in messages[-6:]:  # Last 6 messages for context
+        role = "Customer" if msg.get("author_type") == "customer" else "Agent"
+        conversation_history += f"{role}: {msg.get('content', '')}\n"
+    
+    # Generate suggestions using AI
+    try:
+        suggestions = await generate_suggestions(
+            agent=agent,
+            customer_message=last_customer_msg["content"],
+            conversation_history=conversation_history,
+            rag_context=rag_context,
+            custom_instructions=agent_config.get("custom_instructions", "")
+        )
+        return {"suggestions": suggestions}
+    except Exception as e:
+        print(f"Error generating suggestions: {e}")
+        return {"suggestions": ["I'll help you with that.", "Let me check this for you.", "Thank you for reaching out."]}
+
+async def generate_suggestions(agent: dict, customer_message: str, conversation_history: str, rag_context: str, custom_instructions: str) -> list:
+    """Generate 3 AI response suggestions"""
+    
+    system_prompt = f"""You are an AI assistant helping a human support agent respond to customers.
+Based on the conversation context, generate exactly 3 different response suggestions.
+Each suggestion should be:
+- Professional and helpful
+- Concise (1-2 sentences max)
+- Different in tone/approach from the others
+
+{f'Knowledge base context: {rag_context}' if rag_context else ''}
+{f'Custom instructions: {custom_instructions}' if custom_instructions else ''}
+
+Respond with exactly 3 suggestions, one per line, numbered 1-3. Do not include any other text."""
+
+    user_prompt = f"""Recent conversation:
+{conversation_history}
+
+Generate 3 response suggestions for the agent to reply to the customer's last message: "{customer_message}"
+"""
+
+    provider = agent.get("provider", "openai").lower()
+    model = agent.get("model", "gpt-4o-mini")
+    
+    try:
+        if provider == "openai":
+            from emergentintegrations.llm.openai import chat
+            response = await chat(
+                api_key=os.environ.get("EMERGENT_LLM_KEY"),
+                model=model,
+                system_prompt=system_prompt,
+                user_message=user_prompt,
+                temperature=0.7
+            )
+        elif provider == "anthropic":
+            from emergentintegrations.llm.anthropic import chat
+            response = await chat(
+                api_key=os.environ.get("EMERGENT_LLM_KEY"),
+                model=model,
+                system_prompt=system_prompt,
+                user_message=user_prompt,
+                temperature=0.7
+            )
+        elif provider == "google":
+            from emergentintegrations.llm.google import chat
+            response = await chat(
+                api_key=os.environ.get("EMERGENT_LLM_KEY"),
+                model=model,
+                system_prompt=system_prompt,
+                user_message=user_prompt,
+                temperature=0.7
+            )
+        else:
+            return ["I'll help you with that.", "Let me look into this.", "Thank you for your patience."]
+        
+        # Parse response into 3 suggestions
+        lines = response.strip().split('\n')
+        suggestions = []
+        for line in lines:
+            # Remove numbering like "1.", "1)", "1:" etc.
+            cleaned = line.strip()
+            if cleaned:
+                # Remove common prefixes
+                for prefix in ['1.', '2.', '3.', '1)', '2)', '3)', '1:', '2:', '3:']:
+                    if cleaned.startswith(prefix):
+                        cleaned = cleaned[len(prefix):].strip()
+                        break
+                if cleaned:
+                    suggestions.append(cleaned)
+        
+        # Ensure we have exactly 3 suggestions
+        while len(suggestions) < 3:
+            suggestions.append("Let me help you with that.")
+        
+        return suggestions[:3]
+        
+    except Exception as e:
+        print(f"Error in generate_suggestions: {e}")
+        return ["I'll help you with that.", "Let me look into this.", "Thank you for your patience."]
 
 @conversations_router.patch("/{conversation_id}/status", response_model=ConversationResponse)
 async def update_conversation_status(
