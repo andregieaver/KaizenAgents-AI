@@ -158,9 +158,9 @@ async def generate_ai_response(messages: List[dict], settings: dict) -> str:
         # Get the latest user message for RAG retrieval
         latest_message = conversation_messages[-1]["content"] if conversation_messages else "Hello"
         
-        # Retrieve relevant context from RAG if documents exist
+        # Retrieve relevant context from RAG if knowledge base exists
         context = ""
-        if has_documents:
+        if has_knowledge_base:
             try:
                 from rag_service import retrieve_relevant_chunks, format_context_for_agent
                 
@@ -176,6 +176,8 @@ async def generate_ai_response(messages: List[dict], settings: dict) -> str:
                 if relevant_chunks:
                     context = format_context_for_agent(relevant_chunks)
                     logger.info(f"Retrieved {len(relevant_chunks)} relevant chunks for query")
+                else:
+                    logger.warning(f"No relevant chunks found for query: {latest_message}")
             except Exception as e:
                 logger.error(f"RAG retrieval error: {str(e)}")
                 # Continue without context if RAG fails
