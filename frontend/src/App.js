@@ -21,6 +21,7 @@ import Providers from "./pages/Providers";
 import Agents from "./pages/Agents";
 import StorageConfig from "./pages/StorageConfig";
 import Analytics from "./pages/Analytics";
+import RateLimits from "./pages/RateLimits";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -101,6 +102,7 @@ function AppRoutes() {
         <Route path="providers" element={<Providers />} />
         <Route path="agents" element={<Agents />} />
         <Route path="storage" element={<StorageConfig />} />
+        <Route path="rate-limits" element={<RateLimits />} />
       </Route>
 
       {/* Catch all */}
