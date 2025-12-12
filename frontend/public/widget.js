@@ -391,6 +391,7 @@
     try {
       // Create session if needed
       if (!sessionToken) {
+        console.log('Creating session...', `${apiUrl}/widget/session`);
         const sessionResponse = await fetch(`${apiUrl}/widget/session`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -400,27 +401,44 @@
             customer_email: ''
           })
         });
+        
+        if (!sessionResponse.ok) {
+          throw new Error(`Session creation failed: ${sessionResponse.status}`);
+        }
+        
         const sessionData = await sessionResponse.json();
+        console.log('Session created:', sessionData.conversation_id);
         sessionToken = sessionData.token;
         conversationId = sessionData.conversation_id;
       }
 
       // Send message and get AI response
-      const response = await fetch(`${apiUrl}/widget/messages/${conversationId}?token=${sessionToken}`, {
+      const messageUrl = `${apiUrl}/widget/messages/${conversationId}?token=${sessionToken}`;
+      console.log('Sending message to:', messageUrl);
+      
+      const response = await fetch(messageUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: message })
       });
 
+      if (!response.ok) {
+        throw new Error(`Message failed: ${response.status}`);
+      }
+
       const data = await response.json();
+      console.log('Response received:', data);
       
       // Display AI response if available
       if (data.ai_message) {
         addMessage(data.ai_message.content, 'ai', data.ai_message.created_at);
+      } else {
+        console.error('No AI message in response:', data);
+        addMessage('Sorry, no response was generated. Please try again.', 'ai');
       }
     } catch (error) {
-      console.error('Chat Widget: Failed to send message', error);
-      addMessage('Sorry, we couldn\'t send your message. Please try again.', 'ai');
+      console.error('Chat Widget Error:', error);
+      addMessage(`Error: ${error.message}. Please check console for details.`, 'ai');
     } finally {
       input.disabled = false;
       document.getElementById('emergent-chat-send').disabled = false;
