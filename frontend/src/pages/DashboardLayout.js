@@ -95,7 +95,6 @@ const DashboardLayout = () => {
   // Poll for pending transfers when available
   useEffect(() => {
     if (!isAvailable || !token) {
-      setPendingTransfers([]);
       return;
     }
 
