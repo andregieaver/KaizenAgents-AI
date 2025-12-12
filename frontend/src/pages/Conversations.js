@@ -144,7 +144,7 @@ const ConversationRow = ({ conversation }) => {
       className="block hover:bg-muted/50 transition-colors"
       data-testid="conversation-row"
     >
-      <div className="p-4 flex items-center gap-4">
+      <div className="p-4 flex items-start sm:items-center gap-3 sm:gap-4">
         {/* Avatar */}
         <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
           <Users className="h-5 w-5 text-muted-foreground" />
@@ -152,21 +152,32 @@ const ConversationRow = ({ conversation }) => {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
             <span className="font-medium text-sm">
               {conversation.customer_name || 'Anonymous'}
             </span>
-            <span className="text-xs text-muted-foreground">
+            <span className="text-xs text-muted-foreground truncate">
               {conversation.customer_email}
             </span>
           </div>
           <p className="text-sm text-muted-foreground truncate">
             {conversation.last_message || 'No messages yet'}
           </p>
+          {/* Mobile: Show meta info below message */}
+          <div className="flex items-center gap-2 mt-2 sm:hidden">
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              {getModeIcon(conversation.mode)}
+              <span className="capitalize">{conversation.mode}</span>
+            </div>
+            <StatusBadge status={conversation.status} />
+            <span className="text-xs text-muted-foreground">
+              {conversation.updated_at && formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: true })}
+            </span>
+          </div>
         </div>
 
-        {/* Meta */}
-        <div className="flex items-center gap-3 flex-shrink-0">
+        {/* Meta - Desktop only */}
+        <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             {getModeIcon(conversation.mode)}
             <span className="capitalize">{conversation.mode}</span>
