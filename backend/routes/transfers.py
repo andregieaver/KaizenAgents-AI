@@ -235,4 +235,3 @@ async def check_transfer_triggers(conversation_id: str, tenant_id: str, customer
     
     return False
 
-api_router.include_router(transfer_router)

@@ -261,4 +261,3 @@ async def get_sentiment_summary(
         "total_analyzed": count
     }
 
-api_router.include_router(analytics_router)
