@@ -2590,7 +2590,14 @@ async def upload_avatar(
     destination_path = f"avatars/{filename}"
     
     # Upload to configured storage
-    avatar_url = await storage.upload_file(contents, destination_path, file.content_type)
+    storage_url = await storage.upload_file(contents, destination_path, file.content_type)
+    
+    # For GCS storage, store a proxy path instead of the direct GCS URL
+    # This allows us to serve images through our backend for proper access control
+    if storage_url.startswith('https://storage.googleapis.com/'):
+        avatar_url = f"/api/media/avatars/{filename}"
+    else:
+        avatar_url = storage_url
     
     # Update user
     await db.users.update_one(
