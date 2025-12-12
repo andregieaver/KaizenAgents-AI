@@ -148,9 +148,39 @@ const ConversationDetail = () => {
       );
       setConversation(response.data);
       toast.success(`Mode changed to ${mode}`);
+      
+      // If switching to assisted mode, fetch suggestions
+      if (mode === 'assisted') {
+        fetchSuggestions();
+      } else {
+        setSuggestions([]);
+      }
     } catch (error) {
       toast.error('Failed to change mode');
     }
+  };
+
+  const fetchSuggestions = async () => {
+    if (!conversation || conversation.mode !== 'assisted') return;
+    
+    setLoadingSuggestions(true);
+    try {
+      const response = await axios.post(
+        `${API}/conversations/${id}/suggestions`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSuggestions(response.data.suggestions || []);
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      setSuggestions([]);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setNewMessage(suggestion);
   };
 
   const handleStatusChange = async (status) => {
