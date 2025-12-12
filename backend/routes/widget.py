@@ -15,7 +15,7 @@ from middleware.auth import create_token, hash_password, verify_password, is_sup
 
 router = APIRouter(prefix="/widget", tags=["widget"])
 
-@app.get("/api/widget/{tenant_id}/settings")
+@router.get("/{tenant_id}/settings")
 async def get_widget_settings(tenant_id: str):
     """Public endpoint to get widget configuration"""
     settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
