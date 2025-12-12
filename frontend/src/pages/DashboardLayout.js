@@ -48,6 +48,10 @@ const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [brandName, setBrandName] = useState('Support Hub');
   const [brandLogo, setBrandLogo] = useState(null);
+  const [isAvailable, setIsAvailable] = useState(false);
+  const [pendingTransfers, setPendingTransfers] = useState([]);
+  const [showTransferPopup, setShowTransferPopup] = useState(false);
+  const [currentTransfer, setCurrentTransfer] = useState(null);
 
   useEffect(() => {
     const fetchBrandSettings = async () => {
