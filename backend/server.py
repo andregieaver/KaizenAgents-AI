@@ -2997,7 +2997,7 @@ class RateLimitResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
     tenant_id: str
     limits: Dict[str, int]
-    usage: Optional[Dict[str, any]] = None
+    usage: Optional[Dict[str, Any]] = None
 
 @rate_limiting_router.get("/")
 async def get_all_rate_limits(current_user: dict = Depends(get_super_admin_user)):
