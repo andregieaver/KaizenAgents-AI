@@ -84,6 +84,8 @@ const ConversationDetail = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [sentiment, setSentiment] = useState({ engagement: 5, tone: 0 });
+  const [analyzingSentiment, setAnalyzingSentiment] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
