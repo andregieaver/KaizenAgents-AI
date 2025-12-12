@@ -264,10 +264,10 @@ const ConversationDetail = () => {
             </div>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Messages */}
-        <div className="lg:col-span-2">
-          <Card className="border border-border h-[600px] flex flex-col">
+        <div className="lg:col-span-2 order-1">
+          <Card className="border border-border h-[450px] sm:h-[600px] flex flex-col">
             <CardHeader className="border-b border-border py-3">
               <CardTitle className="font-heading text-base flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
@@ -315,36 +315,9 @@ const ConversationDetail = () => {
           </Card>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-4">
-          {/* Customer Info */}
-          <Card className="border border-border">
-            <CardHeader className="py-3">
-              <CardTitle className="font-heading text-base">Customer Info</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Name</p>
-                <p className="text-sm font-medium">{conversation.customer_name || 'Anonymous'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Email</p>
-                <p className="text-sm font-medium">{conversation.customer_email || 'Not provided'}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Source</p>
-                <p className="text-sm font-medium capitalize">{conversation.source}</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Started</p>
-                <p className="text-sm font-medium">
-                  {format(new Date(conversation.created_at), 'PPp')}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Actions */}
+        {/* Sidebar - Actions first on mobile */}
+        <div className="space-y-4 order-first lg:order-2">
+          {/* Actions - Show first on mobile */}
           <Card className="border border-border">
             <CardHeader className="py-3">
               <CardTitle className="font-heading text-base">Actions</CardTitle>
@@ -398,6 +371,35 @@ const ConversationDetail = () => {
                   >
                     Reopen
                   </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Customer Info */}
+          <Card className="border border-border">
+            <CardHeader className="py-3">
+              <CardTitle className="font-heading text-base">Customer Info</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-1">
+                <div>
+                  <p className="text-xs text-muted-foreground">Name</p>
+                  <p className="text-sm font-medium">{conversation.customer_name || 'Anonymous'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-sm font-medium truncate">{conversation.customer_email || 'Not provided'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Source</p>
+                  <p className="text-sm font-medium capitalize">{conversation.source}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Started</p>
+                  <p className="text-sm font-medium">
+                    {format(new Date(conversation.created_at), 'PPp')}
+                  </p>
                 </div>
               </div>
             </CardContent>
