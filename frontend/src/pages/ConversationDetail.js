@@ -567,6 +567,7 @@ const ModeBadge = ({ mode }) => {
   const config = {
     ai: { icon: <Bot className="h-3 w-3" />, label: 'AI Mode' },
     agent: { icon: <User className="h-3 w-3" />, label: 'Agent Mode' },
+    assisted: { icon: <Wand2 className="h-3 w-3" />, label: 'Assisted' },
     hybrid: { icon: <Users className="h-3 w-3" />, label: 'Hybrid' }
   };
   const { icon, label } = config[mode] || config.ai;
