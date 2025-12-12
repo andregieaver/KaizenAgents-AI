@@ -46,11 +46,7 @@ const Providers = () => {
     api_key: ''
   });
 
-  useEffect(() => {
-    fetchProviders();
-  }, [token, fetchProviders]);
-
-  const fetchProviders = async () => {
+  const fetchProviders = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/providers`, {
         headers: { Authorization: `Bearer ${token}` }
