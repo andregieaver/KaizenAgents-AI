@@ -58,7 +58,11 @@ const Providers = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchProviders();
+  }, [fetchProviders]);
 
   const handleAddProvider = async () => {
     if (!newProvider.name || !newProvider.api_key) {
