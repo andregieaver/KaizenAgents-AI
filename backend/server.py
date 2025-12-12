@@ -3609,23 +3609,31 @@ async def health_check():
 async def root():
     return {"message": "AI Support Hub API"}
 
-# Include all routers
-# Import modularized routes
-from routes.auth import router as auth_router_new
-from routes.rate_limits import router as rate_limits_router_new
+# Include all routers - Import from modular route files
+from routes.auth import router as auth_router_mod
+from routes.tenants import router as tenants_router_mod
+from routes.settings import router as settings_router_mod
+from routes.conversations import router as conversations_router_mod
+from routes.widget import router as widget_router_mod
+from routes.admin import router as admin_router_mod
+from routes.users import router as users_router_mod
+from routes.profile import router as profile_router_mod
+from routes.analytics import router as analytics_router_mod
+from routes.transfers import router as transfers_router_mod
+from routes.rate_limits import router as rate_limits_router_mod
 
-# Use modularized routers
-api_router.include_router(auth_router_new)
-api_router.include_router(rate_limits_router_new)
-
-# Include inline routers (to be refactored)
-api_router.include_router(tenants_router)
-api_router.include_router(conversations_router)
-api_router.include_router(settings_router)
-api_router.include_router(widget_router)
-api_router.include_router(admin_router)
-api_router.include_router(users_router)
-api_router.include_router(profile_router)
+# Register all modularized routers
+api_router.include_router(auth_router_mod)
+api_router.include_router(tenants_router_mod)
+api_router.include_router(settings_router_mod)
+api_router.include_router(conversations_router_mod)
+api_router.include_router(widget_router_mod)
+api_router.include_router(admin_router_mod)
+api_router.include_router(users_router_mod)
+api_router.include_router(profile_router_mod)
+api_router.include_router(analytics_router_mod)
+api_router.include_router(transfers_router_mod)
+api_router.include_router(rate_limits_router_mod)
 
 app.include_router(api_router)
 
