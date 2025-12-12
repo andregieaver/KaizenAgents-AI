@@ -524,7 +524,8 @@ const Breadcrumb = () => {
       agents: 'Agents',
       team: 'Team',
       profile: 'Profile',
-      providers: 'Providers'
+      providers: 'Providers',
+      'rate-limits': 'Rate Limits'
     };
     
     // If previous path was 'conversations' and this looks like an ID, show 'Details'
