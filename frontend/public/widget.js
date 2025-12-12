@@ -533,7 +533,16 @@
           if (data.messages && Array.isArray(data.messages)) {
             // Find messages we don't have yet
             data.messages.forEach(msg => {
-              const type = msg.author_type === 'customer' ? 'customer' : 'ai';
+              // Map author_type to display type
+              let type;
+              if (msg.author_type === 'customer') {
+                type = 'customer';
+              } else if (msg.author_type === 'system') {
+                type = 'system';
+              } else {
+                // ai, agent, or any other type shows as 'ai' (left side)
+                type = 'ai';
+              }
               
               // Check by ID first
               const existsById = messageHistory.some(m => m.id === msg.id);
@@ -544,7 +553,7 @@
               );
               
               if (!existsById && !existsByContent) {
-                // Truly new message (likely from human agent)
+                // Truly new message (likely from human agent or system)
                 addMessageToUI(msg.content, type, msg.created_at, true);
                 messageHistory.push({
                   id: msg.id,
