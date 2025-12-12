@@ -13,6 +13,9 @@
 
   console.log('Widget Config:', { tenantId, apiUrl });
 
+  // Storage key prefix for this tenant
+  const STORAGE_KEY = `emergent_chat_${tenantId}`;
+
   // Widget state
   let isOpen = false;
   let sessionToken = null;
@@ -20,6 +23,50 @@
   let settings = null;
   let agentInfo = null;
   let lastMessageId = null;
+  let messageHistory = [];
+  let pollInterval = null;
+
+  // Session storage helpers
+  function saveState() {
+    try {
+      const state = {
+        isOpen,
+        sessionToken,
+        conversationId,
+        messageHistory,
+        lastMessageId
+      };
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (e) {
+      console.warn('Could not save widget state:', e);
+    }
+  }
+
+  function loadState() {
+    try {
+      const saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const state = JSON.parse(saved);
+        isOpen = state.isOpen || false;
+        sessionToken = state.sessionToken || null;
+        conversationId = state.conversationId || null;
+        messageHistory = state.messageHistory || [];
+        lastMessageId = state.lastMessageId || null;
+        return true;
+      }
+    } catch (e) {
+      console.warn('Could not load widget state:', e);
+    }
+    return false;
+  }
+
+  function clearState() {
+    try {
+      sessionStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.warn('Could not clear widget state:', e);
+    }
+  }
 
   // Fetch widget settings and agent info
   async function fetchSettings() {
