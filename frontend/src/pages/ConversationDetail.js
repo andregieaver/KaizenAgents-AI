@@ -80,6 +80,8 @@ const ConversationDetail = () => {
   const [sending, setSending] = useState(false);
   const [conversations, setConversations] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
