@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Separator } from '../components/ui/separator';
 import { Switch } from '../components/ui/switch';
 import AgentConfiguration from '../components/AgentConfiguration';
+import SavedAgents from '../components/SavedAgents';
 import {
   Settings as SettingsIcon,
   Palette,
@@ -212,14 +213,18 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
           <TabsTrigger value="general" className="gap-2" data-testid="tab-general">
             <SettingsIcon className="h-4 w-4 hidden sm:block" />
             General
           </TabsTrigger>
+          <TabsTrigger value="agents" className="gap-2" data-testid="tab-agents">
+            <Bot className="h-4 w-4 hidden sm:block" />
+            Agents
+          </TabsTrigger>
           <TabsTrigger value="agent-config" className="gap-2" data-testid="tab-agent-config">
             <Sparkles className="h-4 w-4 hidden sm:block" />
-            Agent
+            Active Agent
           </TabsTrigger>
           <TabsTrigger value="widget" className="gap-2" data-testid="tab-widget">
             <Palette className="h-4 w-4 hidden sm:block" />
