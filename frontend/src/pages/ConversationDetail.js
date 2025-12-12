@@ -416,6 +416,74 @@ const ConversationDetail = () => {
             </CardContent>
           </Card>
 
+          {/* Emotional Meters */}
+          <Card className="border border-border">
+            <CardHeader className="py-3">
+              <CardTitle className="font-heading text-base flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                Customer Sentiment
+                {analyzingSentiment && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Engagement Meter */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Activity className="h-3 w-3" />
+                    Engagement
+                  </span>
+                  <span className="text-xs font-medium">{sentiment.engagement}/10</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className={cn(
+                      "h-full rounded-full transition-all duration-500",
+                      sentiment.engagement <= 3 ? "bg-red-500" :
+                      sentiment.engagement <= 6 ? "bg-yellow-500" :
+                      "bg-green-500"
+                    )}
+                    style={{ width: `${sentiment.engagement * 10}%` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-[10px] text-muted-foreground">Low</span>
+                  <span className="text-[10px] text-muted-foreground">High</span>
+                </div>
+              </div>
+
+              {/* Tone Pendulum */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-muted-foreground">Tone</span>
+                  <span className={cn(
+                    "text-xs font-medium",
+                    sentiment.tone < -20 ? "text-red-500" :
+                    sentiment.tone > 20 ? "text-green-500" :
+                    "text-yellow-500"
+                  )}>
+                    {sentiment.tone < -50 ? "Very Negative" :
+                     sentiment.tone < -20 ? "Negative" :
+                     sentiment.tone <= 20 ? "Neutral" :
+                     sentiment.tone <= 50 ? "Positive" :
+                     "Very Positive"}
+                  </span>
+                </div>
+                <div className="relative h-3 bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-full">
+                  <div 
+                    className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white border-2 border-gray-800 rounded-full shadow-md transition-all duration-500"
+                    style={{ left: `calc(${(sentiment.tone + 100) / 2}% - 8px)` }}
+                  />
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-[10px] text-muted-foreground">Negative</span>
+                  <span className="text-[10px] text-muted-foreground">Neutral</span>
+                  <span className="text-[10px] text-muted-foreground">Positive</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Customer Info */}
           <Card className="border border-border">
             <CardHeader className="py-3">
