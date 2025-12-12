@@ -652,11 +652,22 @@
   }
 
   // Initialize widget
-  loadState(); // Load any saved state first
+  const hadSavedState = loadState(); // Load any saved state first
   
-  fetchSettings().then(settings => {
-    if (settings) {
+  // Reset isOpen to false initially - we'll restore it after widget creation
+  const savedIsOpen = isOpen;
+  isOpen = false;
+  
+  fetchSettings().then(settingsResult => {
+    if (settingsResult) {
       createWidget();
+      
+      // After widget is created, restore the open state if it was previously open
+      if (savedIsOpen) {
+        isOpen = true;
+        const chatWindow = document.getElementById('emergent-chat-window');
+        if (chatWindow) chatWindow.classList.add('open');
+      }
     }
   });
 })();
