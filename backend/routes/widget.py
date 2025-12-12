@@ -13,6 +13,21 @@ from middleware import get_current_user, get_super_admin_user, get_admin_or_owne
 from middleware.database import db
 from middleware.auth import create_token, hash_password, verify_password, is_super_admin, JWT_SECRET, JWT_ALGORITHM
 
+# Widget-specific models
+class WidgetSessionCreate(BaseModel):
+    tenant_id: str
+    customer_name: Optional[str] = None
+    customer_email: Optional[str] = None
+
+class WidgetSessionResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    session_token: str
+    conversation_id: str
+    settings: dict
+
+class WidgetMessageCreate(BaseModel):
+    content: str
+
 router = APIRouter(prefix="/widget", tags=["widget"])
 
 @router.get("/{tenant_id}/settings")
