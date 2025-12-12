@@ -422,7 +422,7 @@ const MessageBubble = ({ message }) => {
   if (isSystem) {
     return (
       <div className="flex justify-center my-2">
-        <div className="bg-muted/50 text-muted-foreground text-xs px-3 py-1.5 rounded-full">
+        <div className="bg-muted/50 text-muted-foreground text-xs px-3 py-1.5 rounded-full text-center">
           {message.content}
         </div>
       </div>
@@ -440,22 +440,28 @@ const MessageBubble = ({ message }) => {
   const isRightSide = isAgent || isAI;
 
   return (
-    <div className={cn('flex gap-3', isRightSide ? 'flex-row-reverse' : 'flex-row')}>
+    <div className={cn(
+      'flex gap-2 w-full',
+      isRightSide ? 'flex-row-reverse' : 'flex-row'
+    )}>
       <div className={cn(
         'h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0',
         isCustomer ? 'bg-signal-100 text-signal-600' : isAI ? 'bg-primary/10 text-primary' : 'bg-blue-100 text-blue-600'
       )}>
         {getIcon()}
       </div>
-      <div className={cn(
-        'max-w-[70%] rounded-lg px-4 py-2 chat-bubble overflow-hidden',
-        isCustomer
-          ? 'bg-signal-100 text-signal-900 dark:bg-signal-900/20 dark:text-signal-100 rounded-tl-none'
-          : isAgent
-          ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100 rounded-tr-none'
-          : 'bg-muted rounded-tr-none'
-      )}>
-        <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
+      <div 
+        className={cn(
+          'rounded-lg px-3 py-2 min-w-0',
+          isCustomer
+            ? 'bg-signal-100 text-signal-900 dark:bg-signal-900/20 dark:text-signal-100 rounded-tl-none'
+            : isAgent
+            ? 'bg-blue-100 text-blue-900 dark:bg-blue-900/20 dark:text-blue-100 rounded-tr-none'
+            : 'bg-muted rounded-tr-none'
+        )}
+        style={{ maxWidth: 'calc(100% - 48px)', wordBreak: 'break-word', overflowWrap: 'anywhere' }}
+      >
+        <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
         <p className="text-xs opacity-60 mt-1">
           {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
         </p>
