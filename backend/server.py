@@ -1216,6 +1216,26 @@ async def send_widget_message(conversation_id: str, token: str, message_data: Wi
                 }
             }
         )
+        
+        # Check for transfer triggers (human request, AI failure, negative sentiment)
+        try:
+            # Quick sentiment check on customer message
+            sentiment = None
+            if len(message_data.content) > 20:  # Only analyze substantial messages
+                # Simple negative keyword check for quick trigger
+                negative_words = ["angry", "frustrated", "terrible", "horrible", "worst", "hate", "useless", "stupid", "ridiculous"]
+                if any(word in message_data.content.lower() for word in negative_words):
+                    sentiment = {"tone": -70}
+            
+            await check_transfer_triggers(
+                conversation_id=conversation_id,
+                tenant_id=tenant_id,
+                customer_message=message_data.content,
+                ai_response=ai_response,
+                sentiment=sentiment
+            )
+        except Exception as e:
+            print(f"Error checking transfer triggers: {e}")
     
     return {
         "customer_message": {k: v for k, v in customer_message_doc.items() if k != "_id"},
