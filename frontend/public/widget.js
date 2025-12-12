@@ -693,6 +693,7 @@
       }
     } catch (error) {
       console.error('Chat Widget Error:', error);
+      hideTypingIndicator();
       addMessageToUI(`Error: ${error.message}. Please check console for details.`, 'ai', null, false);
     } finally {
       input.disabled = false;
