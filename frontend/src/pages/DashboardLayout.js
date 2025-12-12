@@ -313,22 +313,35 @@ const Breadcrumb = () => {
   const location = useLocation();
   const paths = location.pathname.split('/').filter(Boolean);
 
-  const getLabel = (path) => {
+  const getLabel = (path, index, allPaths) => {
     const labels = {
       dashboard: 'Dashboard',
       conversations: 'Conversations',
-      settings: 'Settings'
+      settings: 'Settings',
+      agents: 'Agents',
+      team: 'Team',
+      profile: 'Profile',
+      providers: 'Providers'
     };
+    
+    // If previous path was 'conversations' and this looks like an ID, show 'Details'
+    if (index > 0 && allPaths[index - 1] === 'conversations' && !labels[path]) {
+      return 'Details';
+    }
+    
     return labels[path] || path;
   };
 
   return (
-    <div className="flex items-center gap-1 text-sm">
+    <div className="flex items-center gap-1 text-sm overflow-hidden">
       {paths.map((path, index) => (
-        <span key={path} className="flex items-center gap-1">
-          {index > 0 && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-          <span className={index === paths.length - 1 ? 'font-medium' : 'text-muted-foreground'}>
-            {getLabel(path)}
+        <span key={path} className="flex items-center gap-1 truncate">
+          {index > 0 && <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+          <span className={cn(
+            'truncate',
+            index === paths.length - 1 ? 'font-medium' : 'text-muted-foreground'
+          )}>
+            {getLabel(path, index, paths)}
           </span>
         </span>
       ))}
