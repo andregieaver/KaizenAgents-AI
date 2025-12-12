@@ -451,6 +451,30 @@
     }
   }
 
+  // Simple HTML sanitizer to allow only safe tags (links)
+  function sanitizeHTML(html) {
+    // Create a temporary element to parse the HTML
+    const temp = document.createElement('div');
+    temp.textContent = html; // First escape everything
+    let escaped = temp.innerHTML;
+    
+    // Now selectively allow safe anchor tags
+    // Match <a href="...">...</a> patterns and restore them
+    escaped = escaped.replace(
+      /&lt;a\s+href=["']([^"']+)["'](?:\s+target=["']([^"']+)["'])?&gt;([^&]+)&lt;\/a&gt;/gi,
+      (match, href, target, text) => {
+        // Validate URL - only allow http, https, mailto
+        if (href.match(/^(https?:|mailto:)/i)) {
+          const targetAttr = target ? ` target="${target}"` : ' target="_blank"';
+          return `<a href="${href}"${targetAttr} rel="noopener noreferrer">${text}</a>`;
+        }
+        return text; // If URL is not safe, just return the text
+      }
+    );
+    
+    return escaped;
+  }
+
   function addMessage(content, type, timestamp) {
     const messagesContainer = document.getElementById('emergent-chat-messages');
     const welcome = document.getElementById('emergent-chat-welcome');
@@ -463,7 +487,8 @@
 
     const bubble = document.createElement('div');
     bubble.className = 'chat-message-content';
-    bubble.textContent = content;
+    // Use innerHTML with sanitization to allow clickable links
+    bubble.innerHTML = sanitizeHTML(content);
 
     const time = document.createElement('div');
     time.className = 'chat-message-time';

@@ -202,7 +202,7 @@ CRITICAL INSTRUCTIONS (MUST FOLLOW):
 1. You may ONLY answer questions using the information provided above from the company's documents.
 2. If the answer is not in the provided information, respond EXACTLY: "I don't have that information in my knowledge base. Please contact our support team for assistance."
 3. NEVER use general knowledge, world facts, or information outside the provided documents.
-4. Cite the source document when answering (e.g., "According to [filename]...").
+4. NEVER mention or refer to the documents, files, or knowledge base in your response. Do not say things like "according to the documents", "based on the files I have", or "in my knowledge base". Simply provide the answer directly as if you naturally know the information.
 
 {agent['system_prompt']}
 
