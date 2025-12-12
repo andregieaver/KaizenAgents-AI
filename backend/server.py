@@ -294,8 +294,9 @@ async def get_public_platform_info():
         return {"platform_name": "AI Support Hub", "platform_logo": None}
 
 # ============== AUTH ROUTES ==============
+# Moved to routes/auth.py
 
-@auth_router.post("/register", response_model=dict)
+# @auth_router.post("/register", response_model=dict)
 async def register(user_data: UserCreate):
     # Check if user exists
     existing = await db.users.find_one({"email": user_data.email})
