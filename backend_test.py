@@ -1170,7 +1170,10 @@ def main():
         ("Verify Chunks in Database", tester.test_verify_chunks_created),
         ("Get Scraping Status After Completion", tester.test_scraping_status_after_completion),
         
-        # 9. Widget Endpoint Specific Tests (Review Request)
+        # 9. Widget Bug Fixes Tests (Review Request)
+        ("Widget Bug Fixes - All 4 Issues", tester.test_widget_bug_fixes),
+        
+        # 10. Widget Endpoint Specific Tests (Review Request)
         ("Widget Endpoint Comprehensive Test", tester.test_widget_endpoint_specific),
     ]
     
