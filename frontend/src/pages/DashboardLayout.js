@@ -343,7 +343,7 @@ const DashboardLayout = () => {
             onClick={() => setSidebarOpen(false)}
             data-testid="nav-profile"
           >
-            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden relative">
               {getAvatarSrc(user?.avatar_url) ? (
                 <img src={getAvatarSrc(user.avatar_url)} alt={user.name} className="h-full w-full object-cover" />
               ) : (
@@ -351,13 +351,39 @@ const DashboardLayout = () => {
                   {user?.name?.charAt(0).toUpperCase()}
                 </span>
               )}
+              {/* Availability indicator dot */}
+              <div className={cn(
+                "absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-background",
+                isAvailable ? "bg-green-500" : "bg-gray-400"
+              )} />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">{user?.name}</p>
               <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
             </div>
-            <User className="h-4 w-4 text-muted-foreground" />
           </Link>
+          
+          {/* Availability Toggle */}
+          <div 
+            className="flex items-center justify-between p-2 mb-3 rounded-sm bg-muted/50 cursor-pointer"
+            onClick={toggleAvailability}
+          >
+            <div className="flex items-center gap-2">
+              <div className={cn(
+                "h-2 w-2 rounded-full",
+                isAvailable ? "bg-green-500" : "bg-gray-400"
+              )} />
+              <span className="text-xs font-medium">
+                {isAvailable ? 'Available' : 'Unavailable'}
+              </span>
+            </div>
+            <Switch 
+              checked={isAvailable} 
+              onCheckedChange={toggleAvailability}
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+          
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -381,6 +407,45 @@ const DashboardLayout = () => {
         </div>
       </aside>
 
+      {/* Transfer Request Popup */}
+      {showTransferPopup && currentTransfer && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-background rounded-lg shadow-xl max-w-md w-full border border-border animate-in fade-in zoom-in duration-200">
+            <div className="p-4 border-b border-border flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-amber-500/10 flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-amber-500" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Customer Needs Help</h3>
+                <p className="text-xs text-muted-foreground">
+                  {currentTransfer.reason === 'customer_request' && 'Customer requested human assistance'}
+                  {currentTransfer.reason === 'ai_limitation' && 'AI was unable to help'}
+                  {currentTransfer.reason === 'negative_sentiment' && 'Customer appears frustrated'}
+                </p>
+              </div>
+            </div>
+            <div className="p-4">
+              <p className="text-sm text-muted-foreground mb-4">{currentTransfer.summary}</p>
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => handleDeclineTransfer(currentTransfer.id)}
+                >
+                  Decline
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={() => handleAcceptTransfer(currentTransfer.id)}
+                >
+                  Accept
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
@@ -395,6 +460,26 @@ const DashboardLayout = () => {
             <Menu className="h-5 w-5" />
           </Button>
           <Breadcrumb />
+          
+          {/* Transfer notification badge in header */}
+          {pendingTransfers.length > 0 && !showTransferPopup && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto relative"
+              onClick={() => {
+                if (pendingTransfers.length > 0) {
+                  setCurrentTransfer(pendingTransfers[0]);
+                  setShowTransferPopup(true);
+                }
+              }}
+            >
+              <Bell className="h-4 w-4" />
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center">
+                {pendingTransfers.length}
+              </span>
+            </Button>
+          )}
         </header>
 
         {/* Page Content */}
