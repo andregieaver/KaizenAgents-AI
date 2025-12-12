@@ -475,18 +475,18 @@
           if (data.messages && Array.isArray(data.messages)) {
             // Find messages we don't have yet
             data.messages.forEach(msg => {
-              // Check by ID first, then by content+type+approximate time to avoid duplicates
+              const type = msg.author_type === 'customer' ? 'customer' : 'ai';
+              
+              // Check by ID first
               const existsById = messageHistory.some(m => m.id === msg.id);
+              
+              // Also check by content and type to catch temp ID mismatches
               const existsByContent = messageHistory.some(m => 
-                m.content === msg.content && 
-                m.type === (msg.author_type === 'customer' ? 'customer' : 'ai') &&
-                // Consider messages within 30 seconds as potential duplicates
-                Math.abs(new Date(m.timestamp).getTime() - new Date(msg.created_at).getTime()) < 30000
+                m.content === msg.content && m.type === type
               );
               
               if (!existsById && !existsByContent) {
-                // New message! Add it
-                const type = msg.author_type === 'customer' ? 'customer' : 'ai';
+                // Truly new message (likely from human agent)
                 addMessageToUI(msg.content, type, msg.created_at, true);
                 messageHistory.push({
                   id: msg.id,
@@ -496,11 +496,10 @@
                 });
                 saveState();
               } else if (!existsById && existsByContent) {
-                // Update the temp ID with the real server ID
+                // Same content exists with temp ID - update to real ID
                 const tempMsg = messageHistory.find(m => 
-                  m.content === msg.content && 
-                  m.type === (msg.author_type === 'customer' ? 'customer' : 'ai') &&
-                  m.id.startsWith('temp_')
+                  m.content === msg.content && m.type === type && 
+                  (m.id.startsWith('temp_') || m.id.startsWith('ai_'))
                 );
                 if (tempMsg) {
                   tempMsg.id = msg.id;
