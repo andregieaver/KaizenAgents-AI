@@ -13,27 +13,6 @@ from middleware.database import db
 
 router = APIRouter(prefix="/transfers", tags=["transfers"])
 
-@router.get("/availability")
-async def get_availability(current_user: dict = Depends(get_current_user)):
-    """Get current user's availability status"""
-    user = await db.users.find_one({"id": current_user["id"]}, {"_id": 0})
-    return {"available": user.get("is_available", False)}
-
-@router.post("/availability")
-async def set_availability(
-    available: bool,
-    current_user: dict = Depends(get_current_user)
-):
-    """Set current user's availability status"""
-    await db.users.update_one(
-        {"id": current_user["id"]},
-        {"$set": {"is_available": available, "availability_updated_at": datetime.now(timezone.utc).isoformat()}}
-    )
-    return {"available": available}
-
-# Transfer requests collection
-transfer_router = APIRouter(prefix="/transfers", tags=["transfers"])
-
 @router.get("/pending")
 async def get_pending_transfers(current_user: dict = Depends(get_current_user)):
     """Get pending transfer requests for available agents"""
