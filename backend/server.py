@@ -780,7 +780,28 @@ async def get_widget_messages(conversation_id: str, token: str):
         {"conversation_id": conversation_id}, {"_id": 0}
     ).sort("created_at", 1).to_list(1000)
     
-    return {"messages": messages}
+    # Get conversation to check mode and assigned agent
+    conversation = await db.conversations.find_one({"id": conversation_id}, {"_id": 0})
+    
+    # If an agent is assigned, get their info
+    assigned_agent_info = None
+    if conversation and conversation.get("mode") == "agent" and conversation.get("assigned_agent_id"):
+        agent_user = await db.users.find_one(
+            {"id": conversation["assigned_agent_id"]},
+            {"_id": 0, "id": 1, "name": 1, "avatar_url": 1}
+        )
+        if agent_user:
+            assigned_agent_info = {
+                "id": agent_user.get("id"),
+                "name": agent_user.get("name", "Support Agent"),
+                "avatar_url": agent_user.get("avatar_url")
+            }
+    
+    return {
+        "messages": messages,
+        "mode": conversation.get("mode", "ai") if conversation else "ai",
+        "assigned_agent": assigned_agent_info
+    }
 
 @widget_router.post("/messages/{conversation_id}")
 async def send_widget_message(conversation_id: str, token: str, message_data: WidgetMessageCreate):
