@@ -642,11 +642,15 @@
     messageDiv.appendChild(time);
     messagesContainer.appendChild(messageDiv);
 
-    // Scroll to bottom
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    // Scroll to bottom only if requested
+    if (shouldScroll) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
   }
 
   // Initialize widget
+  loadState(); // Load any saved state first
+  
   fetchSettings().then(settings => {
     if (settings) {
       createWidget();
