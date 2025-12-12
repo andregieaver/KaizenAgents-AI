@@ -619,7 +619,7 @@
     return escaped;
   }
 
-  function addMessage(content, type, timestamp) {
+  function addMessageToUI(content, type, timestamp, shouldScroll = true) {
     const messagesContainer = document.getElementById('emergent-chat-messages');
     const welcome = document.getElementById('emergent-chat-welcome');
     if (welcome) {
