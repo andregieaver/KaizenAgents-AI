@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/button';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Separator } from '../components/ui/separator';
+import { Switch } from '../components/ui/switch';
 import { cn } from '../lib/utils';
 import {
   MessageSquare,
@@ -21,9 +22,12 @@ import {
   Users,
   User,
   Bot,
-  Database
+  Database,
+  Bell,
+  AlertTriangle
 } from 'lucide-react';
 import axios from 'axios';
+import { toast } from 'sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
