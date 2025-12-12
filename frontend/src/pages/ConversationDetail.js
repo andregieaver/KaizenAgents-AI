@@ -118,11 +118,24 @@ const ConversationDetail = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Fetch suggestions when in assisted mode and messages change
+  useEffect(() => {
+    if (conversation?.mode === 'assisted' && messages.length > 0) {
+      // Check if the last message is from customer
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg?.author_type === 'customer') {
+        fetchSuggestions();
+      }
+    }
+  }, [messages, conversation?.mode]);
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || sending) return;
 
     setSending(true);
+    // Clear suggestions when sending
+    setSuggestions([]);
     try {
       const response = await axios.post(
         `${API}/conversations/${id}/messages`,
