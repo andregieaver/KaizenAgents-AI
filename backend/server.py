@@ -2645,6 +2645,40 @@ app.include_router(api_router)
 # Mount uploads directory for serving avatar images
 app.mount("/api/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
+# Media proxy endpoint for GCS files
+@app.get("/api/media/{path:path}")
+async def proxy_media(path: str):
+    """Proxy media files from GCS storage"""
+    from storage_service import get_storage_service
+    from fastapi.responses import StreamingResponse
+    import io
+    
+    storage = await get_storage_service(db)
+    
+    if storage.storage_type != "gcs":
+        # For local storage, redirect to uploads
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    try:
+        blob = storage.bucket.blob(path)
+        if not blob.exists():
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        content = blob.download_as_bytes()
+        content_type = blob.content_type or "application/octet-stream"
+        
+        return StreamingResponse(
+            io.BytesIO(content),
+            media_type=content_type,
+            headers={
+                "Cache-Control": "public, max-age=31536000",
+                "Access-Control-Allow-Origin": "*"
+            }
+        )
+    except Exception as e:
+        print(f"Error proxying media: {str(e)}")
+        raise HTTPException(status_code=404, detail="File not found")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
