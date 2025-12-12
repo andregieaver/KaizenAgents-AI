@@ -561,6 +561,35 @@
     }
   }
 
+  // Typing indicator functions
+  function showTypingIndicator() {
+    const messagesContainer = document.getElementById('emergent-chat-messages');
+    if (!messagesContainer) return;
+    
+    // Remove existing typing indicator if any
+    hideTypingIndicator();
+    
+    const typingDiv = document.createElement('div');
+    typingDiv.id = 'typing-indicator';
+    typingDiv.className = 'chat-message ai';
+    typingDiv.innerHTML = `
+      <div class="chat-message-content typing-indicator">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    `;
+    messagesContainer.appendChild(typingDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  function hideTypingIndicator() {
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingIndicator) {
+      typingIndicator.remove();
+    }
+  }
+
   async function sendMessage(e) {
     e.preventDefault();
     const input = document.getElementById('emergent-chat-input');
