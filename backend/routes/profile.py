@@ -10,6 +10,7 @@ import uuid
 from models import *
 from middleware import get_current_user, get_super_admin_user
 from middleware.database import db
+from middleware.auth import is_super_admin, hash_password, verify_password
 
 # Profile models
 class ProfileUpdate(BaseModel):
