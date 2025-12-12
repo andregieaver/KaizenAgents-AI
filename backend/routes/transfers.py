@@ -13,13 +13,13 @@ from middleware.database import db
 
 router = APIRouter(prefix="/transfers", tags=["transfers"])
 
-@profile_router.get("/availability")
+@router.get("/availability")
 async def get_availability(current_user: dict = Depends(get_current_user)):
     """Get current user's availability status"""
     user = await db.users.find_one({"id": current_user["id"]}, {"_id": 0})
     return {"available": user.get("is_available", False)}
 
-@profile_router.post("/availability")
+@router.post("/availability")
 async def set_availability(
     available: bool,
     current_user: dict = Depends(get_current_user)
