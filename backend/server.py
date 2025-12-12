@@ -3665,6 +3665,42 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add middleware to set tenant_id in request state for rate limiting
+@app.middleware("http")
+async def set_tenant_context(request: Request, call_next):
+    """Set tenant_id in request state for downstream middleware"""
+    # Try to extract tenant_id from auth token
+    auth_header = request.headers.get("Authorization", "")
+    if auth_header.startswith("Bearer "):
+        token = auth_header.replace("Bearer ", "")
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            request.state.tenant_id = payload.get("tenant_id")
+        except:
+            pass
+    
+    response = await call_next(request)
+    return response
+
+# Add rate limiting middleware
+from middleware.rate_limiter import rate_limit_middleware
+app.middleware("http")(rate_limit_middleware)
+
+@app.on_event("startup")
+async def startup_load_rate_limits():
+    """Load rate limits from database on startup"""
+    from middleware.rate_limiter import rate_limiter
+    
+    # Load saved rate limits
+    saved_limits = await db.rate_limits.find({}, {"_id": 0}).to_list(1000)
+    for limit_config in saved_limits:
+        tenant_id = limit_config.get("tenant_id")
+        limits = limit_config.get("limits", {})
+        if tenant_id and limits:
+            await rate_limiter.set_tenant_limit(tenant_id, limits)
+    
+    logger.info(f"Loaded {len(saved_limits)} rate limit configurations")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     from middleware.database import client
