@@ -365,20 +365,22 @@ const ConversationDetail = () => {
                 Messages
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex-1 p-0 flex flex-col">
-              <ScrollArea className="flex-1 p-4">
-                {messages.length > 0 ? (
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <MessageBubble key={message.id} message={message} />
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
-                ) : (
-                  <div className="h-full flex items-center justify-center">
-                    <p className="text-muted-foreground">No messages yet</p>
-                  </div>
-                )}
+            <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
+              <ScrollArea className="flex-1">
+                <div className="p-4 overflow-hidden">
+                  {messages.length > 0 ? (
+                    <div className="space-y-4">
+                      {messages.map((message) => (
+                        <MessageBubble key={message.id} message={message} />
+                      ))}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <p className="text-muted-foreground">No messages yet</p>
+                    </div>
+                  )}
+                </div>
               </ScrollArea>
               
               {/* Message Input */}
