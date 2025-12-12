@@ -412,6 +412,29 @@
     bubble.addEventListener('click', toggleChat);
     closeBtn.addEventListener('click', toggleChat);
     form.addEventListener('submit', sendMessage);
+
+    // Restore previous state if exists
+    if (messageHistory.length > 0) {
+      // Remove welcome message
+      const welcome = document.getElementById('emergent-chat-welcome');
+      if (welcome) welcome.remove();
+      
+      // Restore all previous messages
+      messageHistory.forEach(msg => {
+        addMessageToUI(msg.content, msg.type, msg.timestamp, false);
+      });
+    }
+
+    // Open chat if it was open before
+    if (isOpen) {
+      const chatWindow = document.getElementById('emergent-chat-window');
+      chatWindow.classList.add('open');
+    }
+
+    // Start polling for new messages if we have a conversation
+    if (conversationId && sessionToken) {
+      startPolling();
+    }
   }
 
   function toggleChat() {
@@ -420,8 +443,58 @@
     if (isOpen) {
       chatWindow.classList.add('open');
       document.getElementById('emergent-chat-input').focus();
+      // Start polling when chat opens and we have a conversation
+      if (conversationId && sessionToken) {
+        startPolling();
+      }
     } else {
       chatWindow.classList.remove('open');
+      // Stop polling when chat closes
+      stopPolling();
+    }
+    saveState();
+  }
+
+  // Polling for new messages (to receive human agent messages)
+  function startPolling() {
+    if (pollInterval) return; // Already polling
+    
+    pollInterval = setInterval(async () => {
+      if (!conversationId || !sessionToken) return;
+      
+      try {
+        const response = await fetch(`${apiUrl}/widget/messages/${conversationId}?token=${sessionToken}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.messages && Array.isArray(data.messages)) {
+            // Find messages we don't have yet
+            data.messages.forEach(msg => {
+              const exists = messageHistory.some(m => m.id === msg.id);
+              if (!exists) {
+                // New message! Add it
+                const type = msg.author_type === 'customer' ? 'customer' : 'ai';
+                addMessageToUI(msg.content, type, msg.created_at, true);
+                messageHistory.push({
+                  id: msg.id,
+                  content: msg.content,
+                  type: type,
+                  timestamp: msg.created_at
+                });
+                saveState();
+              }
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Polling error:', error);
+      }
+    }, 3000); // Poll every 3 seconds
+  }
+
+  function stopPolling() {
+    if (pollInterval) {
+      clearInterval(pollInterval);
+      pollInterval = null;
     }
   }
 
