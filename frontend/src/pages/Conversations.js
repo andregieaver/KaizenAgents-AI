@@ -8,7 +8,7 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { ScrollArea } from '../components/ui/scroll-area';
-import { MessageSquare, Search, Filter, Users, Bot, User } from 'lucide-react';
+import { MessageSquare, Search, Filter, Users, Bot, User, Wand2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
