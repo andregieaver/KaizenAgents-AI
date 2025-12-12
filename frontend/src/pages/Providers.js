@@ -48,7 +48,7 @@ const Providers = () => {
 
   useEffect(() => {
     fetchProviders();
-  }, [token]);
+  }, [token, fetchProviders]);
 
   const fetchProviders = async () => {
     try {
