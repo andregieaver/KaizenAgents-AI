@@ -438,11 +438,14 @@
   }
 
   function toggleChat() {
-    isOpen = !isOpen;
     const chatWindow = document.getElementById('emergent-chat-window');
+    if (!chatWindow) return; // Guard against missing element
+    
+    isOpen = !isOpen;
     if (isOpen) {
       chatWindow.classList.add('open');
-      document.getElementById('emergent-chat-input').focus();
+      const input = document.getElementById('emergent-chat-input');
+      if (input) input.focus();
       // Start polling when chat opens and we have a conversation
       if (conversationId && sessionToken) {
         startPolling();
