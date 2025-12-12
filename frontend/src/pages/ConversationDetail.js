@@ -264,59 +264,9 @@ const ConversationDetail = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Messages */}
-        <div className="lg:col-span-2 order-1">
-          <Card className="border border-border h-[450px] sm:h-[600px] flex flex-col">
-            <CardHeader className="border-b border-border py-3">
-              <CardTitle className="font-heading text-base flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Messages
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 p-0 flex flex-col">
-              <ScrollArea className="flex-1 p-4">
-                {messages.length > 0 ? (
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <MessageBubble key={message.id} message={message} />
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
-                ) : (
-                  <div className="h-full flex items-center justify-center">
-                    <p className="text-muted-foreground">No messages yet</p>
-                  </div>
-                )}
-              </ScrollArea>
-              
-              {/* Message Input */}
-              <div className="p-4 border-t border-border">
-                <form onSubmit={handleSendMessage} className="flex gap-2">
-                  <Input
-                    placeholder="Type a message as an agent..."
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    disabled={sending}
-                    className="h-10"
-                    data-testid="message-input"
-                  />
-                  <Button
-                    type="submit"
-                    disabled={!newMessage.trim() || sending}
-                    className="h-10"
-                    data-testid="send-message-btn"
-                  >
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </form>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
+          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
         {/* Sidebar - Actions first on mobile */}
-        <div className="space-y-4 order-first lg:order-2">
+        <div className="space-y-4 lg:order-2">
           {/* Actions - Show first on mobile */}
           <Card className="border border-border">
             <CardHeader className="py-3">
@@ -401,6 +351,56 @@ const ConversationDetail = () => {
                     {format(new Date(conversation.created_at), 'PPp')}
                   </p>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Messages */}
+        <div className="lg:col-span-2 lg:order-1">
+          <Card className="border border-border h-[450px] sm:h-[600px] flex flex-col">
+            <CardHeader className="border-b border-border py-3">
+              <CardTitle className="font-heading text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Messages
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 p-0 flex flex-col">
+              <ScrollArea className="flex-1 p-4">
+                {messages.length > 0 ? (
+                  <div className="space-y-4">
+                    {messages.map((message) => (
+                      <MessageBubble key={message.id} message={message} />
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </div>
+                ) : (
+                  <div className="h-full flex items-center justify-center">
+                    <p className="text-muted-foreground">No messages yet</p>
+                  </div>
+                )}
+              </ScrollArea>
+              
+              {/* Message Input */}
+              <div className="p-4 border-t border-border">
+                <form onSubmit={handleSendMessage} className="flex gap-2">
+                  <Input
+                    placeholder="Type a message as an agent..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    disabled={sending}
+                    className="h-10"
+                    data-testid="message-input"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={!newMessage.trim() || sending}
+                    className="h-10"
+                    data-testid="send-message-btn"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
               </div>
             </CardContent>
           </Card>
