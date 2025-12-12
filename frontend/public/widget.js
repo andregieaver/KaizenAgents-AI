@@ -25,6 +25,8 @@
   let lastMessageId = null;
   let messageHistory = [];
   let pollInterval = null;
+  let currentMode = 'ai';
+  let assignedAgent = null;
 
   // Session storage helpers
   function saveState() {
