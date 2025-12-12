@@ -187,12 +187,17 @@
         
         .chat-message-content {
           background: white;
-          padding: 18px 24px;
+          padding: 18px 24px !important;
           border-radius: 12px;
           font-size: 14px;
           line-height: 1.6;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
           word-wrap: break-word;
+        }
+        
+        .chat-message-content a {
+          color: inherit;
+          text-decoration: underline;
         }
         
         .chat-message.customer .chat-message-content {
