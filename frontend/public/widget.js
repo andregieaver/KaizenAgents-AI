@@ -425,12 +425,6 @@
       });
     }
 
-    // Open chat if it was open before
-    if (isOpen) {
-      const chatWindow = document.getElementById('emergent-chat-window');
-      chatWindow.classList.add('open');
-    }
-
     // Start polling for new messages if we have a conversation
     if (conversationId && sessionToken) {
       startPolling();
