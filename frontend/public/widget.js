@@ -522,6 +522,38 @@
   }
 
   // Polling for new messages (to receive human agent messages)
+  // Function to update header when agent takes over
+  function updateHeader(agent) {
+    const logoContainer = document.getElementById('emergent-chat-logo');
+    const brandSpan = document.getElementById('emergent-chat-brand');
+    
+    if (!logoContainer || !brandSpan) return;
+    
+    if (agent && agent.name) {
+      // Human agent has taken over
+      assignedAgent = agent;
+      const avatarUrl = agent.avatar_url 
+        ? `${apiUrl.replace('/api', '')}${agent.avatar_url}`
+        : null;
+      
+      logoContainer.innerHTML = avatarUrl
+        ? `<img src="${avatarUrl}" alt="${agent.name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+        : `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
+      
+      brandSpan.textContent = `${agent.name} - ${settings?.brand_name || 'Support'}`;
+    } else {
+      // Back to AI agent
+      assignedAgent = null;
+      logoContainer.innerHTML = agentInfo?.avatar_url
+        ? `<img src="${apiUrl.replace('/api', '')}${agentInfo.avatar_url}" alt="Agent" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`
+        : `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>`;
+      
+      brandSpan.textContent = agentInfo?.name 
+        ? `${agentInfo.name} - ${settings?.brand_name || 'Support'}`
+        : (settings?.brand_name || 'Support Chat');
+    }
+  }
+
   function startPolling() {
     if (pollInterval) return; // Already polling
     
@@ -532,6 +564,22 @@
         const response = await fetch(`${apiUrl}/widget/messages/${conversationId}?token=${sessionToken}`);
         if (response.ok) {
           const data = await response.json();
+          
+          // Check if mode or assigned agent changed
+          if (data.mode && data.mode !== currentMode) {
+            currentMode = data.mode;
+            if (data.mode === 'agent' && data.assigned_agent) {
+              updateHeader(data.assigned_agent);
+            } else if (data.mode === 'ai') {
+              updateHeader(null);
+            }
+          } else if (data.mode === 'agent' && data.assigned_agent) {
+            // Check if agent changed
+            if (!assignedAgent || assignedAgent.id !== data.assigned_agent.id) {
+              updateHeader(data.assigned_agent);
+            }
+          }
+          
           if (data.messages && Array.isArray(data.messages)) {
             // Find messages we don't have yet
             data.messages.forEach(msg => {
