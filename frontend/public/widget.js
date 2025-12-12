@@ -579,12 +579,13 @@
           // Check if mode or assigned agent changed
           if (data.mode && data.mode !== currentMode) {
             currentMode = data.mode;
-            if (data.mode === 'agent' && data.assigned_agent) {
+            // Both 'agent' and 'assisted' modes show the human agent
+            if ((data.mode === 'agent' || data.mode === 'assisted') && data.assigned_agent) {
               updateHeader(data.assigned_agent);
             } else if (data.mode === 'ai') {
               updateHeader(null);
             }
-          } else if (data.mode === 'agent' && data.assigned_agent) {
+          } else if ((data.mode === 'agent' || data.mode === 'assisted') && data.assigned_agent) {
             // Check if agent changed
             if (!assignedAgent || assignedAgent.id !== data.assigned_agent.id) {
               updateHeader(data.assigned_agent);
