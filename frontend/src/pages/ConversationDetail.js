@@ -322,22 +322,29 @@ const ConversationDetail = () => {
             <CardContent className="space-y-3">
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Mode</p>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <Button
                     variant={conversation.mode === 'ai' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => handleModeChange('ai')}
-                    className="flex-1"
                     data-testid="mode-ai-btn"
                   >
                     <Sparkles className="h-3 w-3 mr-1" />
                     AI
                   </Button>
                   <Button
+                    variant={conversation.mode === 'assisted' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => handleModeChange('assisted')}
+                    data-testid="mode-assisted-btn"
+                  >
+                    <Wand2 className="h-3 w-3 mr-1" />
+                    Assisted
+                  </Button>
+                  <Button
                     variant={conversation.mode === 'agent' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => handleModeChange('agent')}
-                    className="flex-1"
                     data-testid="mode-agent-btn"
                   >
                     <Hand className="h-3 w-3 mr-1" />
