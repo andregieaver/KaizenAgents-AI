@@ -1715,7 +1715,13 @@ async def upload_agent_avatar(
     destination_path = f"agents/{filename}"
     
     # Upload to configured storage
-    avatar_url = await storage.upload_file(contents, destination_path, file.content_type)
+    storage_url = await storage.upload_file(contents, destination_path, file.content_type)
+    
+    # For GCS storage, store a proxy path instead of the direct GCS URL
+    if storage_url.startswith('https://storage.googleapis.com/'):
+        avatar_url = f"/api/media/agents/{filename}"
+    else:
+        avatar_url = storage_url
     
     # Update agent
     await db.agents.update_one(
