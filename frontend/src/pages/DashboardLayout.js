@@ -24,7 +24,8 @@ import {
   Bot,
   Database,
   Bell,
-  AlertTriangle
+  AlertTriangle,
+  BarChart3
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -178,6 +179,7 @@ const DashboardLayout = () => {
   const navItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
     { path: '/dashboard/conversations', icon: Inbox, label: 'Conversations' },
+    { path: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/dashboard/team', icon: Users, label: 'Team' },
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
