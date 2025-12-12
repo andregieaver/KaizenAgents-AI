@@ -449,7 +449,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Widget Bug Fixes - HTML Links, State Persistence, Polling"
+    - "Performance Metrics Dashboard (Analytics Page)"
   stuck_tasks:
     - "Agent Test Functionality"
   test_all: false
