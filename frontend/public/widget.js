@@ -307,6 +307,25 @@
           }
         }
         
+        /* System messages */
+        .chat-message.system {
+          align-self: center;
+          max-width: 90%;
+        }
+        
+        .chat-message.system .chat-message-content {
+          background: #f3f4f6;
+          color: #6b7280;
+          font-size: 12px;
+          padding: 8px 16px !important;
+          text-align: center;
+          border-radius: 16px;
+        }
+        
+        .chat-message.system .chat-message-time {
+          text-align: center;
+        }
+        
         #emergent-chat-form {
           padding: 16px 20px;
           background: white;
