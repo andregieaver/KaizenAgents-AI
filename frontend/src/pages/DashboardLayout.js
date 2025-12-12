@@ -201,6 +201,10 @@ const DashboardLayout = () => {
     ? { path: '/dashboard/storage', icon: Database, label: 'Storage', isAdmin: true }
     : null;
 
+  const rateLimitsNavItem = user?.is_super_admin
+    ? { path: '/dashboard/rate-limits', icon: Shield, label: 'Rate Limits', isAdmin: true }
+    : null;
+
   const isActive = (path) => {
     if (path === '/dashboard') {
       return location.pathname === '/dashboard';
@@ -267,7 +271,7 @@ const DashboardLayout = () => {
             ))}
             
             {/* Super Admin Links */}
-            {(adminNavItem || providersNavItem || agentsNavItem || storageNavItem) && (
+            {(adminNavItem || providersNavItem || agentsNavItem || storageNavItem || rateLimitsNavItem) && (
               <>
                 <Separator className="my-3" />
                 {providersNavItem && (
@@ -313,6 +317,21 @@ const DashboardLayout = () => {
                   >
                     <storageNavItem.icon className="h-4 w-4" />
                     {storageNavItem.label}
+                  </Link>
+                )}
+                {rateLimitsNavItem && (
+                  <Link
+                    to={rateLimitsNavItem.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                      isActive(rateLimitsNavItem.path)
+                        ? "bg-destructive text-destructive-foreground"
+                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                    )}
+                  >
+                    <rateLimitsNavItem.icon className="h-4 w-4" />
+                    {rateLimitsNavItem.label}
                   </Link>
                 )}
                 {adminNavItem && (
