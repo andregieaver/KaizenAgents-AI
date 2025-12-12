@@ -20,6 +20,7 @@ import Profile from "./pages/Profile";
 import Providers from "./pages/Providers";
 import Agents from "./pages/Agents";
 import StorageConfig from "./pages/StorageConfig";
+import Analytics from "./pages/Analytics";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -92,6 +93,7 @@ function AppRoutes() {
         <Route index element={<Dashboard />} />
         <Route path="conversations" element={<Conversations />} />
         <Route path="conversations/:id" element={<ConversationDetail />} />
+        <Route path="analytics" element={<Analytics />} />
         <Route path="team" element={<Team />} />
         <Route path="settings" element={<Settings />} />
         <Route path="profile" element={<Profile />} />
