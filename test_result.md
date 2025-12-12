@@ -470,3 +470,12 @@ agent_communication:
       message: "RELOCATED LANGUAGE CONFIGURATION TESTING COMPLETED - Feature successfully relocated to Settings → Agent tab as requested! Fixed ESLint compilation error that was preventing frontend from loading. Comprehensive testing performed: Language Configuration correctly positioned in Settings → Agent tab (NOT in Agents page), located below agent selection and above custom instructions as specified, 'Response Language' heading with Languages icon present, searchable language dropdown functional (tested Spanish selection), THREE mutually exclusive language mode buttons working correctly (Force Language, Browser Language, Geo Location), all buttons clickable with proper visual selection state, Save Configuration button works with success message, and VERIFIED NO language configuration in Agents page Create/Edit dialogs (correct). Feature relocation completed successfully and ready for production use."
     - agent: "testing"
       message: "WIDGET ENDPOINT COMPREHENSIVE TESTING COMPLETED - All widget functionality working perfectly! Tested with specific tenant ID '1c752635-c958-435d-8a48-a1f1209cccd4' as requested in review. ✅ Session Creation: POST /api/widget/session successfully creates sessions with valid session_token and conversation_id. ✅ Message & AI Response: POST /api/widget/messages/{conversation_id}?token={session_token} successfully processes customer messages and generates AI responses immediately. AI responses are not empty (446 characters) and contain relevant document content from RAG system. ✅ Message Persistence: Both customer and AI messages are properly saved in database and retrievable via GET endpoint. ✅ Conversation Flow: Follow-up messages work correctly maintaining conversation context. Widget API fully functional with proper authentication, RAG integration, and database persistence. All 27 backend tests passed successfully - system ready for production use."
+  - task: "Widget Bug Fixes - HTML Links, State Persistence, Polling"
+    implemented: true
+    working: null
+    file: "/app/frontend/public/widget.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history: []
+
