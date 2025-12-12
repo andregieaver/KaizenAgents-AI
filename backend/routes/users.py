@@ -13,6 +13,26 @@ from middleware import get_current_user, get_super_admin_user, get_admin_or_owne
 from middleware.database import db
 from middleware.auth import create_token, hash_password, verify_password, is_super_admin, JWT_SECRET, JWT_ALGORITHM
 
+# User management models
+class UserInvite(BaseModel):
+    email: EmailStr
+    name: str
+    role: Literal["admin", "agent", "viewer"] = "agent"
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    role: Optional[Literal["owner", "admin", "agent", "viewer"]] = None
+
+class TeamMemberResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    email: str
+    name: str
+    role: str
+    avatar_url: Optional[str] = None
+    created_at: str
+    last_login: Optional[str] = None
+
 router = APIRouter(prefix="/users", tags=["users"])
 
 @router.get("", response_model=List[TeamMemberResponse])
