@@ -187,7 +187,7 @@
         
         .chat-message-content {
           background: white;
-          padding: 16px 20px;
+          padding: 18px 24px;
           border-radius: 12px;
           font-size: 14px;
           line-height: 1.6;
