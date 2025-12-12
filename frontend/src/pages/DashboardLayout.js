@@ -74,6 +74,95 @@ const DashboardLayout = () => {
     }
   }, [token]);
 
+  // Fetch availability status
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      try {
+        const response = await axios.get(`${API}/profile/availability`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setIsAvailable(response.data.available);
+      } catch (error) {
+        console.debug('Could not fetch availability');
+      }
+    };
+
+    if (token) {
+      fetchAvailability();
+    }
+  }, [token]);
+
+  // Poll for pending transfers when available
+  useEffect(() => {
+    if (!isAvailable || !token) {
+      setPendingTransfers([]);
+      return;
+    }
+
+    const fetchTransfers = async () => {
+      try {
+        const response = await axios.get(`${API}/transfers/pending`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const transfers = response.data.transfers || [];
+        setPendingTransfers(transfers);
+        
+        // Show popup for new transfer
+        if (transfers.length > 0 && !currentTransfer) {
+          setCurrentTransfer(transfers[0]);
+          setShowTransferPopup(true);
+        }
+      } catch (error) {
+        console.debug('Could not fetch transfers');
+      }
+    };
+
+    fetchTransfers();
+    const interval = setInterval(fetchTransfers, 5000); // Poll every 5 seconds
+    return () => clearInterval(interval);
+  }, [isAvailable, token, currentTransfer]);
+
+  const toggleAvailability = async () => {
+    try {
+      const newStatus = !isAvailable;
+      await axios.post(`${API}/profile/availability?available=${newStatus}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsAvailable(newStatus);
+      toast.success(newStatus ? 'You are now available' : 'You are now unavailable');
+    } catch (error) {
+      toast.error('Failed to update availability');
+    }
+  };
+
+  const handleAcceptTransfer = async (transferId) => {
+    try {
+      const response = await axios.post(`${API}/transfers/${transferId}/accept`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setShowTransferPopup(false);
+      setCurrentTransfer(null);
+      setPendingTransfers(prev => prev.filter(t => t.id !== transferId));
+      toast.success('Transfer accepted');
+      navigate(`/dashboard/conversations/${response.data.conversation_id}`);
+    } catch (error) {
+      toast.error('Failed to accept transfer');
+    }
+  };
+
+  const handleDeclineTransfer = async (transferId) => {
+    try {
+      await axios.post(`${API}/transfers/${transferId}/decline`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setShowTransferPopup(false);
+      setCurrentTransfer(null);
+      setPendingTransfers(prev => prev.filter(t => t.id !== transferId));
+    } catch (error) {
+      toast.error('Failed to decline transfer');
+    }
+  };
+
   const getBrandLogoSrc = (url) => {
     if (!url) return null;
     if (url.startsWith('/api/')) {
