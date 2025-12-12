@@ -4,12 +4,14 @@
   // Get configuration from script tag
   const scriptTag = document.currentScript || document.querySelector('script[data-tenant-id]');
   const tenantId = scriptTag?.getAttribute('data-tenant-id');
-  const apiUrl = scriptTag?.src.replace('/widget.js', '/api');
+  const apiUrl = scriptTag?.getAttribute('data-api-url') || scriptTag?.src.replace('/widget.js', '/api');
 
   if (!tenantId) {
     console.error('Chat Widget: Missing data-tenant-id attribute');
     return;
   }
+
+  console.log('Widget Config:', { tenantId, apiUrl });
 
   // Widget state
   let isOpen = false;
