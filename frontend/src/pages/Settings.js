@@ -236,6 +236,11 @@ const Settings = () => {
           </TabsTrigger>
         </TabsList>
 
+        {/* Saved Agents Tab */}
+        <TabsContent value="agents">
+          <SavedAgents />
+        </TabsContent>
+
         {/* General Settings */}
         <TabsContent value="general">
           <Card className="border border-border">
