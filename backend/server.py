@@ -612,6 +612,13 @@ async def update_conversation_mode(
     
     now = datetime.now(timezone.utc).isoformat()
     
+    # Get current conversation to check if mode is actually changing
+    current_conv = await db.conversations.find_one({"id": conversation_id, "tenant_id": tenant_id})
+    if not current_conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    old_mode = current_conv.get("mode", "ai")
+    
     result = await db.conversations.find_one_and_update(
         {"id": conversation_id, "tenant_id": tenant_id},
         {
@@ -626,6 +633,23 @@ async def update_conversation_mode(
     
     if not result:
         raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    # Add system message if mode actually changed
+    if old_mode != mode:
+        mode_messages = {
+            "ai": "You are now chatting with our AI assistant.",
+            "agent": "A human support agent has joined the conversation.",
+            "hybrid": "The conversation is now in hybrid mode."
+        }
+        
+        system_message = {
+            "id": str(uuid.uuid4()),
+            "conversation_id": conversation_id,
+            "content": mode_messages.get(mode, f"Conversation mode changed to {mode}."),
+            "author_type": "system",
+            "created_at": now
+        }
+        await db.messages.insert_one(system_message)
     
     # Remove _id before returning
     result.pop("_id", None)
