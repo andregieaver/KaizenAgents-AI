@@ -53,7 +53,7 @@ async def list_team_members(current_user: dict = Depends(get_current_user)):
 @router.post("/invite", response_model=TeamMemberResponse)
 async def invite_user(
     user_data: UserInvite,
-    admin_user: dict = Depends(get_tenant_admin_user)
+    admin_user: dict = Depends(get_admin_or_owner_user)
 ):
     """Invite a new user to the tenant (admin only)"""
     tenant_id = admin_user.get("tenant_id")
@@ -118,7 +118,7 @@ async def get_team_member(user_id: str, current_user: dict = Depends(get_current
 async def update_team_member(
     user_id: str,
     user_data: UserUpdate,
-    admin_user: dict = Depends(get_tenant_admin_user)
+    admin_user: dict = Depends(get_admin_or_owner_user)
 ):
     """Update a team member (admin only)"""
     tenant_id = admin_user.get("tenant_id")
@@ -152,7 +152,7 @@ async def update_team_member(
 @router.delete("/{user_id}")
 async def remove_team_member(
     user_id: str,
-    admin_user: dict = Depends(get_tenant_admin_user)
+    admin_user: dict = Depends(get_admin_or_owner_user)
 ):
     """Remove a user from the tenant (admin only)"""
     tenant_id = admin_user.get("tenant_id")
