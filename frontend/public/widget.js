@@ -347,6 +347,12 @@
             bottom: 20px;
             right: 20px;
           }
+          
+          /* Hide bubble when chat is open on mobile */
+          #emergent-chat-window.open ~ #emergent-chat-bubble,
+          #emergent-chat-bubble.hidden {
+            display: none !important;
+          }
         }
       </style>
       
