@@ -38,7 +38,6 @@ const AgentVersionHistory = ({ agentId, agentName, open, onOpenChange, onRollbac
     if (open && agentId) {
       fetchVersions();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, agentId]);
 
   const fetchVersions = async () => {

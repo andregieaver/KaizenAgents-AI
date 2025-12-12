@@ -83,7 +83,6 @@ const SuperAdmin = () => {
     } else {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, user?.is_super_admin]);
 
   // Check if user is super admin (after hooks)
