@@ -23,7 +23,6 @@ import {
   Bot,
   Database
 } from 'lucide-react';
-import { cn } from '../lib/utils';
 import axios from 'axios';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
