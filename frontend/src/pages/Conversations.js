@@ -133,6 +133,8 @@ const ConversationRow = ({ conversation }) => {
         return <Bot className="h-3 w-3" />;
       case 'agent':
         return <User className="h-3 w-3" />;
+      case 'assisted':
+        return <Wand2 className="h-3 w-3" />;
       default:
         return <Users className="h-3 w-3" />;
     }
