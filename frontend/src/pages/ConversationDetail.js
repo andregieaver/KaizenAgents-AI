@@ -437,11 +437,38 @@ const ConversationDetail = () => {
                 </div>
               </ScrollArea>
               
+              {/* AI Suggestions for Assisted Mode */}
+              {conversation.mode === 'assisted' && (
+                <div className="px-4 py-2 border-t border-border bg-muted/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wand2 className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-medium text-muted-foreground">AI Suggestions</span>
+                    {loadingSuggestions && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                  </div>
+                  {suggestions.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {suggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className="text-xs px-3 py-1.5 rounded-full bg-background border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors text-left max-w-full truncate"
+                          title={suggestion}
+                        >
+                          {suggestion.length > 50 ? `${suggestion.substring(0, 50)}...` : suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  ) : !loadingSuggestions && (
+                    <p className="text-xs text-muted-foreground">Waiting for customer message...</p>
+                  )}
+                </div>
+              )}
+              
               {/* Message Input */}
               <div className="p-4 border-t border-border">
                 <form onSubmit={handleSendMessage} className="flex gap-2">
                   <Input
-                    placeholder="Type a message as an agent..."
+                    placeholder={conversation.mode === 'assisted' ? "Click a suggestion or type your message..." : "Type a message as an agent..."}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     disabled={sending}
