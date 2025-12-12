@@ -619,6 +619,9 @@
     saveState();
     
     input.value = '';
+    
+    // Show typing indicator while waiting for response
+    showTypingIndicator();
 
     try {
       // Create session if needed
@@ -661,6 +664,9 @@
 
       const data = await response.json();
       console.log('Response received:', data);
+      
+      // Hide typing indicator
+      hideTypingIndicator();
       
       // Update customer message with real ID if provided
       if (data.customer_message && data.customer_message.id) {
