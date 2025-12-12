@@ -439,11 +439,13 @@
 
   function toggleChat() {
     const chatWindow = document.getElementById('emergent-chat-window');
+    const bubble = document.getElementById('emergent-chat-bubble');
     if (!chatWindow) return; // Guard against missing element
     
     isOpen = !isOpen;
     if (isOpen) {
       chatWindow.classList.add('open');
+      if (bubble) bubble.classList.add('hidden'); // Hide bubble on mobile when open
       const input = document.getElementById('emergent-chat-input');
       if (input) input.focus();
       // Start polling when chat opens and we have a conversation
@@ -452,6 +454,7 @@
       }
     } else {
       chatWindow.classList.remove('open');
+      if (bubble) bubble.classList.remove('hidden'); // Show bubble when closed
       // Stop polling when chat closes
       stopPolling();
     }
