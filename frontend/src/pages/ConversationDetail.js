@@ -20,7 +20,9 @@ import {
   Hand,
   Sparkles,
   Menu,
-  X
+  X,
+  Wand2,
+  Loader2
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { toast } from 'sonner';
