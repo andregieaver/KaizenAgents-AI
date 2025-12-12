@@ -3657,15 +3657,55 @@ async def proxy_media(path: str):
         print(f"Error proxying media: {str(e)}")
         raise HTTPException(status_code=404, detail="File not found")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Import rate limiter before adding middleware
+from middleware.rate_limiter import rate_limiter
 
-# Add middleware to set tenant_id in request state for rate limiting
+# Add rate limiting middleware (applied first, runs last)
+@app.middleware("http")
+async def rate_limit_check(request: Request, call_next):
+    """Rate limiting middleware - must come first to run after auth context is set"""
+    # Skip rate limiting for certain paths
+    skip_paths = ["/api/auth/login", "/api/auth/register", "/docs", "/openapi.json", "/api/media"]
+    
+    if any(request.url.path.startswith(path) for path in skip_paths):
+        response = await call_next(request)
+        return response
+    
+    # Get tenant_id from request state (set by auth middleware)
+    tenant_id = getattr(request.state, "tenant_id", None)
+    
+    if not tenant_id:
+        # If no tenant_id, allow request (e.g., public endpoints)
+        response = await call_next(request)
+        return response
+    
+    # Check rate limit
+    allowed, info = await rate_limiter.check_rate_limit(tenant_id)
+    
+    if not allowed:
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            content={
+                "detail": {
+                    "message": f"Rate limit exceeded for {info['exceeded_window']}",
+                    "usage": info["usage"]
+                }
+            }
+        )
+    
+    # Add rate limit info to response headers
+    response = await call_next(request)
+    usage = info["usage"]
+    
+    # Add headers for minute window
+    if "minute" in usage:
+        response.headers["X-RateLimit-Limit-Minute"] = str(usage["minute"]["limit"])
+        response.headers["X-RateLimit-Remaining-Minute"] = str(usage["minute"]["remaining"])
+    
+    return response
+
+# Add middleware to set tenant_id in request state (applied second, runs first)
 @app.middleware("http")
 async def set_tenant_context(request: Request, call_next):
     """Set tenant_id in request state for downstream middleware"""
@@ -3682,9 +3722,13 @@ async def set_tenant_context(request: Request, call_next):
     response = await call_next(request)
     return response
 
-# Add rate limiting middleware
-from middleware.rate_limiter import rate_limit_middleware
-app.middleware("http")(rate_limit_middleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.on_event("startup")
 async def startup_load_rate_limits():
