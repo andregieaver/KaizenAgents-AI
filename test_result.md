@@ -449,7 +449,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Widget Endpoint Comprehensive Testing"
+    - "Widget Bug Fixes - HTML Links, State Persistence, Polling"
   stuck_tasks:
     - "Agent Test Functionality"
   test_all: false
