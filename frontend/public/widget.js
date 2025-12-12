@@ -669,7 +669,9 @@
       if (savedIsOpen) {
         isOpen = true;
         const chatWindow = document.getElementById('emergent-chat-window');
+        const bubble = document.getElementById('emergent-chat-bubble');
         if (chatWindow) chatWindow.classList.add('open');
+        if (bubble) bubble.classList.add('hidden'); // Hide bubble on mobile when restored as open
       }
     }
   });
