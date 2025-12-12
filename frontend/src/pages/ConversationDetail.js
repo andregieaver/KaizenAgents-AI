@@ -133,6 +133,38 @@ const ConversationDetail = () => {
     }
   }, [messages, conversation?.mode]);
 
+  // Analyze sentiment when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Debounce sentiment analysis
+      const timer = setTimeout(() => {
+        analyzeSentiment();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [messages]);
+
+  const analyzeSentiment = async () => {
+    if (analyzingSentiment) return;
+    
+    setAnalyzingSentiment(true);
+    try {
+      const response = await axios.post(
+        `${API}/conversations/${id}/analyze-sentiment`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSentiment({
+        engagement: response.data.engagement || 5,
+        tone: response.data.tone || 0
+      });
+    } catch (error) {
+      console.error('Error analyzing sentiment:', error);
+    } finally {
+      setAnalyzingSentiment(false);
+    }
+  };
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || sending) return;
