@@ -3621,6 +3621,8 @@ from routes.profile import router as profile_router_mod
 from routes.analytics import router as analytics_router_mod
 from routes.transfers import router as transfers_router_mod
 from routes.rate_limits import router as rate_limits_router_mod
+from routes.marketplace import router as marketplace_router_mod
+from routes.agents import router as agents_router_mod
 
 # Register all modularized routers
 api_router.include_router(auth_router_mod)
@@ -3634,6 +3636,8 @@ api_router.include_router(profile_router_mod)
 api_router.include_router(analytics_router_mod)
 api_router.include_router(transfers_router_mod)
 api_router.include_router(rate_limits_router_mod)
+api_router.include_router(marketplace_router_mod)
+api_router.include_router(agents_router_mod)
 
 app.include_router(api_router)
 
