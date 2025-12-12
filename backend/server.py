@@ -3609,7 +3609,15 @@ async def root():
     return {"message": "AI Support Hub API"}
 
 # Include all routers
-api_router.include_router(auth_router)
+# Import modularized routes
+from routes.auth import router as auth_router_new
+from routes.rate_limits import router as rate_limits_router_new
+
+# Use modularized routers
+api_router.include_router(auth_router_new)
+api_router.include_router(rate_limits_router_new)
+
+# Include inline routers (to be refactored)
 api_router.include_router(tenants_router)
 api_router.include_router(conversations_router)
 api_router.include_router(settings_router)
