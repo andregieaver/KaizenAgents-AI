@@ -27,6 +27,7 @@ import Observability from "./pages/Observability";
 import Billing from "./pages/Billing";
 import Pricing from "./pages/Pricing";
 import PlanManagement from "./pages/PlanManagement";
+import Integrations from "./pages/Integrations";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
