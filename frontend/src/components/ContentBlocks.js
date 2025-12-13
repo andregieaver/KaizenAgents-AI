@@ -42,9 +42,9 @@ import {
   Sparkles,
   Grid3x3,
   Megaphone,
-  MousePointerClick,
-  * as Icons
+  MousePointerClick
 } from 'lucide-react';
+import * as Icons from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 import RowEditor from './RowEditor';
 import { HeroBlockEditor, FeatureGridEditor, CTABlockEditor, ButtonBlockEditor } from './HomepageBlocks';
