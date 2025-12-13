@@ -1229,163 +1229,126 @@ The Enhanced Pages Management system with full-page editor is **FULLY FUNCTIONAL
 *Tester: Testing Agent*
 *Environment: Production Preview*
 
-## CMS-Powered Homepage Tests
+## CMS-Powered Pricing Page Tests
 
 ### Test Scope
-- Test the new CMS-powered homepage that replaced the static Landing.js file
-- Homepage dynamically rendered from CMS using HomePage component
-- Content fetched from backend API endpoint: /api/admin/pages/public/homepage
-- 3 blocks: Hero, Features (6 feature cards), and CTA
-- Full navigation and footer functionality
+- Test the new CMS-powered pricing page that uses a pricing_widget block
+- The pricing page (/pricing) is now CMS-managed with a pricing_widget block
+- The widget is a reusable component that encapsulates all dynamic pricing functionality
+- Content fetched from: /api/admin/pages/public/pricing
+- Dynamic features: Monthly/Yearly toggle, discount codes, subscription buttons, plan cards
+- Navigation and footer like homepage
 
 ### Test Credentials
 - Super Admin: andre@humanweb.no / Pernilla66!
 
 ### Test Results Summary
 
-#### ✅ FULLY WORKING FEATURES
+#### ✅ WORKING FEATURES
 
-**1. Homepage Loading (/):**
-- ✅ Homepage loads successfully at root path "/"
-- ✅ Page title: "AI Support Platform - Transform Your Customer Support"
-- ✅ Landing page container with data-testid="landing-page" found
-- ✅ CMS content fetched from /api/admin/pages/public/homepage endpoint
-- ✅ All 3 blocks (Hero, Features, CTA) rendered correctly
-- ✅ No loading errors or console issues
+**1. Page Infrastructure:**
+- ✅ Pricing page loads at "/pricing" with correct routing
+- ✅ CMS content successfully fetched from /api/admin/pages/public/pricing endpoint
+- ✅ API returns pricing_widget block configuration correctly
+- ✅ Navigation bar renders with platform branding "Kaizen Agents AI"
+- ✅ Footer displays with copyright information
+- ✅ Page structure and layout implemented correctly
 
-**2. Hero Section:**
-- ✅ Hero badge "Powered by GPT-4o" displays correctly with Bot icon
-- ✅ Main heading "AI-first customer support that actually works" present
-- ✅ "actually works" text properly highlighted in primary color
-- ✅ Hero description: "Deploy intelligent support in minutes. Our AI handles 85% of inquiries instantly, while your team focuses on what matters."
-- ✅ "Start for free" button links to /pricing
-- ✅ "See demo" button links to /widget-demo
-- ✅ Hero image displays properly (AI network visualization)
-- ✅ Professional layout with proper spacing and typography
-
-**3. Features Section:**
-- ✅ "Everything you need" heading displays correctly
-- ✅ Section description: "A complete support platform that grows with your business"
-- ✅ All 6 feature cards present with proper icons and content:
-  1. AI-Powered Responses (Bot icon) - GPT-4o powered responses
-  2. Human Handoff (Users icon) - Seamless escalation to human agents
-  3. Easy Integration (Code icon) - Single line of code widget
-  4. Instant Setup (Zap icon) - Get started in minutes
-  5. Secure & Private (Shield icon) - Enterprise-grade security
-  6. Analytics Dashboard (BarChart3 icon) - Real-time performance tracking
-- ✅ All feature cards have proper styling with icons, titles, and descriptions
-- ✅ Cards use data-testid="feature-card" for testing
-
-**4. CTA Section:**
-- ✅ "Ready to transform your support?" heading displays correctly
-- ✅ CTA description: "Join hundreds of businesses using our platform to deliver exceptional customer experiences."
-- ✅ "Get started free" button links to /pricing
-- ✅ Button uses data-testid="cta-btn" for testing
-- ✅ Professional styling with proper call-to-action design
-
-**5. Navigation:**
-- ✅ Platform logo and name "Kaizen Agents AI" display correctly
-- ✅ Theme toggle button functional (data-testid="theme-toggle")
-- ✅ Theme switching works correctly (light/dark mode)
-- ✅ "Sign in" link (data-testid="login-nav-btn") navigates to /login
-- ✅ "Get Started" link (data-testid="register-nav-btn") navigates to /pricing
+**2. Navigation Elements:**
+- ✅ Logo links to "/" (homepage)
+- ✅ Theme toggle button functional (light/dark mode switching)
+- ✅ "Sign in" button links to /login
+- ✅ "Register" button links to /register
 - ✅ All navigation elements properly styled and accessible
 
-**6. Footer:**
-- ✅ Footer displays platform name "Kaizen Agents AI"
-- ✅ Copyright text shows current year (2025) and platform name
-- ✅ Footer logo matches navigation logo
-- ✅ Professional footer styling with proper layout
+**3. Backend API Integration:**
+- ✅ /api/admin/pages/public/pricing endpoint working (200 OK responses)
+- ✅ /api/public/platform-info endpoint working (platform branding)
+- ✅ /api/subscriptions/plans endpoint working (returns 3 plans: Free, Starter, Professional)
+- ✅ All subscription plans have proper data structure with features and pricing
+- ✅ Backend logs show successful API calls with proper response times
 
-**7. Button Links Verification:**
-- ✅ Hero "Start for free" button → /pricing
-- ✅ Hero "See demo" button → /widget-demo  
-- ✅ CTA "Get started free" button → /pricing
-- ✅ Navigation "Sign in" → /login
-- ✅ Navigation "Get Started" → /pricing
-- ✅ All links functional and pointing to correct destinations
-
-**8. Responsive Design:**
-- ✅ Desktop view (1920x1080) - Full layout with side-by-side hero content
-- ✅ Tablet view (768x1024) - Responsive layout adapts properly
-- ✅ Mobile view (390x844) - Mobile-optimized layout
-- ✅ All navigation elements remain functional across viewports
-- ✅ Hero section adapts to different screen sizes
-- ✅ Feature cards stack properly on smaller screens
-- ✅ Buttons remain clickable and accessible on all devices
-
-**9. SEO Implementation:**
-- ✅ Page title: "AI Support Platform - Transform Your Customer Support"
-- ✅ Meta description: "Deploy intelligent AI-powered customer support in minutes. Handle 85% of inquiries automatically while your team focuses on what matters."
-- ✅ Meta keywords: "AI support, customer service, chatbot, automation, GPT-4"
-- ✅ Open Graph tags properly configured
-- ✅ Twitter Card settings implemented
+**4. SEO Implementation:**
+- ✅ Page title: "Pricing Plans - AI Support Hub"
+- ✅ Meta description: "Choose the perfect plan for your business. Flexible pricing with powerful features to scale your customer support."
+- ✅ Meta keywords: "pricing, plans, subscription, AI support pricing, enterprise"
+- ✅ Open Graph and Twitter Card tags properly configured
 - ✅ Robots directives set correctly (index: true, follow: true)
 
-### Backend API Verification
+#### ❌ CRITICAL ISSUE IDENTIFIED
 
-**CMS Content API (/api/admin/pages/public/homepage):**
-- ✅ API endpoint responds correctly with homepage data
-- ✅ Returns 3 blocks: hero, features, cta with proper structure
-- ✅ Hero block contains all required fields (badge, heading, highlight, description, buttons, image)
-- ✅ Features block contains 6 features with icons (Bot, Users, Code, Zap, Shield, BarChart3)
-- ✅ CTA block contains heading, description, and button configuration
-- ✅ SEO data properly structured and complete
-- ✅ All content matches what's displayed on frontend
+**PricingWidget Component Loading Issue:**
+- ❌ **CRITICAL:** PricingWidget component stuck in infinite loading state
+- ❌ Main pricing content (Choose Your Plan, pricing cards, billing toggle) not rendering
+- ❌ Loading spinner persists indefinitely despite successful API responses
+- ❌ Component fails to complete data fetch and render pricing plans
 
-### Technical Implementation Verification
+### Technical Analysis
 
-**Frontend Components:**
-- ✅ HomePage.js - Successfully replaced static Landing.js
-- ✅ PublicBlockRenderers.js - Properly renders all block types
-- ✅ Dynamic content loading from CMS API
-- ✅ Proper error handling and loading states
-- ✅ SEO meta tags dynamically generated from CMS data
-- ✅ Responsive design implementation working correctly
+**Root Cause Investigation:**
+- ✅ Backend APIs are working correctly (all endpoints return 200 OK)
+- ✅ Subscription plans data is available and properly structured
+- ✅ Page structure loads (navigation, footer, SEO)
+- ❌ PricingWidget component's useEffect/fetchData cycle not completing
+- ❌ Possible issue with AuthContext token state causing re-renders
+- ❌ Component remains in loading state despite successful API calls
 
-**Backend Integration:**
-- ✅ /api/admin/pages/public/homepage endpoint functional
-- ✅ Page data properly stored in database with blocks structure
-- ✅ SEO configuration complete and accessible
-- ✅ Public endpoint requires no authentication
-- ✅ Content management system fully operational
+**Frontend Compilation:**
+- ⚠️ Previous compilation errors in HomepageBlocks.js were resolved
+- ✅ Frontend service now compiling successfully
+- ❌ PricingWidget component still not rendering content
 
 ### Test Environment Details
-- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com
-- **API Endpoint:** /api/admin/pages/public/homepage
-- **Testing Viewports:** Desktop (1920x1080), Tablet (768x1024), Mobile (390x844)
-- **Browser Testing:** Automated testing with Playwright
+- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com/pricing
+- **Backend Status:** All APIs responding correctly (200 OK)
+- **Frontend Status:** Compiling successfully but PricingWidget not rendering
+- **Browser Testing:** Automated testing with Playwright (multiple attempts)
 
 ### Screenshots Captured
-1. Homepage initial state (desktop view)
-2. Homepage detailed content verification
-3. Mobile responsive view
-4. Final homepage verification
+1. Pricing page with navigation and footer loaded
+2. Persistent loading spinner in main content area
+3. Debug screenshots showing stuck loading state
 
 ### Conclusion
-The CMS-powered homepage is **FULLY FUNCTIONAL** and successfully replaces the static Landing.js file. All test cases passed:
+The CMS-powered pricing page infrastructure is **PARTIALLY FUNCTIONAL** but has a critical issue:
 
-**Status: READY FOR PRODUCTION** ✅
+**Status: NEEDS IMMEDIATE FIX** ❌
 
-### Key Features Verified
-- ✅ **Dynamic Content:** Homepage content fully managed through CMS
-- ✅ **Block System:** Hero, Features, and CTA blocks render correctly
-- ✅ **Navigation:** All navigation elements functional with correct links
-- ✅ **Responsive Design:** Works perfectly across all device sizes
-- ✅ **SEO Optimization:** Complete SEO implementation with meta tags
-- ✅ **Performance:** Fast loading with proper error handling
-- ✅ **User Experience:** Professional design with intuitive navigation
+### Issues Requiring Resolution
 
-### Recommendations
-1. The CMS-powered homepage is complete and production-ready
-2. All content blocks render correctly with proper styling
-3. Navigation and button links work as expected
-4. Responsive design provides excellent user experience across devices
-5. SEO implementation is comprehensive and search-engine friendly
-6. System ready for immediate production deployment
+**CRITICAL:**
+1. **PricingWidget Loading Issue:** The main pricing content component is stuck in a loading state and never renders the actual pricing plans, billing toggle, or subscription buttons.
+
+**Root Cause:** The PricingWidget component's data fetching mechanism is not completing properly, despite backend APIs working correctly.
+
+### Recommendations for Main Agent
+
+1. **IMMEDIATE ACTION REQUIRED:** Debug the PricingWidget component's useEffect and fetchData logic
+2. **Check AuthContext:** Investigate if token state changes are causing infinite re-renders
+3. **Add Error Handling:** Implement better error boundaries and loading state management
+4. **Consider Fallback:** Add timeout mechanism to prevent infinite loading states
+5. **Test Component Isolation:** Test PricingWidget component independently to isolate the issue
+
+### What Works vs. What Doesn't
+
+**✅ WORKING:**
+- Page routing and CMS integration
+- Navigation and footer
+- Backend API endpoints
+- SEO implementation
+- Page structure and styling
+
+**❌ NOT WORKING:**
+- PricingWidget component rendering
+- Pricing plans display
+- Monthly/Yearly billing toggle
+- Discount code functionality
+- Subscribe buttons
+- All dynamic pricing features
 
 ---
-*CMS-Powered Homepage Test completed on: December 13, 2025*
+*CMS-Powered Pricing Page Test completed on: December 13, 2025*
 *Tester: Testing Agent*
 *Environment: Production Preview*
+*Status: CRITICAL ISSUE - REQUIRES IMMEDIATE ATTENTION*
 
