@@ -17,6 +17,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const PricingPage = () => {
   const [page, setPage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [platformName, setPlatformName] = useState('AI Support Hub');
 
   useEffect(() => {
     const fetchData = async () => {
