@@ -171,3 +171,43 @@ export const renderPricingWidgetBlock = (block) => {
     </div>
   );
 };
+
+export const renderTextBlock = (block) => {
+  const content = block.content || {};
+  const alignment = content.alignment || 'center';
+  const size = content.size || 'base';
+  
+  const sizeClasses = {
+    'sm': 'text-sm',
+    'base': 'text-base',
+    'lg': 'text-lg',
+    'xl': 'text-xl',
+    '2xl': 'text-2xl',
+    '3xl': 'text-3xl',
+    '4xl': 'text-4xl'
+  };
+
+  return (
+    <div key={block.id} className={`py-8 text-${alignment}`}>
+      {content.heading && (
+        <h2 className={`font-bold mb-2 ${sizeClasses[content.headingSize || '4xl']}`}>
+          {content.heading}
+        </h2>
+      )}
+      {content.text && (
+        <p className={`text-muted-foreground ${sizeClasses[size]} ${content.maxWidth ? 'max-w-2xl mx-auto' : ''}`}>
+          {content.text}
+        </p>
+      )}
+      {content.items && content.items.length > 0 && (
+        <div className={`space-y-2 ${content.maxWidth ? 'max-w-2xl mx-auto' : ''}`}>
+          {content.items.map((item, idx) => (
+            <p key={idx} className={`text-muted-foreground ${sizeClasses[size]}`}>
+              {item}
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
