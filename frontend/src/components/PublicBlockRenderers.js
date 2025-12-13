@@ -6,25 +6,27 @@ export const renderHeroBlock = (block) => {
   const content = block.content || {};
   
   return (
-    <div key={block.id} className="py-20">
+    <section key={block.id} className="py-20 lg:py-32">
       <div className="grid lg:grid-cols-2 gap-12 items-center">
         <div>
           {content.badge && (
-            <Badge className="mb-4">{content.badge}</Badge>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+              {content.badge}
+            </div>
           )}
-          <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+          <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-none mb-6">
             {content.heading}{' '}
             {content.highlight && (
               <span className="text-primary">{content.highlight}</span>
             )}
           </h1>
-          <p className="text-muted-foreground text-lg mb-8">
+          <p className="text-lg text-muted-foreground leading-relaxed mb-8 max-w-lg">
             {content.description}
           </p>
           <div className="flex flex-wrap gap-4">
             {content.primaryButton?.text && (
               <a href={content.primaryButton.url || '#'}>
-                <Button size="lg" className="h-12 px-6">
+                <Button size="lg" className="h-12 px-6 btn-hover" data-testid="hero-cta-btn">
                   {content.primaryButton.text}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -32,7 +34,7 @@ export const renderHeroBlock = (block) => {
             )}
             {content.secondaryButton?.text && (
               <a href={content.secondaryButton.url || '#'}>
-                <Button size="lg" variant="outline" className="h-12 px-6">
+                <Button size="lg" variant="outline" className="h-12 px-6" data-testid="demo-btn">
                   {content.secondaryButton.text}
                 </Button>
               </a>
@@ -41,7 +43,7 @@ export const renderHeroBlock = (block) => {
         </div>
         {content.imageUrl && (
           <div className="relative">
-            <div className="aspect-square rounded-2xl overflow-hidden border border-border shadow-lg">
+            <div className="aspect-square rounded-2xl bg-muted/50 border border-border overflow-hidden">
               <img
                 src={content.imageUrl}
                 alt={content.heading || 'Hero image'}
@@ -51,7 +53,7 @@ export const renderHeroBlock = (block) => {
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -65,7 +67,7 @@ export const renderFeaturesBlock = (block) => {
   };
 
   return (
-    <div key={block.id} className="py-20">
+    <section key={block.id} className="py-20 border-t border-border">
       <div className="text-center mb-16">
         <h2 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight mb-4">
           {content.heading}
@@ -78,9 +80,10 @@ export const renderFeaturesBlock = (block) => {
         {features.map((feature) => (
           <div
             key={feature.id}
-            className="p-6 bg-card border border-border rounded-lg hover:shadow-lg transition-shadow"
+            className="p-6 bg-card border border-border rounded-sm card-hover"
+            data-testid="feature-card"
           >
-            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4">
+            <div className="h-10 w-10 rounded-sm bg-primary/10 flex items-center justify-center text-primary mb-4">
               {getIcon(feature.icon)}
             </div>
             <h3 className="font-heading font-semibold text-lg mb-2">
@@ -92,7 +95,7 @@ export const renderFeaturesBlock = (block) => {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 
@@ -100,7 +103,7 @@ export const renderCTABlock = (block) => {
   const content = block.content || {};
 
   return (
-    <div key={block.id} className="py-20">
+    <section key={block.id} className="py-20 border-t border-border">
       <div className="max-w-3xl mx-auto text-center">
         <h2 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight mb-4">
           {content.heading}
@@ -110,14 +113,14 @@ export const renderCTABlock = (block) => {
         </p>
         {content.buttonText && (
           <a href={content.buttonUrl || '#'}>
-            <Button size="lg" className="h-12 px-8">
+            <Button size="lg" className="h-12 px-8 btn-hover" data-testid="cta-btn">
               {content.buttonText}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </a>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 
