@@ -114,6 +114,7 @@ function AppRoutes() {
         <Route path="billing" element={<Billing />} />
         <Route path="pricing" element={<Pricing />} />
         <Route path="admin/plans" element={<PlanManagement />} />
+        <Route path="integrations" element={<Integrations />} />
       </Route>
 
       {/* Catch all */}
