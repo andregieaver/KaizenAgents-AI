@@ -38,7 +38,12 @@ import {
   Monitor,
   Tablet,
   Smartphone,
-  Palette
+  Palette,
+  Sparkles,
+  Grid3x3,
+  Megaphone,
+  MousePointerClick,
+  * as Icons
 } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 import RowEditor from './RowEditor';
@@ -170,22 +175,61 @@ const ContentBlocks = ({ blocks, onChange }) => {
   };
 
   const addBlock = (type) => {
+    let content = {};
+    
+    if (type === 'text') {
+      content = { html: '' };
+    } else if (type === 'row') {
+      content = { 
+        columns: [
+          { id: `col_${Date.now()}_1`, blocks: [], width: { desktop: 50, tablet: 100, mobile: 100 } },
+          { id: `col_${Date.now()}_2`, blocks: [], width: { desktop: 50, tablet: 100, mobile: 100 } }
+        ],
+        gap: '1rem',
+        backgroundColor: '',
+        backgroundImage: ''
+      };
+    } else if (type === 'hero') {
+      content = {
+        badge: 'New Feature',
+        heading: 'Your Amazing Heading',
+        highlight: 'Goes Here',
+        description: 'Compelling description that explains what you offer.',
+        primaryButton: { text: 'Get Started', url: '/pricing' },
+        secondaryButton: { text: 'Learn More', url: '#' },
+        imageUrl: 'https://images.unsplash.com/photo-1737505599162-d9932323a889?w=800'
+      };
+    } else if (type === 'features') {
+      content = {
+        heading: 'Our Features',
+        description: 'Everything you need to succeed',
+        features: [
+          { id: '1', icon: 'Zap', title: 'Feature One', description: 'Description here' },
+          { id: '2', icon: 'Shield', title: 'Feature Two', description: 'Description here' },
+          { id: '3', icon: 'BarChart3', title: 'Feature Three', description: 'Description here' }
+        ]
+      };
+    } else if (type === 'cta') {
+      content = {
+        heading: 'Ready to Get Started?',
+        description: 'Join thousands of satisfied customers today.',
+        buttonText: 'Start Now',
+        buttonUrl: '/pricing'
+      };
+    } else if (type === 'button') {
+      content = {
+        text: 'Click Me',
+        url: '#',
+        variant: 'default', // default, outline, ghost
+        size: 'default', // sm, default, lg
+        icon: 'ArrowRight'
+      };
+    }
+    
     const newBlock = {
       id: `block_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type: type,
-      content: type === 'text' 
-        ? { html: '' } 
-        : type === 'row' 
-        ? { 
-            columns: [
-              { id: `col_${Date.now()}_1`, blocks: [], width: { desktop: 50, tablet: 100, mobile: 100 } },
-              { id: `col_${Date.now()}_2`, blocks: [], width: { desktop: 50, tablet: 100, mobile: 100 } }
-            ],
-            gap: '1rem',
-            backgroundColor: '',
-            backgroundImage: ''
-          }
-        : {},
+      content: content,
       order: localBlocks.length
     };
     handleBlocksChange([...localBlocks, newBlock]);
