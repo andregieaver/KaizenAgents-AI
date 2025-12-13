@@ -10,6 +10,7 @@ import uuid
 from models import *
 from middleware import get_current_user, get_super_admin_user
 from middleware.database import db
+from services.stripe_service import StripeService
 
 router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
 
@@ -103,6 +104,36 @@ async def create_plan(
         discount = platform_settings.get("value", {}).get("yearly_discount_percent", 20) if platform_settings else 20
         yearly_price = plan_data.price_monthly * 12 * (1 - discount / 100)
     
+    # Create Stripe product and prices if configured
+    stripe_product_id = None
+    stripe_price_monthly_id = None
+    stripe_price_yearly_id = None
+    
+    if StripeService.is_configured():
+        # Create Stripe product
+        stripe_product_id = await StripeService.create_product(
+            plan_id,
+            plan_data.name,
+            plan_data.description
+        )
+        
+        if stripe_product_id:
+            # Create monthly price
+            if plan_data.price_monthly > 0:
+                stripe_price_monthly_id = await StripeService.create_price(
+                    stripe_product_id,
+                    plan_data.price_monthly,
+                    "month"
+                )
+            
+            # Create yearly price
+            if yearly_price and yearly_price > 0:
+                stripe_price_yearly_id = await StripeService.create_price(
+                    stripe_product_id,
+                    yearly_price,
+                    "year"
+                )
+    
     plan = {
         "id": plan_id,
         "name": plan_data.name,
@@ -112,6 +143,9 @@ async def create_plan(
         "features": plan_data.features.model_dump(),
         "is_public": plan_data.is_public,
         "sort_order": plan_data.sort_order,
+        "stripe_product_id": stripe_product_id,
+        "stripe_price_monthly_id": stripe_price_monthly_id,
+        "stripe_price_yearly_id": stripe_price_yearly_id,
         "created_at": now,
         "updated_at": now
     }
@@ -158,6 +192,36 @@ async def update_plan(
     update_fields = {k: v for k, v in plan_data.model_dump().items() if v is not None}
     update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
     
+    # Update Stripe product if configured and exists
+    if StripeService.is_configured() and plan.get("stripe_product_id"):
+        if plan_data.name or plan_data.description:
+            await StripeService.update_product(
+                plan["stripe_product_id"],
+                plan_data.name or plan["name"],
+                plan_data.description or plan["description"]
+            )
+        
+        # If prices changed, create new prices (Stripe prices are immutable)
+        if plan_data.price_monthly is not None and plan_data.price_monthly != plan["price_monthly"]:
+            if plan_data.price_monthly > 0:
+                new_price_id = await StripeService.create_price(
+                    plan["stripe_product_id"],
+                    plan_data.price_monthly,
+                    "month"
+                )
+                if new_price_id:
+                    update_fields["stripe_price_monthly_id"] = new_price_id
+        
+        if plan_data.price_yearly is not None and plan_data.price_yearly != plan.get("price_yearly"):
+            if plan_data.price_yearly > 0:
+                new_price_id = await StripeService.create_price(
+                    plan["stripe_product_id"],
+                    plan_data.price_yearly,
+                    "year"
+                )
+                if new_price_id:
+                    update_fields["stripe_price_yearly_id"] = new_price_id
+    
     await db.subscription_plans.update_one(
         {"id": plan_id},
         {"$set": update_fields}
@@ -179,6 +243,13 @@ async def delete_plan(
             status_code=400,
             detail=f"Cannot delete plan with {subscriptions_count} active subscriptions"
         )
+    
+    # Get plan to find Stripe product ID
+    plan = await db.subscription_plans.find_one({"id": plan_id}, {"_id": 0})
+    
+    # Archive Stripe product if configured
+    if StripeService.is_configured() and plan and plan.get("stripe_product_id"):
+        await StripeService.delete_product(plan["stripe_product_id"])
     
     result = await db.subscription_plans.delete_one({"id": plan_id})
     if result.deleted_count == 0:
