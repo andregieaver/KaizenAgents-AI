@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from '../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
 import { toast } from 'sonner';
-import { Plus, Edit, Trash2, Loader2, DollarSign, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
+import { Plus, Edit, Trash2, Loader2, DollarSign, CheckCircle, XCircle, GripVertical, ArrowUp, ArrowDown } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -41,6 +41,11 @@ const PlanManagement = () => {
       custom_integrations: false
     }
   });
+  
+  // Custom feature items state
+  const [featureItems, setFeatureItems] = useState([]);
+  const [editingFeatureIndex, setEditingFeatureIndex] = useState(null);
+  const [newFeatureText, setNewFeatureText] = useState('');
 
   useEffect(() => {
     fetchPlans();
@@ -81,6 +86,7 @@ const PlanManagement = () => {
         custom_integrations: false
       }
     });
+    setFeatureItems([]);
     setEditModalOpen(true);
   };
 
@@ -95,17 +101,28 @@ const PlanManagement = () => {
       sort_order: plan.sort_order,
       features: plan.features
     });
+    // Load custom feature items if they exist
+    setFeatureItems(plan.features.custom_items || []);
     setEditModalOpen(true);
   };
 
   const handleSave = async () => {
     setSaving(true);
     try {
+      // Include custom feature items in the features object
+      const dataToSave = {
+        ...formData,
+        features: {
+          ...formData.features,
+          custom_items: featureItems
+        }
+      };
+
       if (selectedPlan) {
         // Update
         await axios.patch(
           `${API}/subscriptions/plans/${selectedPlan.id}`,
-          formData,
+          dataToSave,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success('Plan updated successfully! Changes synced to Stripe.');
@@ -113,7 +130,7 @@ const PlanManagement = () => {
         // Create
         await axios.post(
           `${API}/subscriptions/plans`,
-          formData,
+          dataToSave,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success('Plan created successfully! Synced to Stripe.');
@@ -139,6 +156,45 @@ const PlanManagement = () => {
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to delete plan');
     }
+  };
+
+  // Feature Item Management Functions
+  const handleAddFeatureItem = () => {
+    if (!newFeatureText.trim()) return;
+    setFeatureItems([...featureItems, newFeatureText.trim()]);
+    setNewFeatureText('');
+  };
+
+  const handleEditFeatureItem = (index) => {
+    setEditingFeatureIndex(index);
+    setNewFeatureText(featureItems[index]);
+  };
+
+  const handleSaveFeatureItem = () => {
+    if (!newFeatureText.trim()) return;
+    const updated = [...featureItems];
+    updated[editingFeatureIndex] = newFeatureText.trim();
+    setFeatureItems(updated);
+    setEditingFeatureIndex(null);
+    setNewFeatureText('');
+  };
+
+  const handleCancelEditFeatureItem = () => {
+    setEditingFeatureIndex(null);
+    setNewFeatureText('');
+  };
+
+  const handleDeleteFeatureItem = (index) => {
+    setFeatureItems(featureItems.filter((_, i) => i !== index));
+  };
+
+  const handleMoveFeatureItem = (index, direction) => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= featureItems.length) return;
+    
+    const updated = [...featureItems];
+    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
+    setFeatureItems(updated);
   };
 
   if (loading) {
@@ -352,7 +408,7 @@ const PlanManagement = () => {
               </div>
             </div>
 
-            {/* Features */}
+            {/* Limits */}
             <div className="space-y-4">
               <h3 className="font-semibold">Limits</h3>
               
@@ -391,26 +447,47 @@ const PlanManagement = () => {
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="history_days">Conversation History (days)</Label>
-                <Input
-                  id="history_days"
-                  type="number"
-                  value={formData.features.conversation_history_days || ''}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    features: {
-                      ...formData.features,
-                      conversation_history_days: e.target.value ? parseInt(e.target.value) : null
-                    }
-                  })}
-                  placeholder="Unlimited if empty"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="history_days">Conversation History (days)</Label>
+                  <Input
+                    id="history_days"
+                    type="number"
+                    value={formData.features.conversation_history_days || ''}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      features: {
+                        ...formData.features,
+                        conversation_history_days: e.target.value ? parseInt(e.target.value) : null
+                      }
+                    })}
+                    placeholder="Unlimited if empty"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="support_level">Support Level</Label>
+                  <select
+                    id="support_level"
+                    value={formData.features.support_level}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      features: { ...formData.features, support_level: e.target.value }
+                    })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <option value="email">Email Support</option>
+                    <option value="priority">Priority Support</option>
+                    <option value="premium">Premium Support</option>
+                  </select>
+                </div>
               </div>
+            </div>
 
-              <h3 className="font-semibold pt-4">Features</h3>
+            {/* Toggle Features */}
+            <div className="space-y-4">
+              <h3 className="font-semibold">Toggle Features</h3>
               
-              <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-center gap-2">
                   <Switch
                     checked={formData.features.analytics_enabled}
@@ -455,6 +532,116 @@ const PlanManagement = () => {
                   <Label>Custom Integrations</Label>
                 </div>
               </div>
+            </div>
+
+            {/* Custom Feature Items */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">Custom Feature Items</h3>
+                <p className="text-xs text-muted-foreground">
+                  Add custom features to display on the pricing card
+                </p>
+              </div>
+              
+              {/* Feature Items List */}
+              <div className="space-y-2">
+                {featureItems.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-md">
+                    No custom features added yet. Add one below.
+                  </p>
+                ) : (
+                  <div className="border border-border rounded-md divide-y divide-border">
+                    {featureItems.map((item, index) => (
+                      <div 
+                        key={index} 
+                        className="flex items-center gap-2 p-3 bg-card hover:bg-muted/50 transition-colors"
+                      >
+                        <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        
+                        {editingFeatureIndex === index ? (
+                          <div className="flex-1 flex items-center gap-2">
+                            <Input
+                              value={newFeatureText}
+                              onChange={(e) => setNewFeatureText(e.target.value)}
+                              className="flex-1"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveFeatureItem();
+                                if (e.key === 'Escape') handleCancelEditFeatureItem();
+                              }}
+                            />
+                            <Button size="sm" onClick={handleSaveFeatureItem}>
+                              Save
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={handleCancelEditFeatureItem}>
+                              Cancel
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                            <span className="flex-1 text-sm">{item}</span>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleMoveFeatureItem(index, 'up')}
+                                disabled={index === 0}
+                                className="h-8 w-8 p-0"
+                              >
+                                <ArrowUp className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleMoveFeatureItem(index, 'down')}
+                                disabled={index === featureItems.length - 1}
+                                className="h-8 w-8 p-0"
+                              >
+                                <ArrowDown className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditFeatureItem(index)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteFeatureItem(index)}
+                                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Add New Feature Item */}
+              {editingFeatureIndex === null && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    value={newFeatureText}
+                    onChange={(e) => setNewFeatureText(e.target.value)}
+                    placeholder="Enter a new feature (e.g., '24/7 Live chat support')"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleAddFeatureItem();
+                    }}
+                  />
+                  <Button onClick={handleAddFeatureItem} disabled={!newFeatureText.trim()}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
