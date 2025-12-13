@@ -30,7 +30,8 @@ import PlanManagement from "./pages/PlanManagement";
 import Integrations from "./pages/Integrations";
 import DiscountCodes from "./pages/DiscountCodes";
 import Affiliates from "./pages/Affiliates";
-import AdminPages from "./pages/AdminPages";
+import AdminPagesList from "./pages/AdminPagesList";
+import PageEditor from "./pages/PageEditor";
 import CustomPage from "./pages/CustomPage";
 
 const ProtectedRoute = ({ children }) => {
@@ -124,7 +125,9 @@ function AppRoutes() {
         <Route path="admin/plans" element={<PlanManagement />} />
         <Route path="integrations" element={<Integrations />} />
         <Route path="admin/discounts" element={<DiscountCodes />} />
-        <Route path="admin/pages" element={<AdminPages />} />
+        <Route path="admin/pages" element={<AdminPagesList />} />
+        <Route path="admin/pages/create" element={<PageEditor />} />
+        <Route path="admin/pages/edit/:slug" element={<PageEditor />} />
         <Route path="affiliates" element={<Affiliates />} />
       </Route>
 
