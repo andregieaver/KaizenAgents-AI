@@ -1,0 +1,157 @@
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+import { ArrowRight, ExternalLink, Download, Play, Send, * as Icons } from 'lucide-react';
+
+export const renderHeroBlock = (block) => {
+  const content = block.content || {};
+  
+  return (
+    <div key={block.id} className="py-20">
+      <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div>
+          {content.badge && (
+            <Badge className="mb-4">{content.badge}</Badge>
+          )}
+          <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
+            {content.heading}{' '}
+            {content.highlight && (
+              <span className="text-primary">{content.highlight}</span>
+            )}
+          </h1>
+          <p className="text-muted-foreground text-lg mb-8">
+            {content.description}
+          </p>
+          <div className="flex flex-wrap gap-4">
+            {content.primaryButton?.text && (
+              <a href={content.primaryButton.url || '#'}>
+                <Button size="lg" className="h-12 px-6">
+                  {content.primaryButton.text}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </a>
+            )}
+            {content.secondaryButton?.text && (
+              <a href={content.secondaryButton.url || '#'}>
+                <Button size="lg" variant="outline" className="h-12 px-6">
+                  {content.secondaryButton.text}
+                </Button>
+              </a>
+            )}
+          </div>
+        </div>
+        {content.imageUrl && (
+          <div className="relative">
+            <div className="aspect-square rounded-2xl overflow-hidden border border-border shadow-lg">
+              <img
+                src={content.imageUrl}
+                alt={content.heading || 'Hero image'}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export const renderFeaturesBlock = (block) => {
+  const content = block.content || {};
+  const features = content.features || [];
+
+  const getIcon = (iconName) => {
+    const IconComponent = Icons[iconName];
+    return IconComponent ? <IconComponent className="h-5 w-5" /> : null;
+  };
+
+  return (
+    <div key={block.id} className="py-20">
+      <div className="text-center mb-16">
+        <h2 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+          {content.heading}
+        </h2>
+        <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          {content.description}
+        </p>
+      </div>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {features.map((feature) => (
+          <div
+            key={feature.id}
+            className="p-6 bg-card border border-border rounded-lg hover:shadow-lg transition-shadow"
+          >
+            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary mb-4">
+              {getIcon(feature.icon)}
+            </div>
+            <h3 className="font-heading font-semibold text-lg mb-2">
+              {feature.title}
+            </h3>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              {feature.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export const renderCTABlock = (block) => {
+  const content = block.content || {};
+
+  return (
+    <div key={block.id} className="py-20">
+      <div className="max-w-3xl mx-auto text-center">
+        <h2 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight mb-4">
+          {content.heading}
+        </h2>
+        <p className="text-muted-foreground text-lg mb-8">
+          {content.description}
+        </p>
+        {content.buttonText && (
+          <a href={content.buttonUrl || '#'}>
+            <Button size="lg" className="h-12 px-8">
+              {content.buttonText}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </a>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export const renderButtonBlock = (block) => {
+  const content = block.content || {};
+
+  const getIcon = (iconName) => {
+    switch (iconName) {
+      case 'ArrowRight':
+        return <ArrowRight className="ml-2 h-4 w-4" />;
+      case 'ExternalLink':
+        return <ExternalLink className="ml-2 h-4 w-4" />;
+      case 'Download':
+        return <Download className="ml-2 h-4 w-4" />;
+      case 'Play':
+        return <Play className="ml-2 h-4 w-4" />;
+      case 'Send':
+        return <Send className="ml-2 h-4 w-4" />;
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div key={block.id} className="my-4">
+      <a href={content.url || '#'}>
+        <Button
+          variant={content.variant || 'default'}
+          size={content.size || 'default'}
+        >
+          {content.text}
+          {content.icon && getIcon(content.icon)}
+        </Button>
+      </a>
+    </div>
+  );
+};
