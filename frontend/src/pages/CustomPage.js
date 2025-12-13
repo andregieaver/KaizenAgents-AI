@@ -244,6 +244,10 @@ const CustomPage = () => {
                     case 'button':
                       return renderButtonBlock(block);
 
+                    case 'pricing_widget':
+                      const { renderPricingWidgetBlock } = require('../components/PublicBlockRenderers');
+                      return renderPricingWidgetBlock(block);
+
                     case 'faq':
                       const faqItems = (block.content?.items || []).sort((a, b) => a.order - b.order);
                       return faqItems.length > 0 ? (
