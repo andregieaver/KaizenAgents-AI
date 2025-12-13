@@ -25,7 +25,9 @@ import {
   Database,
   Bell,
   AlertTriangle,
-  BarChart3
+  BarChart3,
+  CreditCard,
+  DollarSign
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
