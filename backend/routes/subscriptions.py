@@ -364,6 +364,89 @@ async def get_usage(current_user: dict = Depends(get_current_user)):
         "usage_percentage": usage_percentage
     }
 
+@router.post("/checkout")
+async def create_checkout_session(
+    subscription_data: SubscriptionCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create Stripe checkout session for subscription"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get plan
+    plan = await db.subscription_plans.find_one({"id": subscription_data.plan_id}, {"_id": 0})
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    
+    # Get tenant
+    tenant = await db.tenants.find_one({"id": tenant_id}, {"_id": 0})
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Tenant not found")
+    
+    # Check if Stripe is configured
+    if not StripeService.is_configured():
+        raise HTTPException(
+            status_code=503,
+            detail="Payment system not configured. Please contact support."
+        )
+    
+    # Check if free plan
+    if plan["price_monthly"] == 0:
+        raise HTTPException(status_code=400, detail="Cannot checkout for free plan")
+    
+    # Get or create Stripe customer
+    subscription = await db.subscriptions.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    stripe_customer_id = subscription.get("stripe_customer_id") if subscription else None
+    
+    if not stripe_customer_id:
+        stripe_customer_id = await StripeService.create_customer(
+            current_user["email"],
+            current_user["name"],
+            tenant_id
+        )
+        
+        if not stripe_customer_id:
+            raise HTTPException(status_code=500, detail="Failed to create customer")
+    
+    # Get price ID based on billing cycle
+    price_id = None
+    if subscription_data.billing_cycle == "yearly":
+        price_id = plan.get("stripe_price_yearly_id")
+    else:
+        price_id = plan.get("stripe_price_monthly_id")
+    
+    if not price_id:
+        raise HTTPException(status_code=400, detail="Price not available for this billing cycle")
+    
+    # Get trial days from settings
+    platform_settings = await db.platform_settings.find_one({"key": "subscription_settings"}, {"_id": 0})
+    trial_days = platform_settings.get("value", {}).get("trial_days", 30) if platform_settings else 30
+    
+    # Check if already had trial
+    if subscription and subscription.get("trial_end"):
+        trial_days = 0  # No trial for returning customers
+    
+    # Create checkout session
+    frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    checkout = await StripeService.create_checkout_session(
+        stripe_customer_id,
+        price_id,
+        f"{frontend_url}/dashboard/billing?success=true",
+        f"{frontend_url}/dashboard/billing?canceled=true",
+        tenant_id,
+        plan["id"],
+        trial_days
+    )
+    
+    if not checkout:
+        raise HTTPException(status_code=500, detail="Failed to create checkout session")
+    
+    return {
+        "checkout_url": checkout["url"],
+        "session_id": checkout["session_id"]
+    }
+
 @router.post("/subscribe")
 async def create_subscription(
     subscription_data: SubscriptionCreate,
