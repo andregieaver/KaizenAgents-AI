@@ -3623,8 +3623,12 @@ from routes.transfers import router as transfers_router_mod
 from routes.rate_limits import router as rate_limits_router_mod
 from routes.marketplace import router as marketplace_router_mod
 from routes.agents import router as agents_router_mod
+from routes.health import router as health_router_mod
 
-# Register all modularized routers
+# Register health routes (not under /api prefix)
+app.include_router(health_router_mod)
+
+# Register all modularized routers under /api
 api_router.include_router(auth_router_mod)
 api_router.include_router(tenants_router_mod)
 api_router.include_router(settings_router_mod)
@@ -3678,10 +3682,17 @@ async def proxy_media(path: str):
         print(f"Error proxying media: {str(e)}")
         raise HTTPException(status_code=404, detail="File not found")
 
-# Import rate limiter before adding middleware
+# Import middleware components
 from middleware.rate_limiter import rate_limiter
+from middleware.observability import observability_middleware
 
-# Add rate limiting middleware (applied first, runs last)
+# Add observability middleware (applied first, runs last)
+@app.middleware("http")
+async def observability_tracking(request: Request, call_next):
+    """Observability middleware for logging and metrics"""
+    return await observability_middleware(request, call_next)
+
+# Add rate limiting middleware
 @app.middleware("http")
 async def rate_limit_check(request: Request, call_next):
     """Rate limiting middleware - must come first to run after auth context is set"""
