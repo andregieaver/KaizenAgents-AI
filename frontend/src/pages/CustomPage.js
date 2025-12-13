@@ -6,6 +6,12 @@ import { Button } from '../components/ui/button';
 import { Home, Loader2 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '../components/ui/accordion';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -217,6 +223,25 @@ const CustomPage = () => {
                               {block.content.caption}
                             </p>
                           )}
+                        </div>
+                      ) : null;
+
+                    case 'faq':
+                      const faqItems = (block.content?.items || []).sort((a, b) => a.order - b.order);
+                      return faqItems.length > 0 ? (
+                        <div key={block.id} className="my-8">
+                          <Accordion type="single" collapsible className="w-full">
+                            {faqItems.map((item, index) => (
+                              <AccordionItem key={item.id} value={`item-${index}`}>
+                                <AccordionTrigger className="text-left font-semibold">
+                                  {item.question}
+                                </AccordionTrigger>
+                                <AccordionContent className="text-muted-foreground whitespace-pre-wrap">
+                                  {item.answer}
+                                </AccordionContent>
+                              </AccordionItem>
+                            ))}
+                          </Accordion>
                         </div>
                       ) : null;
 
