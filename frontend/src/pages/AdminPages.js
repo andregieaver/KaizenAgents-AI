@@ -715,6 +715,81 @@ const AdminPages = () => {
                 </div>
               )}
             </div>
+
+            {/* Twitter Card */}
+            <div className="space-y-4 pt-4 border-t border-border">
+              <div>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <Twitter className="h-4 w-4" />
+                  Twitter Card Settings
+                </h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Optimize how your page appears on Twitter/X
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="twitter-card">Card Type</Label>
+                <select
+                  id="twitter-card"
+                  value={formData.seo.twitter.card}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    seo: {
+                      ...formData.seo,
+                      twitter: { ...formData.seo.twitter, card: e.target.value }
+                    }
+                  })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                >
+                  <option value="summary">Summary</option>
+                  <option value="summary_large_image">Summary with Large Image</option>
+                  <option value="app">App</option>
+                  <option value="player">Player</option>
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Choose how content is displayed in Twitter cards
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="twitter-site">Twitter Site Handle</Label>
+                <Input
+                  id="twitter-site"
+                  value={formData.seo.twitter.site}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    seo: {
+                      ...formData.seo,
+                      twitter: { ...formData.seo.twitter, site: e.target.value }
+                    }
+                  })}
+                  placeholder="@yoursite"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your website's Twitter/X handle (optional)
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="twitter-creator">Creator Handle</Label>
+                <Input
+                  id="twitter-creator"
+                  value={formData.seo.twitter.creator}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    seo: {
+                      ...formData.seo,
+                      twitter: { ...formData.seo.twitter, creator: e.target.value }
+                    }
+                  })}
+                  placeholder="@creator"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Content creator's Twitter/X handle (optional)
+                </p>
+              </div>
+            </div>
           </div>
 
           <DialogFooter>
