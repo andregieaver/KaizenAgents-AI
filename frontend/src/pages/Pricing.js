@@ -1,24 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
 import { toast } from 'sonner';
-import { Check, Loader2, Zap, TrendingUp } from 'lucide-react';
+import { Check, Loader2, Sparkles, Zap, Crown, ArrowRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const Pricing = () => {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [plans, setPlans] = useState([]);
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [isYearly, setIsYearly] = useState(false);
-  const [checkingOut, setCheckingOut] = useState(null);
+  const [checkoutLoading, setCheckoutLoading] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -33,69 +35,100 @@ const Pricing = () => {
         }),
         axios.get(`${API}/subscriptions/current`, {
           headers: { Authorization: `Bearer ${token}` }
-        })
+        }).catch(() => ({ data: null }))
       ]);
       
       setPlans(plansRes.data);
       setCurrentSubscription(subRes.data);
     } catch (error) {
       console.error('Error fetching pricing data:', error);
-      toast.error('Failed to load pricing plans');
+      toast.error('Failed to load pricing information');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSelectPlan = async (plan, billingCycle) => {
-    // If free plan, subscribe directly
+  const handleSelectPlan = async (plan) => {
+    // If it's the free plan, subscribe directly
     if (plan.price_monthly === 0) {
-      setCheckingOut(plan.id);
       try {
+        setCheckoutLoading(plan.id);
         await axios.post(
           `${API}/subscriptions/subscribe`,
-          { plan_id: plan.id, billing_cycle: billingCycle },
+          { plan_id: plan.id, billing_cycle: 'monthly' },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        toast.success('Switched to Free plan successfully!');
-        fetchData();
+        toast.success('Successfully subscribed to Free plan!');
+        navigate('/dashboard/billing');
       } catch (error) {
-        toast.error(error.response?.data?.detail || 'Failed to switch plan');
+        toast.error(error.response?.data?.detail || 'Failed to subscribe');
       } finally {
-        setCheckingOut(null);
+        setCheckoutLoading(null);
       }
       return;
     }
 
-    // For paid plans, create Stripe checkout
-    setCheckingOut(plan.id);
+    // For paid plans, create checkout session
     try {
+      setCheckoutLoading(plan.id);
       const response = await axios.post(
         `${API}/subscriptions/checkout`,
-        { plan_id: plan.id, billing_cycle: billingCycle },
+        { 
+          plan_id: plan.id, 
+          billing_cycle: isYearly ? 'yearly' : 'monthly' 
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
-      // Redirect to Stripe checkout
-      window.location.href = response.data.checkout_url;
+
+      if (response.data.checkout_url) {
+        // Redirect to Stripe checkout
+        window.location.href = response.data.checkout_url;
+      } else {
+        toast.error('Could not create checkout session');
+      }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to initiate checkout');
-      setCheckingOut(null);
+      const detail = error.response?.data?.detail;
+      if (detail?.includes('not configured')) {
+        toast.error('Payment system is not configured. Please contact support.');
+      } else {
+        toast.error(detail || 'Failed to create checkout session');
+      }
+    } finally {
+      setCheckoutLoading(null);
     }
+  };
+
+  const getPlanIcon = (planName) => {
+    const name = planName?.toLowerCase() || '';
+    if (name.includes('enterprise') || name.includes('premium')) {
+      return <Crown className="h-6 w-6" />;
+    }
+    if (name.includes('pro') || name.includes('business')) {
+      return <Zap className="h-6 w-6" />;
+    }
+    if (name.includes('starter')) {
+      return <Sparkles className="h-6 w-6" />;
+    }
+    return null;
+  };
+
+  const getPrice = (plan) => {
+    if (plan.price_monthly === 0) return 'Free';
+    const price = isYearly 
+      ? (plan.price_yearly / 12).toFixed(0) 
+      : plan.price_monthly;
+    return `$${price}`;
   };
 
   const isCurrentPlan = (planId) => {
     return currentSubscription?.plan_id === planId;
   };
 
-  const getPrice = (plan) => {
-    return isYearly ? plan.price_yearly : plan.price_monthly;
-  };
-
-  const calculateSavings = (plan) => {
-    if (!plan.price_yearly || !plan.price_monthly) return 0;
-    const monthlyTotal = plan.price_monthly * 12;
-    const savings = monthlyTotal - plan.price_yearly;
-    return savings;
+  const isUpgrade = (plan) => {
+    if (!currentSubscription) return true;
+    const currentPlan = plans.find(p => p.id === currentSubscription.plan_id);
+    if (!currentPlan) return true;
+    return plan.price_monthly > currentPlan.price_monthly;
   };
 
   if (loading) {
@@ -107,170 +140,174 @@ const Pricing = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-8">
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto">
-        <h1 className="text-4xl font-bold">Choose Your Plan</h1>
-        <p className="text-muted-foreground mt-3 text-lg">
-          Select the perfect plan for your needs. Upgrade or downgrade anytime.
+      <div className="text-center max-w-2xl mx-auto">
+        <h1 className="text-3xl font-bold mb-2">Choose Your Plan</h1>
+        <p className="text-muted-foreground">
+          Scale your customer support with the right plan for your business
         </p>
       </div>
 
       {/* Billing Toggle */}
       <div className="flex items-center justify-center gap-3">
-        <Label htmlFor="billing-toggle" className={cn(!isYearly && "font-semibold")}>
-          Monthly
-        </Label>
+        <Label className={cn(!isYearly && 'font-semibold')}>Monthly</Label>
         <Switch
-          id="billing-toggle"
           checked={isYearly}
           onCheckedChange={setIsYearly}
         />
-        <Label htmlFor="billing-toggle" className={cn(isYearly && "font-semibold")}>
-          Annual
-          <Badge variant="outline" className="ml-2 border-green-500 text-green-500">
+        <Label className={cn(isYearly && 'font-semibold')}>
+          Yearly
+          <Badge variant="secondary" className="ml-2 text-xs">
             Save 20%
           </Badge>
         </Label>
       </div>
 
-      {/* Pricing Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
-        {plans.map((plan) => {
-          const price = getPrice(plan);
-          const savings = calculateSavings(plan);
+      {/* Plans Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-7xl mx-auto">
+        {plans.map((plan, index) => {
           const isCurrent = isCurrentPlan(plan.id);
-          const isPopular = plan.name === 'Professional';
-
+          const isPopular = index === 1 && plans.length > 1; // Mark second plan as popular
+          
           return (
-            <Card
-              key={plan.id}
+            <Card 
+              key={plan.id} 
               className={cn(
-                "border relative",
-                isPopular && "border-primary shadow-lg scale-105",
-                isCurrent && "border-green-500"
+                "relative flex flex-col border",
+                isPopular && "border-primary shadow-lg",
+                isCurrent && "bg-primary/5"
               )}
             >
               {isPopular && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <Badge className="bg-primary">
-                    <Zap className="h-3 w-3 mr-1" />
                     Most Popular
                   </Badge>
                 </div>
               )}
 
-              {isCurrent && (
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <Badge className="bg-green-500">Current Plan</Badge>
+              <CardHeader className="text-center pb-2">
+                <div className="flex justify-center mb-2 text-primary">
+                  {getPlanIcon(plan.name)}
                 </div>
-              )}
-
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl">{plan.name}</CardTitle>
+                <CardTitle className="text-xl">{plan.name}</CardTitle>
                 <CardDescription className="min-h-[40px]">
                   {plan.description}
                 </CardDescription>
-                <div className="pt-4">
+              </CardHeader>
+
+              <CardContent className="flex-1">
+                {/* Price */}
+                <div className="text-center mb-6">
                   <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-4xl font-bold">${price}</span>
-                    <span className="text-muted-foreground">
-                      /{isYearly ? 'year' : 'month'}
+                    <span className="text-4xl font-bold">
+                      {getPrice(plan)}
                     </span>
+                    {plan.price_monthly > 0 && (
+                      <span className="text-muted-foreground">/mo</span>
+                    )}
                   </div>
-                  {isYearly && savings > 0 && (
-                    <p className="text-xs text-green-500 mt-1">
-                      Save ${savings.toFixed(2)}/year
+                  {isYearly && plan.price_yearly > 0 && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      ${plan.price_yearly} billed yearly
                     </p>
                   )}
                 </div>
-              </CardHeader>
 
-              <CardContent className="space-y-4">
                 {/* Features */}
-                <ul className="space-y-3 text-sm">
-                  <li className="flex items-center gap-2">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                     <span>
-                      {plan.features.max_conversations || 'Unlimited'} conversations/mo
+                      {plan.features.max_conversations 
+                        ? `${plan.features.max_conversations} conversations/month`
+                        : 'Unlimited conversations'}
                     </span>
-                  </li>
-                  <li className="flex items-center gap-2">
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                     <span>
-                      {plan.features.max_agents || 'Unlimited'} active agents
+                      {plan.features.max_agents 
+                        ? `${plan.features.max_agents} AI agents`
+                        : 'Unlimited AI agents'}
                     </span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span>
-                      {plan.features.conversation_history_days || 'Unlimited'} days history
-                    </span>
-                  </li>
+                  </div>
                   {plan.features.analytics_enabled && (
-                    <li className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      <span>Full analytics</span>
-                    </li>
+                      <span>Analytics dashboard</span>
+                    </div>
                   )}
                   {plan.features.api_access && (
-                    <li className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                       <span>API access</span>
-                    </li>
+                    </div>
                   )}
                   {plan.features.remove_branding && (
-                    <li className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                       <span>Remove branding</span>
-                    </li>
+                    </div>
                   )}
                   {plan.features.custom_integrations && (
-                    <li className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 text-sm">
                       <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                       <span>Custom integrations</span>
-                    </li>
+                    </div>
                   )}
-                  <li className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-sm">
                     <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                     <span className="capitalize">{plan.features.support_level} support</span>
-                  </li>
-                </ul>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                    <span>
+                      {plan.features.conversation_history_days 
+                        ? `${plan.features.conversation_history_days} days history`
+                        : 'Unlimited history'}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
 
-                {/* CTA Button */}
+              <CardFooter>
                 <Button
                   className="w-full"
-                  variant={isPopular ? "default" : "outline"}
-                  onClick={() => handleSelectPlan(plan, isYearly ? 'yearly' : 'monthly')}
-                  disabled={isCurrent || checkingOut === plan.id}
+                  variant={isCurrent ? "outline" : isPopular ? "default" : "outline"}
+                  disabled={isCurrent || checkoutLoading === plan.id}
+                  onClick={() => handleSelectPlan(plan)}
                 >
-                  {checkingOut === plan.id ? (
+                  {checkoutLoading === plan.id ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       Processing...
                     </>
                   ) : isCurrent ? (
                     'Current Plan'
-                  ) : (
+                  ) : isUpgrade(plan) ? (
                     <>
-                      <TrendingUp className="h-4 w-4 mr-2" />
-                      Choose {plan.name}
+                      Upgrade
+                      <ArrowRight className="h-4 w-4 ml-2" />
                     </>
+                  ) : (
+                    'Select Plan'
                   )}
                 </Button>
-              </CardContent>
+              </CardFooter>
             </Card>
           );
         })}
       </div>
 
-      {/* FAQ/Info */}
-      <div className="max-w-3xl mx-auto text-center pt-8">
-        <p className="text-sm text-muted-foreground">
-          All plans include a 30-day trial period. Cancel anytime. Need a custom plan?{' '}
-          <a href="mailto:support@yourdomain.com" className="text-primary hover:underline">
-            Contact us
-          </a>
+      {/* FAQ / Info Section */}
+      <div className="max-w-2xl mx-auto text-center text-sm text-muted-foreground space-y-2 pt-8 border-t border-border">
+        <p>
+          All plans include a free trial period. Cancel anytime.
+        </p>
+        <p>
+          Need a custom plan? <Button variant="link" className="p-0 h-auto">Contact us</Button>
         </p>
       </div>
     </div>
