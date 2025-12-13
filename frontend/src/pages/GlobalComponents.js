@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Loader2, Edit, Eye, Header, FooterIcon } from 'lucide-react';
+import { Loader2, Edit, Eye, PanelTop, PanelBottom } from 'lucide-react';
 import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -35,9 +35,9 @@ const GlobalComponents = () => {
   const getIcon = (type) => {
     switch (type) {
       case 'header':
-        return <Header className="h-5 w-5" />;
+        return <PanelTop className="h-5 w-5" />;
       case 'footer':
-        return <FooterIcon className="h-5 w-5" />;
+        return <PanelBottom className="h-5 w-5" />;
       default:
         return null;
     }
