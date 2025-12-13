@@ -43,7 +43,10 @@ import {
   Upload,
   Link as LinkIcon,
   Twitter,
-  Globe
+  Globe,
+  Plus,
+  Trash2,
+  FileCode
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -86,6 +89,14 @@ const AdminPages = () => {
   });
 
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [creatingPage, setCreatingPage] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    slug: '',
+    path: '',
+    content: ''
+  });
 
   useEffect(() => {
     fetchPages();
@@ -110,6 +121,7 @@ const AdminPages = () => {
     setSelectedPage(page);
     setFormData({
       visible: page.visible,
+      content: page.content || '',
       seo: {
         title: page.seo?.title || '',
         description: page.seo?.description || '',
@@ -225,6 +237,56 @@ const AdminPages = () => {
     }
   };
 
+  const handleCreatePage = async () => {
+    if (!createForm.name.trim() || !createForm.slug.trim() || !createForm.path.trim()) {
+      toast.error('Name, slug, and path are required');
+      return;
+    }
+
+    setCreatingPage(true);
+    try {
+      const response = await axios.post(
+        `${API}/admin/pages`,
+        createForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setPages([response.data, ...pages]);
+      toast.success('Page created successfully');
+      setCreateModalOpen(false);
+      setCreateForm({ name: '', slug: '', path: '', content: '' });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to create page');
+    } finally {
+      setCreatingPage(false);
+    }
+  };
+
+  const handleDeletePage = async (slug, isSystemPage) => {
+    if (isSystemPage) {
+      toast.error('Cannot delete system pages');
+      return;
+    }
+
+    try {
+      await axios.delete(`${API}/admin/pages/${slug}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      setPages(pages.filter(p => p.slug !== slug));
+      toast.success('Page deleted successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to delete page');
+    }
+  };
+
+  const generateSlug = (name) => {
+    return name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+  };
+
   const toggleVisibility = async (page) => {
     try {
       const response = await axios.put(
@@ -262,6 +324,10 @@ const AdminPages = () => {
             Manage SEO and visibility for all public pages
           </p>
         </div>
+        <Button onClick={() => setCreateModalOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Page
+        </Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -286,6 +352,11 @@ const AdminPages = () => {
                         </>
                       )}
                     </Badge>
+                    {!page.is_system_page && (
+                      <Badge variant="outline" className="text-xs">
+                        Custom
+                      </Badge>
+                    )}
                   </div>
                   <CardDescription className="flex items-center gap-2">
                     <ExternalLink className="h-3 w-3" />
@@ -355,7 +426,7 @@ const AdminPages = () => {
                   onClick={() => openEditModal(page)}
                 >
                   <Edit className="h-4 w-4 mr-2" />
-                  Edit SEO
+                  Edit
                 </Button>
                 <Button
                   variant="outline"
@@ -368,27 +439,54 @@ const AdminPages = () => {
                     <Eye className="h-4 w-4" />
                   )}
                 </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <RotateCcw className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Reset to defaults?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will reset all SEO settings for "{page.name}" to their default values.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleReset(page.slug)}>
-                        Reset
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                {page.is_system_page ? (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        <RotateCcw className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Reset to defaults?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will reset all SEO settings for "{page.name}" to their default values.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleReset(page.slug)}>
+                          Reset
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                ) : (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Delete page?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will permanently delete "{page.name}". This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDeletePage(page.slug, page.is_system_page)}
+                          className="bg-destructive text-destructive-foreground"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </div>
             </CardContent>
           </Card>
