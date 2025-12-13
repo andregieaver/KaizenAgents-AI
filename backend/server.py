@@ -3629,6 +3629,7 @@ from routes.webhooks import router as webhooks_router_mod
 from routes.integrations import router as integrations_router_mod
 from routes.discounts import router as discounts_router_mod
 from routes.affiliates import router as affiliates_router_mod
+from routes.teams import router as teams_router_mod
 
 # Register all modularized routers under /api
 api_router.include_router(auth_router_mod)
@@ -3650,6 +3651,7 @@ api_router.include_router(webhooks_router_mod)
 api_router.include_router(integrations_router_mod)
 api_router.include_router(discounts_router_mod)
 api_router.include_router(affiliates_router_mod)
+api_router.include_router(teams_router_mod)
 
 app.include_router(api_router)
 
