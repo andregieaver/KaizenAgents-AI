@@ -655,22 +655,50 @@ const AdminPages = () => {
               </div>
 
               <div>
-                <Label htmlFor="og-image">OG Image URL</Label>
-                <Input
-                  id="og-image"
-                  value={formData.seo.og.image}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    seo: {
-                      ...formData.seo,
-                      og: { ...formData.seo.og, image: e.target.value }
-                    }
-                  })}
-                  placeholder="https://example.com/image.jpg"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Recommended size: 1200×630 pixels
-                </p>
+                <Label htmlFor="og-image">OG Image</Label>
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <Input
+                      id="og-image"
+                      value={formData.seo.og.image}
+                      onChange={(e) => setFormData({
+                        ...formData,
+                        seo: {
+                          ...formData.seo,
+                          og: { ...formData.seo.og, image: e.target.value }
+                        }
+                      })}
+                      placeholder="https://example.com/image.jpg"
+                      className="flex-1"
+                    />
+                    <label htmlFor="og-image-upload">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={uploadingImage}
+                        asChild
+                      >
+                        <span>
+                          {uploadingImage ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                        </span>
+                      </Button>
+                    </label>
+                    <input
+                      id="og-image-upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Recommended size: 1200×630 pixels (max 5MB)
+                  </p>
+                </div>
               </div>
 
               {formData.seo.og.image && (
