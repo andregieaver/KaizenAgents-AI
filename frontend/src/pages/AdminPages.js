@@ -35,11 +35,15 @@ import {
   RotateCcw,
   ExternalLink,
   Search,
-  Image,
+  Image as ImageIcon,
   Hash,
   Calendar,
   User,
-  Loader2
+  Loader2,
+  Upload,
+  Link as LinkIcon,
+  Twitter,
+  Globe
 } from 'lucide-react';
 import { toast } from 'sonner';
 
