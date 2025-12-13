@@ -7,8 +7,9 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Alert, AlertDescription } from '../components/ui/alert';
+import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
-import { CreditCard, AlertTriangle, CheckCircle, Loader2, TrendingUp, ExternalLink } from 'lucide-react';
+import { CreditCard, AlertTriangle, CheckCircle, Loader2, TrendingUp, Tag, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
