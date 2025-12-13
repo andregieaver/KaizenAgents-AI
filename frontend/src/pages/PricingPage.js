@@ -11,7 +11,8 @@ import {
   renderFeaturesBlock,
   renderCTABlock,
   renderButtonBlock,
-  renderPricingWidgetBlock
+  renderPricingWidgetBlock,
+  renderTextBlock
 } from '../components/PublicBlockRenderers';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -170,6 +171,8 @@ const PricingPage = () => {
                 return renderButtonBlock(block);
               case 'pricing_widget':
                 return renderPricingWidgetBlock(block);
+              case 'text':
+                return renderTextBlock(block);
               default:
                 return null;
             }
