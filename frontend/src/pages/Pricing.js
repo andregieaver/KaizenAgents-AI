@@ -88,6 +88,53 @@ const Pricing = () => {
     }
   };
 
+  const handleApplyDiscount = async (planId) => {
+    if (!discountCode.trim()) {
+      toast.error('Please enter a discount code');
+      return;
+    }
+
+    if (!isAuthenticated) {
+      toast.error('Please sign in to apply a discount code');
+      return;
+    }
+
+    setApplyingDiscount(true);
+    try {
+      const response = await axios.post(
+        `${API}/discounts/apply`,
+        {
+          code: discountCode.toUpperCase(),
+          plan_id: planId,
+          billing_cycle: isYearly ? 'yearly' : 'monthly'
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.valid) {
+        setAppliedDiscount(response.data);
+        setDiscountPlanId(planId);
+        toast.success(response.data.message);
+      } else {
+        toast.error(response.data.message);
+        setAppliedDiscount(null);
+        setDiscountPlanId(null);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to apply discount code');
+      setAppliedDiscount(null);
+      setDiscountPlanId(null);
+    } finally {
+      setApplyingDiscount(false);
+    }
+  };
+
+  const clearDiscount = () => {
+    setDiscountCode('');
+    setAppliedDiscount(null);
+    setDiscountPlanId(null);
+  };
+
   const handleSelectPlan = async (plan) => {
     // If not authenticated, redirect to register
     if (!isAuthenticated) {
@@ -117,12 +164,20 @@ const Pricing = () => {
     // For paid plans, create checkout session
     try {
       setCheckoutLoading(plan.id);
+      
+      // Include discount code if applied for this plan
+      const payload = { 
+        plan_id: plan.id, 
+        billing_cycle: isYearly ? 'yearly' : 'monthly'
+      };
+      
+      if (appliedDiscount && discountPlanId === plan.id) {
+        payload.discount_code = discountCode.toUpperCase();
+      }
+      
       const response = await axios.post(
         `${API}/subscriptions/checkout`,
-        { 
-          plan_id: plan.id, 
-          billing_cycle: isYearly ? 'yearly' : 'monthly' 
-        },
+        payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
