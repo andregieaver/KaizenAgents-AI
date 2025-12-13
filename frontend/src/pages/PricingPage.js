@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { useTheme } from '../context/ThemeContext';
-import { Button } from '../components/ui/button';
-import { MessageSquare, Moon, Sun, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { Helmet } from 'react-helmet';
+import GlobalHeader from '../components/GlobalHeader';
+import GlobalFooter from '../components/GlobalFooter';
 import {
   renderHeroBlock,
   renderFeaturesBlock,
@@ -17,25 +15,12 @@ import {
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const PricingPage = () => {
-  const { isAuthenticated } = useAuth();
-  const { theme, toggleTheme } = useTheme();
-  const [platformName, setPlatformName] = useState('AI Support Hub');
-  const [platformLogo, setPlatformLogo] = useState(null);
   const [page, setPage] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch platform info
-        const platformResponse = await axios.get(`${API}/public/platform-info`);
-        if (platformResponse.data?.platform_name) {
-          setPlatformName(platformResponse.data.platform_name);
-        }
-        if (platformResponse.data?.platform_logo) {
-          setPlatformLogo(platformResponse.data.platform_logo);
-        }
-
         // Fetch pricing page content
         const pageResponse = await axios.get(`${API}/admin/pages/public/pricing`);
         setPage(pageResponse.data);
@@ -47,14 +32,6 @@ const PricingPage = () => {
     };
     fetchData();
   }, []);
-
-  const getPlatformLogoSrc = (url) => {
-    if (!url) return null;
-    if (url.startsWith('/api/')) {
-      return `${process.env.REACT_APP_BACKEND_URL}${url}`;
-    }
-    return url;
-  };
 
   if (loading) {
     return (
@@ -114,47 +91,8 @@ const PricingPage = () => {
       </Helmet>
 
       <div className="min-h-screen bg-background">
-        {/* Navigation */}
-        <nav className="border-b border-border">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
-                  {getPlatformLogoSrc(platformLogo) ? (
-                    <img src={getPlatformLogoSrc(platformLogo)} alt={platformName} className="h-full w-full object-contain" />
-                  ) : (
-                    <MessageSquare className="h-4 w-4 text-primary-foreground" />
-                  )}
-                </div>
-                <span className="font-heading font-bold text-lg">{platformName}</span>
-              </Link>
-              <div className="flex items-center gap-3">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleTheme}
-                  className="h-9 w-9"
-                >
-                  {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                </Button>
-                {isAuthenticated ? (
-                  <Link to="/dashboard">
-                    <Button className="btn-hover">Dashboard</Button>
-                  </Link>
-                ) : (
-                  <>
-                    <Link to="/login">
-                      <Button variant="ghost">Sign in</Button>
-                    </Link>
-                    <Link to="/register">
-                      <Button className="btn-hover">Register</Button>
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </nav>
+        {/* Global Header */}
+        <GlobalHeader />
 
         {/* Main Content - Render Blocks */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -184,26 +122,8 @@ const PricingPage = () => {
           })}
         </div>
 
-        {/* Footer */}
-        <footer className="py-8 border-t border-border">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
-              <Link to="/" className="flex items-center gap-2">
-                <div className="h-6 w-6 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
-                  {getPlatformLogoSrc(platformLogo) ? (
-                    <img src={getPlatformLogoSrc(platformLogo)} alt={platformName} className="h-full w-full object-contain" />
-                  ) : (
-                    <MessageSquare className="h-3 w-3 text-primary-foreground" />
-                  )}
-                </div>
-                <span className="text-sm text-muted-foreground">{platformName}</span>
-              </Link>
-              <p className="text-sm text-muted-foreground">
-                © {new Date().getFullYear()} {platformName}. All rights reserved.
-              </p>
-            </div>
-          </div>
-        </footer>
+        {/* Global Footer */}
+        <GlobalFooter />
       </div>
     </>
   );
