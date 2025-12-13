@@ -52,12 +52,23 @@ class PageSettings(BaseModel):
     name: str
     path: str
     visible: bool = True
+    is_system_page: bool = False
+    content: Optional[str] = None
     seo: Optional[PageSEO] = None
     updated_at: Optional[str] = None
     updated_by: Optional[str] = None
 
+class PageCreateRequest(BaseModel):
+    name: str
+    slug: str
+    path: str
+    content: Optional[str] = None
+    visible: bool = True
+
 class PageUpdateRequest(BaseModel):
+    name: Optional[str] = None
     visible: Optional[bool] = None
+    content: Optional[str] = None
     seo: Optional[PageSEO] = None
 
 class OGImageUploadResponse(BaseModel):
@@ -70,9 +81,18 @@ class PageResponse(BaseModel):
     name: str
     path: str
     visible: bool
+    is_system_page: bool
+    content: Optional[str] = None
     seo: PageSEO
     updated_at: str
     updated_by: Optional[str] = None
+
+class PublicPageResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    name: str
+    path: str
+    content: Optional[str] = None
+    seo: PageSEO
 
 # Default pages configuration
 DEFAULT_PAGES = [
@@ -81,6 +101,8 @@ DEFAULT_PAGES = [
         "name": "Homepage",
         "path": "/",
         "visible": True,
+        "is_system_page": True,
+        "content": None,
         "seo": {
             "title": "Kaizen Life Support - AI-Powered Customer Support",
             "description": "Transform your customer support with AI-powered agents. Manage conversations, analytics, and team collaboration in one platform.",
@@ -111,6 +133,8 @@ DEFAULT_PAGES = [
         "name": "Pricing",
         "path": "/pricing",
         "visible": True,
+        "is_system_page": True,
+        "content": None,
         "seo": {
             "title": "Pricing Plans - Kaizen Life Support",
             "description": "Choose the perfect plan for your business. Flexible pricing with powerful features to scale your customer support.",
@@ -153,12 +177,69 @@ def is_super_admin(current_user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Super-admin access required")
     return current_user
 
+@router.post("", response_model=PageResponse)
+async def create_page(
+    page_data: PageCreateRequest,
+    current_user: dict = Depends(is_super_admin)
+):
+    """Create a new custom page"""
+    # Check if slug already exists
+    existing = await db.pages.find_one({"slug": page_data.slug})
+    if existing:
+        raise HTTPException(status_code=400, detail="A page with this slug already exists")
+    
+    # Check if path already exists
+    existing_path = await db.pages.find_one({"path": page_data.path})
+    if existing_path:
+        raise HTTPException(status_code=400, detail="A page with this path already exists")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    
+    new_page = {
+        "slug": page_data.slug,
+        "name": page_data.name,
+        "path": page_data.path,
+        "visible": page_data.visible,
+        "is_system_page": False,
+        "content": page_data.content or "",
+        "seo": {
+            "title": f"{page_data.name}",
+            "description": "",
+            "keywords": "",
+            "canonical_url": page_data.path,
+            "og": {
+                "title": page_data.name,
+                "description": "",
+                "image": "",
+                "url": page_data.path
+            },
+            "twitter": {
+                "card": "summary_large_image",
+                "site": None,
+                "creator": None
+            },
+            "robots": {
+                "index": True,
+                "follow": True,
+                "noarchive": False,
+                "nosnippet": False,
+                "noimageindex": False
+            }
+        },
+        "created_at": now,
+        "updated_at": now,
+        "updated_by": current_user.get("name", current_user.get("email"))
+    }
+    
+    await db.pages.insert_one(new_page)
+    return new_page
+
 @router.get("", response_model=List[PageResponse])
 async def get_all_pages(current_user: dict = Depends(is_super_admin)):
     """Get all public pages with their settings"""
     await ensure_default_pages()
     
-    pages = await db.pages.find({}, {"_id": 0}).to_list(100)
+    pages = await db.pages.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
     return pages
 
 @router.get("/{slug}", response_model=PageResponse)
@@ -177,7 +258,7 @@ async def update_page(
     page_data: PageUpdateRequest,
     current_user: dict = Depends(is_super_admin)
 ):
-    """Update page settings (SEO and visibility)"""
+    """Update page settings (SEO, visibility, and content)"""
     page = await db.pages.find_one({"slug": slug})
     
     if not page:
@@ -185,8 +266,14 @@ async def update_page(
     
     update_data = {}
     
+    if page_data.name is not None:
+        update_data["name"] = page_data.name
+    
     if page_data.visible is not None:
         update_data["visible"] = page_data.visible
+    
+    if page_data.content is not None:
+        update_data["content"] = page_data.content
     
     if page_data.seo is not None:
         update_data["seo"] = page_data.seo.model_dump()
@@ -201,6 +288,21 @@ async def update_page(
     
     updated_page = await db.pages.find_one({"slug": slug}, {"_id": 0})
     return updated_page
+
+@router.delete("/{slug}")
+async def delete_page(slug: str, current_user: dict = Depends(is_super_admin)):
+    """Delete a custom page (system pages cannot be deleted)"""
+    page = await db.pages.find_one({"slug": slug})
+    
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    if page.get("is_system_page", False):
+        raise HTTPException(status_code=400, detail="Cannot delete system pages")
+    
+    await db.pages.delete_one({"slug": slug})
+    
+    return {"message": "Page deleted successfully"}
 
 @router.post("/reset/{slug}", response_model=PageResponse)
 async def reset_page(slug: str, current_user: dict = Depends(is_super_admin)):
@@ -262,3 +364,22 @@ async def upload_og_image(
     file_url = f"/api/uploads/{unique_filename}"
     
     return OGImageUploadResponse(url=file_url, path=str(file_path))
+
+# Public endpoint to fetch page by slug
+@router.get("/public/{slug}", response_model=PublicPageResponse)
+async def get_public_page(slug: str):
+    """Get public page content by slug (no authentication required)"""
+    page = await db.pages.find_one(
+        {"slug": slug, "visible": True},
+        {"_id": 0}
+    )
+    
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    return {
+        "name": page.get("name"),
+        "path": page.get("path"),
+        "content": page.get("content", ""),
+        "seo": page.get("seo", {})
+    }
