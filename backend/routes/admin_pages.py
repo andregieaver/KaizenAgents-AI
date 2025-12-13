@@ -163,13 +163,25 @@ DEFAULT_PAGES = [
 ]
 
 async def ensure_default_pages():
-    """Ensure default pages exist in database"""
+    """Ensure default pages exist in database and migrate old pages"""
     for page in DEFAULT_PAGES:
         existing = await db.pages.find_one({"slug": page["slug"]})
         if not existing:
             page["updated_at"] = datetime.now(timezone.utc).isoformat()
             page["updated_by"] = None
             await db.pages.insert_one(page)
+        else:
+            # Migrate existing pages to add missing fields
+            update_data = {}
+            if "is_system_page" not in existing:
+                update_data["is_system_page"] = page["is_system_page"]
+            if "content" not in existing:
+                update_data["content"] = None
+            if update_data:
+                await db.pages.update_one(
+                    {"slug": page["slug"]},
+                    {"$set": update_data}
+                )
 
 # Super-admin check
 def is_super_admin(current_user: dict = Depends(get_current_user)):
