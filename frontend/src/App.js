@@ -6,6 +6,7 @@ import { Toaster } from "./components/ui/sonner";
 
 // Pages
 import HomePage from "./pages/HomePage";
+import PricingPage from "./pages/PricingPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import DashboardLayout from "./pages/DashboardLayout";
@@ -92,7 +93,7 @@ function AppRoutes() {
         }
       />
       <Route path="/widget-demo" element={<WidgetDemo />} />
-      <Route path="/pricing" element={<Pricing />} />
+      <Route path="/pricing" element={<PricingPage />} />
       
       {/* Custom Pages Route - must be before catch-all */}
       <Route path="/page/:slug" element={<CustomPage />} />
