@@ -1065,3 +1065,167 @@ The Pages Management feature is **FULLY FUNCTIONAL** and working as designed. Al
 *Tester: Testing Agent*
 *Environment: Production Preview*
 
+## Enhanced Pages Management System Tests (Full-Page Editor)
+
+### Test Scope
+- Enhanced Pages Management with full-page editor and table list view
+- Complete redesign from modal-based to full-page editor
+- All 9 test scenarios from review request
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Test Results Summary
+
+#### ✅ FULLY WORKING FEATURES
+
+**1. Pages Table View (/dashboard/admin/pages):**
+- ✅ Table displays with all required columns: Page, Path, SEO Title, Status, Updated, Actions
+- ✅ Page column shows icon, name, custom badge, and content length (chars)
+- ✅ Path column shows external link icon and page path
+- ✅ SEO Title column displays current SEO title or "Not set"
+- ✅ Status column shows Visible/Hidden badges with eye icons
+- ✅ Updated column shows date and user information
+- ✅ Actions column contains Edit, visibility toggle, and reset/delete buttons
+- ✅ "Create Page" button positioned in top right corner
+- ✅ Found 4 pages total: Homepage, Pricing, Privacy Policy, Contact Us
+- ✅ Custom badge appears correctly on non-system pages (2 custom pages found)
+
+**2. Page Creation Flow (/dashboard/admin/pages/create):**
+- ✅ Navigation to create page works perfectly
+- ✅ Layout uses screen real-estate efficiently: 2/3 left (main content), 1/3 right (SEO sidebar)
+- ✅ Page Name auto-populates Slug and Path correctly
+- ✅ Slug generation: "Contact Us" → "contact-us", Path: "/contact-us"
+- ✅ HTML content editor functional with large textarea
+- ✅ All SEO settings accessible in right sidebar cards:
+  - Basic SEO (Title, Description, Keywords, Canonical URL)
+  - Search Engine Directives (5 robot toggles)
+  - Open Graph Settings (Title, Description, Image with upload button)
+  - Twitter Card Settings (Card type dropdown, Site, Creator)
+- ✅ Page visibility toggle switch functional
+- ✅ "Save Page" button works and navigates back to pages list
+- ✅ Success toast notifications appear
+- ✅ Created pages appear immediately in table
+
+**3. Page Editing Flow (/dashboard/admin/pages/edit/{slug}):**
+- ✅ Edit navigation works from table Edit buttons
+- ✅ Title shows "Edit Page" correctly
+- ✅ All form fields populated with existing data
+- ✅ Slug field properly disabled (cannot change slug in edit mode)
+- ✅ Content modifications save successfully
+- ✅ SEO field modifications persist
+- ✅ Robot directive toggles functional in edit mode
+- ✅ Save functionality returns to pages list with success feedback
+
+**4. System Pages Protection:**
+- ✅ Homepage and Pricing identified as system pages
+- ✅ System pages show reset button (circular arrow icon)
+- ✅ System pages do NOT show delete button (properly protected)
+- ✅ Custom pages show delete button instead of reset button
+- ✅ Homepage editing works but deletion is prevented
+
+**5. Visibility Toggle:**
+- ✅ Visibility toggle buttons (eye icons) functional on page cards
+- ✅ Status badge changes between "Visible" and "Hidden" states
+- ✅ Success toast appears after visibility changes
+- ✅ UI updates immediately after toggle operations
+
+**6. Page Deletion:**
+- ✅ Delete button (trash icon) present on custom pages
+- ✅ Confirmation dialog appears with proper warning message
+- ✅ "Delete" button in dialog functional
+- ✅ Pages removed from table after successful deletion
+- ✅ Success toast notifications appear
+- ✅ System pages cannot be deleted (protection working)
+
+**7. Cancel/Back Navigation:**
+- ✅ "Cancel" button in create/edit pages works correctly
+- ✅ Back arrow icon navigation functional
+- ✅ Both methods return to pages list properly
+- ✅ Navigation flows are intuitive and consistent
+
+**8. Character Counters:**
+- ✅ SEO Title shows "X/60" character count
+- ✅ Meta Description shows "X/160" character count
+- ✅ Counters update in real-time as user types
+- ✅ Proper character limit guidance provided
+
+**9. Auto-slug Generation:**
+- ✅ Page Name "Terms & Conditions" → Slug "terms-conditions"
+- ✅ Path auto-generates as "/terms-conditions"
+- ✅ Special characters removed properly (&, !, spaces, etc.)
+- ✅ Slug generation works for various input types
+- ✅ Real-time updates as user types page name
+
+**10. Full-Page Editor Layout:**
+- ✅ Efficient use of screen real-estate (2/3 left, 1/3 right)
+- ✅ Main content area contains Page Details and Page Content cards
+- ✅ Right sidebar contains 4 SEO cards: Basic SEO, Search Engine, Open Graph, Twitter Card
+- ✅ All 17 SEO-related form elements present and functional
+- ✅ Professional design with proper card layouts and spacing
+- ✅ Responsive design elements working correctly
+
+**11. Advanced SEO Features:**
+- ✅ All 5 robot directive toggles: Indexable, Follow Links, No Archive, No Snippet, No Image Index
+- ✅ Canonical URL field functional
+- ✅ Open Graph image upload button with proper styling
+- ✅ Twitter Card dropdown with all options: Summary, Summary Large Image, App, Player
+- ✅ Character validation and counters for optimal SEO
+- ✅ All settings save and persist correctly
+
+### Technical Implementation Verification
+
+**Frontend Components:**
+- ✅ AdminPagesList.js - Complete table view with all required columns and functionality
+- ✅ PageEditor.js - Full-page editor with proper layout and all SEO controls
+- ✅ Proper React Router integration for create/edit flows
+- ✅ Form validation and error handling working correctly
+- ✅ Toast notification system functional for all operations
+
+**Backend Integration:**
+- ✅ GET /api/admin/pages - Loads pages correctly
+- ✅ POST /api/admin/pages - Creates new pages successfully
+- ✅ PUT /api/admin/pages/{slug} - Updates pages correctly
+- ✅ DELETE /api/admin/pages/{slug} - Deletes custom pages only
+- ✅ POST /api/admin/pages/reset/{slug} - Resets system pages
+- ✅ Proper authentication and authorization enforced
+- ✅ Real-time updates and data persistence working
+
+### Test Environment Details
+- **Frontend URL:** https://discount-hub-44.preview.emergentagent.com
+- **Authentication:** Working correctly with super admin credentials
+- **Session Management:** Stable during testing operations
+- **API Integration:** All pages management endpoints responding correctly
+
+### Screenshots Captured
+1. Pages table view with all columns and data
+2. Page creation form with full-page editor layout
+3. Auto-slug generation demonstration
+4. Final verification of all functionality
+
+### Conclusion
+The Enhanced Pages Management system with full-page editor is **FULLY FUNCTIONAL** and represents a successful comprehensive redesign from modal-based to full-page editor. All 9 test scenarios passed successfully:
+
+**Status: READY FOR PRODUCTION** ✅
+
+### Key Achievements Verified
+- ✅ **Complete UI Redesign:** Successfully transitioned from modal to full-page editor
+- ✅ **Efficient Layout:** 2/3 left content, 1/3 right SEO sidebar maximizes screen usage
+- ✅ **Comprehensive SEO Controls:** All advanced SEO features accessible and functional
+- ✅ **System Protection:** Homepage and Pricing properly protected from deletion
+- ✅ **User Experience:** Intuitive navigation, real-time feedback, character counters
+- ✅ **Data Integrity:** All CRUD operations working with proper validation
+- ✅ **Professional Design:** Clean, modern interface with consistent styling
+
+### Recommendations
+1. The enhanced pages management system is complete and production-ready
+2. All user flows work seamlessly for both system and custom pages
+3. SEO management capabilities are comprehensive and user-friendly
+4. Full-page editor provides excellent user experience
+5. System ready for immediate production deployment
+
+---
+*Enhanced Pages Management Test completed on: December 13, 2025*
+*Tester: Testing Agent*
+*Environment: Production Preview*
+
