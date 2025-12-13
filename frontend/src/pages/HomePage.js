@@ -63,51 +63,51 @@ const HomePage = () => {
     );
   }
 
-  // Convert page.content array to blocks for rendering
-  const blocks = page?.content || [];
+  // Get blocks from the page
+  const blocks = page?.blocks || [];
 
   return (
     <>
       {/* SEO Meta Tags */}
       <Helmet>
-        <title>{page?.seo_title || platformName}</title>
-        {page?.seo_description && (
-          <meta name="description" content={page.seo_description} />
+        <title>{page?.seo?.title || platformName}</title>
+        {page?.seo?.description && (
+          <meta name="description" content={page.seo.description} />
         )}
-        {page?.seo_keywords && page.seo_keywords.length > 0 && (
-          <meta name="keywords" content={page.seo_keywords.join(', ')} />
+        {page?.seo?.keywords && (
+          <meta name="keywords" content={page.seo.keywords} />
         )}
-        {page?.canonical_url && (
-          <link rel="canonical" href={page.canonical_url} />
+        {page?.seo?.canonical_url && (
+          <link rel="canonical" href={page.seo.canonical_url} />
         )}
 
         {/* Open Graph Tags */}
-        {page?.og_title && (
-          <meta property="og:title" content={page.og_title} />
+        {page?.seo?.og?.title && (
+          <meta property="og:title" content={page.seo.og.title} />
         )}
-        {page?.og_description && (
-          <meta property="og:description" content={page.og_description} />
+        {page?.seo?.og?.description && (
+          <meta property="og:description" content={page.seo.og.description} />
         )}
-        {page?.og_image && (
-          <meta property="og:image" content={page.og_image} />
+        {page?.seo?.og?.image && (
+          <meta property="og:image" content={page.seo.og.image} />
         )}
 
         {/* Twitter Card Tags */}
-        {page?.twitter_card && (
-          <meta name="twitter:card" content={page.twitter_card} />
+        {page?.seo?.twitter?.card && (
+          <meta name="twitter:card" content={page.seo.twitter.card} />
         )}
-        {page?.twitter_title && (
-          <meta name="twitter:title" content={page.twitter_title} />
+        {page?.seo?.twitter?.site && (
+          <meta name="twitter:site" content={page.seo.twitter.site} />
         )}
-        {page?.twitter_description && (
-          <meta name="twitter:description" content={page.twitter_description} />
+        {page?.seo?.twitter?.creator && (
+          <meta name="twitter:creator" content={page.seo.twitter.creator} />
         )}
 
         {/* Robots */}
-        {(page?.no_index || page?.no_follow) && (
+        {page?.seo?.robots && (
           <meta 
             name="robots" 
-            content={`${page.no_index ? 'noindex' : 'index'}, ${page.no_follow ? 'nofollow' : 'follow'}`} 
+            content={`${page.seo.robots.index ? 'index' : 'noindex'}, ${page.seo.robots.follow ? 'follow' : 'nofollow'}`} 
           />
         )}
       </Helmet>
