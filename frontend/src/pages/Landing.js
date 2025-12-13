@@ -243,7 +243,7 @@ const Landing = () => {
           <p className="text-muted-foreground text-lg mb-8">
             Join hundreds of businesses using {platformName} to deliver exceptional customer experiences.
           </p>
-          <Link to="/dashboard/pricing">
+          <Link to="/pricing">
             <Button size="lg" className="h-12 px-8 btn-hover" data-testid="cta-btn">
               Get started free
               <ArrowRight className="ml-2 h-4 w-4" />
