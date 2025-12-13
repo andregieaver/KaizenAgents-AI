@@ -46,6 +46,12 @@ class PageSEO(BaseModel):
     twitter: Optional[TwitterCardData] = None
     robots: Optional[RobotsDirectives] = None
 
+class ContentBlock(BaseModel):
+    id: str
+    type: str  # text, image, video, etc.
+    content: dict  # type-specific content
+    order: int
+
 class PageSettings(BaseModel):
     model_config = ConfigDict(extra="ignore")
     slug: str
@@ -53,7 +59,8 @@ class PageSettings(BaseModel):
     path: str
     visible: bool = True
     is_system_page: bool = False
-    content: Optional[str] = None
+    content: Optional[str] = None  # Legacy field, kept for backward compatibility
+    blocks: Optional[List[ContentBlock]] = []
     seo: Optional[PageSEO] = None
     updated_at: Optional[str] = None
     updated_by: Optional[str] = None
@@ -62,13 +69,15 @@ class PageCreateRequest(BaseModel):
     name: str
     slug: str
     path: str
-    content: Optional[str] = None
+    content: Optional[str] = None  # Legacy
+    blocks: Optional[List[dict]] = []
     visible: bool = True
 
 class PageUpdateRequest(BaseModel):
     name: Optional[str] = None
     visible: Optional[bool] = None
     content: Optional[str] = None
+    blocks: Optional[List[dict]] = None
     seo: Optional[PageSEO] = None
 
 class OGImageUploadResponse(BaseModel):
@@ -83,6 +92,7 @@ class PageResponse(BaseModel):
     visible: bool
     is_system_page: bool
     content: Optional[str] = None
+    blocks: Optional[List[dict]] = []
     seo: PageSEO
     updated_at: str
     updated_by: Optional[str] = None
@@ -92,6 +102,7 @@ class PublicPageResponse(BaseModel):
     name: str
     path: str
     content: Optional[str] = None
+    blocks: Optional[List[dict]] = []
     seo: PageSEO
 
 # Default pages configuration
@@ -214,6 +225,7 @@ async def create_page(
         "visible": page_data.visible,
         "is_system_page": False,
         "content": page_data.content or "",
+        "blocks": page_data.blocks or [],
         "seo": {
             "title": f"{page_data.name}",
             "description": "",
@@ -286,6 +298,9 @@ async def update_page(
     
     if page_data.content is not None:
         update_data["content"] = page_data.content
+    
+    if page_data.blocks is not None:
+        update_data["blocks"] = page_data.blocks
     
     if page_data.seo is not None:
         update_data["seo"] = page_data.seo.model_dump()
@@ -393,5 +408,6 @@ async def get_public_page(slug: str):
         "name": page.get("name"),
         "path": page.get("path"),
         "content": page.get("content", ""),
+        "blocks": page.get("blocks", []),
         "seo": page.get("seo", {})
     }
