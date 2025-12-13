@@ -1,6 +1,8 @@
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { ArrowRight, ExternalLink, Download, Play, Send, * as Icons } from 'lucide-react';
+import * as Icons from 'lucide-react';
+
+const { ArrowRight, ExternalLink, Download, Play, Send } = Icons;
 
 export const renderHeroBlock = (block) => {
   const content = block.content || {};
