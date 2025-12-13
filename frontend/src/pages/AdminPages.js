@@ -318,7 +318,7 @@ const AdminPages = () => {
                 </div>
 
                 <div className="flex items-start gap-2">
-                  <Image className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <ImageIcon className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium">OG Image</p>
                     <p className="text-sm text-muted-foreground truncate">
