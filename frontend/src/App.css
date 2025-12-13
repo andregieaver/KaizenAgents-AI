@@ -150,3 +150,19 @@
   color: #3b82f6;
   text-decoration: underline;
 }
+
+/* Row/Column Responsive Styles */
+@media (max-width: 768px) {
+  .grid {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+}
+
+/* Ensure row backgrounds extend full width */
+.row-container {
+  margin-left: calc(-1 * var(--container-padding, 1rem));
+  margin-right: calc(-1 * var(--container-padding, 1rem));
+  padding-left: var(--container-padding, 1rem);
+  padding-right: var(--container-padding, 1rem);
+}
