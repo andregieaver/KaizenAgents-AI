@@ -378,7 +378,7 @@ const Pricing = () => {
 
               <CardFooter className="flex flex-col gap-3">
                 {/* Discount Code Input - Only for paid plans */}
-                {plan.price_monthly > 0 && !isCurrent && isAuthenticated && (
+                {plan.price_monthly > 0 && !isCurrent && (
                   <div className="w-full">
                     {appliedDiscount && discountPlanId === plan.id ? (
                       <div className="flex items-center justify-between p-2 bg-green-500/10 border border-green-500/30 rounded-md">
