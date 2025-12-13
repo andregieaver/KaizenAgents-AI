@@ -288,7 +288,7 @@ const DashboardLayout = () => {
             ))}
             
             {/* Super Admin Links */}
-            {(adminNavItem || providersNavItem || agentsNavItem || storageNavItem || rateLimitsNavItem || observabilityNavItem || planManagementNavItem) && (
+            {(adminNavItem || providersNavItem || agentsNavItem || storageNavItem || rateLimitsNavItem || observabilityNavItem || planManagementNavItem || integrationsNavItem) && (
               <>
                 <Separator className="my-3" />
                 {providersNavItem && (
