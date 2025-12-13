@@ -31,6 +31,7 @@ import Integrations from "./pages/Integrations";
 import DiscountCodes from "./pages/DiscountCodes";
 import Affiliates from "./pages/Affiliates";
 import AdminPages from "./pages/AdminPages";
+import CustomPage from "./pages/CustomPage";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -91,6 +92,9 @@ function AppRoutes() {
       />
       <Route path="/widget-demo" element={<WidgetDemo />} />
       <Route path="/pricing" element={<Pricing />} />
+      
+      {/* Custom Pages Route - must be before catch-all */}
+      <Route path="/page/:slug" element={<CustomPage />} />
 
       {/* Protected Dashboard Routes */}
       <Route
