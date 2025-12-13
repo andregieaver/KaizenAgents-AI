@@ -180,7 +180,7 @@ The Enhanced Pages Management feature has been successfully implemented with all
 - ✅ Authentication and authorization working properly
 
 ### Test Environment Details
-- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com
+- **Frontend URL:** https://global-cms-manager.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing
 - **API Integration:** All subscription endpoints responding correctly
@@ -298,7 +298,7 @@ The system correctly handles:
 - ✅ Breadcrumb navigation shows "Dashboard > Integrations"
 
 ### Test Environment Details
-- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com
+- **Frontend URL:** https://global-cms-manager.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All integration endpoints responding correctly
@@ -405,7 +405,7 @@ The Integrations page is **FULLY FUNCTIONAL** and working as designed. All core 
 - ✅ Pricing page API correctly retrieves and displays custom features
 
 ### Test Environment Details
-- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com
+- **Frontend URL:** https://global-cms-manager.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All custom feature endpoints responding correctly
@@ -542,7 +542,7 @@ The Custom Feature Items functionality is **SUBSTANTIALLY WORKING** with core fe
 - ✅ Error handling for invalid codes functional
 
 ### Test Environment Details
-- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com
+- **Frontend URL:** https://global-cms-manager.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All discount endpoints responding correctly
@@ -686,7 +686,7 @@ The Discount Codes System is **FULLY FUNCTIONAL** and working as designed. All c
 - ✅ No console errors or API failures detected
 
 ### Test Environment Details
-- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com
+- **Frontend URL:** https://global-cms-manager.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All affiliate endpoints responding correctly
@@ -846,7 +846,7 @@ The Affiliate Program Dashboard is **FULLY FUNCTIONAL** and working as designed.
 - ✅ Data persistence across operations
 
 ### Test Environment Details
-- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com
+- **Frontend URL:** https://global-cms-manager.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during individual operations
 - **API Integration:** All team management endpoints responding correctly
@@ -1015,7 +1015,7 @@ The Team Management feature is **SUBSTANTIALLY FUNCTIONAL** and working as desig
 - ✅ SEO data structure properly maintained
 
 ### Test Environment Details
-- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com
+- **Frontend URL:** https://global-cms-manager.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All pages management endpoints responding correctly
@@ -1192,7 +1192,7 @@ The Pages Management feature is **FULLY FUNCTIONAL** and working as designed. Al
 - ✅ Real-time updates and data persistence working
 
 ### Test Environment Details
-- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com
+- **Frontend URL:** https://global-cms-manager.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All pages management endpoints responding correctly
@@ -1299,7 +1299,7 @@ The Enhanced Pages Management system with full-page editor is **FULLY FUNCTIONAL
 - ❌ PricingWidget component still not rendering content
 
 ### Test Environment Details
-- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com/pricing
+- **Frontend URL:** https://global-cms-manager.preview.emergentagent.com/pricing
 - **Backend Status:** All APIs responding correctly (200 OK)
 - **Frontend Status:** Compiling successfully but PricingWidget not rendering
 - **Browser Testing:** Automated testing with Playwright (multiple attempts)

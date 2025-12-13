@@ -5,7 +5,7 @@ import io
 from datetime import datetime
 
 class AIAgentHubTester:
-    def __init__(self, base_url="https://cms-homepage-swap.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://global-cms-manager.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.user_data = None
