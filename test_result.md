@@ -73,7 +73,7 @@
 - ✅ Authentication and authorization working properly
 
 ### Test Environment Details
-- **Frontend URL:** https://customer-chat-ai.preview.emergentagent.com
+- **Frontend URL:** https://discount-hub-44.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing
 - **API Integration:** All subscription endpoints responding correctly
@@ -191,7 +191,7 @@ The system correctly handles:
 - ✅ Breadcrumb navigation shows "Dashboard > Integrations"
 
 ### Test Environment Details
-- **Frontend URL:** https://customer-chat-ai.preview.emergentagent.com
+- **Frontend URL:** https://discount-hub-44.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All integration endpoints responding correctly
@@ -298,7 +298,7 @@ The Integrations page is **FULLY FUNCTIONAL** and working as designed. All core 
 - ✅ Pricing page API correctly retrieves and displays custom features
 
 ### Test Environment Details
-- **Frontend URL:** https://customer-chat-ai.preview.emergentagent.com
+- **Frontend URL:** https://discount-hub-44.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All custom feature endpoints responding correctly
@@ -435,7 +435,7 @@ The Custom Feature Items functionality is **SUBSTANTIALLY WORKING** with core fe
 - ✅ Error handling for invalid codes functional
 
 ### Test Environment Details
-- **Frontend URL:** https://customer-chat-ai.preview.emergentagent.com
+- **Frontend URL:** https://discount-hub-44.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All discount endpoints responding correctly
@@ -579,7 +579,7 @@ The Discount Codes System is **FULLY FUNCTIONAL** and working as designed. All c
 - ✅ No console errors or API failures detected
 
 ### Test Environment Details
-- **Frontend URL:** https://customer-chat-ai.preview.emergentagent.com
+- **Frontend URL:** https://discount-hub-44.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All affiliate endpoints responding correctly
