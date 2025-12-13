@@ -520,6 +520,28 @@ const AdminPages = () => {
               />
             </div>
 
+            {/* Page Content - Only for custom pages */}
+            {selectedPage && !selectedPage.is_system_page && (
+              <div className="space-y-4 pb-4 border-b border-border">
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <FileCode className="h-4 w-4" />
+                    <h3 className="text-sm font-semibold">Page Content</h3>
+                  </div>
+                  <Textarea
+                    value={formData.content}
+                    onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                    placeholder="Enter page content (supports HTML)"
+                    rows={8}
+                    className="font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    HTML content for this page
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Basic SEO */}
             <div className="space-y-4">
               <div>
