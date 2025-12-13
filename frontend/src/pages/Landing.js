@@ -100,7 +100,7 @@ const Landing = () => {
                 Deploy intelligent support in minutes. Our AI handles 85% of inquiries instantly, while your team focuses on what matters.
               </p>
               <div className="flex flex-wrap gap-4">
-                <Link to="/register">
+                <Link to="/dashboard/pricing">
                   <Button size="lg" className="h-12 px-6 btn-hover" data-testid="hero-cta-btn">
                     Start for free
                     <ArrowRight className="ml-2 h-4 w-4" />
