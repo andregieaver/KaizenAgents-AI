@@ -376,7 +376,67 @@ const Pricing = () => {
                 </div>
               </CardContent>
 
-              <CardFooter>
+              <CardFooter className="flex flex-col gap-3">
+                {/* Discount Code Input - Only for paid plans */}
+                {plan.price_monthly > 0 && !isCurrent && isAuthenticated && (
+                  <div className="w-full">
+                    {appliedDiscount && discountPlanId === plan.id ? (
+                      <div className="flex items-center justify-between p-2 bg-green-500/10 border border-green-500/30 rounded-md">
+                        <div className="flex items-center gap-2">
+                          <Tag className="h-4 w-4 text-green-500" />
+                          <span className="text-sm text-green-600 font-medium">
+                            {appliedDiscount.message}
+                          </span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={clearDiscount}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Discount code"
+                          value={discountPlanId === plan.id ? discountCode : ''}
+                          onChange={(e) => {
+                            setDiscountCode(e.target.value);
+                            setDiscountPlanId(plan.id);
+                          }}
+                          className="h-8 text-xs"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-3"
+                          onClick={() => handleApplyDiscount(plan.id)}
+                          disabled={applyingDiscount}
+                        >
+                          {applyingDiscount && discountPlanId === plan.id ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            'Apply'
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                    {/* Show discounted price */}
+                    {appliedDiscount && discountPlanId === plan.id && appliedDiscount.discounted_price !== appliedDiscount.original_price && (
+                      <div className="mt-2 text-center">
+                        <span className="text-sm text-muted-foreground line-through">
+                          ${appliedDiscount.original_price}
+                        </span>
+                        <span className="text-sm font-bold text-green-600 ml-2">
+                          ${appliedDiscount.discounted_price}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <Button
                   className="w-full"
                   variant={isCurrent ? "outline" : isPopular ? "default" : "outline"}
