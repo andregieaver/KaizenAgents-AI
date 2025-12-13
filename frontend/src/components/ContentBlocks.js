@@ -41,6 +41,7 @@ import {
   Palette
 } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
+import RowEditor from './RowEditor';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import {
@@ -522,6 +523,15 @@ const ContentBlocks = ({ blocks, onChange }) => {
           </div>
         );
 
+      case 'row':
+        return (
+          <RowEditor
+            blockId={block.id}
+            content={block.content}
+            onUpdate={(newContent) => updateBlock(block.id, newContent)}
+          />
+        );
+
       case 'faq':
         const faqItems = (block.content.items || []).sort((a, b) => a.order - b.order);
         return (
@@ -662,6 +672,10 @@ const ContentBlocks = ({ blocks, onChange }) => {
                         <HelpCircle className="h-4 w-4 mr-2" />
                         FAQ Block
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('row')}>
+                        <Columns className="h-4 w-4 mr-2" />
+                        Row Layout
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </CardContent>
@@ -709,6 +723,10 @@ const ContentBlocks = ({ blocks, onChange }) => {
             <DropdownMenuItem onClick={() => addBlock('faq')}>
               <HelpCircle className="h-4 w-4 mr-2" />
               FAQ Block
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock('row')}>
+              <Columns className="h-4 w-4 mr-2" />
+              Row Layout
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
