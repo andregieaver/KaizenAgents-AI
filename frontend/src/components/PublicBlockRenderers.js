@@ -1,6 +1,7 @@
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import * as Icons from 'lucide-react';
+import PricingWidget from './PricingWidget';
 
 const { ArrowRight, ExternalLink, Download, Play, Send } = Icons;
 
@@ -159,6 +160,14 @@ export const renderButtonBlock = (block) => {
           {content.icon && getIcon(content.icon)}
         </Button>
       </a>
+    </div>
+  );
+};
+
+export const renderPricingWidgetBlock = (block) => {
+  return (
+    <div key={block.id}>
+      <PricingWidget />
     </div>
   );
 };
