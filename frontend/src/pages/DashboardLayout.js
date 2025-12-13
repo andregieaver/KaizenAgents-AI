@@ -31,7 +31,8 @@ import {
   Plug,
   Tag,
   Gift,
-  FileText
+  FileText,
+  Layout
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -232,6 +233,9 @@ const DashboardLayout = () => {
 
   const pagesNavItem = user?.is_super_admin
     ? { path: '/dashboard/admin/pages', icon: FileText, label: 'Pages', isAdmin: true }
+    : null,
+    user?.role === 'owner'
+    ? { path: '/dashboard/admin/components', icon: Layout, label: 'Global Components', isAdmin: true }
     : null;
 
   const isActive = (path) => {
