@@ -1229,3 +1229,163 @@ The Enhanced Pages Management system with full-page editor is **FULLY FUNCTIONAL
 *Tester: Testing Agent*
 *Environment: Production Preview*
 
+## CMS-Powered Homepage Tests
+
+### Test Scope
+- Test the new CMS-powered homepage that replaced the static Landing.js file
+- Homepage dynamically rendered from CMS using HomePage component
+- Content fetched from backend API endpoint: /api/admin/pages/public/homepage
+- 3 blocks: Hero, Features (6 feature cards), and CTA
+- Full navigation and footer functionality
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Test Results Summary
+
+#### ✅ FULLY WORKING FEATURES
+
+**1. Homepage Loading (/):**
+- ✅ Homepage loads successfully at root path "/"
+- ✅ Page title: "AI Support Platform - Transform Your Customer Support"
+- ✅ Landing page container with data-testid="landing-page" found
+- ✅ CMS content fetched from /api/admin/pages/public/homepage endpoint
+- ✅ All 3 blocks (Hero, Features, CTA) rendered correctly
+- ✅ No loading errors or console issues
+
+**2. Hero Section:**
+- ✅ Hero badge "Powered by GPT-4o" displays correctly with Bot icon
+- ✅ Main heading "AI-first customer support that actually works" present
+- ✅ "actually works" text properly highlighted in primary color
+- ✅ Hero description: "Deploy intelligent support in minutes. Our AI handles 85% of inquiries instantly, while your team focuses on what matters."
+- ✅ "Start for free" button links to /pricing
+- ✅ "See demo" button links to /widget-demo
+- ✅ Hero image displays properly (AI network visualization)
+- ✅ Professional layout with proper spacing and typography
+
+**3. Features Section:**
+- ✅ "Everything you need" heading displays correctly
+- ✅ Section description: "A complete support platform that grows with your business"
+- ✅ All 6 feature cards present with proper icons and content:
+  1. AI-Powered Responses (Bot icon) - GPT-4o powered responses
+  2. Human Handoff (Users icon) - Seamless escalation to human agents
+  3. Easy Integration (Code icon) - Single line of code widget
+  4. Instant Setup (Zap icon) - Get started in minutes
+  5. Secure & Private (Shield icon) - Enterprise-grade security
+  6. Analytics Dashboard (BarChart3 icon) - Real-time performance tracking
+- ✅ All feature cards have proper styling with icons, titles, and descriptions
+- ✅ Cards use data-testid="feature-card" for testing
+
+**4. CTA Section:**
+- ✅ "Ready to transform your support?" heading displays correctly
+- ✅ CTA description: "Join hundreds of businesses using our platform to deliver exceptional customer experiences."
+- ✅ "Get started free" button links to /pricing
+- ✅ Button uses data-testid="cta-btn" for testing
+- ✅ Professional styling with proper call-to-action design
+
+**5. Navigation:**
+- ✅ Platform logo and name "Kaizen Agents AI" display correctly
+- ✅ Theme toggle button functional (data-testid="theme-toggle")
+- ✅ Theme switching works correctly (light/dark mode)
+- ✅ "Sign in" link (data-testid="login-nav-btn") navigates to /login
+- ✅ "Get Started" link (data-testid="register-nav-btn") navigates to /pricing
+- ✅ All navigation elements properly styled and accessible
+
+**6. Footer:**
+- ✅ Footer displays platform name "Kaizen Agents AI"
+- ✅ Copyright text shows current year (2025) and platform name
+- ✅ Footer logo matches navigation logo
+- ✅ Professional footer styling with proper layout
+
+**7. Button Links Verification:**
+- ✅ Hero "Start for free" button → /pricing
+- ✅ Hero "See demo" button → /widget-demo  
+- ✅ CTA "Get started free" button → /pricing
+- ✅ Navigation "Sign in" → /login
+- ✅ Navigation "Get Started" → /pricing
+- ✅ All links functional and pointing to correct destinations
+
+**8. Responsive Design:**
+- ✅ Desktop view (1920x1080) - Full layout with side-by-side hero content
+- ✅ Tablet view (768x1024) - Responsive layout adapts properly
+- ✅ Mobile view (390x844) - Mobile-optimized layout
+- ✅ All navigation elements remain functional across viewports
+- ✅ Hero section adapts to different screen sizes
+- ✅ Feature cards stack properly on smaller screens
+- ✅ Buttons remain clickable and accessible on all devices
+
+**9. SEO Implementation:**
+- ✅ Page title: "AI Support Platform - Transform Your Customer Support"
+- ✅ Meta description: "Deploy intelligent AI-powered customer support in minutes. Handle 85% of inquiries automatically while your team focuses on what matters."
+- ✅ Meta keywords: "AI support, customer service, chatbot, automation, GPT-4"
+- ✅ Open Graph tags properly configured
+- ✅ Twitter Card settings implemented
+- ✅ Robots directives set correctly (index: true, follow: true)
+
+### Backend API Verification
+
+**CMS Content API (/api/admin/pages/public/homepage):**
+- ✅ API endpoint responds correctly with homepage data
+- ✅ Returns 3 blocks: hero, features, cta with proper structure
+- ✅ Hero block contains all required fields (badge, heading, highlight, description, buttons, image)
+- ✅ Features block contains 6 features with icons (Bot, Users, Code, Zap, Shield, BarChart3)
+- ✅ CTA block contains heading, description, and button configuration
+- ✅ SEO data properly structured and complete
+- ✅ All content matches what's displayed on frontend
+
+### Technical Implementation Verification
+
+**Frontend Components:**
+- ✅ HomePage.js - Successfully replaced static Landing.js
+- ✅ PublicBlockRenderers.js - Properly renders all block types
+- ✅ Dynamic content loading from CMS API
+- ✅ Proper error handling and loading states
+- ✅ SEO meta tags dynamically generated from CMS data
+- ✅ Responsive design implementation working correctly
+
+**Backend Integration:**
+- ✅ /api/admin/pages/public/homepage endpoint functional
+- ✅ Page data properly stored in database with blocks structure
+- ✅ SEO configuration complete and accessible
+- ✅ Public endpoint requires no authentication
+- ✅ Content management system fully operational
+
+### Test Environment Details
+- **Frontend URL:** https://cms-homepage-swap.preview.emergentagent.com
+- **API Endpoint:** /api/admin/pages/public/homepage
+- **Testing Viewports:** Desktop (1920x1080), Tablet (768x1024), Mobile (390x844)
+- **Browser Testing:** Automated testing with Playwright
+
+### Screenshots Captured
+1. Homepage initial state (desktop view)
+2. Homepage detailed content verification
+3. Mobile responsive view
+4. Final homepage verification
+
+### Conclusion
+The CMS-powered homepage is **FULLY FUNCTIONAL** and successfully replaces the static Landing.js file. All test cases passed:
+
+**Status: READY FOR PRODUCTION** ✅
+
+### Key Features Verified
+- ✅ **Dynamic Content:** Homepage content fully managed through CMS
+- ✅ **Block System:** Hero, Features, and CTA blocks render correctly
+- ✅ **Navigation:** All navigation elements functional with correct links
+- ✅ **Responsive Design:** Works perfectly across all device sizes
+- ✅ **SEO Optimization:** Complete SEO implementation with meta tags
+- ✅ **Performance:** Fast loading with proper error handling
+- ✅ **User Experience:** Professional design with intuitive navigation
+
+### Recommendations
+1. The CMS-powered homepage is complete and production-ready
+2. All content blocks render correctly with proper styling
+3. Navigation and button links work as expected
+4. Responsive design provides excellent user experience across devices
+5. SEO implementation is comprehensive and search-engine friendly
+6. System ready for immediate production deployment
+
+---
+*CMS-Powered Homepage Test completed on: December 13, 2025*
+*Tester: Testing Agent*
+*Environment: Production Preview*
+
