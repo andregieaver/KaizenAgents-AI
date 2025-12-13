@@ -213,6 +213,10 @@ const DashboardLayout = () => {
     ? { path: '/dashboard/observability', icon: AlertTriangle, label: 'Observability', isAdmin: true }
     : null;
 
+  const planManagementNavItem = user?.is_super_admin
+    ? { path: '/dashboard/admin/plans', icon: DollarSign, label: 'Plan Management', isAdmin: true }
+    : null;
+
   const isActive = (path) => {
     if (path === '/dashboard') {
       return location.pathname === '/dashboard';
