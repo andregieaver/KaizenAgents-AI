@@ -18,10 +18,10 @@ import {
   Image as ImageIcon,
   Twitter,
   Upload,
-  Eye,
-  Code
+  Layers
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ContentBlocks from '../components/ContentBlocks';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -40,6 +40,7 @@ const PageEditor = () => {
     slug: '',
     path: '',
     content: '',
+    blocks: [],
     visible: true,
     seo: {
       title: '',
@@ -85,6 +86,7 @@ const PageEditor = () => {
         slug: page.slug,
         path: page.path,
         content: page.content || '',
+        blocks: page.blocks || [],
         visible: page.visible,
         seo: {
           title: page.seo?.title || '',
@@ -153,17 +155,27 @@ const PageEditor = () => {
 
     setSaving(true);
     try {
+      const payload = {
+        name: formData.name,
+        slug: formData.slug,
+        path: formData.path,
+        content: formData.content,
+        blocks: formData.blocks,
+        visible: formData.visible,
+        seo: formData.seo
+      };
+
       if (isEditMode) {
         await axios.put(
           `${API}/admin/pages/${slug}`,
-          { ...formData, name: formData.name, content: formData.content, visible: formData.visible, seo: formData.seo },
+          payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success('Page updated successfully');
       } else {
         await axios.post(
           `${API}/admin/pages`,
-          formData,
+          payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success('Page created successfully');
@@ -334,26 +346,22 @@ const PageEditor = () => {
             </CardContent>
           </Card>
 
-          {/* Page Content */}
+          {/* Page Content Blocks */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Code className="h-5 w-5" />
+                <Layers className="h-5 w-5" />
                 Page Content
               </CardTitle>
-              <CardDescription>HTML content for your page</CardDescription>
+              <CardDescription>
+                Build your page with draggable content blocks
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <Textarea
-                value={formData.content}
-                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                placeholder="<h1>Welcome</h1><p>Your content here...</p>"
-                rows={20}
-                className="font-mono text-sm"
+              <ContentBlocks
+                blocks={formData.blocks}
+                onChange={(blocks) => setFormData({ ...formData, blocks })}
               />
-              <p className="text-xs text-muted-foreground mt-2">
-                Supports HTML for flexible layouts and styling
-              </p>
             </CardContent>
           </Card>
         </div>
