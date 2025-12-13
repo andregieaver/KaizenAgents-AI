@@ -474,6 +474,142 @@ const AdminPages = () => {
                   Comma-separated keywords (optional)
                 </p>
               </div>
+
+              <div>
+                <Label htmlFor="canonical-url">Canonical URL</Label>
+                <Input
+                  id="canonical-url"
+                  value={formData.seo.canonical_url}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    seo: { ...formData.seo, canonical_url: e.target.value }
+                  })}
+                  placeholder="/your-page"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Preferred URL for this page (prevents duplicate content issues)
+                </p>
+              </div>
+            </div>
+
+            {/* Robots Meta Tags */}
+            <div className="space-y-4 pt-4 border-t border-border">
+              <div>
+                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  Search Engine Directives
+                </h3>
+                <p className="text-xs text-muted-foreground mb-4">
+                  Control how search engines crawl and index this page
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm">Indexable</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Allow search engines to index
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.seo.robots.index}
+                    onCheckedChange={(checked) => 
+                      setFormData({
+                        ...formData,
+                        seo: {
+                          ...formData.seo,
+                          robots: { ...formData.seo.robots, index: checked }
+                        }
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm">Follow Links</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Allow following links
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.seo.robots.follow}
+                    onCheckedChange={(checked) => 
+                      setFormData({
+                        ...formData,
+                        seo: {
+                          ...formData.seo,
+                          robots: { ...formData.seo.robots, follow: checked }
+                        }
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm">No Archive</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Prevent cached copies
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.seo.robots.noarchive}
+                    onCheckedChange={(checked) => 
+                      setFormData({
+                        ...formData,
+                        seo: {
+                          ...formData.seo,
+                          robots: { ...formData.seo.robots, noarchive: checked }
+                        }
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm">No Snippet</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Prevent description snippet
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.seo.robots.nosnippet}
+                    onCheckedChange={(checked) => 
+                      setFormData({
+                        ...formData,
+                        seo: {
+                          ...formData.seo,
+                          robots: { ...formData.seo.robots, nosnippet: checked }
+                        }
+                      })
+                    }
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 bg-muted rounded-lg col-span-2">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm">No Image Index</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Prevent images from being indexed
+                    </p>
+                  </div>
+                  <Switch
+                    checked={formData.seo.robots.noimageindex}
+                    onCheckedChange={(checked) => 
+                      setFormData({
+                        ...formData,
+                        seo: {
+                          ...formData.seo,
+                          robots: { ...formData.seo.robots, noimageindex: checked }
+                        }
+                      })
+                    }
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Open Graph */}
