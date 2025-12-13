@@ -1,0 +1,228 @@
+"""
+Stripe integration service for subscription management
+"""
+import stripe
+import os
+from typing import Dict, Any, Optional
+from utils.logger import log_info, log_error
+
+# Initialize Stripe
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
+
+class StripeService:
+    """Stripe API wrapper for subscription management"""
+    
+    @staticmethod
+    def is_configured() -> bool:
+        """Check if Stripe is configured"""
+        return bool(stripe.api_key and stripe.api_key != "")
+    
+    @staticmethod
+    async def create_product(plan_id: str, name: str, description: str) -> Optional[str]:
+        """
+        Create a Stripe product
+        Returns: product_id or None if Stripe not configured
+        """
+        if not StripeService.is_configured():
+            log_info("Stripe not configured, skipping product creation")
+            return None
+        
+        try:
+            product = stripe.Product.create(
+                name=name,
+                description=description,
+                metadata={"plan_id": plan_id}
+            )
+            log_info(f"Created Stripe product: {product.id}", plan_id=plan_id)
+            return product.id
+        except Exception as e:
+            log_error(f"Failed to create Stripe product", error=e, plan_id=plan_id)
+            return None
+    
+    @staticmethod
+    async def update_product(product_id: str, name: str, description: str) -> bool:
+        """Update a Stripe product"""
+        if not StripeService.is_configured():
+            return False
+        
+        try:
+            stripe.Product.modify(
+                product_id,
+                name=name,
+                description=description
+            )
+            log_info(f"Updated Stripe product: {product_id}")
+            return True
+        except Exception as e:
+            log_error(f"Failed to update Stripe product", error=e, product_id=product_id)
+            return False
+    
+    @staticmethod
+    async def delete_product(product_id: str) -> bool:
+        """Delete (archive) a Stripe product"""
+        if not StripeService.is_configured():
+            return False
+        
+        try:
+            stripe.Product.modify(product_id, active=False)
+            log_info(f"Archived Stripe product: {product_id}")
+            return True
+        except Exception as e:
+            log_error(f"Failed to archive Stripe product", error=e, product_id=product_id)
+            return False
+    
+    @staticmethod
+    async def create_price(
+        product_id: str,
+        amount: float,
+        interval: str,
+        currency: str = "usd"
+    ) -> Optional[str]:
+        """
+        Create a Stripe price
+        Returns: price_id or None if Stripe not configured
+        """
+        if not StripeService.is_configured():
+            return None
+        
+        try:
+            # Convert amount to cents
+            amount_cents = int(amount * 100)
+            
+            price = stripe.Price.create(
+                product=product_id,
+                unit_amount=amount_cents,
+                currency=currency,
+                recurring={"interval": interval}
+            )
+            log_info(f"Created Stripe price: {price.id}", product_id=product_id, amount=amount, interval=interval)
+            return price.id
+        except Exception as e:
+            log_error(f"Failed to create Stripe price", error=e, product_id=product_id)
+            return None
+    
+    @staticmethod
+    async def create_customer(email: str, name: str, tenant_id: str) -> Optional[str]:
+        """
+        Create a Stripe customer
+        Returns: customer_id or None
+        """
+        if not StripeService.is_configured():
+            return None
+        
+        try:
+            customer = stripe.Customer.create(
+                email=email,
+                name=name,
+                metadata={"tenant_id": tenant_id}
+            )
+            log_info(f"Created Stripe customer: {customer.id}", tenant_id=tenant_id)
+            return customer.id
+        except Exception as e:
+            log_error(f"Failed to create Stripe customer", error=e, tenant_id=tenant_id)
+            return None
+    
+    @staticmethod
+    async def create_checkout_session(
+        customer_id: str,
+        price_id: str,
+        success_url: str,
+        cancel_url: str,
+        tenant_id: str,
+        plan_id: str,
+        trial_days: int = 0
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Create a Stripe checkout session
+        Returns: {session_id, url} or None
+        """
+        if not StripeService.is_configured():
+            return None
+        
+        try:
+            session_params = {
+                "customer": customer_id,
+                "payment_method_types": ["card"],
+                "line_items": [{
+                    "price": price_id,
+                    "quantity": 1
+                }],
+                "mode": "subscription",
+                "success_url": success_url,
+                "cancel_url": cancel_url,
+                "metadata": {
+                    "tenant_id": tenant_id,
+                    "plan_id": plan_id
+                }
+            }
+            
+            # Add trial period if specified
+            if trial_days > 0:
+                session_params["subscription_data"] = {
+                    "trial_period_days": trial_days
+                }
+            
+            session = stripe.checkout.Session.create(**session_params)
+            
+            log_info(f"Created Stripe checkout session: {session.id}", tenant_id=tenant_id, plan_id=plan_id)
+            return {
+                "session_id": session.id,
+                "url": session.url
+            }
+        except Exception as e:
+            log_error(f"Failed to create Stripe checkout session", error=e, tenant_id=tenant_id)
+            return None
+    
+    @staticmethod
+    async def cancel_subscription(subscription_id: str) -> bool:
+        """Cancel a Stripe subscription"""
+        if not StripeService.is_configured():
+            return False
+        
+        try:
+            stripe.Subscription.delete(subscription_id)
+            log_info(f"Canceled Stripe subscription: {subscription_id}")
+            return True
+        except Exception as e:
+            log_error(f"Failed to cancel Stripe subscription", error=e, subscription_id=subscription_id)
+            return False
+    
+    @staticmethod
+    async def get_subscription(subscription_id: str) -> Optional[Dict[str, Any]]:
+        """Get Stripe subscription details"""
+        if not StripeService.is_configured():
+            return None
+        
+        try:
+            subscription = stripe.Subscription.retrieve(subscription_id)
+            return {
+                "id": subscription.id,
+                "status": subscription.status,
+                "current_period_start": subscription.current_period_start,
+                "current_period_end": subscription.current_period_end,
+                "cancel_at_period_end": subscription.cancel_at_period_end,
+                "trial_end": subscription.trial_end
+            }
+        except Exception as e:
+            log_error(f"Failed to get Stripe subscription", error=e, subscription_id=subscription_id)
+            return None
+    
+    @staticmethod
+    async def create_portal_session(customer_id: str, return_url: str) -> Optional[str]:
+        """
+        Create a Stripe customer portal session
+        Returns: portal URL or None
+        """
+        if not StripeService.is_configured():
+            return None
+        
+        try:
+            session = stripe.billing_portal.Session.create(
+                customer=customer_id,
+                return_url=return_url
+            )
+            log_info(f"Created Stripe portal session", customer_id=customer_id)
+            return session.url
+        except Exception as e:
+            log_error(f"Failed to create Stripe portal session", error=e, customer_id=customer_id)
+            return None
