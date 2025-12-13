@@ -27,7 +27,8 @@ import {
   AlertTriangle,
   BarChart3,
   CreditCard,
-  DollarSign
+  DollarSign,
+  Plug
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
