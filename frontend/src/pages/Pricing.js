@@ -351,6 +351,15 @@ const Pricing = () => {
                         : 'Unlimited history'}
                     </span>
                   </div>
+                  {/* Custom Feature Items */}
+                  {plan.features.custom_items && plan.features.custom_items.length > 0 && (
+                    plan.features.custom_items.map((item, itemIndex) => (
+                      <div key={itemIndex} className="flex items-center gap-2 text-sm">
+                        <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
+                        <span>{item}</span>
+                      </div>
+                    ))
+                  )}
                 </div>
               </CardContent>
 
