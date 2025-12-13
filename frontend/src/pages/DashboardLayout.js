@@ -233,8 +233,9 @@ const DashboardLayout = () => {
 
   const pagesNavItem = user?.is_super_admin
     ? { path: '/dashboard/admin/pages', icon: FileText, label: 'Pages', isAdmin: true }
-    : null,
-    user?.role === 'owner'
+    : null;
+
+  const componentsNavItem = user?.role === 'owner'
     ? { path: '/dashboard/admin/components', icon: Layout, label: 'Global Components', isAdmin: true }
     : null;
 
