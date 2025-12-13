@@ -12,6 +12,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '../components/ui/accordion';
+import {
+  renderHeroBlock,
+  renderFeaturesBlock,
+  renderCTABlock,
+  renderButtonBlock
+} from '../components/PublicBlockRenderers';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -225,6 +231,18 @@ const CustomPage = () => {
                           )}
                         </div>
                       ) : null;
+
+                    case 'hero':
+                      return renderHeroBlock(block);
+
+                    case 'features':
+                      return renderFeaturesBlock(block);
+
+                    case 'cta':
+                      return renderCTABlock(block);
+
+                    case 'button':
+                      return renderButtonBlock(block);
 
                     case 'faq':
                       const faqItems = (block.content?.items || []).sort((a, b) => a.order - b.order);
