@@ -47,6 +47,7 @@ import {
 } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 import RowEditor from './RowEditor';
+import { HeroBlockEditor, FeatureGridEditor, CTABlockEditor, ButtonBlockEditor } from './HomepageBlocks';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import {
@@ -592,6 +593,18 @@ const ContentBlocks = ({ blocks, onChange }) => {
           />
         );
 
+      case 'hero':
+        return <HeroBlockEditor block={block} updateBlock={updateBlock} />;
+
+      case 'features':
+        return <FeatureGridEditor block={block} updateBlock={updateBlock} />;
+
+      case 'cta':
+        return <CTABlockEditor block={block} updateBlock={updateBlock} />;
+
+      case 'button':
+        return <ButtonBlockEditor block={block} updateBlock={updateBlock} />;
+
       case 'faq':
         const faqItems = (block.content.items || []).sort((a, b) => a.order - b.order);
         return (
@@ -736,6 +749,22 @@ const ContentBlocks = ({ blocks, onChange }) => {
                         <Columns className="h-4 w-4 mr-2" />
                         Row Layout
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('hero')}>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Hero Section
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('features')}>
+                        <Grid3x3 className="h-4 w-4 mr-2" />
+                        Feature Grid
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('cta')}>
+                        <Megaphone className="h-4 w-4 mr-2" />
+                        Call to Action
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('button')}>
+                        <MousePointerClick className="h-4 w-4 mr-2" />
+                        Button
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </CardContent>
@@ -787,6 +816,22 @@ const ContentBlocks = ({ blocks, onChange }) => {
             <DropdownMenuItem onClick={() => addBlock('row')}>
               <Columns className="h-4 w-4 mr-2" />
               Row Layout
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock('hero')}>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Hero Section
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock('features')}>
+              <Grid3x3 className="h-4 w-4 mr-2" />
+              Feature Grid
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock('cta')}>
+              <Megaphone className="h-4 w-4 mr-2" />
+              Call to Action
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock('button')}>
+              <MousePointerClick className="h-4 w-4 mr-2" />
+              Button
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
