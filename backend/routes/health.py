@@ -4,8 +4,13 @@ Health check and observability routes
 from fastapi import APIRouter, HTTPException, Depends
 from datetime import datetime, timezone
 from typing import Dict, Any
-import psutil
 import os
+
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
 
 from middleware import get_super_admin_user
 from middleware.database import db
@@ -46,9 +51,11 @@ async def detailed_health_check(current_user: dict = Depends(get_super_admin_use
         "status": "healthy",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "service": "AI Support Hub API",
-        "version": "1.0.0",
-        "uptime_seconds": int(datetime.now().timestamp() - psutil.boot_time())
+        "version": "1.0.0"
     }
+    
+    if PSUTIL_AVAILABLE:
+        health_data["uptime_seconds"] = int(datetime.now().timestamp() - psutil.boot_time())
     
     # Database check
     try:
@@ -78,18 +85,21 @@ async def detailed_health_check(current_user: dict = Depends(get_super_admin_use
         }
     
     # System metrics
-    try:
-        health_data["system"] = {
-            "cpu_percent": psutil.cpu_percent(interval=0.1),
-            "memory_percent": psutil.virtual_memory().percent,
-            "memory_used_mb": psutil.virtual_memory().used / (1024 * 1024),
-            "memory_total_mb": psutil.virtual_memory().total / (1024 * 1024),
-            "disk_percent": psutil.disk_usage('/').percent,
-            "disk_used_gb": psutil.disk_usage('/').used / (1024 * 1024 * 1024),
-            "disk_total_gb": psutil.disk_usage('/').total / (1024 * 1024 * 1024)
-        }
-    except Exception as e:
-        health_data["system"] = {"error": str(e)}
+    if PSUTIL_AVAILABLE:
+        try:
+            health_data["system"] = {
+                "cpu_percent": psutil.cpu_percent(interval=0.1),
+                "memory_percent": psutil.virtual_memory().percent,
+                "memory_used_mb": psutil.virtual_memory().used / (1024 * 1024),
+                "memory_total_mb": psutil.virtual_memory().total / (1024 * 1024),
+                "disk_percent": psutil.disk_usage('/').percent,
+                "disk_used_gb": psutil.disk_usage('/').used / (1024 * 1024 * 1024),
+                "disk_total_gb": psutil.disk_usage('/').total / (1024 * 1024 * 1024)
+            }
+        except Exception as e:
+            health_data["system"] = {"error": str(e)}
+    else:
+        health_data["system"] = {"available": False, "message": "psutil not installed"}
     
     return health_data
 
