@@ -59,14 +59,29 @@ const AdminPages = () => {
       title: '',
       description: '',
       keywords: '',
+      canonical_url: '',
       og: {
         title: '',
         description: '',
         image: '',
         url: ''
+      },
+      twitter: {
+        card: 'summary_large_image',
+        site: '',
+        creator: ''
+      },
+      robots: {
+        index: true,
+        follow: true,
+        noarchive: false,
+        nosnippet: false,
+        noimageindex: false
       }
     }
   });
+
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     fetchPages();
@@ -95,11 +110,24 @@ const AdminPages = () => {
         title: page.seo?.title || '',
         description: page.seo?.description || '',
         keywords: page.seo?.keywords || '',
+        canonical_url: page.seo?.canonical_url || page.path,
         og: {
           title: page.seo?.og?.title || '',
           description: page.seo?.og?.description || '',
           image: page.seo?.og?.image || '',
           url: page.seo?.og?.url || page.path
+        },
+        twitter: {
+          card: page.seo?.twitter?.card || 'summary_large_image',
+          site: page.seo?.twitter?.site || '',
+          creator: page.seo?.twitter?.creator || ''
+        },
+        robots: {
+          index: page.seo?.robots?.index !== false,
+          follow: page.seo?.robots?.follow !== false,
+          noarchive: page.seo?.robots?.noarchive || false,
+          nosnippet: page.seo?.robots?.nosnippet || false,
+          noimageindex: page.seo?.robots?.noimageindex || false
         }
       }
     });
@@ -137,6 +165,59 @@ const AdminPages = () => {
       toast.success('Page reset to defaults');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to reset page');
+    }
+  };
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please upload an image file');
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB');
+      return;
+    }
+
+    setUploadingImage(true);
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+
+      const response = await axios.post(
+        `${API}/admin/pages/upload-og-image/${selectedPage.slug}`,
+        formDataUpload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      );
+
+      // Update form data with new image URL
+      const fullUrl = `${process.env.REACT_APP_BACKEND_URL}${response.data.url}`;
+      setFormData({
+        ...formData,
+        seo: {
+          ...formData.seo,
+          og: {
+            ...formData.seo.og,
+            image: fullUrl
+          }
+        }
+      });
+
+      toast.success('Image uploaded successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload image');
+    } finally {
+      setUploadingImage(false);
     }
   };
 
