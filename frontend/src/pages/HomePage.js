@@ -24,6 +24,12 @@ const HomePage = () => {
         // Fetch homepage content
         const pageResponse = await axios.get(`${API}/admin/pages/public/homepage`);
         setPage(pageResponse.data);
+        
+        // Fetch platform info
+        const platformResponse = await axios.get(`${API}/public/platform-info`);
+        if (platformResponse.data?.platform_name) {
+          setPlatformName(platformResponse.data.platform_name);
+        }
       } catch (error) {
         console.debug('Error fetching homepage data:', error);
       } finally {
