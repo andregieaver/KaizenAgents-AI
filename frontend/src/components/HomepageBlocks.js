@@ -7,9 +7,9 @@ import {
   Plus,
   Trash2,
   Upload,
-  Loader2,
-  * as Icons
+  Loader2
 } from 'lucide-react';
+import * as Icons from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useState } from 'react';
