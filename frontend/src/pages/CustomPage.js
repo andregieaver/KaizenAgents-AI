@@ -125,10 +125,31 @@ const CustomPage = () => {
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-12">
-          <article 
-            className="prose prose-slate dark:prose-invert max-w-4xl mx-auto"
-            dangerouslySetInnerHTML={{ __html: page?.content || '<p>No content available</p>' }}
-          />
+          {page?.blocks && page.blocks.length > 0 ? (
+            <div className="max-w-4xl mx-auto space-y-6">
+              {page.blocks
+                .sort((a, b) => a.order - b.order)
+                .map((block) => {
+                  switch (block.type) {
+                    case 'text':
+                      return (
+                        <article
+                          key={block.id}
+                          className="prose prose-slate dark:prose-invert max-w-none"
+                          dangerouslySetInnerHTML={{ __html: block.content?.html || '' }}
+                        />
+                      );
+                    default:
+                      return null;
+                  }
+                })}
+            </div>
+          ) : (
+            <article 
+              className="prose prose-slate dark:prose-invert max-w-4xl mx-auto"
+              dangerouslySetInnerHTML={{ __html: page?.content || '<p>No content available</p>' }}
+            />
+          )}
         </main>
       </div>
     </>
