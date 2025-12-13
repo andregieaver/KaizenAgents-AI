@@ -30,7 +30,8 @@ import {
   DollarSign,
   Plug,
   Tag,
-  Gift
+  Gift,
+  FileText
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -227,6 +228,10 @@ const DashboardLayout = () => {
 
   const discountCodesNavItem = user?.is_super_admin
     ? { path: '/dashboard/admin/discounts', icon: Tag, label: 'Discount Codes', isAdmin: true }
+    : null;
+
+  const pagesNavItem = user?.is_super_admin
+    ? { path: '/dashboard/admin/pages', icon: FileText, label: 'Pages', isAdmin: true }
     : null;
 
   const isActive = (path) => {
