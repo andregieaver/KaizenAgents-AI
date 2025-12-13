@@ -227,3 +227,28 @@ The Integrations page is **FULLY FUNCTIONAL** and working as designed. All core 
 *Test completed on: December 13, 2025*
 *Tester: Testing Agent*
 *Environment: Production Preview*
+
+---
+
+## Custom Feature Items in Plan Management
+
+### Test Scope
+- Add custom feature items to plans
+- Edit custom feature items
+- Delete custom feature items
+- Reorder (sort) custom feature items
+- Verify custom items display on Pricing page
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Test Instructions
+1. Navigate to /dashboard/admin/plans as super admin
+2. Click Edit on the Professional plan
+3. Scroll down to "Custom Feature Items" section
+4. Test adding a new feature item
+5. Test editing an existing feature item
+6. Test reordering feature items using up/down arrows
+7. Test deleting a feature item
+8. Save the plan
+9. Navigate to /pricing and verify custom items display on the plan card
