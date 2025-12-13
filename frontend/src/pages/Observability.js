@@ -28,10 +28,10 @@ const Observability = () => {
   const fetchData = async () => {
     try {
       const [healthRes, metricsRes] = await Promise.all([
-        axios.get(`${API}/health/detailed`, {
+        axios.get(`${API}/api/health/detailed`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get(`${API}/metrics`, {
+        axios.get(`${API}/api/metrics`, {
           headers: { Authorization: `Bearer ${token}` }
         })
       ]);
