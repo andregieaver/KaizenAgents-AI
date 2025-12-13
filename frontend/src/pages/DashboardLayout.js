@@ -28,7 +28,8 @@ import {
   BarChart3,
   CreditCard,
   DollarSign,
-  Plug
+  Plug,
+  Tag
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
