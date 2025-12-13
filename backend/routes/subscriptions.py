@@ -24,6 +24,7 @@ class PlanFeatures(BaseModel):
     conversation_history_days: Optional[int] = 30  # None = unlimited
     remove_branding: bool = False
     custom_integrations: bool = False
+    custom_items: Optional[List[str]] = None  # Custom feature items for display
 
 class PlanCreate(BaseModel):
     name: str
