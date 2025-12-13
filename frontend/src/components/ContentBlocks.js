@@ -1,5 +1,20 @@
 import { useState } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -30,8 +45,95 @@ import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Sortable Block Item Component
+const SortableBlockItem = ({ block, children, onDelete }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: block.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const getBlockIcon = (type) => {
+    switch (type) {
+      case 'text':
+        return <Type className="h-4 w-4" />;
+      case 'image':
+        return <ImageIcon className="h-4 w-4" />;
+      case 'video':
+        return <Video className="h-4 w-4" />;
+      case 'code':
+        return <Code className="h-4 w-4" />;
+      default:
+        return <Type className="h-4 w-4" />;
+    }
+  };
+
+  const getBlockLabel = (type) => {
+    switch (type) {
+      case 'text':
+        return 'Text Block';
+      case 'image':
+        return 'Image Block';
+      case 'video':
+        return 'Video Block';
+      case 'code':
+        return 'Code Block';
+      default:
+        return 'Block';
+    }
+  };
+
+  return (
+    <Card ref={setNodeRef} style={style} className={isDragging ? 'shadow-lg' : ''}>
+      <CardHeader className="p-3 bg-muted/30 flex flex-row items-center gap-3">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing"
+        >
+          <GripVertical className="h-5 w-5 text-muted-foreground" />
+        </div>
+        <div className="flex items-center gap-2 flex-1">
+          {getBlockIcon(block.type)}
+          <span className="text-sm font-medium">
+            {getBlockLabel(block.type)}
+          </span>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={() => onDelete(block.id)}
+          className="h-8 w-8"
+        >
+          <Trash2 className="h-4 w-4 text-destructive" />
+        </Button>
+      </CardHeader>
+      <CardContent className="p-4">
+        {children}
+      </CardContent>
+    </Card>
+  );
+};
+
 const ContentBlocks = ({ blocks, onChange }) => {
   const [localBlocks, setLocalBlocks] = useState(blocks || []);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   const handleBlocksChange = (newBlocks) => {
     setLocalBlocks(newBlocks);
@@ -62,19 +164,20 @@ const ContentBlocks = ({ blocks, onChange }) => {
     handleBlocksChange(updatedBlocks);
   };
 
-  const handleDragEnd = (result) => {
-    if (!result.destination) return;
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
 
-    const items = Array.from(localBlocks);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
+    if (active.id !== over?.id) {
+      const oldIndex = localBlocks.findIndex((block) => block.id === active.id);
+      const newIndex = localBlocks.findIndex((block) => block.id === over.id);
 
-    const reorderedBlocks = items.map((block, index) => ({
-      ...block,
-      order: index
-    }));
+      const reorderedBlocks = arrayMove(localBlocks, oldIndex, newIndex).map((block, index) => ({
+        ...block,
+        order: index
+      }));
 
-    handleBlocksChange(reorderedBlocks);
+      handleBlocksChange(reorderedBlocks);
+    }
   };
 
   const [uploadingImage, setUploadingImage] = useState(null);
@@ -340,124 +443,65 @@ const ContentBlocks = ({ blocks, onChange }) => {
     }
   };
 
-  const getBlockIcon = (type) => {
-    switch (type) {
-      case 'text':
-        return <Type className="h-4 w-4" />;
-      case 'image':
-        return <ImageIcon className="h-4 w-4" />;
-      case 'video':
-        return <Video className="h-4 w-4" />;
-      case 'code':
-        return <Code className="h-4 w-4" />;
-      default:
-        return <Type className="h-4 w-4" />;
-    }
-  };
-
-  const getBlockLabel = (type) => {
-    switch (type) {
-      case 'text':
-        return 'Text Block';
-      case 'image':
-        return 'Image Block';
-      case 'video':
-        return 'Video Block';
-      case 'code':
-        return 'Code Block';
-      default:
-        return 'Block';
-    }
-  };
-
   return (
     <div className="space-y-4">
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <Droppable droppableId="content-blocks">
-          {(provided, snapshot) => (
-            <div
-              {...provided.droppableProps}
-              ref={provided.innerRef}
-              className="space-y-4"
-            >
-              {localBlocks.length === 0 ? (
-                <Card className="border-dashed border-2">
-                  <CardContent className="py-12 text-center">
-                    <Type className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground mb-4">No content blocks yet</p>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add First Block
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => addBlock('text')}>
-                          <Type className="h-4 w-4 mr-2" />
-                          Text Block
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => addBlock('image')}>
-                          <ImageIcon className="h-4 w-4 mr-2" />
-                          Image Block
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => addBlock('video')}>
-                          <Video className="h-4 w-4 mr-2" />
-                          Video Block
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => addBlock('code')}>
-                          <Code className="h-4 w-4 mr-2" />
-                          Code Block
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </CardContent>
-                </Card>
-              ) : (
-                localBlocks.map((block, index) => (
-                  <Draggable key={block.id} draggableId={block.id} index={index}>
-                    {(provided, snapshot) => (
-                      <Card
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        className={snapshot.isDragging ? 'shadow-lg' : ''}
-                      >
-                        <CardHeader className="p-3 bg-muted/30 flex flex-row items-center gap-3">
-                          <div
-                            {...provided.dragHandleProps}
-                            className="cursor-grab active:cursor-grabbing"
-                          >
-                            <GripVertical className="h-5 w-5 text-muted-foreground" />
-                          </div>
-                          <div className="flex items-center gap-2 flex-1">
-                            {getBlockIcon(block.type)}
-                            <span className="text-sm font-medium">
-                              {getBlockLabel(block.type)}
-                            </span>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => deleteBlock(block.id)}
-                            className="h-8 w-8"
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </CardHeader>
-                        <CardContent className="p-4">
-                          {renderBlockContent(block)}
-                        </CardContent>
-                      </Card>
-                    )}
-                  </Draggable>
-                ))
-              )}
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
-      </DragDropContext>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={localBlocks.map(block => block.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-4">
+            {localBlocks.length === 0 ? (
+              <Card className="border-dashed border-2">
+                <CardContent className="py-12 text-center">
+                  <Type className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground mb-4">No content blocks yet</p>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add First Block
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onClick={() => addBlock('text')}>
+                        <Type className="h-4 w-4 mr-2" />
+                        Text Block
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('image')}>
+                        <ImageIcon className="h-4 w-4 mr-2" />
+                        Image Block
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('video')}>
+                        <Video className="h-4 w-4 mr-2" />
+                        Video Block
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('code')}>
+                        <Code className="h-4 w-4 mr-2" />
+                        Code Block
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </CardContent>
+              </Card>
+            ) : (
+              localBlocks.map((block) => (
+                <SortableBlockItem
+                  key={block.id}
+                  block={block}
+                  onDelete={deleteBlock}
+                >
+                  {renderBlockContent(block)}
+                </SortableBlockItem>
+              ))
+            )}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {localBlocks.length > 0 && (
         <DropdownMenu>
