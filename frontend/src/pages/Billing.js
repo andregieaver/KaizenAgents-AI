@@ -88,8 +88,8 @@ const Billing = () => {
 
   if (loading) {
     return (
-      <div className=\"flex items-center justify-center h-[400px]\">
-        <Loader2 className=\"h-8 w-8 animate-spin text-muted-foreground\" />
+      <div className="flex items-center justify-center h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -99,75 +99,77 @@ const Billing = () => {
   const maxUsagePercent = Math.max(conversationUsagePercent, agentUsagePercent);
 
   return (
-    <div className=\"p-6 space-y-6\">
+    <div className="p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className=\"text-3xl font-bold flex items-center gap-3\">
-          <CreditCard className=\"h-8 w-8\" />
+        <h1 className="text-3xl font-bold flex items-center gap-3">
+          <CreditCard className="h-8 w-8" />
           Billing & Subscription
         </h1>
-        <p className=\"text-muted-foreground mt-2\">
+        <p className="text-muted-foreground mt-2">
           Manage your subscription and monitor usage
         </p>
       </div>
 
       {/* Soft Limit Warning */}
       {maxUsagePercent >= 90 && (
-        <Alert className=\"border-amber-500 bg-amber-500/10\">
-          <AlertTriangle className=\"h-4 w-4 text-amber-500\" />
-          <AlertDescription className=\"text-amber-500\">
+        <Alert className="border-amber-500 bg-amber-500/10">
+          <AlertTriangle className="h-4 w-4 text-amber-500" />
+          <AlertDescription className="text-amber-500">
             <strong>Usage Warning:</strong> You're approaching your plan limits. Consider upgrading to avoid interruptions.
           </AlertDescription>
         </Alert>
       )}
 
       {/* Current Plan */}
-      <Card className=\"border border-border\">
+      <Card className="border border-border">
         <CardHeader>
-          <div className=\"flex items-center justify-between\">
+          <div className="flex items-center justify-between">
             <div>
               <CardTitle>Current Plan</CardTitle>
               <CardDescription>Your active subscription</CardDescription>
             </div>
             {subscription?.status === 'active' && (
-              <Badge className=\"bg-green-500\">
-                <CheckCircle className=\"h-3 w-3 mr-1\" />
+              <Badge className="bg-green-500">
+                <CheckCircle className="h-3 w-3 mr-1" />
                 Active
               </Badge>
             )}
           </div>
         </CardHeader>
-        <CardContent className=\"space-y-6\">
-          <div className=\"flex items-start justify-between\">
+        <CardContent className="space-y-6">
+          <div className="flex items-start justify-between">
             <div>
-              <h3 className=\"text-2xl font-bold\">{subscription?.plan_name}</h3>
-              <p className=\"text-muted-foreground mt-1\">
+              <h3 className="text-2xl font-bold">{subscription?.plan_name || 'Free'}</h3>
+              <p className="text-muted-foreground mt-1">
                 {subscription?.billing_cycle === 'yearly' ? 'Annual billing' : 'Monthly billing'}
               </p>
               {subscription?.trial_end && new Date(subscription.trial_end) > new Date() && (
-                <Badge variant=\"outline\" className=\"mt-2 border-blue-500 text-blue-500\">
+                <Badge variant="outline" className="mt-2 border-blue-500 text-blue-500">
                   Trial until {new Date(subscription.trial_end).toLocaleDateString()}
                 </Badge>
               )}
             </div>
-            <div className=\"text-right\">
-              <p className=\"text-sm text-muted-foreground\">Next billing date</p>
-              <p className=\"font-semibold\">
-                {new Date(subscription?.current_period_end).toLocaleDateString()}
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Next billing date</p>
+              <p className="font-semibold">
+                {subscription?.current_period_end 
+                  ? new Date(subscription.current_period_end).toLocaleDateString()
+                  : 'N/A'}
               </p>
             </div>
           </div>
 
-          <div className=\"flex gap-3\">
-            <Button onClick={handleUpgrade} className=\"flex-1\">
-              <TrendingUp className=\"h-4 w-4 mr-2\" />
+          <div className="flex gap-3">
+            <Button onClick={handleUpgrade} className="flex-1">
+              <TrendingUp className="h-4 w-4 mr-2" />
               Upgrade Plan
             </Button>
             {subscription?.plan_name !== 'Free' && subscription?.stripe_subscription_id && (
               <Button
-                variant=\"outline\"
+                variant="outline"
                 onClick={handleCancel}
-                className=\"flex-1\"
+                className="flex-1"
               >
                 Cancel Subscription
               </Button>
@@ -177,94 +179,94 @@ const Billing = () => {
       </Card>
 
       {/* Usage */}
-      <Card className=\"border border-border\">
-        <CardHeader>
-          <CardTitle>Usage This Period</CardTitle>
-          <CardDescription>
-            Period: {new Date(usage?.period_start).toLocaleDateString()} - {new Date(usage?.period_end).toLocaleDateString()}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className=\"space-y-6\">
-          {/* Conversations */}
-          <div>
-            <div className=\"flex items-center justify-between mb-2\">
-              <div>
-                <p className=\"font-medium\">Conversations</p>
-                <p className=\"text-sm text-muted-foreground\">
-                  {usage?.conversations_used} / {usage?.limits?.max_conversations || '\u221e'}
-                </p>
+      {usage && (
+        <Card className="border border-border">
+          <CardHeader>
+            <CardTitle>Usage This Period</CardTitle>
+            <CardDescription>
+              Period: {new Date(usage.period_start).toLocaleDateString()} - {new Date(usage.period_end).toLocaleDateString()}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Conversations */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="font-medium">Conversations</p>
+                  <p className="text-sm text-muted-foreground">
+                    {usage.conversations_used} / {usage.limits?.max_conversations || '∞'}
+                  </p>
+                </div>
+                <span className={cn("font-semibold", getUsageTextColor(conversationUsagePercent))}>
+                  {conversationUsagePercent.toFixed(0)}%
+                </span>
               </div>
-              <span className={cn(\"font-semibold\", getUsageTextColor(conversationUsagePercent))}>
-                {conversationUsagePercent.toFixed(0)}%
-              </span>
+              <Progress
+                value={conversationUsagePercent}
+                className="h-2"
+              />
             </div>
-            <Progress
-              value={conversationUsagePercent}
-              className=\"h-2\"
-              indicatorClassName={getUsageColor(conversationUsagePercent)}
-            />
-          </div>
 
-          {/* Agents */}
-          <div>
-            <div className=\"flex items-center justify-between mb-2\">
-              <div>
-                <p className=\"font-medium\">Active Agents</p>
-                <p className=\"text-sm text-muted-foreground\">
-                  {usage?.agents_created} / {usage?.limits?.max_agents || '\u221e'}
-                </p>
+            {/* Agents */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="font-medium">Active Agents</p>
+                  <p className="text-sm text-muted-foreground">
+                    {usage.agents_created} / {usage.limits?.max_agents || '∞'}
+                  </p>
+                </div>
+                <span className={cn("font-semibold", getUsageTextColor(agentUsagePercent))}>
+                  {agentUsagePercent.toFixed(0)}%
+                </span>
               </div>
-              <span className={cn(\"font-semibold\", getUsageTextColor(agentUsagePercent))}>
-                {agentUsagePercent.toFixed(0)}%
-              </span>
+              <Progress
+                value={agentUsagePercent}
+                className="h-2"
+              />
             </div>
-            <Progress
-              value={agentUsagePercent}
-              className=\"h-2\"
-              indicatorClassName={getUsageColor(agentUsagePercent)}
-            />
-          </div>
 
-          {/* Features */}
-          <div className=\"pt-4 border-t border-border\">
-            <p className=\"font-medium mb-3\">Plan Features</p>
-            <div className=\"grid grid-cols-2 gap-3 text-sm\">
-              <div className=\"flex items-center gap-2\">
-                {usage?.limits?.analytics_enabled ? (
-                  <CheckCircle className=\"h-4 w-4 text-green-500\" />
-                ) : (
-                  <div className=\"h-4 w-4\" />
-                )}
-                <span>Analytics</span>
-              </div>
-              <div className=\"flex items-center gap-2\">
-                {usage?.limits?.api_access ? (
-                  <CheckCircle className=\"h-4 w-4 text-green-500\" />
-                ) : (
-                  <div className=\"h-4 w-4\" />
-                )}
-                <span>API Access</span>
-              </div>
-              <div className=\"flex items-center gap-2\">
-                {usage?.limits?.remove_branding ? (
-                  <CheckCircle className=\"h-4 w-4 text-green-500\" />
-                ) : (
-                  <div className=\"h-4 w-4\" />
-                )}
-                <span>Remove Branding</span>
-              </div>
-              <div className=\"flex items-center gap-2\">
-                {usage?.limits?.custom_integrations ? (
-                  <CheckCircle className=\"h-4 w-4 text-green-500\" />
-                ) : (
-                  <div className=\"h-4 w-4\" />
-                )}
-                <span>Custom Integrations</span>
+            {/* Features */}
+            <div className="pt-4 border-t border-border">
+              <p className="font-medium mb-3">Plan Features</p>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center gap-2">
+                  {usage.limits?.analytics_enabled ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <div className="h-4 w-4" />
+                  )}
+                  <span>Analytics</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {usage.limits?.api_access ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <div className="h-4 w-4" />
+                  )}
+                  <span>API Access</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {usage.limits?.remove_branding ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <div className="h-4 w-4" />
+                  )}
+                  <span>Remove Branding</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {usage.limits?.custom_integrations ? (
+                    <CheckCircle className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <div className="h-4 w-4" />
+                  )}
+                  <span>Custom Integrations</span>
+                </div>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
