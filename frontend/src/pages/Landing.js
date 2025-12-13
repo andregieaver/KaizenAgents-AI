@@ -241,9 +241,9 @@ const Landing = () => {
             Ready to transform your support?
           </h2>
           <p className="text-muted-foreground text-lg mb-8">
-            Join hundreds of businesses using AI Support Hub to deliver exceptional customer experiences.
+            Join hundreds of businesses using {platformName} to deliver exceptional customer experiences.
           </p>
-          <Link to="/register">
+          <Link to="/dashboard/pricing">
             <Button size="lg" className="h-12 px-8 btn-hover" data-testid="cta-btn">
               Get started free
               <ArrowRight className="ml-2 h-4 w-4" />
@@ -257,13 +257,17 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-sm bg-primary flex items-center justify-center">
-                <MessageSquare className="h-3 w-3 text-primary-foreground" />
+              <div className="h-6 w-6 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
+                {getPlatformLogoSrc(platformLogo) ? (
+                  <img src={getPlatformLogoSrc(platformLogo)} alt={platformName} className="h-full w-full object-contain" />
+                ) : (
+                  <MessageSquare className="h-3 w-3 text-primary-foreground" />
+                )}
               </div>
-              <span className="text-sm text-muted-foreground">AI Support Hub</span>
+              <span className="text-sm text-muted-foreground">{platformName}</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 AI Support Hub. All rights reserved.
+              © {new Date().getFullYear()} {platformName}. All rights reserved.
             </p>
           </div>
         </div>
