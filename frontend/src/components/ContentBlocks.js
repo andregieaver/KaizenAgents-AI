@@ -33,7 +33,12 @@ import {
   Loader2,
   HelpCircle,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Columns,
+  Monitor,
+  Tablet,
+  Smartphone,
+  Palette
 } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -78,6 +83,8 @@ const SortableBlockItem = ({ block, children, onDelete }) => {
         return <Code className="h-4 w-4" />;
       case 'faq':
         return <HelpCircle className="h-4 w-4" />;
+      case 'row':
+        return <Columns className="h-4 w-4" />;
       default:
         return <Type className="h-4 w-4" />;
     }
@@ -95,6 +102,8 @@ const SortableBlockItem = ({ block, children, onDelete }) => {
         return 'Code Block';
       case 'faq':
         return 'FAQ Block';
+      case 'row':
+        return 'Row Layout';
       default:
         return 'Block';
     }
@@ -163,7 +172,19 @@ const ContentBlocks = ({ blocks, onChange }) => {
     const newBlock = {
       id: `block_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type: type,
-      content: type === 'text' ? { html: '' } : {},
+      content: type === 'text' 
+        ? { html: '' } 
+        : type === 'row' 
+        ? { 
+            columns: [
+              { id: `col_${Date.now()}_1`, blocks: [], width: { desktop: 50, tablet: 100, mobile: 100 } },
+              { id: `col_${Date.now()}_2`, blocks: [], width: { desktop: 50, tablet: 100, mobile: 100 } }
+            ],
+            gap: '1rem',
+            backgroundColor: '',
+            backgroundImage: ''
+          }
+        : {},
       order: localBlocks.length
     };
     handleBlocksChange([...localBlocks, newBlock]);
