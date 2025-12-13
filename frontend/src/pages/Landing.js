@@ -74,7 +74,7 @@ const Landing = () => {
                   <Link to="/login">
                     <Button variant="ghost" data-testid="login-nav-btn">Sign in</Button>
                   </Link>
-                  <Link to="/dashboard/pricing">
+                  <Link to="/pricing">
                     <Button className="btn-hover" data-testid="register-nav-btn">Get Started</Button>
                   </Link>
                 </>
