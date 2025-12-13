@@ -103,7 +103,7 @@ const ComponentEditor = () => {
 
       {/* Content Blocks Editor */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <ContentBlocks blocks={blocks} setBlocks={setBlocks} />
+        <ContentBlocks blocks={blocks} onChange={setBlocks} />
       </div>
     </div>
   );
