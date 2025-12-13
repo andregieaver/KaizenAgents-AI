@@ -24,6 +24,9 @@ import Analytics from "./pages/Analytics";
 import RateLimits from "./pages/RateLimits";
 import Marketplace from "./pages/Marketplace";
 import Observability from "./pages/Observability";
+import Billing from "./pages/Billing";
+import Pricing from "./pages/Pricing";
+import PlanManagement from "./pages/PlanManagement";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
