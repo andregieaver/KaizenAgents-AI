@@ -5,7 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import { Button } from '../components/ui/button';
 import { MessageSquare, Moon, Sun, Loader2, Bot } from 'lucide-react';
 import axios from 'axios';
-import { Helmet } from 'react-helmet-async';
+import { Helmet } from 'react-helmet';
 import {
   renderHeroBlock,
   renderFeaturesBlock,
