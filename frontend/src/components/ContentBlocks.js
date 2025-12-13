@@ -30,7 +30,10 @@ import {
   Video,
   Code,
   Upload,
-  Loader2
+  Loader2,
+  HelpCircle,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -73,6 +76,8 @@ const SortableBlockItem = ({ block, children, onDelete }) => {
         return <Video className="h-4 w-4" />;
       case 'code':
         return <Code className="h-4 w-4" />;
+      case 'faq':
+        return <HelpCircle className="h-4 w-4" />;
       default:
         return <Type className="h-4 w-4" />;
     }
@@ -88,6 +93,8 @@ const SortableBlockItem = ({ block, children, onDelete }) => {
         return 'Video Block';
       case 'code':
         return 'Code Block';
+      case 'faq':
+        return 'FAQ Block';
       default:
         return 'Block';
     }
@@ -257,6 +264,50 @@ const ContentBlocks = ({ blocks, onChange }) => {
     }
 
     return null;
+  };
+
+  const addFaqItem = (blockId) => {
+    const block = localBlocks.find(b => b.id === blockId);
+    const items = block.content.items || [];
+    const newItem = {
+      id: `faq_item_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      question: '',
+      answer: '',
+      order: items.length
+    };
+    updateBlock(blockId, { items: [...items, newItem] });
+  };
+
+  const updateFaqItem = (blockId, itemId, field, value) => {
+    const block = localBlocks.find(b => b.id === blockId);
+    const items = block.content.items.map(item =>
+      item.id === itemId ? { ...item, [field]: value } : item
+    );
+    updateBlock(blockId, { items });
+  };
+
+  const deleteFaqItem = (blockId, itemId) => {
+    const block = localBlocks.find(b => b.id === blockId);
+    const items = block.content.items
+      .filter(item => item.id !== itemId)
+      .map((item, index) => ({ ...item, order: index }));
+    updateBlock(blockId, { items });
+  };
+
+  const moveFaqItem = (blockId, itemId, direction) => {
+    const block = localBlocks.find(b => b.id === blockId);
+    const items = [...block.content.items].sort((a, b) => a.order - b.order);
+    const currentIndex = items.findIndex(item => item.id === itemId);
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+    if (newIndex < 0 || newIndex >= items.length) return;
+
+    const reorderedItems = arrayMove(items, currentIndex, newIndex).map((item, index) => ({
+      ...item,
+      order: index
+    }));
+
+    updateBlock(blockId, { items: reorderedItems });
   };
 
   const renderBlockContent = (block) => {
@@ -450,6 +501,96 @@ const ContentBlocks = ({ blocks, onChange }) => {
           </div>
         );
 
+      case 'faq':
+        const faqItems = (block.content.items || []).sort((a, b) => a.order - b.order);
+        return (
+          <div className="space-y-4">
+            {faqItems.length === 0 ? (
+              <div className="text-center py-8 border-2 border-dashed rounded-lg">
+                <HelpCircle className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground mb-4">No FAQ items yet</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => addFaqItem(block.id)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First FAQ Item
+                </Button>
+              </div>
+            ) : (
+              <>
+                {faqItems.map((item, index) => (
+                  <Card key={item.id} className="border-l-4 border-l-primary">
+                    <CardHeader className="p-3 bg-muted/30 flex flex-row items-center justify-between">
+                      <span className="text-sm font-medium">FAQ Item {index + 1}</span>
+                      <div className="flex items-center gap-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => moveFaqItem(block.id, item.id, 'up')}
+                          disabled={index === 0}
+                        >
+                          <ChevronUp className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => moveFaqItem(block.id, item.id, 'down')}
+                          disabled={index === faqItems.length - 1}
+                        >
+                          <ChevronDown className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => deleteFaqItem(block.id, item.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 space-y-3">
+                      <div>
+                        <Label>Question</Label>
+                        <Input
+                          placeholder="What is your question?"
+                          value={item.question}
+                          onChange={(e) => updateFaqItem(block.id, item.id, 'question', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label>Answer</Label>
+                        <Textarea
+                          placeholder="Provide the answer here..."
+                          value={item.answer}
+                          onChange={(e) => updateFaqItem(block.id, item.id, 'answer', e.target.value)}
+                          rows={3}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => addFaqItem(block.id)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Another FAQ Item
+                </Button>
+              </>
+            )}
+          </div>
+        );
+
       default:
         return <p className="text-muted-foreground text-sm">Block type: {block.type}</p>;
     }
@@ -496,6 +637,10 @@ const ContentBlocks = ({ blocks, onChange }) => {
                         <Code className="h-4 w-4 mr-2" />
                         Code Block
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('faq')}>
+                        <HelpCircle className="h-4 w-4 mr-2" />
+                        FAQ Block
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </CardContent>
@@ -539,6 +684,10 @@ const ContentBlocks = ({ blocks, onChange }) => {
             <DropdownMenuItem onClick={() => addBlock('code')}>
               <Code className="h-4 w-4 mr-2" />
               Code Block
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock('faq')}>
+              <HelpCircle className="h-4 w-4 mr-2" />
+              FAQ Block
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
