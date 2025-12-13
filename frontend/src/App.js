@@ -30,6 +30,7 @@ import PlanManagement from "./pages/PlanManagement";
 import Integrations from "./pages/Integrations";
 import DiscountCodes from "./pages/DiscountCodes";
 import Affiliates from "./pages/Affiliates";
+import AdminPages from "./pages/AdminPages";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -119,6 +120,7 @@ function AppRoutes() {
         <Route path="admin/plans" element={<PlanManagement />} />
         <Route path="integrations" element={<Integrations />} />
         <Route path="admin/discounts" element={<DiscountCodes />} />
+        <Route path="admin/pages" element={<AdminPages />} />
         <Route path="affiliates" element={<Affiliates />} />
       </Route>
 
