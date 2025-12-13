@@ -119,6 +119,7 @@ function AppRoutes() {
         <Route path="admin/plans" element={<PlanManagement />} />
         <Route path="integrations" element={<Integrations />} />
         <Route path="admin/discounts" element={<DiscountCodes />} />
+        <Route path="affiliates" element={<Affiliates />} />
       </Route>
 
       {/* Catch all */}
