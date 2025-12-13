@@ -91,6 +91,14 @@ const SortableBlockItem = ({ block, children, onDelete }) => {
         return <HelpCircle className="h-4 w-4" />;
       case 'row':
         return <Columns className="h-4 w-4" />;
+      case 'hero':
+        return <Sparkles className="h-4 w-4" />;
+      case 'features':
+        return <Grid3x3 className="h-4 w-4" />;
+      case 'cta':
+        return <Megaphone className="h-4 w-4" />;
+      case 'button':
+        return <MousePointerClick className="h-4 w-4" />;
       default:
         return <Type className="h-4 w-4" />;
     }
@@ -110,6 +118,14 @@ const SortableBlockItem = ({ block, children, onDelete }) => {
         return 'FAQ Block';
       case 'row':
         return 'Row Layout';
+      case 'hero':
+        return 'Hero Section';
+      case 'features':
+        return 'Feature Grid';
+      case 'cta':
+        return 'Call to Action';
+      case 'button':
+        return 'Button';
       default:
         return 'Block';
     }
