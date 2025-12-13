@@ -23,6 +23,7 @@ import StorageConfig from "./pages/StorageConfig";
 import Analytics from "./pages/Analytics";
 import RateLimits from "./pages/RateLimits";
 import Marketplace from "./pages/Marketplace";
+import Observability from "./pages/Observability";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -105,6 +106,7 @@ function AppRoutes() {
         <Route path="agents" element={<Agents />} />
         <Route path="storage" element={<StorageConfig />} />
         <Route path="rate-limits" element={<RateLimits />} />
+        <Route path="observability" element={<Observability />} />
       </Route>
 
       {/* Catch all */}

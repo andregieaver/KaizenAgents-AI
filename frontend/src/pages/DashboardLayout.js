@@ -206,6 +206,10 @@ const DashboardLayout = () => {
     ? { path: '/dashboard/rate-limits', icon: Shield, label: 'Rate Limits', isAdmin: true }
     : null;
 
+  const observabilityNavItem = user?.is_super_admin
+    ? { path: '/dashboard/observability', icon: AlertTriangle, label: 'Observability', isAdmin: true }
+    : null;
+
   const isActive = (path) => {
     if (path === '/dashboard') {
       return location.pathname === '/dashboard';
@@ -272,7 +276,7 @@ const DashboardLayout = () => {
             ))}
             
             {/* Super Admin Links */}
-            {(adminNavItem || providersNavItem || agentsNavItem || storageNavItem || rateLimitsNavItem) && (
+            {(adminNavItem || providersNavItem || agentsNavItem || storageNavItem || rateLimitsNavItem || observabilityNavItem) && (
               <>
                 <Separator className="my-3" />
                 {providersNavItem && (
@@ -333,6 +337,21 @@ const DashboardLayout = () => {
                   >
                     <rateLimitsNavItem.icon className="h-4 w-4" />
                     {rateLimitsNavItem.label}
+                  </Link>
+                )}
+                {observabilityNavItem && (
+                  <Link
+                    to={observabilityNavItem.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                      isActive(observabilityNavItem.path)
+                        ? "bg-destructive text-destructive-foreground"
+                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                    )}
+                  >
+                    <observabilityNavItem.icon className="h-4 w-4" />
+                    {observabilityNavItem.label}
                   </Link>
                 )}
                 {adminNavItem && (
@@ -527,7 +546,8 @@ const Breadcrumb = () => {
       team: 'Team',
       profile: 'Profile',
       providers: 'Providers',
-      'rate-limits': 'Rate Limits'
+      'rate-limits': 'Rate Limits',
+      observability: 'Observability'
     };
     
     // If previous path was 'conversations' and this looks like an ID, show 'Details'
