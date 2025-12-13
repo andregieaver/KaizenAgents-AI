@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -29,35 +29,41 @@ const PricingWidget = () => {
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [discountPlanId, setDiscountPlanId] = useState(null);
 
-  useEffect(() => {
-    fetchData();
-  }, [token]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    console.log('[PricingWidget] Starting fetchData...');
     setLoading(true);
     try {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       
+      console.log('[PricingWidget] Fetching plans...');
       const plansRes = await axios.get(`${API}/subscriptions/plans`, { headers });
+      console.log('[PricingWidget] Plans fetched:', plansRes.data.length);
       setPlans(plansRes.data);
       
       if (token) {
         try {
+          console.log('[PricingWidget] Fetching current subscription...');
           const subRes = await axios.get(`${API}/subscriptions/current`, {
             headers: { Authorization: `Bearer ${token}` }
           });
           setCurrentSubscription(subRes.data);
         } catch (err) {
+          console.log('[PricingWidget] No current subscription');
           setCurrentSubscription(null);
         }
       }
     } catch (error) {
-      console.error('Error fetching pricing data:', error);
+      console.error('[PricingWidget] Error fetching pricing data:', error);
       toast.error('Failed to load pricing information');
     } finally {
+      console.log('[PricingWidget] fetchData complete, setting loading to false');
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleApplyDiscount = async (planId) => {
     if (!discountCode.trim()) {
