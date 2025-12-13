@@ -188,6 +188,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/marketplace', icon: Bot, label: 'Marketplace' },
     { path: '/dashboard/team', icon: Users, label: 'Team' },
     { path: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
+    { path: '/dashboard/affiliates', icon: Gift, label: 'Affiliates' },
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
 
