@@ -7,8 +7,9 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
+import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
-import { Check, Loader2, Sparkles, Zap, Crown, ArrowRight, MessageSquare, Moon, Sun } from 'lucide-react';
+import { Check, Loader2, Sparkles, Zap, Crown, ArrowRight, MessageSquare, Moon, Sun, Tag, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useTheme } from '../context/ThemeContext';
 
@@ -25,6 +26,12 @@ const Pricing = () => {
   const [checkoutLoading, setCheckoutLoading] = useState(null);
   const [platformName, setPlatformName] = useState('AI Support Hub');
   const [platformLogo, setPlatformLogo] = useState(null);
+  
+  // Discount code state
+  const [discountCode, setDiscountCode] = useState('');
+  const [appliedDiscount, setAppliedDiscount] = useState(null);
+  const [applyingDiscount, setApplyingDiscount] = useState(false);
+  const [discountPlanId, setDiscountPlanId] = useState(null);
 
   useEffect(() => {
     fetchData();
