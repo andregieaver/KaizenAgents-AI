@@ -3627,6 +3627,7 @@ from routes.health import router as health_router_mod
 from routes.subscriptions import router as subscriptions_router_mod
 from routes.webhooks import router as webhooks_router_mod
 from routes.integrations import router as integrations_router_mod
+from routes.discounts import router as discounts_router_mod
 
 # Register all modularized routers under /api
 api_router.include_router(auth_router_mod)
@@ -3646,6 +3647,7 @@ api_router.include_router(health_router_mod)
 api_router.include_router(subscriptions_router_mod)
 api_router.include_router(webhooks_router_mod)
 api_router.include_router(integrations_router_mod)
+api_router.include_router(discounts_router_mod)
 
 app.include_router(api_router)
 
