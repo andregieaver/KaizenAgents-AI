@@ -220,16 +220,6 @@ const PricingWidget = () => {
 
   return (
     <div className="space-y-8 py-12">
-      {/* Header */}
-      <div className="text-center max-w-2xl mx-auto">
-        <h1 className="text-4xl font-bold mb-2">
-          Choose Your Plan
-        </h1>
-        <p className="text-muted-foreground">
-          Scale your customer support with the right plan for your business
-        </p>
-      </div>
-
       {/* Billing Toggle */}
       <div className="flex items-center justify-center gap-3">
         <Label className={cn(!isYearly && 'font-semibold')}>Monthly</Label>
@@ -372,16 +362,6 @@ const PricingWidget = () => {
             </Card>
           );
         })}
-      </div>
-
-      {/* FAQ / Info Section */}
-      <div className="max-w-2xl mx-auto text-center text-sm text-muted-foreground space-y-2 pt-8 border-t border-border">
-        <p>
-          All plans include a free trial period. Cancel anytime.
-        </p>
-        <p>
-          Need a custom plan? <Button variant="link" className="p-0 h-auto">Contact us</Button>
-        </p>
       </div>
     </div>
   );
