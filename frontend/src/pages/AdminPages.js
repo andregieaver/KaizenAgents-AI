@@ -929,6 +929,101 @@ const AdminPages = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Create Page Modal */}
+      <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="font-heading">Create New Page</DialogTitle>
+            <DialogDescription>
+              Create a custom page with content and SEO settings
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="create-name">Page Name *</Label>
+              <Input
+                id="create-name"
+                value={createForm.name}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  setCreateForm({
+                    ...createForm,
+                    name: name,
+                    slug: generateSlug(name),
+                    path: `/${generateSlug(name)}`
+                  });
+                }}
+                placeholder="About Us"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Display name for the page
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="create-slug">Slug *</Label>
+              <Input
+                id="create-slug"
+                value={createForm.slug}
+                onChange={(e) => setCreateForm({ ...createForm, slug: e.target.value })}
+                placeholder="about-us"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                URL-friendly identifier (auto-generated from name)
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="create-path">Path *</Label>
+              <Input
+                id="create-path"
+                value={createForm.path}
+                onChange={(e) => setCreateForm({ ...createForm, path: e.target.value })}
+                placeholder="/about-us"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                URL path where the page will be accessible
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="create-content">Page Content</Label>
+              <Textarea
+                id="create-content"
+                value={createForm.content}
+                onChange={(e) => setCreateForm({ ...createForm, content: e.target.value })}
+                placeholder="<h1>About Us</h1><p>Your content here...</p>"
+                rows={8}
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                HTML content for the page (optional - can be edited later)
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreatePage} disabled={creatingPage}>
+              {creatingPage ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Page
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
