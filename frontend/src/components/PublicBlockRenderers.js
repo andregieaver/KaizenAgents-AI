@@ -4,6 +4,7 @@ import { ArrowRight, ExternalLink, Download, Play, Send, * as Icons } from 'luci
 
 export const renderHeroBlock = (block) => {
   const content = block.content || {};
+  const BadgeIcon = Icons.Bot;
   
   return (
     <section key={block.id} className="py-20 lg:py-32">
@@ -11,6 +12,7 @@ export const renderHeroBlock = (block) => {
         <div>
           {content.badge && (
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
+              {BadgeIcon && <BadgeIcon className="h-4 w-4" />}
               {content.badge}
             </div>
           )}
