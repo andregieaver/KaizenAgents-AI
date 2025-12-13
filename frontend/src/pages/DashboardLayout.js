@@ -300,7 +300,7 @@ const DashboardLayout = () => {
             ))}
             
             {/* Super Admin Links */}
-            {(adminNavItem || providersNavItem || agentsNavItem || storageNavItem || rateLimitsNavItem || observabilityNavItem || planManagementNavItem || integrationsNavItem || discountCodesNavItem) && (
+            {(adminNavItem || providersNavItem || agentsNavItem || storageNavItem || rateLimitsNavItem || observabilityNavItem || planManagementNavItem || integrationsNavItem || discountCodesNavItem || pagesNavItem) && (
               <>
                 <Separator className="my-3" />
                 {providersNavItem && (
@@ -421,6 +421,21 @@ const DashboardLayout = () => {
                   >
                     <discountCodesNavItem.icon className="h-4 w-4" />
                     {discountCodesNavItem.label}
+                  </Link>
+                )}
+                {pagesNavItem && (
+                  <Link
+                    to={pagesNavItem.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                      isActive(pagesNavItem.path)
+                        ? "bg-destructive text-destructive-foreground"
+                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                    )}
+                  >
+                    <pagesNavItem.icon className="h-4 w-4" />
+                    {pagesNavItem.label}
                   </Link>
                 )}
                 {adminNavItem && (
