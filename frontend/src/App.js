@@ -34,6 +34,8 @@ import Affiliates from "./pages/Affiliates";
 import AdminPagesList from "./pages/AdminPagesList";
 import PageEditor from "./pages/PageEditor";
 import CustomPage from "./pages/CustomPage";
+import GlobalComponents from "./pages/GlobalComponents";
+import ComponentEditor from "./pages/ComponentEditor";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -129,6 +131,8 @@ function AppRoutes() {
         <Route path="admin/pages" element={<AdminPagesList />} />
         <Route path="admin/pages/create" element={<PageEditor />} />
         <Route path="admin/pages/edit/:slug" element={<PageEditor />} />
+        <Route path="admin/components" element={<GlobalComponents />} />
+        <Route path="admin/components/edit/:componentType" element={<ComponentEditor />} />
         <Route path="affiliates" element={<Affiliates />} />
       </Route>
 
