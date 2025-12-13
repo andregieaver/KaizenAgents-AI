@@ -1,15 +1,22 @@
 """
 Admin Pages Management routes - Control SEO and visibility for public pages
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime, timezone
+import uuid
+from pathlib import Path
+import shutil
 
 from middleware import get_current_user
 from middleware.database import db
 
 router = APIRouter(prefix="/admin/pages", tags=["admin-pages"])
+
+# File upload directory
+UPLOADS_DIR = Path("/app/backend/uploads")
+UPLOADS_DIR.mkdir(exist_ok=True)
 
 # Models
 class OpenGraphData(BaseModel):
@@ -18,11 +25,26 @@ class OpenGraphData(BaseModel):
     image: Optional[str] = None
     url: Optional[str] = None
 
+class TwitterCardData(BaseModel):
+    card: Optional[str] = "summary_large_image"  # summary, summary_large_image, app, player
+    site: Optional[str] = None
+    creator: Optional[str] = None
+
+class RobotsDirectives(BaseModel):
+    index: bool = True  # index or noindex
+    follow: bool = True  # follow or nofollow
+    noarchive: bool = False
+    nosnippet: bool = False
+    noimageindex: bool = False
+
 class PageSEO(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     keywords: Optional[str] = None
+    canonical_url: Optional[str] = None
     og: Optional[OpenGraphData] = None
+    twitter: Optional[TwitterCardData] = None
+    robots: Optional[RobotsDirectives] = None
 
 class PageSettings(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -37,6 +59,10 @@ class PageSettings(BaseModel):
 class PageUpdateRequest(BaseModel):
     visible: Optional[bool] = None
     seo: Optional[PageSEO] = None
+
+class OGImageUploadResponse(BaseModel):
+    url: str
+    path: str
 
 class PageResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -59,11 +85,24 @@ DEFAULT_PAGES = [
             "title": "Kaizen Life Support - AI-Powered Customer Support",
             "description": "Transform your customer support with AI-powered agents. Manage conversations, analytics, and team collaboration in one platform.",
             "keywords": "AI support, customer service, chatbot, automation, team collaboration",
+            "canonical_url": "/",
             "og": {
                 "title": "Kaizen Life Support - AI-Powered Customer Support",
                 "description": "Transform your customer support with AI-powered agents.",
                 "image": "https://images.unsplash.com/photo-1551434678-e076c223a692?w=1200",
                 "url": "/"
+            },
+            "twitter": {
+                "card": "summary_large_image",
+                "site": None,
+                "creator": None
+            },
+            "robots": {
+                "index": True,
+                "follow": True,
+                "noarchive": False,
+                "nosnippet": False,
+                "noimageindex": False
             }
         }
     },
@@ -76,11 +115,24 @@ DEFAULT_PAGES = [
             "title": "Pricing Plans - Kaizen Life Support",
             "description": "Choose the perfect plan for your business. Flexible pricing with powerful features to scale your customer support.",
             "keywords": "pricing, plans, subscription, AI support pricing, enterprise",
+            "canonical_url": "/pricing",
             "og": {
                 "title": "Pricing Plans - Kaizen Life Support",
                 "description": "Flexible pricing plans to scale your customer support with AI.",
                 "image": "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200",
                 "url": "/pricing"
+            },
+            "twitter": {
+                "card": "summary_large_image",
+                "site": None,
+                "creator": None
+            },
+            "robots": {
+                "index": True,
+                "follow": True,
+                "noarchive": False,
+                "nosnippet": False,
+                "noimageindex": False
             }
         }
     }
@@ -172,3 +224,41 @@ async def reset_page(slug: str, current_user: dict = Depends(is_super_admin)):
     
     updated_page = await db.pages.find_one({"slug": slug}, {"_id": 0})
     return updated_page
+
+@router.post("/upload-og-image/{slug}", response_model=OGImageUploadResponse)
+async def upload_og_image(
+    slug: str,
+    file: UploadFile = File(...),
+    current_user: dict = Depends(is_super_admin)
+):
+    """Upload OG image for a page"""
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}"
+        )
+    
+    # Validate file size (max 5MB)
+    file_size = 0
+    chunk_size = 1024 * 1024  # 1MB chunks
+    temp_file = await file.read()
+    file_size = len(temp_file)
+    
+    if file_size > 5 * 1024 * 1024:  # 5MB
+        raise HTTPException(status_code=400, detail="File size exceeds 5MB limit")
+    
+    # Generate unique filename
+    file_ext = Path(file.filename).suffix
+    unique_filename = f"og_{slug}_{uuid.uuid4().hex[:8]}{file_ext}"
+    file_path = UPLOADS_DIR / unique_filename
+    
+    # Save file
+    with open(file_path, "wb") as f:
+        f.write(temp_file)
+    
+    # Return URL
+    file_url = f"/api/uploads/{unique_filename}"
+    
+    return OGImageUploadResponse(url=file_url, path=str(file_path))
