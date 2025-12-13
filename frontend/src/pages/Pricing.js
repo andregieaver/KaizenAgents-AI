@@ -247,7 +247,7 @@ const Pricing = () => {
       </div>
 
       {/* Plans Grid */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-7xl mx-auto">
+      <div className="flex flex-wrap gap-6 justify-center max-w-7xl mx-auto">
         {plans.map((plan, index) => {
           const isCurrent = isCurrentPlan(plan.id);
           const isPopular = index === 1 && plans.length > 1;
@@ -256,7 +256,7 @@ const Pricing = () => {
             <Card 
               key={plan.id} 
               className={cn(
-                "relative flex flex-col border",
+                "relative flex flex-col border w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] xl:w-[280px]",
                 isPopular && "border-primary shadow-lg",
                 isCurrent && "bg-primary/5"
               )}
@@ -297,68 +297,19 @@ const Pricing = () => {
                   )}
                 </div>
 
-                {/* Features */}
+                {/* Features - Only show custom items */}
                 <div className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span>
-                      {plan.features.max_conversations 
-                        ? `${plan.features.max_conversations} conversations/month`
-                        : 'Unlimited conversations'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span>
-                      {plan.features.max_agents 
-                        ? `${plan.features.max_agents} AI agents`
-                        : 'Unlimited AI agents'}
-                    </span>
-                  </div>
-                  {plan.features.analytics_enabled && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      <span>Analytics dashboard</span>
-                    </div>
-                  )}
-                  {plan.features.api_access && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      <span>API access</span>
-                    </div>
-                  )}
-                  {plan.features.remove_branding && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      <span>Remove branding</span>
-                    </div>
-                  )}
-                  {plan.features.custom_integrations && (
-                    <div className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                      <span>Custom integrations</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span className="capitalize">{plan.features.support_level} support</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span>
-                      {plan.features.conversation_history_days 
-                        ? `${plan.features.conversation_history_days} days history`
-                        : 'Unlimited history'}
-                    </span>
-                  </div>
-                  {/* Custom Feature Items */}
-                  {plan.features.custom_items && plan.features.custom_items.length > 0 && (
+                  {plan.features.custom_items && plan.features.custom_items.length > 0 ? (
                     plan.features.custom_items.map((item, itemIndex) => (
                       <div key={itemIndex} className="flex items-center gap-2 text-sm">
                         <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                         <span>{item}</span>
                       </div>
                     ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center">
+                      Contact us for details
+                    </p>
                   )}
                 </div>
               </CardContent>
