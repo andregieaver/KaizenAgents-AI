@@ -218,6 +218,10 @@ const DashboardLayout = () => {
     ? { path: '/dashboard/admin/plans', icon: DollarSign, label: 'Plan Management', isAdmin: true }
     : null;
 
+  const integrationsNavItem = user?.is_super_admin
+    ? { path: '/dashboard/integrations', icon: Plug, label: 'Integrations', isAdmin: true }
+    : null;
+
   const isActive = (path) => {
     if (path === '/dashboard') {
       return location.pathname === '/dashboard';
