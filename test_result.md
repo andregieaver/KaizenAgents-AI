@@ -115,3 +115,25 @@ The system correctly handles:
 *Test completed on: December 13, 2025*
 *Tester: Testing Agent*
 *Environment: Production Preview*
+---
+
+## Integrations Page Tests
+
+### Test Scope
+- Integrations page (super-admin only)
+- Stripe settings (test/live keys)
+- Code injection (head, body start, body end)
+
+### Test Instructions
+1. Navigate to /dashboard/integrations (as super admin)
+2. Verify Stripe tab shows:
+   - Mode toggle (Test/Live)
+   - Test keys section with 3 fields
+   - Live keys section with 3 fields
+   - Save button
+3. Verify Code Injection tab shows:
+   - Head Code textarea
+   - Body Start Code textarea  
+   - Body End Code (Footer) textarea
+   - Save button
+4. Test saving settings works (toast appears)
