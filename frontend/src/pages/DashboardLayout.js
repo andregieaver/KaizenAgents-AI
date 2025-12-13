@@ -617,7 +617,8 @@ const Breadcrumb = () => {
       admin: 'Admin',
       plans: 'Plan Management',
       integrations: 'Integrations',
-      discounts: 'Discount Codes'
+      discounts: 'Discount Codes',
+      affiliates: 'Affiliates'
     };
     
     // If previous path was 'conversations' and this looks like an ID, show 'Details'
