@@ -157,9 +157,6 @@ async def create_plan(
 @router.get("/plans", response_model=List[PlanResponse])
 async def get_plans(include_hidden: bool = False):
     """Get all subscription plans (public endpoint)"""
-    query = {} if include_hidden else {"is_public": True}
-):
-    """Get all subscription plans"""
     query = {}
     if not include_hidden:
         query["is_public"] = True
