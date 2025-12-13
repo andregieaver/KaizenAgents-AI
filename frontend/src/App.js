@@ -29,6 +29,7 @@ import Pricing from "./pages/Pricing";
 import PlanManagement from "./pages/PlanManagement";
 import Integrations from "./pages/Integrations";
 import DiscountCodes from "./pages/DiscountCodes";
+import Affiliates from "./pages/Affiliates";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
