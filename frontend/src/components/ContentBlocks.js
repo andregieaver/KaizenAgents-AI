@@ -4,6 +4,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
 } from '@dnd-kit/core';
@@ -98,7 +99,8 @@ const SortableBlockItem = ({ block, children, onDelete }) => {
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing"
+          className="cursor-grab active:cursor-grabbing touch-none p-2 -m-2"
+          style={{ touchAction: 'none' }}
         >
           <GripVertical className="h-5 w-5 text-muted-foreground" />
         </div>
@@ -129,7 +131,17 @@ const ContentBlocks = ({ blocks, onChange }) => {
   const [localBlocks, setLocalBlocks] = useState(blocks || []);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8, // 8px of movement required before drag starts
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200, // 200ms press before drag starts (prevents conflict with scrolling)
+        tolerance: 8, // 8px of movement tolerance
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
