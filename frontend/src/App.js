@@ -110,6 +110,9 @@ function AppRoutes() {
         <Route path="storage" element={<StorageConfig />} />
         <Route path="rate-limits" element={<RateLimits />} />
         <Route path="observability" element={<Observability />} />
+        <Route path="billing" element={<Billing />} />
+        <Route path="pricing" element={<Pricing />} />
+        <Route path="admin/plans" element={<PlanManagement />} />
       </Route>
 
       {/* Catch all */}
