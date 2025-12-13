@@ -370,6 +370,8 @@ async def create_checkout_session(
     current_user: dict = Depends(get_current_user)
 ):
     """Create Stripe checkout session for subscription"""
+    import os
+    
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")

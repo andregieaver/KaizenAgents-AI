@@ -3625,6 +3625,7 @@ from routes.marketplace import router as marketplace_router_mod
 from routes.agents import router as agents_router_mod
 from routes.health import router as health_router_mod
 from routes.subscriptions import router as subscriptions_router_mod
+from routes.webhooks import router as webhooks_router_mod
 
 # Register all modularized routers under /api
 api_router.include_router(auth_router_mod)
@@ -3642,6 +3643,7 @@ api_router.include_router(marketplace_router_mod)
 api_router.include_router(agents_router_mod)
 api_router.include_router(health_router_mod)
 api_router.include_router(subscriptions_router_mod)
+api_router.include_router(webhooks_router_mod)
 
 app.include_router(api_router)
 
