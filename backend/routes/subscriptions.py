@@ -314,8 +314,59 @@ async def get_usage(current_user: dict = Depends(get_current_user)):
     
     # Get subscription and plan
     subscription = await db.subscriptions.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    
+    # Auto-create free subscription if none exists
     if not subscription:
-        raise HTTPException(status_code=404, detail="Subscription not found")
+        # Find free plan
+        free_plan = await db.subscription_plans.find_one(
+            {"name": "Free", "price_monthly": 0},
+            {"_id": 0}
+        )
+        
+        if not free_plan:
+            # Return default usage with no limits
+            now = datetime.now(timezone.utc)
+            return {
+                "tenant_id": tenant_id,
+                "period_start": now.isoformat(),
+                "period_end": (now + timedelta(days=30)).isoformat(),
+                "conversations_used": 0,
+                "agents_created": 0,
+                "api_calls": 0,
+                "limits": {
+                    "max_conversations": None,
+                    "max_agents": None,
+                    "analytics_enabled": True,
+                    "api_access": False,
+                    "support_level": "email",
+                    "conversation_history_days": 30,
+                    "remove_branding": False,
+                    "custom_integrations": False
+                },
+                "usage_percentage": {"conversations": 0, "agents": 0}
+            }
+        
+        # Create free subscription
+        now = datetime.now(timezone.utc)
+        subscription_id = str(uuid.uuid4())
+        
+        subscription = {
+            "id": subscription_id,
+            "tenant_id": tenant_id,
+            "plan_id": free_plan["id"],
+            "plan_name": free_plan["name"],
+            "status": "active",
+            "billing_cycle": "monthly",
+            "current_period_start": now.isoformat(),
+            "current_period_end": (now + timedelta(days=30)).isoformat(),
+            "trial_end": None,
+            "stripe_subscription_id": None,
+            "stripe_customer_id": None,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        }
+        
+        await db.subscriptions.insert_one(subscription)
     
     plan = await db.subscription_plans.find_one({"id": subscription["plan_id"]}, {"_id": 0})
     if not plan:
