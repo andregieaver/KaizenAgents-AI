@@ -401,6 +401,21 @@ const DashboardLayout = () => {
                     {integrationsNavItem.label}
                   </Link>
                 )}
+                {discountCodesNavItem && (
+                  <Link
+                    to={discountCodesNavItem.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                      isActive(discountCodesNavItem.path)
+                        ? "bg-destructive text-destructive-foreground"
+                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                    )}
+                  >
+                    <discountCodesNavItem.icon className="h-4 w-4" />
+                    {discountCodesNavItem.label}
+                  </Link>
+                )}
                 {adminNavItem && (
                   <Link
                     to={adminNavItem.path}
