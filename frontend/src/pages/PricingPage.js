@@ -172,7 +172,13 @@ const PricingPage = () => {
               case 'pricing_widget':
                 return renderPricingWidgetBlock(block);
               case 'text':
-                return renderTextBlock(block);
+                return (
+                  <article
+                    key={block.id}
+                    className="prose prose-slate dark:prose-invert max-w-4xl mx-auto my-8"
+                    dangerouslySetInnerHTML={{ __html: block.content?.html || '' }}
+                  />
+                );
               default:
                 return null;
             }
