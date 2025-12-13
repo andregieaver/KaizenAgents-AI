@@ -1,0 +1,423 @@
+"""
+Subscription management routes
+"""
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, ConfigDict, Field
+from typing import List, Optional, Dict, Any, Literal
+from datetime import datetime, timezone, timedelta
+import uuid
+
+from models import *
+from middleware import get_current_user, get_super_admin_user
+from middleware.database import db
+
+router = APIRouter(prefix="/subscriptions", tags=["subscriptions"])
+
+# Models
+class PlanFeatures(BaseModel):
+    max_conversations: Optional[int] = None  # None = unlimited
+    max_agents: Optional[int] = None  # None = unlimited
+    analytics_enabled: bool = True
+    api_access: bool = False
+    support_level: Literal["email", "priority", "premium"] = "email"
+    conversation_history_days: Optional[int] = 30  # None = unlimited
+    remove_branding: bool = False
+    custom_integrations: bool = False
+
+class PlanCreate(BaseModel):
+    name: str
+    description: str
+    price_monthly: float
+    price_yearly: Optional[float] = None
+    features: PlanFeatures
+    is_public: bool = True
+    sort_order: int = 0
+
+class PlanUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price_monthly: Optional[float] = None
+    price_yearly: Optional[float] = None
+    features: Optional[PlanFeatures] = None
+    is_public: Optional[bool] = None
+    sort_order: Optional[int] = None
+
+class PlanResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    name: str
+    description: str
+    price_monthly: float
+    price_yearly: Optional[float]
+    features: Dict[str, Any]
+    is_public: bool
+    sort_order: int
+    created_at: str
+    updated_at: str
+
+class SubscriptionCreate(BaseModel):
+    plan_id: str
+    billing_cycle: Literal["monthly", "yearly"] = "monthly"
+
+class SubscriptionResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    tenant_id: str
+    plan_id: str
+    plan_name: str
+    status: str
+    billing_cycle: str
+    current_period_start: str
+    current_period_end: str
+    trial_end: Optional[str]
+    stripe_subscription_id: Optional[str]
+    stripe_customer_id: Optional[str]
+
+class UsageResponse(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    tenant_id: str
+    period_start: str
+    period_end: str
+    conversations_used: int
+    agents_created: int
+    api_calls: int
+    limits: Dict[str, Any]
+    usage_percentage: Dict[str, float]
+
+# ============== PLAN MANAGEMENT (Super Admin) ==============
+
+@router.post("/plans", response_model=PlanResponse)
+async def create_plan(
+    plan_data: PlanCreate,
+    current_user: dict = Depends(get_super_admin_user)
+):
+    """Create a new subscription plan (Super Admin only)"""
+    now = datetime.now(timezone.utc).isoformat()
+    plan_id = str(uuid.uuid4())
+    
+    # Calculate yearly price if not provided (20% discount by default)
+    yearly_price = plan_data.price_yearly
+    if yearly_price is None and plan_data.price_monthly > 0:
+        # Get discount from platform settings
+        platform_settings = await db.platform_settings.find_one({"key": "subscription_settings"}, {"_id": 0})
+        discount = platform_settings.get("value", {}).get("yearly_discount_percent", 20) if platform_settings else 20
+        yearly_price = plan_data.price_monthly * 12 * (1 - discount / 100)
+    
+    plan = {
+        "id": plan_id,
+        "name": plan_data.name,
+        "description": plan_data.description,
+        "price_monthly": plan_data.price_monthly,
+        "price_yearly": yearly_price,
+        "features": plan_data.features.model_dump(),
+        "is_public": plan_data.is_public,
+        "sort_order": plan_data.sort_order,
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    await db.subscription_plans.insert_one(plan)
+    
+    return plan
+
+@router.get("/plans", response_model=List[PlanResponse])
+async def get_plans(
+    include_hidden: bool = False,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all subscription plans"""
+    query = {}
+    if not include_hidden:
+        query["is_public"] = True
+    
+    plans = await db.subscription_plans.find(query, {"_id": 0}).sort("sort_order", 1).to_list(100)
+    return plans
+
+@router.get("/plans/{plan_id}", response_model=PlanResponse)
+async def get_plan(
+    plan_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get specific plan details"""
+    plan = await db.subscription_plans.find_one({"id": plan_id}, {"_id": 0})
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    return plan
+
+@router.patch("/plans/{plan_id}", response_model=PlanResponse)
+async def update_plan(
+    plan_id: str,
+    plan_data: PlanUpdate,
+    current_user: dict = Depends(get_super_admin_user)
+):
+    """Update subscription plan (Super Admin only)"""
+    plan = await db.subscription_plans.find_one({"id": plan_id}, {"_id": 0})
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    
+    update_fields = {k: v for k, v in plan_data.model_dump().items() if v is not None}
+    update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.subscription_plans.update_one(
+        {"id": plan_id},
+        {"$set": update_fields}
+    )
+    
+    updated_plan = await db.subscription_plans.find_one({"id": plan_id}, {"_id": 0})
+    return updated_plan
+
+@router.delete("/plans/{plan_id}")
+async def delete_plan(
+    plan_id: str,
+    current_user: dict = Depends(get_super_admin_user)
+):
+    """Delete subscription plan (Super Admin only)"""
+    # Check if any subscriptions are using this plan
+    subscriptions_count = await db.subscriptions.count_documents({"plan_id": plan_id, "status": "active"})
+    if subscriptions_count > 0:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot delete plan with {subscriptions_count} active subscriptions"
+        )
+    
+    result = await db.subscription_plans.delete_one({"id": plan_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    
+    return {"message": "Plan deleted successfully"}
+
+# ============== SUBSCRIPTION MANAGEMENT ==============
+
+@router.get("/current", response_model=SubscriptionResponse)
+async def get_current_subscription(current_user: dict = Depends(get_current_user)):
+    """Get current user's subscription"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    subscription = await db.subscriptions.find_one(
+        {"tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not subscription:
+        # Auto-assign free tier
+        free_plan = await db.subscription_plans.find_one(
+            {"name": "Free", "price_monthly": 0},
+            {"_id": 0}
+        )
+        
+        if not free_plan:
+            raise HTTPException(status_code=404, detail="Free plan not found. Please contact support.")
+        
+        # Create free subscription
+        now = datetime.now(timezone.utc)
+        subscription_id = str(uuid.uuid4())
+        
+        subscription = {
+            "id": subscription_id,
+            "tenant_id": tenant_id,
+            "plan_id": free_plan["id"],
+            "plan_name": free_plan["name"],
+            "status": "active",
+            "billing_cycle": "monthly",
+            "current_period_start": now.isoformat(),
+            "current_period_end": (now + timedelta(days=30)).isoformat(),
+            "trial_end": None,
+            "stripe_subscription_id": None,
+            "stripe_customer_id": None,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        }
+        
+        await db.subscriptions.insert_one(subscription)
+    
+    return subscription
+
+@router.get("/usage", response_model=UsageResponse)
+async def get_usage(current_user: dict = Depends(get_current_user)):
+    """Get current usage statistics"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get subscription and plan
+    subscription = await db.subscriptions.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    if not subscription:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    
+    plan = await db.subscription_plans.find_one({"id": subscription["plan_id"]}, {"_id": 0})
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    
+    # Calculate current period
+    period_start = datetime.fromisoformat(subscription["current_period_start"])
+    period_end = datetime.fromisoformat(subscription["current_period_end"])
+    
+    # Count conversations in current period
+    conversations_count = await db.conversations.count_documents({
+        "tenant_id": tenant_id,
+        "created_at": {"$gte": period_start.isoformat()}
+    })
+    
+    # Count active agents
+    agents_count = await db.user_agents.count_documents({
+        "tenant_id": tenant_id
+    })
+    
+    # Get API calls (if tracked)
+    api_calls = 0  # Placeholder for future API call tracking
+    
+    # Calculate usage percentages
+    limits = plan["features"]
+    usage_percentage = {}
+    
+    if limits.get("max_conversations"):
+        usage_percentage["conversations"] = (conversations_count / limits["max_conversations"]) * 100
+    else:
+        usage_percentage["conversations"] = 0  # Unlimited
+    
+    if limits.get("max_agents"):
+        usage_percentage["agents"] = (agents_count / limits["max_agents"]) * 100
+    else:
+        usage_percentage["agents"] = 0  # Unlimited
+    
+    return {
+        "tenant_id": tenant_id,
+        "period_start": period_start.isoformat(),
+        "period_end": period_end.isoformat(),
+        "conversations_used": conversations_count,
+        "agents_created": agents_count,
+        "api_calls": api_calls,
+        "limits": limits,
+        "usage_percentage": usage_percentage
+    }
+
+@router.post("/subscribe")
+async def create_subscription(
+    subscription_data: SubscriptionCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create or update subscription (initiates Stripe checkout)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get plan
+    plan = await db.subscription_plans.find_one({"id": subscription_data.plan_id}, {"_id": 0})
+    if not plan:
+        raise HTTPException(status_code=404, detail="Plan not found")
+    
+    # Check if free plan
+    is_free = plan["price_monthly"] == 0
+    
+    if is_free:
+        # Create free subscription immediately
+        now = datetime.now(timezone.utc)
+        subscription_id = str(uuid.uuid4())
+        
+        # Get trial days from settings
+        platform_settings = await db.platform_settings.find_one({"key": "subscription_settings"}, {"_id": 0})
+        trial_days = platform_settings.get("value", {}).get("trial_days", 30) if platform_settings else 30
+        
+        subscription = {
+            "id": subscription_id,
+            "tenant_id": tenant_id,
+            "plan_id": plan["id"],
+            "plan_name": plan["name"],
+            "status": "active",
+            "billing_cycle": subscription_data.billing_cycle,
+            "current_period_start": now.isoformat(),
+            "current_period_end": (now + timedelta(days=30)).isoformat(),
+            "trial_end": (now + timedelta(days=trial_days)).isoformat(),
+            "stripe_subscription_id": None,
+            "stripe_customer_id": None,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        }
+        
+        # Upsert subscription
+        await db.subscriptions.update_one(
+            {"tenant_id": tenant_id},
+            {"$set": subscription},
+            upsert=True
+        )
+        
+        return {
+            "message": "Subscribed to free plan successfully",
+            "subscription": subscription
+        }
+    else:
+        # Return info for Stripe checkout
+        price = plan["price_yearly"] if subscription_data.billing_cycle == "yearly" else plan["price_monthly"]
+        
+        return {
+            "message": "Ready for checkout",
+            "requires_payment": True,
+            "plan": plan,
+            "price": price,
+            "billing_cycle": subscription_data.billing_cycle
+        }
+
+@router.post("/cancel")
+async def cancel_subscription(current_user: dict = Depends(get_current_user)):
+    """Cancel current subscription"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    subscription = await db.subscriptions.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    if not subscription:
+        raise HTTPException(status_code=404, detail="Subscription not found")
+    
+    # If has Stripe subscription, cancel it
+    if subscription.get("stripe_subscription_id"):
+        # TODO: Cancel Stripe subscription via API
+        pass
+    
+    # Update status
+    await db.subscriptions.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "status": "canceled",
+            "canceled_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Subscription canceled successfully"}
+
+# ============== PLATFORM SETTINGS (Super Admin) ==============
+
+@router.get("/settings/platform")
+async def get_subscription_settings(current_user: dict = Depends(get_super_admin_user)):
+    """Get platform subscription settings"""
+    settings = await db.platform_settings.find_one({"key": "subscription_settings"}, {"_id": 0})
+    
+    if not settings:
+        # Return defaults
+        return {
+            "trial_days": 30,
+            "yearly_discount_percent": 20,
+            "soft_limit_threshold": 90
+        }
+    
+    return settings.get("value", {})
+
+@router.put("/settings/platform")
+async def update_subscription_settings(
+    settings: Dict[str, Any],
+    current_user: dict = Depends(get_super_admin_user)
+):
+    """Update platform subscription settings"""
+    await db.platform_settings.update_one(
+        {"key": "subscription_settings"},
+        {"$set": {
+            "key": "subscription_settings",
+            "value": settings,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    return {"message": "Settings updated successfully", "settings": settings}
