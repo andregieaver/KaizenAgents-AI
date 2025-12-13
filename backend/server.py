@@ -3625,9 +3625,6 @@ from routes.marketplace import router as marketplace_router_mod
 from routes.agents import router as agents_router_mod
 from routes.health import router as health_router_mod
 
-# Register health routes (not under /api prefix)
-app.include_router(health_router_mod)
-
 # Register all modularized routers under /api
 api_router.include_router(auth_router_mod)
 api_router.include_router(tenants_router_mod)
@@ -3642,6 +3639,7 @@ api_router.include_router(transfers_router_mod)
 api_router.include_router(rate_limits_router_mod)
 api_router.include_router(marketplace_router_mod)
 api_router.include_router(agents_router_mod)
+api_router.include_router(health_router_mod)
 
 app.include_router(api_router)
 
