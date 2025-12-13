@@ -338,3 +338,25 @@ The Custom Feature Items functionality is **SUBSTANTIALLY WORKING** with core fe
 *Test completed on: December 13, 2025*
 *Tester: Testing Agent*
 *Environment: Production Preview*
+
+---
+
+## Discount Codes System Tests
+
+### Test Scope
+- Discount codes CRUD (super admin)
+- Apply discount codes on pricing page
+- Different discount types (percentage, fixed, trial, free months)
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Test Instructions
+1. Navigate to /dashboard/admin/discounts as super admin
+2. Verify all 3 test codes display: SUMMER20, SAVE10, FREETRIAL30
+3. Test creating a new discount code
+4. Test editing a discount code
+5. Navigate to /dashboard/pricing
+6. Enter "SUMMER20" in the Starter plan discount input
+7. Click Apply and verify 20% discount shows
+8. Verify original price crossed out and discounted price in green
