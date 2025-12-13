@@ -245,6 +245,71 @@ const CustomPage = () => {
                         </div>
                       ) : null;
 
+                    case 'row':
+                      const columns = block.content?.columns || [];
+                      return columns.length > 0 ? (
+                        <div
+                          key={block.id}
+                          className="w-full my-8 p-6 rounded-lg"
+                          style={{
+                            backgroundColor: block.content?.backgroundColor || 'transparent',
+                            backgroundImage: block.content?.backgroundImage 
+                              ? `url(${block.content.backgroundImage})` 
+                              : 'none',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center'
+                          }}
+                        >
+                          <div
+                            className="grid gap-4"
+                            style={{
+                              gridTemplateColumns: columns.map(col => 
+                                `${col.width?.desktop || 100 / columns.length}%`
+                              ).join(' '),
+                              gap: block.content?.gap || '1rem'
+                            }}
+                          >
+                            {columns.map((col) => (
+                              <div key={col.id} className="space-y-6">
+                                {(col.blocks || [])
+                                  .sort((a, b) => a.order - b.order)
+                                  .map((nestedBlock) => {
+                                    // Render nested blocks (reuse same switch logic)
+                                    switch (nestedBlock.type) {
+                                      case 'text':
+                                        return (
+                                          <article
+                                            key={nestedBlock.id}
+                                            className="prose prose-slate dark:prose-invert max-w-none"
+                                            dangerouslySetInnerHTML={{ __html: nestedBlock.content?.html || '' }}
+                                          />
+                                        );
+                                      case 'image':
+                                        return (
+                                          <div key={nestedBlock.id} className="space-y-2">
+                                            <img
+                                              src={nestedBlock.content?.url}
+                                              alt={nestedBlock.content?.alt || ''}
+                                              className="w-full rounded-lg shadow-md"
+                                            />
+                                            {nestedBlock.content?.caption && (
+                                              <p className="text-sm text-muted-foreground text-center italic">
+                                                {nestedBlock.content.caption}
+                                              </p>
+                                            )}
+                                          </div>
+                                        );
+                                      // Add other block types as needed
+                                      default:
+                                        return null;
+                                    }
+                                  })}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null;
+
                     default:
                       return null;
                   }
