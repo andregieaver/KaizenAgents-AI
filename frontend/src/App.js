@@ -28,6 +28,7 @@ import Billing from "./pages/Billing";
 import Pricing from "./pages/Pricing";
 import PlanManagement from "./pages/PlanManagement";
 import Integrations from "./pages/Integrations";
+import DiscountCodes from "./pages/DiscountCodes";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
