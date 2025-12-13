@@ -4,6 +4,8 @@ import axios from 'axios';
 import { Helmet } from 'react-helmet';
 import { Button } from '../components/ui/button';
 import { Home, Loader2 } from 'lucide-react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -126,7 +128,7 @@ const CustomPage = () => {
         {/* Main Content */}
         <main className="container mx-auto px-4 py-12">
           {page?.blocks && page.blocks.length > 0 ? (
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-8">
               {page.blocks
                 .sort((a, b) => a.order - b.order)
                 .map((block) => {
@@ -139,6 +141,85 @@ const CustomPage = () => {
                           dangerouslySetInnerHTML={{ __html: block.content?.html || '' }}
                         />
                       );
+                    
+                    case 'image':
+                      return (
+                        <div key={block.id} className="space-y-2">
+                          <img
+                            src={block.content?.url}
+                            alt={block.content?.alt || ''}
+                            className="w-full rounded-lg shadow-md"
+                          />
+                          {block.content?.caption && (
+                            <p className="text-sm text-muted-foreground text-center italic">
+                              {block.content.caption}
+                            </p>
+                          )}
+                        </div>
+                      );
+
+                    case 'video':
+                      const getVideoEmbedUrl = (url) => {
+                        if (!url) return null;
+                        
+                        // YouTube
+                        const youtubeRegex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+                        const youtubeMatch = url.match(youtubeRegex);
+                        if (youtubeMatch) {
+                          return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+                        }
+
+                        // Vimeo
+                        const vimeoRegex = /vimeo\.com\/(?:.*\/)?(\d+)/;
+                        const vimeoMatch = url.match(vimeoRegex);
+                        if (vimeoMatch) {
+                          return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+                        }
+
+                        return null;
+                      };
+
+                      const embedUrl = getVideoEmbedUrl(block.content?.url);
+                      return embedUrl ? (
+                        <div key={block.id} className="space-y-2">
+                          <div className="relative rounded-lg overflow-hidden shadow-md aspect-video">
+                            <iframe
+                              src={embedUrl}
+                              className="absolute inset-0 w-full h-full"
+                              frameBorder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          </div>
+                          {block.content?.caption && (
+                            <p className="text-sm text-muted-foreground text-center italic">
+                              {block.content.caption}
+                            </p>
+                          )}
+                        </div>
+                      ) : null;
+
+                    case 'code':
+                      return block.content?.code ? (
+                        <div key={block.id} className="space-y-2">
+                          <div className="rounded-lg overflow-hidden shadow-md">
+                            <SyntaxHighlighter
+                              language={block.content.language || 'javascript'}
+                              style={vscDarkPlus}
+                              customStyle={{ margin: 0, fontSize: '14px' }}
+                              showLineNumbers
+                            >
+                              {block.content.code}
+                            </SyntaxHighlighter>
+                          </div>
+                          {block.content?.caption && (
+                            <p className="text-sm text-muted-foreground text-center font-mono">
+                              {block.content.caption}
+                            </p>
+                          )}
+                        </div>
+                      ) : null;
+
                     default:
                       return null;
                   }
