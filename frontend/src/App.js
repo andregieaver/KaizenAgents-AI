@@ -87,6 +87,7 @@ function AppRoutes() {
         }
       />
       <Route path="/widget-demo" element={<WidgetDemo />} />
+      <Route path="/pricing" element={<Pricing />} />
 
       {/* Protected Dashboard Routes */}
       <Route
