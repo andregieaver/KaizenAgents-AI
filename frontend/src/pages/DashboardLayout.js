@@ -569,7 +569,11 @@ const Breadcrumb = () => {
       profile: 'Profile',
       providers: 'Providers',
       'rate-limits': 'Rate Limits',
-      observability: 'Observability'
+      observability: 'Observability',
+      billing: 'Billing',
+      pricing: 'Pricing',
+      admin: 'Admin',
+      plans: 'Plan Management'
     };
     
     // If previous path was 'conversations' and this looks like an ID, show 'Details'
