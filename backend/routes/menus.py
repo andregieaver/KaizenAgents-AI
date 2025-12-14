@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List
 from datetime import datetime, timezone
 from models.menus import MenuCreate, MenuUpdate, MenuResponse
-from auth import get_current_user
+from middleware.auth import get_current_user
 from database import db
 from uuid import uuid4
 
