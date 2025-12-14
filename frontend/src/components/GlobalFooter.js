@@ -131,12 +131,17 @@ const GlobalFooter = () => {
       case 'row':
         const columns = block.content?.columns || [];
         const gridCols = columns.length === 2 ? 'md:grid-cols-2' : columns.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-4';
-        const verticalAlign = block.content?.verticalAlign || 'top';
-        const alignItems = verticalAlign === 'center' ? 'items-center' : verticalAlign === 'bottom' ? 'items-end' : 'items-start';
-        const reverseOnMobile = block.content?.reverseOnMobile ? 'flex-col-reverse md:grid' : 'flex-col md:grid';
+        
+        // Check if vertical alignment is enabled
+        const verticalAlignEnabled = block.content?.verticalAlign === true;
+        const alignItems = verticalAlignEnabled ? 'items-center' : 'items-start';
+        
+        // Check if reverse mobile is enabled
+        const reverseMobileEnabled = block.content?.reverseMobile === true;
+        const reverseClass = reverseMobileEnabled ? 'flex-col-reverse md:grid' : 'flex-col md:grid';
         
         return (
-          <div key={block.id} className={`flex ${reverseOnMobile} gap-6 ${gridCols} ${alignItems} ${visibilityClass}`}>
+          <div key={block.id} className={`flex ${reverseClass} gap-6 ${gridCols} ${alignItems} ${visibilityClass}`}>
             {columns.map((column) => (
               <div key={column.id} className="flex flex-col gap-3 w-full">
                 {column.blocks?.map((colBlock) => renderFooterBlock(colBlock))}
