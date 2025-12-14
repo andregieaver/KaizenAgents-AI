@@ -449,3 +449,266 @@ export const ButtonBlockEditor = ({ block, updateBlock }) => {
     </div>
   );
 };
+
+// Pricing Cards Block Editor
+export const PricingCardsBlockEditor = ({ block, updateBlock }) => {
+  const content = block.content || {
+    heading: 'Choose Your Plan',
+    description: 'Select the perfect plan for your needs',
+    plans: []
+  };
+
+  const addPlan = () => {
+    const newPlan = {
+      id: `plan_${Date.now()}`,
+      name: 'New Plan',
+      description: 'Plan description',
+      price: '0',
+      interval: 'month',
+      popular: false,
+      features: ['Feature 1', 'Feature 2', 'Feature 3'],
+      buttonText: 'Get Started',
+      buttonUrl: '/pricing'
+    };
+    
+    updateBlock(block.id, {
+      ...content,
+      plans: [...content.plans, newPlan]
+    });
+  };
+
+  const updatePlan = (planId, updates) => {
+    const updatedPlans = content.plans.map(plan =>
+      plan.id === planId ? { ...plan, ...updates } : plan
+    );
+    updateBlock(block.id, {
+      ...content,
+      plans: updatedPlans
+    });
+  };
+
+  const removePlan = (planId) => {
+    const updatedPlans = content.plans.filter(plan => plan.id !== planId);
+    updateBlock(block.id, {
+      ...content,
+      plans: updatedPlans
+    });
+  };
+
+  const addFeature = (planId) => {
+    const updatedPlans = content.plans.map(plan => {
+      if (plan.id === planId) {
+        return {
+          ...plan,
+          features: [...plan.features, 'New Feature']
+        };
+      }
+      return plan;
+    });
+    updateBlock(block.id, {
+      ...content,
+      plans: updatedPlans
+    });
+  };
+
+  const updateFeature = (planId, featureIndex, value) => {
+    const updatedPlans = content.plans.map(plan => {
+      if (plan.id === planId) {
+        const newFeatures = [...plan.features];
+        newFeatures[featureIndex] = value;
+        return { ...plan, features: newFeatures };
+      }
+      return plan;
+    });
+    updateBlock(block.id, {
+      ...content,
+      plans: updatedPlans
+    });
+  };
+
+  const removeFeature = (planId, featureIndex) => {
+    const updatedPlans = content.plans.map(plan => {
+      if (plan.id === planId) {
+        const newFeatures = plan.features.filter((_, idx) => idx !== featureIndex);
+        return { ...plan, features: newFeatures };
+      }
+      return plan;
+    });
+    updateBlock(block.id, {
+      ...content,
+      plans: updatedPlans
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Section Header */}
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="pricing-heading">Section Heading</Label>
+          <Input
+            id="pricing-heading"
+            value={content.heading}
+            onChange={(e) => updateBlock(block.id, { ...content, heading: e.target.value })}
+            placeholder="Choose Your Plan"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="pricing-description">Section Description</Label>
+          <Textarea
+            id="pricing-description"
+            value={content.description}
+            onChange={(e) => updateBlock(block.id, { ...content, description: e.target.value })}
+            placeholder="Select the perfect plan for your needs"
+            rows={2}
+          />
+        </div>
+      </div>
+
+      {/* Pricing Plans */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label className="text-base font-semibold">Pricing Plans</Label>
+          <Button onClick={addPlan} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Plan
+          </Button>
+        </div>
+
+        {content.plans.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-muted-foreground">
+              No pricing plans yet. Click "Add Plan" to create your first plan.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {content.plans.map((plan, planIndex) => (
+              <Card key={plan.id} className="border-2">
+                <CardContent className="pt-6 space-y-4">
+                  {/* Plan Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="font-semibold">Plan {planIndex + 1}</span>
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm">Popular</Label>
+                      <input
+                        type="checkbox"
+                        checked={plan.popular || false}
+                        onChange={(e) => updatePlan(plan.id, { popular: e.target.checked })}
+                        className="h-4 w-4"
+                      />
+                      <Button
+                        onClick={() => removePlan(plan.id)}
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Plan Name */}
+                  <div>
+                    <Label>Plan Name</Label>
+                    <Input
+                      value={plan.name}
+                      onChange={(e) => updatePlan(plan.id, { name: e.target.value })}
+                      placeholder="Pro Plan"
+                    />
+                  </div>
+
+                  {/* Plan Description */}
+                  <div>
+                    <Label>Description</Label>
+                    <Textarea
+                      value={plan.description}
+                      onChange={(e) => updatePlan(plan.id, { description: e.target.value })}
+                      placeholder="Perfect for growing teams"
+                      rows={2}
+                    />
+                  </div>
+
+                  {/* Price and Interval */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Price</Label>
+                      <Input
+                        value={plan.price}
+                        onChange={(e) => updatePlan(plan.id, { price: e.target.value })}
+                        placeholder="99"
+                      />
+                    </div>
+                    <div>
+                      <Label>Interval</Label>
+                      <select
+                        value={plan.interval}
+                        onChange={(e) => updatePlan(plan.id, { interval: e.target.value })}
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      >
+                        <option value="month">per month</option>
+                        <option value="year">per year</option>
+                        <option value="one-time">one-time</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Features */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <Label>Features</Label>
+                      <Button onClick={() => addFeature(plan.id)} size="sm" variant="outline">
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Feature
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {plan.features.map((feature, featureIndex) => (
+                        <div key={featureIndex} className="flex gap-2">
+                          <Input
+                            value={feature}
+                            onChange={(e) => updateFeature(plan.id, featureIndex, e.target.value)}
+                            placeholder="Feature name"
+                          />
+                          <Button
+                            onClick={() => removeFeature(plan.id, featureIndex)}
+                            size="sm"
+                            variant="ghost"
+                            className="text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* CTA Button */}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Button Text</Label>
+                      <Input
+                        value={plan.buttonText}
+                        onChange={(e) => updatePlan(plan.id, { buttonText: e.target.value })}
+                        placeholder="Get Started"
+                      />
+                    </div>
+                    <div>
+                      <Label>Button URL</Label>
+                      <Input
+                        value={plan.buttonUrl}
+                        onChange={(e) => updatePlan(plan.id, { buttonUrl: e.target.value })}
+                        placeholder="/pricing"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
