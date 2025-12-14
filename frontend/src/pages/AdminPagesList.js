@@ -174,7 +174,7 @@ const AdminPagesList = () => {
             Pages Management
           </h1>
           <p className="text-muted-foreground">
-            Manage SEO and visibility for all public pages
+            Manage SEO and visibility for all public pages. Export pages as templates and import them to other pages.
           </p>
         </div>
         <Button onClick={() => navigate('/dashboard/admin/pages/create')}>
