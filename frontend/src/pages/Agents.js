@@ -31,7 +31,10 @@ import {
   Send,
   User,
   Edit,
-  RotateCcw
+  RotateCcw,
+  ShoppingCart,
+  CheckCircle2,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import AgentVersionHistory from '../components/AgentVersionHistory';
