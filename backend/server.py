@@ -128,8 +128,12 @@ async def generate_ai_response(messages: List[dict], settings: dict) -> str:
         if not agent_config or not agent_config.get("agent_id"):
             return "I apologize, but no AI agent has been configured for your company yet. Please contact your administrator."
         
-        # Get the agent
+        # Get the agent - including user_agents for WooCommerce config
         agent = await db.agents.find_one({"id": agent_config["agent_id"], "is_active": True}, {"_id": 0})
+        if not agent:
+            # Fallback: check user_agents collection
+            agent = await db.user_agents.find_one({"id": agent_config["agent_id"], "is_active": True}, {"_id": 0})
+        
         if not agent:
             return "I apologize, but the configured AI agent is not available. Please contact support."
         
