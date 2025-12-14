@@ -35,6 +35,7 @@ const PageEditor = () => {
   const [loading, setLoading] = useState(isEditMode);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
