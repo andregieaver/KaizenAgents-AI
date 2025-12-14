@@ -5,12 +5,15 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
+import logging
 
 from models import *
 from middleware import get_current_user
 from middleware.database import db
+from services.woocommerce_service import encrypt_credential, decrypt_credential, WooCommerceService
 
 router = APIRouter(prefix="/agents", tags=["agents"])
+logger = logging.getLogger(__name__)
 
 # Models
 class UserAgentResponse(BaseModel):
