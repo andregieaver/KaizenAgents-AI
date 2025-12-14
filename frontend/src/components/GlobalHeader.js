@@ -238,50 +238,6 @@ const GlobalHeader = () => {
       </div>
     </nav>
   );
-
-  // Default header (fallback)
-  return (
-    <nav className="border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
-              {getPlatformLogoSrc(platformLogo) ? (
-                <img src={getPlatformLogoSrc(platformLogo)} alt={platformName} className="h-full w-full object-contain" />
-              ) : (
-                <MessageSquare className="h-4 w-4 text-primary-foreground" />
-              )}
-            </div>
-            <span className="font-heading font-bold text-lg">{platformName}</span>
-          </Link>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="h-9 w-9"
-            >
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-            {isAuthenticated ? (
-              <Link to="/dashboard">
-                <Button className="btn-hover">Dashboard</Button>
-              </Link>
-            ) : (
-              <>
-                <Link to="/login">
-                  <Button variant="ghost">Sign in</Button>
-                </Link>
-                <Link to="/pricing">
-                  <Button className="btn-hover">Get Started</Button>
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-    </nav>
-  );
 };
 
 export default GlobalHeader;
