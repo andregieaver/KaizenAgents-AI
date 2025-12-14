@@ -192,8 +192,9 @@ export const renderButtonBlock = (block) => {
 };
 
 export const renderPricingWidgetBlock = (block) => {
+  const visibilityClass = getVisibilityClasses(block.visibility);
   return (
-    <div key={block.id}>
+    <div key={block.id} className={visibilityClass}>
       <PricingWidget />
     </div>
   );
