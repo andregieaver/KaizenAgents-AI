@@ -371,6 +371,8 @@ const SortableBlockItem = ({ block, children, onDelete, onVisibilityChange }) =>
         return 'Feature Grid';
       case 'cta':
         return 'Call to Action';
+      case 'pricing_cards':
+        return 'Pricing Cards';
       case 'button':
         return 'Button';
       case 'logo_text':
