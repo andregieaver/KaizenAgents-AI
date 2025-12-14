@@ -302,6 +302,21 @@ const PageEditor = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {isEditMode && (
+            <Button variant="outline" onClick={handleExport} disabled={exporting}>
+              {exporting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Exporting...
+                </>
+              ) : (
+                <>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export Template
+                </>
+              )}
+            </Button>
+          )}
           <Button variant="outline" onClick={() => navigate('/dashboard/admin/pages')}>
             Cancel
           </Button>
