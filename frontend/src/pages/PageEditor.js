@@ -240,6 +240,39 @@ const PageEditor = () => {
     }
   };
 
+  const handleExport = async () => {
+    if (!isEditMode) {
+      toast.error('Save the page first before exporting');
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const response = await axios.get(`${API}/admin/pages/${slug}/export`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const template = response.data;
+      const dataStr = JSON.stringify(template, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${slug}-template.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success('Template exported successfully');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to export template');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6 lg:p-8">
