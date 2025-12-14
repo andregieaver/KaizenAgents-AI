@@ -46,6 +46,7 @@ const AdminPagesList = () => {
   const navigate = useNavigate();
   const [pages, setPages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(null);
 
   useEffect(() => {
     fetchPages();
