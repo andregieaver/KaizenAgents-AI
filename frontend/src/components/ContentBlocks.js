@@ -290,6 +290,7 @@ const ContentBlocks = ({ blocks, onChange }) => {
       id: `block_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       type: type,
       content: content,
+      visibility: { desktop: true, tablet: true, mobile: true },
       order: localBlocks.length
     };
     handleBlocksChange([...localBlocks, newBlock]);
@@ -298,6 +299,13 @@ const ContentBlocks = ({ blocks, onChange }) => {
   const updateBlock = (blockId, content) => {
     const updatedBlocks = localBlocks.map(block =>
       block.id === blockId ? { ...block, content } : block
+    );
+    handleBlocksChange(updatedBlocks);
+  };
+
+  const updateBlockVisibility = (blockId, visibility) => {
+    const updatedBlocks = localBlocks.map(block =>
+      block.id === blockId ? { ...block, visibility } : block
     );
     handleBlocksChange(updatedBlocks);
   };
