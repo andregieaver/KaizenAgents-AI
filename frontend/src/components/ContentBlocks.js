@@ -998,6 +998,9 @@ const ContentBlocks = ({ blocks, onChange }) => {
       case 'cta':
         return <CTABlockEditor block={block} updateBlock={updateBlock} />;
 
+      case 'pricing_cards':
+        return <PricingCardsBlockEditor block={block} updateBlock={updateBlock} />;
+
       case 'button':
         return <ButtonBlockEditor block={block} updateBlock={updateBlock} />;
 
