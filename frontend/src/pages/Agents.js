@@ -846,6 +846,150 @@ const Agents = () => {
           </div>
         </DialogContent>
       </Dialog>
+      {/* WooCommerce Configuration Dialog */}
+      <Dialog open={showWooCommerceDialog} onOpenChange={setShowWooCommerceDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              WooCommerce Integration
+            </DialogTitle>
+            <DialogDescription>
+              Connect this agent to your WooCommerce store to handle orders, refunds, and customer inquiries.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Enable Toggle */}
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Enable WooCommerce Integration</Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Allow this agent to interact with WooCommerce API
+                </p>
+              </div>
+              <input
+                type="checkbox"
+                checked={wooCommerceConfig.enabled}
+                onChange={(e) => setWooCommerceConfig({
+                  ...wooCommerceConfig,
+                  enabled: e.target.checked
+                })}
+                className="h-5 w-5 rounded border-input"
+              />
+            </div>
+
+            <Separator />
+
+            {/* Store URL */}
+            <div className="space-y-2">
+              <Label htmlFor="wc-store-url">
+                Store URL *
+              </Label>
+              <Input
+                id="wc-store-url"
+                type="url"
+                placeholder="https://yourstore.com"
+                value={wooCommerceConfig.store_url}
+                onChange={(e) => setWooCommerceConfig({
+                  ...wooCommerceConfig,
+                  store_url: e.target.value
+                })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Your WooCommerce store URL (including https://)
+              </p>
+            </div>
+
+            {/* Consumer Key */}
+            <div className="space-y-2">
+              <Label htmlFor="wc-consumer-key">
+                Consumer Key *
+              </Label>
+              <Input
+                id="wc-consumer-key"
+                type="text"
+                placeholder="ck_xxxxxxxxxxxx"
+                value={wooCommerceConfig.consumer_key}
+                onChange={(e) => setWooCommerceConfig({
+                  ...wooCommerceConfig,
+                  consumer_key: e.target.value
+                })}
+              />
+              <p className="text-xs text-muted-foreground">
+                From WooCommerce → Settings → Advanced → REST API
+              </p>
+            </div>
+
+            {/* Consumer Secret */}
+            <div className="space-y-2">
+              <Label htmlFor="wc-consumer-secret">
+                Consumer Secret *
+              </Label>
+              <Input
+                id="wc-consumer-secret"
+                type="password"
+                placeholder="cs_xxxxxxxxxxxx"
+                value={wooCommerceConfig.consumer_secret}
+                onChange={(e) => setWooCommerceConfig({
+                  ...wooCommerceConfig,
+                  consumer_secret: e.target.value
+                })}
+              />
+              <p className="text-xs text-muted-foreground">
+                Generate with Read/Write permissions
+              </p>
+            </div>
+
+            {/* Info Box */}
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="flex gap-3">
+                <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div className="space-y-2 text-sm text-blue-900 dark:text-blue-100">
+                  <p className="font-medium">How to get API credentials:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-xs">
+                    <li>Go to WooCommerce → Settings → Advanced → REST API</li>
+                    <li>Click "Add key"</li>
+                    <li>Select a user and set permissions to "Read/Write"</li>
+                    <li>Click "Generate API key"</li>
+                    <li>Copy the Consumer Key and Consumer Secret</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={handleTestWooCommerceConnection}
+                disabled={testingWooCommerce || !wooCommerceConfig.store_url}
+              >
+                {testingWooCommerce ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Testing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    Test Connection
+                  </>
+                )}
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={handleSaveWooCommerceConfig}
+                disabled={!wooCommerceConfig.store_url || !wooCommerceConfig.consumer_key || !wooCommerceConfig.consumer_secret}
+              >
+                Save Configuration
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Version History Dialog */}
       <AgentVersionHistory
         agentId={versionHistoryAgent?.id}
