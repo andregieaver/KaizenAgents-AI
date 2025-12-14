@@ -42,13 +42,54 @@ const GlobalFooter = () => {
     return url;
   };
 
+  // Render individual block for footer
+  const renderFooterBlock = (block) => {
+    switch (block.type) {
+      case 'text':
+        return (
+          <div
+            key={block.id}
+            className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground"
+            dangerouslySetInnerHTML={{ __html: block.content?.html || '' }}
+          />
+        );
+      
+      case 'button':
+        const IconComponent = block.content?.icon ? Icons[block.content.icon] : null;
+        return (
+          <a key={block.id} href={block.content?.url || '#'}>
+            <Button
+              variant={block.content?.variant || 'default'}
+              size={block.content?.size || 'sm'}
+            >
+              {block.content?.text || 'Button'}
+              {IconComponent && <IconComponent className="ml-2 h-4 w-4" />}
+            </Button>
+          </a>
+        );
+      
+      case 'image':
+        return (
+          <img
+            key={block.id}
+            src={block.content?.url || ''}
+            alt={block.content?.alt || ''}
+            className="h-6 w-auto object-contain"
+          />
+        );
+      
+      default:
+        return null;
+    }
+  };
+
   // If footer has custom blocks, render them
   if (footerBlocks.length > 0) {
     return (
       <footer className="py-8 border-t border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Render custom footer blocks */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+          {/* Logo and platform name */}
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-6 mb-6">
             <Link to="/" className="flex items-center gap-2">
               <div className="h-6 w-6 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
                 {getPlatformLogoSrc(platformLogo) ? (
@@ -59,6 +100,19 @@ const GlobalFooter = () => {
               </div>
               <span className="text-sm text-muted-foreground">{platformName}</span>
             </Link>
+          </div>
+
+          {/* Custom blocks */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+            {footerBlocks.map(block => (
+              <div key={block.id}>
+                {renderFooterBlock(block)}
+              </div>
+            ))}
+          </div>
+
+          {/* Copyright */}
+          <div className="pt-6 border-t border-border text-center">
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} {platformName}. All rights reserved.
             </p>
