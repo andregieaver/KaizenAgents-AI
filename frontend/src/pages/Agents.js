@@ -54,14 +54,24 @@ const Agents = () => {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showTestDialog, setShowTestDialog] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showWooCommerceDialog, setShowWooCommerceDialog] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [editingAgent, setEditingAgent] = useState(null);
   const [versionHistoryAgent, setVersionHistoryAgent] = useState(null);
+  const [wooCommerceAgent, setWooCommerceAgent] = useState(null);
   const [testMessage, setTestMessage] = useState('');
   const [conversationHistory, setConversationHistory] = useState([]);
   const [testing, setTesting] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(null);
+  const [testingWooCommerce, setTestingWooCommerce] = useState(false);
   const avatarInputRef = useRef(null);
+
+  const [wooCommerceConfig, setWooCommerceConfig] = useState({
+    store_url: '',
+    consumer_key: '',
+    consumer_secret: '',
+    enabled: true
+  });
 
   const [newAgent, setNewAgent] = useState({
     name: '',
