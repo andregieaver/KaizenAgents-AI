@@ -8,7 +8,8 @@ import {
   renderHeroBlock,
   renderFeaturesBlock,
   renderCTABlock,
-  renderButtonBlock
+  renderButtonBlock,
+  renderImageBlock
 } from '../components/PublicBlockRenderers';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
