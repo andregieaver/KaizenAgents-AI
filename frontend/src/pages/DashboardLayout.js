@@ -239,6 +239,10 @@ const DashboardLayout = () => {
     ? { path: '/dashboard/admin/components', icon: Layout, label: 'Global Components', isAdmin: true }
     : null;
 
+  const menusNavItem = user?.role === 'owner'
+    ? { path: '/dashboard/admin/menus', icon: Menu, label: 'Menus', isAdmin: true }
+    : null;
+
   const isActive = (path) => {
     if (path === '/dashboard') {
       return location.pathname === '/dashboard';
