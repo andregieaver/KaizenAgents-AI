@@ -18,7 +18,8 @@ import {
   Image as ImageIcon,
   Twitter,
   Upload,
-  Layers
+  Layers,
+  Download
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ContentBlocks from '../components/ContentBlocks';
