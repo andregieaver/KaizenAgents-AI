@@ -115,6 +115,8 @@ const PricingPage = () => {
                 return renderCTABlock(block);
               case 'button':
                 return renderButtonBlock(block);
+              case 'pricing_cards':
+                return renderPricingCardsBlock(block);
               case 'pricing_widget':
                 return renderPricingWidgetBlock(block);
               case 'image':
