@@ -157,6 +157,7 @@ export const renderCTABlock = (block) => {
 
 export const renderButtonBlock = (block) => {
   const content = block.content || {};
+  const visibilityClass = getVisibilityClasses(block.visibility);
 
   const getIcon = (iconName) => {
     switch (iconName) {
@@ -176,7 +177,7 @@ export const renderButtonBlock = (block) => {
   };
 
   return (
-    <div key={block.id} className="my-4">
+    <div key={block.id} className={`my-4 ${visibilityClass}`}>
       <a href={content.url || '#'}>
         <Button
           variant={content.variant || 'default'}
