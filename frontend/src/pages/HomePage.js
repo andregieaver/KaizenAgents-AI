@@ -114,6 +114,8 @@ const HomePage = () => {
                 return renderCTABlock(block);
               case 'button':
                 return renderButtonBlock(block);
+              case 'pricing_cards':
+                return renderPricingCardsBlock(block);
               case 'image':
                 return renderImageBlock(block);
               default:
