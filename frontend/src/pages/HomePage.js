@@ -113,6 +113,8 @@ const HomePage = () => {
                 return renderCTABlock(block);
               case 'button':
                 return renderButtonBlock(block);
+              case 'image':
+                return renderImageBlock(block);
               default:
                 return null;
             }
