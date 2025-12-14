@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from './ui/button';
 import { MessageSquare, Moon, Sun, Loader2 } from 'lucide-react';
+import * as Icons from 'lucide-react';
 import axios from 'axios';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
