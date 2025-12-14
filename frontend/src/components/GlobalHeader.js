@@ -100,13 +100,32 @@ const GlobalHeader = () => {
         );
       
       case 'image':
-        return (
+        const imageElement = (
           <img
-            key={block.id}
             src={block.content?.url || ''}
             alt={block.content?.alt || ''}
-            className={`h-8 w-auto object-contain ${visibilityClass}`}
+            className="h-8 w-auto object-contain"
           />
+        );
+        
+        if (block.content?.link) {
+          return (
+            <a 
+              key={block.id} 
+              href={block.content.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={visibilityClass}
+            >
+              {imageElement}
+            </a>
+          );
+        }
+        
+        return (
+          <div key={block.id} className={visibilityClass}>
+            {imageElement}
+          </div>
         );
       
       default:
