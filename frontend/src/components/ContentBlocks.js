@@ -45,7 +45,9 @@ import {
   MousePointerClick,
   Tag,
   Moon,
-  UserCircle
+  UserCircle,
+  Menu as MenuIcon,
+  X
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
