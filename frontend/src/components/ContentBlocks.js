@@ -1351,6 +1351,10 @@ const ContentBlocks = ({ blocks, onChange }) => {
                         <UserCircle className="h-4 w-4 mr-2" />
                         Auth Buttons
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('menu')}>
+                        <MenuIcon className="h-4 w-4 mr-2" />
+                        Navigation Menu
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </CardContent>
