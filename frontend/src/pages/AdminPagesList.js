@@ -288,6 +288,30 @@ const AdminPagesList = () => {
                         Edit
                       </Button>
                       
+                      <label htmlFor={`import-${page.slug}`}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          disabled={importing === page.slug}
+                          asChild
+                        >
+                          <span>
+                            {importing === page.slug ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Upload className="h-4 w-4" />
+                            )}
+                          </span>
+                        </Button>
+                      </label>
+                      <input
+                        id={`import-${page.slug}`}
+                        type="file"
+                        accept=".json"
+                        onChange={(e) => handleImport(page.slug, e)}
+                        className="hidden"
+                      />
+
                       <Button
                         variant="ghost"
                         size="icon"
