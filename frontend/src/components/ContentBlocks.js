@@ -83,7 +83,7 @@ const MenuBlockEditor = ({ block, updateBlock }) => {
   const fetchMenus = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${API}/api/menus/`, {
+      const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/menus/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMenus(response.data);
