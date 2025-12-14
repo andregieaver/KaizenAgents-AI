@@ -105,6 +105,14 @@ class PublicPageResponse(BaseModel):
     blocks: Optional[List[dict]] = []
     seo: PageSEO
 
+class PageTemplateExport(BaseModel):
+    blocks: List[dict]
+    content: Optional[str] = None
+
+class PageTemplateImport(BaseModel):
+    blocks: List[dict]
+    content: Optional[str] = None
+
 # Default pages configuration
 DEFAULT_PAGES = [
     {
