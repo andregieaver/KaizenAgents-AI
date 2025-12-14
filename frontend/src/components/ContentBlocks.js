@@ -260,8 +260,6 @@ const MenuBlockEditor = ({ block, updateBlock }) => {
   );
 };
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
-
 // Sortable Block Item Component
 const SortableBlockItem = ({ block, children, onDelete, onVisibilityChange }) => {
   const {
