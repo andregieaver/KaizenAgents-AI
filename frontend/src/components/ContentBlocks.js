@@ -52,7 +52,7 @@ import {
 import * as Icons from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 import RowEditor from './RowEditor';
-import { HeroBlockEditor, FeatureGridEditor, CTABlockEditor, ButtonBlockEditor } from './HomepageBlocks';
+import { HeroBlockEditor, FeatureGridEditor, CTABlockEditor, ButtonBlockEditor, PricingCardsBlockEditor } from './HomepageBlocks';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import {
