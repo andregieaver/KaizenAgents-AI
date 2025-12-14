@@ -154,6 +154,8 @@ const SortableBlockItem = ({ block, children, onDelete, onVisibilityChange }) =>
         return 'Theme Toggle';
       case 'auth_buttons':
         return 'Auth Buttons';
+      case 'menu':
+        return 'Navigation Menu';
       default:
         return 'Block';
     }
