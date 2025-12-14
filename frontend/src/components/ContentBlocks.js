@@ -788,6 +788,122 @@ const ContentBlocks = ({ blocks, onChange }) => {
           </div>
         );
 
+      case 'logo_text':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label>Logo Image URL</Label>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  placeholder="https://example.com/logo.png"
+                  value={block.content.logoUrl || ''}
+                  onChange={(e) => updateBlock(block.id, { ...block.content, logoUrl: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor={`platform-name-${block.id}`}>Platform Name</Label>
+              <Input
+                id={`platform-name-${block.id}`}
+                placeholder="Your Platform Name"
+                value={block.content.platformName || ''}
+                onChange={(e) => updateBlock(block.id, { ...block.content, platformName: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor={`link-url-${block.id}`}>Link URL</Label>
+              <Input
+                id={`link-url-${block.id}`}
+                placeholder="/"
+                value={block.content.linkUrl || '/'}
+                onChange={(e) => updateBlock(block.id, { ...block.content, linkUrl: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Where should the logo link to? (usually homepage)
+              </p>
+            </div>
+
+            {block.content.logoUrl && (
+              <div className="border rounded-lg p-4 flex items-center gap-3">
+                <img
+                  src={block.content.logoUrl}
+                  alt={block.content.platformName}
+                  className="h-8 w-8 rounded-sm object-contain"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/32x32?text=Logo';
+                  }}
+                />
+                <span className="font-heading font-bold text-lg">{block.content.platformName}</span>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'theme_toggle':
+        return (
+          <div className="space-y-4">
+            <div className="border rounded-lg p-4 text-center">
+              <Moon className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+              <p className="text-sm font-medium">Theme Toggle Button</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Automatically switches between light and dark modes
+              </p>
+            </div>
+          </div>
+        );
+
+      case 'auth_buttons':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor={`signin-text-${block.id}`}>Sign In Button Text</Label>
+              <Input
+                id={`signin-text-${block.id}`}
+                placeholder="Sign in"
+                value={block.content.signInText || 'Sign in'}
+                onChange={(e) => updateBlock(block.id, { ...block.content, signInText: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor={`signup-text-${block.id}`}>Sign Up Button Text</Label>
+              <Input
+                id={`signup-text-${block.id}`}
+                placeholder="Get Started"
+                value={block.content.signUpText || 'Get Started'}
+                onChange={(e) => updateBlock(block.id, { ...block.content, signUpText: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label htmlFor={`dashboard-text-${block.id}`}>Dashboard Button Text</Label>
+              <Input
+                id={`dashboard-text-${block.id}`}
+                placeholder="Dashboard"
+                value={block.content.dashboardText || 'Dashboard'}
+                onChange={(e) => updateBlock(block.id, { ...block.content, dashboardText: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Shown to logged-in users instead of sign in/up buttons
+              </p>
+            </div>
+
+            <div className="border rounded-lg p-4">
+              <p className="text-sm font-medium mb-2">Preview:</p>
+              <div className="flex gap-2">
+                <button className="px-3 py-1 text-sm border rounded">
+                  {block.content.signInText || 'Sign in'}
+                </button>
+                <button className="px-3 py-1 text-sm bg-primary text-primary-foreground rounded">
+                  {block.content.signUpText || 'Get Started'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return <p className="text-muted-foreground text-sm">Block type: {block.type}</p>;
     }
