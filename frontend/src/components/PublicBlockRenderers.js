@@ -248,15 +248,89 @@ export const renderImageBlock = (block) => {
   );
 };
 
-export const renderPricingCardsBlock = (block) => {
+// Pricing Cards - Dynamically fetches plans from API
+export const PricingCardsBlock = ({ block }) => {
+  const [plans, setPlans] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
   const content = block.content || {};
   const visibilityClass = getVisibilityClasses(block.visibility);
-  const plans = content.plans || [];
   const { Check } = Icons;
+  const showYearlyPricing = content.showYearlyPricing || false;
+  const buttonText = content.buttonText || 'Get Started';
+
+  React.useEffect(() => {
+    const fetchPlans = async () => {
+      try {
+        const API = process.env.REACT_APP_BACKEND_URL;
+        const response = await fetch(`${API}/api/subscriptions/plans`);
+        const data = await response.json();
+        // Filter for public plans only and sort by sort_order
+        const publicPlans = data.filter(p => p.is_public).sort((a, b) => a.sort_order - b.sort_order);
+        setPlans(publicPlans);
+      } catch (error) {
+        console.error('Failed to fetch pricing plans:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlans();
+  }, []);
+
+  if (loading) {
+    return (
+      <section key={block.id} className={`py-16 ${visibilityClass}`}>
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
+        </div>
+      </section>
+    );
+  }
 
   if (plans.length === 0) {
     return null;
   }
+
+  // Helper to get features list from plan
+  const getPlanFeatures = (plan) => {
+    const features = [];
+    const planFeatures = plan.features || {};
+    
+    // Add custom items first if they exist
+    if (planFeatures.custom_items && planFeatures.custom_items.length > 0) {
+      features.push(...planFeatures.custom_items);
+    } else {
+      // Otherwise, generate from features object
+      if (planFeatures.max_conversations !== null && planFeatures.max_conversations !== undefined) {
+        features.push(planFeatures.max_conversations === null || planFeatures.max_conversations === -1 
+          ? 'Unlimited conversations' 
+          : `${planFeatures.max_conversations} conversations/month`);
+      }
+      if (planFeatures.max_agents !== null && planFeatures.max_agents !== undefined) {
+        features.push(planFeatures.max_agents === null || planFeatures.max_agents === -1
+          ? 'Unlimited agents' 
+          : `Up to ${planFeatures.max_agents} agents`);
+      }
+      if (planFeatures.analytics_enabled) {
+        features.push('Advanced analytics');
+      }
+      if (planFeatures.api_access) {
+        features.push('API access');
+      }
+      if (planFeatures.support_level) {
+        const supportLabels = { email: 'Email support', priority: 'Priority support', premium: 'Premium support' };
+        features.push(supportLabels[planFeatures.support_level] || 'Email support');
+      }
+      if (planFeatures.remove_branding) {
+        features.push('Remove branding');
+      }
+      if (planFeatures.custom_integrations) {
+        features.push('Custom integrations');
+      }
+    }
+    
+    return features;
+  };
 
   return (
     <section key={block.id} className={`py-16 ${visibilityClass}`}>
@@ -283,70 +357,76 @@ export const renderPricingCardsBlock = (block) => {
         plans.length === 3 ? 'md:grid-cols-3 max-w-6xl mx-auto' :
         'md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto'
       }`}>
-        {plans.map((plan) => (
-          <div
-            key={plan.id}
-            className={`relative flex flex-col rounded-2xl border-2 p-8 ${
-              plan.popular
-                ? 'border-primary shadow-lg scale-105 bg-primary/5'
-                : 'border-border bg-card'
-            }`}
-          >
-            {/* Popular Badge */}
-            {plan.popular && (
-              <div className="absolute -top-4 left-0 right-0 flex justify-center">
-                <Badge className="bg-primary text-primary-foreground px-4 py-1">
-                  Most Popular
-                </Badge>
-              </div>
-            )}
+        {plans.map((plan, index) => {
+          const isPopular = index === 1 && plans.length >= 3; // Middle plan is popular for 3+ plans
+          const price = showYearlyPricing && plan.price_yearly ? plan.price_yearly : plan.price_monthly;
+          const interval = showYearlyPricing && plan.price_yearly ? 'year' : 'month';
+          const features = getPlanFeatures(plan);
 
-            {/* Plan Header */}
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-              <p className="text-muted-foreground text-sm">{plan.description}</p>
-            </div>
-
-            {/* Price */}
-            <div className="mb-6">
-              <div className="flex items-baseline gap-2">
-                <span className="text-5xl font-bold">${plan.price}</span>
-                {plan.interval && plan.interval !== 'one-time' && (
-                  <span className="text-muted-foreground">
-                    /{plan.interval === 'month' ? 'mo' : 'yr'}
-                  </span>
-                )}
-              </div>
-              {plan.interval === 'one-time' && (
-                <span className="text-sm text-muted-foreground">One-time payment</span>
+          return (
+            <div
+              key={plan.id}
+              className={`relative flex flex-col rounded-2xl border-2 p-8 ${
+                isPopular
+                  ? 'border-primary shadow-lg scale-105 bg-primary/5'
+                  : 'border-border bg-card'
+              }`}
+            >
+              {/* Popular Badge */}
+              {isPopular && (
+                <div className="absolute -top-4 left-0 right-0 flex justify-center">
+                  <Badge className="bg-primary text-primary-foreground px-4 py-1">
+                    Most Popular
+                  </Badge>
+                </div>
               )}
+
+              {/* Plan Header */}
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+                <p className="text-muted-foreground text-sm">{plan.description}</p>
+              </div>
+
+              {/* Price */}
+              <div className="mb-6">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-bold">${price}</span>
+                  <span className="text-muted-foreground">
+                    /{interval === 'month' ? 'mo' : 'yr'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Features */}
+              <ul className="space-y-3 mb-8 flex-grow">
+                {features.map((feature, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {/* CTA Button */}
+              <a href="/dashboard/pricing" className="w-full">
+                <Button
+                  className="w-full"
+                  variant={isPopular ? 'default' : 'outline'}
+                  size="lg"
+                >
+                  {buttonText}
+                </Button>
+              </a>
             </div>
-
-            {/* Features */}
-            <ul className="space-y-3 mb-8 flex-grow">
-              {plan.features.map((feature, idx) => (
-                <li key={idx} className="flex items-start gap-3">
-                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">{feature}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* CTA Button */}
-            <a href={plan.buttonUrl || '#'} className="w-full">
-              <Button
-                className="w-full"
-                variant={plan.popular ? 'default' : 'outline'}
-                size="lg"
-              >
-                {plan.buttonText || 'Get Started'}
-              </Button>
-            </a>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );
+};
+
+export const renderPricingCardsBlock = (block) => {
+  return <PricingCardsBlock key={block.id} block={block} />;
 };
 
 export const renderTextBlock = (block) => {
