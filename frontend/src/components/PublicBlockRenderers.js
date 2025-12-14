@@ -205,12 +205,14 @@ export const renderPricingWidgetBlock = (block) => {
 export const renderImageBlock = (block) => {
   const content = block.content || {};
   const visibilityClass = getVisibilityClasses(block.visibility);
+  const alignment = content.alignment || 'left';
+  const alignClass = alignment === 'center' ? 'mx-auto' : alignment === 'right' ? 'ml-auto' : '';
   
   const imageElement = (
     <img
       src={content.url || ''}
       alt={content.alt || ''}
-      className="w-full h-auto rounded-lg"
+      className={`w-full h-auto rounded-lg ${alignClass}`}
     />
   );
   
