@@ -121,6 +121,20 @@ const GlobalFooter = () => {
           </div>
         );
       
+      case 'row':
+        const columns = block.content?.columns || [];
+        const gridCols = columns.length === 2 ? 'md:grid-cols-2' : columns.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-4';
+        
+        return (
+          <div key={block.id} className={`grid gap-6 ${gridCols} ${visibilityClass}`}>
+            {columns.map((column) => (
+              <div key={column.id} className="flex flex-col gap-3">
+                {column.blocks?.map((colBlock) => renderFooterBlock(colBlock))}
+              </div>
+            ))}
+          </div>
+        );
+      
       default:
         return null;
     }
