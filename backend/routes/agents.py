@@ -32,6 +32,17 @@ class UserAgentUpdate(BaseModel):
     name: Optional[str] = None
     config: Optional[Dict[str, Any]] = None
 
+class WooCommerceConfig(BaseModel):
+    store_url: str
+    consumer_key: str
+    consumer_secret: str
+    enabled: bool = True
+
+class WooCommerceConfigResponse(BaseModel):
+    enabled: bool
+    store_url: Optional[str] = None
+    has_credentials: bool = False
+
 @router.get("/", response_model=List[UserAgentResponse])
 async def get_user_agents(current_user: dict = Depends(get_current_user)):
     """Get all user's saved agents"""
