@@ -408,6 +408,31 @@ export const PricingCardsBlock = ({ block }) => {
                 ))}
               </ul>
 
+              {/* Discount Code Input */}
+              <div className="mb-4 space-y-2">
+                <input
+                  type="text"
+                  placeholder="Discount code"
+                  className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  id={`discount-${plan.id}`}
+                />
+                <button
+                  className="w-full px-3 py-2 text-sm border rounded-md hover:bg-accent transition-colors"
+                  onClick={() => {
+                    const input = document.getElementById(`discount-${plan.id}`);
+                    const code = input?.value;
+                    if (code) {
+                      // Store discount code in localStorage to apply on pricing page
+                      localStorage.setItem('pendingDiscountCode', code);
+                      localStorage.setItem('pendingPlanId', plan.id);
+                      window.location.href = '/dashboard/pricing';
+                    }
+                  }}
+                >
+                  Apply Discount
+                </button>
+              </div>
+
               {/* CTA Button */}
               <a href="/dashboard/pricing" className="w-full">
                 <Button
