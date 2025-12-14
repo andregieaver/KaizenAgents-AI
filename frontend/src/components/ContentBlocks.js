@@ -299,6 +299,20 @@ const ContentBlocks = ({ blocks, onChange }) => {
         size: 'default', // sm, default, lg
         icon: 'ArrowRight'
       };
+    } else if (type === 'logo_text') {
+      content = {
+        logoUrl: '',
+        platformName: 'Your Platform',
+        linkUrl: '/'
+      };
+    } else if (type === 'theme_toggle') {
+      content = {}; // No configuration needed
+    } else if (type === 'auth_buttons') {
+      content = {
+        signInText: 'Sign in',
+        signUpText: 'Get Started',
+        dashboardText: 'Dashboard'
+      };
     }
     
     const newBlock = {
