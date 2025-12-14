@@ -158,6 +158,8 @@ export const renderCTABlock = (block) => {
 export const renderButtonBlock = (block) => {
   const content = block.content || {};
   const visibilityClass = getVisibilityClasses(block.visibility);
+  const alignment = content.alignment || 'left';
+  const textAlign = alignment === 'center' ? 'text-center' : alignment === 'right' ? 'text-right' : 'text-left';
 
   const getIcon = (iconName) => {
     switch (iconName) {
@@ -177,8 +179,8 @@ export const renderButtonBlock = (block) => {
   };
 
   return (
-    <div key={block.id} className={`my-4 ${visibilityClass}`}>
-      <a href={content.url || '#'}>
+    <div key={block.id} className={`my-4 ${textAlign} ${visibilityClass}`}>
+      <a href={content.url || '#'} className="inline-block">
         <Button
           variant={content.variant || 'default'}
           size={content.size || 'default'}
