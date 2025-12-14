@@ -892,6 +892,171 @@ The Team Management feature is **SUBSTANTIALLY FUNCTIONAL** and working as desig
 *Tester: Testing Agent*
 *Environment: Production Preview*
 
+## Header Block Components System Tests
+
+### Test Scope
+- New header block components system with three new block types:
+  1. **Logo with Text** - Platform logo and name display
+  2. **Theme Toggle** - Light/dark mode switcher button  
+  3. **Auth Buttons** - Dynamic sign in/get started buttons (or dashboard for logged-in users)
+- GlobalHeader component rendering ONLY blocks from CMS with fallback to default layout
+- Complete workflow: clear existing blocks, add new blocks, test functionality
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Test Results Summary
+
+#### ✅ WORKING FEATURES
+
+**1. Authentication and Access Control:**
+- ✅ Super admin login successful with provided credentials
+- ✅ Header component editor accessible at /dashboard/admin/components/edit/header
+- ✅ Proper authentication and authorization working
+- ✅ Component editor loads with "Main Header" title and "Edit header component" description
+
+**2. Block Management Interface:**
+- ✅ Component editor shows existing blocks with proper UI
+- ✅ Block deletion functionality working (trash icon buttons)
+- ✅ "No content blocks yet" message appears after clearing all blocks
+- ✅ "Add First Block" and "Add Content Block" buttons functional
+- ✅ Dropdown menu with all block types available including new ones:
+  - ✅ Logo with Text option available
+  - ✅ Theme Toggle option available  
+  - ✅ Auth Buttons option available
+
+**3. New Block Types Implementation:**
+- ✅ **Logo with Text Block**: 
+  - Configuration form with Logo Image URL, Platform Name, and Link URL fields
+  - Platform Name field accepts "Kaizen Agents AI"
+  - Link URL field accepts "/" 
+  - Preview shows logo placeholder when no image URL provided
+- ✅ **Theme Toggle Block**:
+  - No configuration needed (automatic functionality)
+  - Preview shows moon icon and "Automatically switches between light and dark modes" description
+- ✅ **Auth Buttons Block**:
+  - Configuration form with Sign In Text, Sign Up Text, and Dashboard Text fields
+  - Default values: "Sign in", "Get Started", "Dashboard"
+  - Preview shows button mockups
+
+**4. Component Save Functionality:**
+- ✅ "Save Component" button functional
+- ✅ Component saves successfully and navigates back to components list
+- ✅ No errors during save process
+
+**5. Public Page Header Functionality:**
+- ✅ Auth buttons working correctly for unauthenticated users
+- ✅ "Sign in" button navigates to /login page
+- ✅ "Get Started" button navigates to /pricing page
+- ✅ Button styling appears correct (ghost and primary variants)
+
+#### ❌ CRITICAL ISSUES IDENTIFIED
+
+**1. Header Block Rendering Issue:**
+- ❌ **CRITICAL**: New header blocks not rendering on public pages
+- ❌ Header still shows old text content: "This is a sample header text for testing the Global Components CMS feature."
+- ❌ "Kaizen Agents AI" logo text not appearing despite being configured
+- ❌ Theme toggle button not appearing in header
+- ❌ Header appears to be using fallback content instead of CMS blocks
+
+**2. Block Management Issues:**
+- ❌ Existing blocks not properly detected for deletion (found 0 blocks despite visible content)
+- ❌ Block addition process may not be completing properly
+- ❌ Drag handles for reordering not found (0 instead of expected 3+)
+- ❌ Device visibility toggle buttons not found (0 instead of expected 9)
+
+#### ⚠️ PARTIAL FUNCTIONALITY
+
+**1. Authentication State Detection:**
+- ⚠️ Authenticated state header testing inconclusive
+- ⚠️ Dashboard button state change not clearly verified
+- ⚠️ May require session management improvements
+
+### Technical Analysis
+
+**Root Cause Investigation:**
+- ✅ Backend component editor API working correctly
+- ✅ Block type definitions implemented properly in ContentBlocks.js
+- ✅ GlobalHeader.js has proper block rendering logic for all three new types
+- ❌ **Issue**: Disconnect between component editor saves and public header rendering
+- ❌ **Possible causes**: 
+  - API endpoint mismatch between editor and public rendering
+  - Caching issues preventing updated blocks from appearing
+  - Block data not persisting correctly to database
+  - Public API not returning updated block configuration
+
+**Frontend Implementation Verification:**
+- ✅ ContentBlocks.js properly implements all three new block types (lines 114-119, 148-152, 791-905)
+- ✅ GlobalHeader.js has rendering logic for logo_text, theme_toggle, and auth_buttons (lines 131-182)
+- ✅ Block configuration forms working correctly in editor
+- ❌ Public header API (/api/global-components/public/header) may not returning updated blocks
+
+### Test Environment Details
+- **Frontend URL:** https://global-cms-manager.preview.emergentagent.com
+- **Authentication:** Working correctly with super admin credentials
+- **Session Management:** Stable during testing operations
+- **Component Editor:** Fully functional with proper UI and controls
+- **Public Rendering:** Not reflecting saved changes
+
+### Screenshots Captured
+1. Header component editor with existing blocks
+2. Block addition dropdown showing new block types
+3. Public homepage showing old header content (not updated blocks)
+4. Login page and authentication flow
+5. Component editor after attempted block configuration
+
+### Conclusion
+The Header Block Components System is **PARTIALLY FUNCTIONAL** with a critical rendering issue:
+
+**Status: NEEDS IMMEDIATE FIX** ❌
+
+### Issues Requiring Resolution
+
+**CRITICAL:**
+1. **Header Block Rendering**: New blocks configured in editor are not appearing on public pages - header shows old fallback content instead of CMS blocks
+2. **Block Persistence**: Block deletion and addition may not be persisting correctly to the database
+3. **API Integration**: Disconnect between component editor API and public header rendering API
+
+**MODERATE:**
+1. **Block Management UI**: Existing blocks not properly detected for management operations
+2. **Responsive Controls**: Device visibility toggles not appearing after block addition
+3. **Drag and Drop**: Block reordering controls not accessible
+
+### Recommendations for Main Agent
+
+1. **IMMEDIATE ACTION REQUIRED:** Debug the API integration between component editor saves and public header rendering
+2. **Check Database Persistence:** Verify that block configurations are being saved to the database correctly
+3. **API Endpoint Verification:** Ensure /api/global-components/public/header returns updated block data
+4. **Cache Clearing:** Implement cache invalidation when header blocks are updated
+5. **Error Handling:** Add better error feedback in component editor when saves fail
+6. **Block Detection:** Fix block detection logic in editor for proper management operations
+
+### What Works vs. What Doesn't
+
+**✅ WORKING:**
+- Super admin authentication and access control
+- Component editor UI and navigation
+- Block type definitions and configuration forms
+- New block types (Logo with Text, Theme Toggle, Auth Buttons) properly implemented
+- Component save functionality (UI level)
+- Auth button functionality on public pages
+- Block addition dropdown and options
+
+**❌ NOT WORKING:**
+- Header block rendering on public pages (shows old content)
+- Block persistence from editor to public display
+- Block management operations (delete, reorder)
+- Device visibility controls
+- Theme toggle button on public pages
+- Logo with custom text display
+- Complete block-based header system
+
+---
+*Header Block Components Test completed on: December 14, 2025*
+*Tester: Testing Agent*
+*Environment: Production Preview*
+*Status: CRITICAL ISSUE - REQUIRES IMMEDIATE ATTENTION*
+
 ## Pages Management Feature Tests
 
 ### Test Scope
