@@ -452,10 +452,10 @@ export const ButtonBlockEditor = ({ block, updateBlock }) => {
 
 // Pricing Cards Block Editor
 export const PricingCardsBlockEditor = ({ block, updateBlock }) => {
-  const content = block.content || {
-    heading: 'Choose Your Plan',
-    description: 'Select the perfect plan for your needs',
-    plans: []
+  const content = {
+    heading: block.content?.heading || 'Choose Your Plan',
+    description: block.content?.description || 'Select the perfect plan for your needs',
+    plans: block.content?.plans || []
   };
 
   const addPlan = () => {
