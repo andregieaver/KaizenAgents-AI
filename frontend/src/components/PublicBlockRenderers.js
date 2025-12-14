@@ -248,6 +248,107 @@ export const renderImageBlock = (block) => {
   );
 };
 
+export const renderPricingCardsBlock = (block) => {
+  const content = block.content || {};
+  const visibilityClass = getVisibilityClasses(block.visibility);
+  const plans = content.plans || [];
+  const { Check } = Icons;
+
+  if (plans.length === 0) {
+    return null;
+  }
+
+  return (
+    <section key={block.id} className={`py-16 ${visibilityClass}`}>
+      {/* Section Header */}
+      {(content.heading || content.description) && (
+        <div className="text-center mb-12">
+          {content.heading && (
+            <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+              {content.heading}
+            </h2>
+          )}
+          {content.description && (
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              {content.description}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Pricing Cards Grid */}
+      <div className={`grid gap-8 ${
+        plans.length === 1 ? 'max-w-md mx-auto' :
+        plans.length === 2 ? 'md:grid-cols-2 max-w-4xl mx-auto' :
+        plans.length === 3 ? 'md:grid-cols-3 max-w-6xl mx-auto' :
+        'md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto'
+      }`}>
+        {plans.map((plan) => (
+          <div
+            key={plan.id}
+            className={`relative flex flex-col rounded-2xl border-2 p-8 ${
+              plan.popular
+                ? 'border-primary shadow-lg scale-105 bg-primary/5'
+                : 'border-border bg-card'
+            }`}
+          >
+            {/* Popular Badge */}
+            {plan.popular && (
+              <div className="absolute -top-4 left-0 right-0 flex justify-center">
+                <Badge className="bg-primary text-primary-foreground px-4 py-1">
+                  Most Popular
+                </Badge>
+              </div>
+            )}
+
+            {/* Plan Header */}
+            <div className="mb-6">
+              <h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
+              <p className="text-muted-foreground text-sm">{plan.description}</p>
+            </div>
+
+            {/* Price */}
+            <div className="mb-6">
+              <div className="flex items-baseline gap-2">
+                <span className="text-5xl font-bold">${plan.price}</span>
+                {plan.interval && plan.interval !== 'one-time' && (
+                  <span className="text-muted-foreground">
+                    /{plan.interval === 'month' ? 'mo' : 'yr'}
+                  </span>
+                )}
+              </div>
+              {plan.interval === 'one-time' && (
+                <span className="text-sm text-muted-foreground">One-time payment</span>
+              )}
+            </div>
+
+            {/* Features */}
+            <ul className="space-y-3 mb-8 flex-grow">
+              {plan.features.map((feature, idx) => (
+                <li key={idx} className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">{feature}</span>
+                </li>
+              ))}
+            </ul>
+
+            {/* CTA Button */}
+            <a href={plan.buttonUrl || '#'} className="w-full">
+              <Button
+                className="w-full"
+                variant={plan.popular ? 'default' : 'outline'}
+                size="lg"
+              >
+                {plan.buttonText || 'Get Started'}
+              </Button>
+            </a>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+};
+
 export const renderTextBlock = (block) => {
   const content = block.content || {};
   const alignment = content.alignment || 'center';
