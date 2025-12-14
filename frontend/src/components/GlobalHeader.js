@@ -199,10 +199,39 @@ const GlobalHeader = () => {
   // Menu Block Component with Hamburger Support
   const MenuBlock = ({ block, visibilityClass }) => {
     const [isOpen, setIsOpen] = useState(false);
+    const [items, setItems] = useState([]);
+    const [loading, setLoading] = useState(true);
     const content = block.content || {};
-    const items = content.items || [];
     const layout = content.layout || 'horizontal';
     const displayMode = content.displayMode || { desktop: 'normal', tablet: 'normal', mobile: 'hamburger' };
+    const menuId = content.menuId;
+
+    useEffect(() => {
+      if (menuId) {
+        fetchMenuItems();
+      } else {
+        setLoading(false);
+      }
+    }, [menuId]);
+
+    const fetchMenuItems = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/menus/public/${menuId}`);
+        setItems(response.data.items || []);
+      } catch (error) {
+        console.error('Error fetching menu items:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (loading) {
+      return <div className={visibilityClass}><Loader2 className="h-4 w-4 animate-spin" /></div>;
+    }
+
+    if (!menuId || items.length === 0) {
+      return null;
+    }
     
     // Get visibility classes for menu items
     const getItemVisibilityClasses = (visibility) => {
