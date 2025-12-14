@@ -131,9 +131,10 @@ export const renderFeaturesBlock = (block) => {
 
 export const renderCTABlock = (block) => {
   const content = block.content || {};
+  const visibilityClass = getVisibilityClasses(block.visibility);
 
   return (
-    <section key={block.id} className="py-20 border-t border-border">
+    <section key={block.id} className={`py-20 border-t border-border ${visibilityClass}`}>
       <div className="max-w-3xl mx-auto text-center">
         <h2 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight mb-4">
           {content.heading}
