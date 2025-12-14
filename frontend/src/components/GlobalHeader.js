@@ -355,8 +355,11 @@ const GlobalHeader = () => {
       return classes.join(' ');
     };
     
+    const menuAlignment = content.alignment || 'left';
+    const menuAlignClass = menuAlignment === 'center' ? 'justify-center' : menuAlignment === 'right' ? 'justify-end' : 'justify-start';
+    
     return (
-      <div className={visibilityClass}>
+      <div className={`flex ${menuAlignClass} ${visibilityClass}`}>
         {/* Hamburger Menu */}
         <div className={getDisplayModeClasses()}>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
