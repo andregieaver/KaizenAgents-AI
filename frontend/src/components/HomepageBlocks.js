@@ -579,7 +579,7 @@ export const PricingCardsBlockEditor = ({ block, updateBlock }) => {
         {content.plans.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
-              No pricing plans yet. Click "Add Plan" to create your first plan.
+              No pricing plans yet. Click &quot;Add Plan&quot; to create your first plan.
             </CardContent>
           </Card>
         ) : (
