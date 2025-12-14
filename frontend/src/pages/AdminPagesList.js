@@ -34,7 +34,8 @@ import {
   Trash2,
   Calendar,
   User,
-  Loader2
+  Loader2,
+  Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
 
