@@ -222,6 +222,26 @@ You are assisting customers for {brand_name}."""
             for msg in conversation_messages[:-1]:
                 history.append(msg)
         
+        # Check if WooCommerce integration is enabled and use function calling
+        try:
+            from services.ai_function_calling import generate_ai_response_with_tools
+            
+            wc_response = await generate_ai_response_with_tools(
+                latest_message=latest_message,
+                conversation_history=history,
+                agent=agent,
+                provider=provider,
+                base_system_prompt=base_prompt,
+                agent_config=agent,
+                max_iterations=3
+            )
+            
+            if wc_response:
+                return wc_response
+        except Exception as e:
+            logger.error(f"WooCommerce function calling error: {str(e)}")
+            # Continue with standard generation if WooCommerce fails
+        
         # Generate response based on provider type
         if provider["type"] == "openai":
             import openai
