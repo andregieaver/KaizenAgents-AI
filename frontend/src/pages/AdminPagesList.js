@@ -115,6 +115,45 @@ const AdminPagesList = () => {
     }
   };
 
+  const handleImport = async (slug, event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.json')) {
+      toast.error('Please upload a JSON template file');
+      return;
+    }
+
+    setImporting(slug);
+    try {
+      const fileContent = await file.text();
+      const template = JSON.parse(fileContent);
+
+      if (!template.blocks) {
+        toast.error('Invalid template file: missing blocks');
+        return;
+      }
+
+      const response = await axios.post(
+        `${API}/admin/pages/${slug}/import`,
+        template,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setPages(pages.map(p => p.slug === slug ? response.data : p));
+      toast.success('Template imported successfully');
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        toast.error('Invalid JSON file');
+      } else {
+        toast.error(error.response?.data?.detail || 'Failed to import template');
+      }
+    } finally {
+      setImporting(null);
+      event.target.value = '';
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6 lg:p-8">
