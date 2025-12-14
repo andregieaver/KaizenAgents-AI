@@ -826,6 +826,7 @@ const ContentBlocks = ({ blocks, onChange }) => {
                   key={block.id}
                   block={block}
                   onDelete={deleteBlock}
+                  onVisibilityChange={updateBlockVisibility}
                 >
                   {renderBlockContent(block)}
                 </SortableBlockItem>
