@@ -541,7 +541,7 @@ const Agents = () => {
 
               {/* Actions */}
               <div className="space-y-2">
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   <input
                     type="file"
                     ref={avatarInputRef}
@@ -594,6 +594,16 @@ const Agents = () => {
                     <History className="h-4 w-4" />
                   </Button>
                 </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => openWooCommerceDialog(agent)}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  WooCommerce
+                </Button>
                 
                 <Button
                   variant="outline"
