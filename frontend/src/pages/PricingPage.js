@@ -116,6 +116,8 @@ const PricingPage = () => {
                 return renderButtonBlock(block);
               case 'pricing_widget':
                 return renderPricingWidgetBlock(block);
+              case 'image':
+                return renderImageBlock(block);
               case 'text':
                 return (
                   <article
