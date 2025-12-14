@@ -974,6 +974,18 @@ const ContentBlocks = ({ blocks, onChange }) => {
                         <MousePointerClick className="h-4 w-4 mr-2" />
                         Button
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('logo_text')}>
+                        <Tag className="h-4 w-4 mr-2" />
+                        Logo with Text
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('theme_toggle')}>
+                        <Moon className="h-4 w-4 mr-2" />
+                        Theme Toggle
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('auth_buttons')}>
+                        <UserCircle className="h-4 w-4 mr-2" />
+                        Auth Buttons
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </CardContent>
