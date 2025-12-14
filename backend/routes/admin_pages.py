@@ -419,3 +419,44 @@ async def get_public_page(slug: str):
         "blocks": page.get("blocks", []),
         "seo": page.get("seo", {})
     }
+
+@router.get("/{slug}/export", response_model=PageTemplateExport)
+async def export_page_template(slug: str, current_user: dict = Depends(is_super_admin)):
+    """Export page blocks and content as a template (excludes metadata)"""
+    page = await db.pages.find_one({"slug": slug}, {"_id": 0})
+    
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    return {
+        "blocks": page.get("blocks", []),
+        "content": page.get("content", "")
+    }
+
+@router.post("/{slug}/import")
+async def import_page_template(
+    slug: str,
+    template: PageTemplateImport,
+    current_user: dict = Depends(is_super_admin)
+):
+    """Import page template and override existing page content"""
+    page = await db.pages.find_one({"slug": slug})
+    
+    if not page:
+        raise HTTPException(status_code=404, detail="Page not found")
+    
+    # Update only blocks and content, preserving all metadata
+    update_data = {
+        "blocks": template.blocks,
+        "content": template.content or "",
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "updated_by": current_user.get("name", current_user.get("email"))
+    }
+    
+    await db.pages.update_one(
+        {"slug": slug},
+        {"$set": update_data}
+    )
+    
+    updated_page = await db.pages.find_one({"slug": slug}, {"_id": 0})
+    return updated_page
