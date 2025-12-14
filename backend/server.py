@@ -3632,6 +3632,7 @@ from routes.affiliates import router as affiliates_router_mod
 from routes.teams import router as teams_router_mod
 from routes.admin_pages import router as admin_pages_router_mod
 from routes.global_components import router as global_components_router_mod
+from routes.menus import router as menus_router_mod
 
 # Register all modularized routers under /api
 api_router.include_router(auth_router_mod)
