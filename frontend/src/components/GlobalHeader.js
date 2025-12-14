@@ -80,7 +80,7 @@ const GlobalHeader = () => {
         return (
           <div
             key={block.id}
-            className="prose prose-sm dark:prose-invert max-w-none"
+            className={`prose prose-sm dark:prose-invert max-w-none ${visibilityClass}`}
             dangerouslySetInnerHTML={{ __html: block.content?.html || '' }}
           />
         );
@@ -88,7 +88,7 @@ const GlobalHeader = () => {
       case 'button':
         const IconComponent = block.content?.icon ? Icons[block.content.icon] : null;
         return (
-          <a key={block.id} href={block.content?.url || '#'}>
+          <a key={block.id} href={block.content?.url || '#'} className={visibilityClass}>
             <Button
               variant={block.content?.variant || 'default'}
               size={block.content?.size || 'default'}
@@ -105,7 +105,7 @@ const GlobalHeader = () => {
             key={block.id}
             src={block.content?.url || ''}
             alt={block.content?.alt || ''}
-            className="h-8 w-auto object-contain"
+            className={`h-8 w-auto object-contain ${visibilityClass}`}
           />
         );
       
