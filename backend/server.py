@@ -3657,6 +3657,7 @@ api_router.include_router(affiliates_router_mod)
 api_router.include_router(teams_router_mod)
 api_router.include_router(admin_pages_router_mod)
 api_router.include_router(global_components_router_mod)
+api_router.include_router(menus_router_mod)
 
 app.include_router(api_router)
 
