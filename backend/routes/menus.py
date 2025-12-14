@@ -9,7 +9,7 @@ from middleware.auth import get_current_user
 from middleware.database import db
 from uuid import uuid4
 
-router = APIRouter(prefix="/api/menus", tags=["menus"])
+router = APIRouter(prefix="/menus", tags=["menus"])
 
 
 # Super-admin check
