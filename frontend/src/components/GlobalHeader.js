@@ -200,12 +200,17 @@ const GlobalHeader = () => {
       case 'row':
         const columns = block.content?.columns || [];
         const gridCols = columns.length === 2 ? 'grid-cols-2' : columns.length === 3 ? 'grid-cols-3' : 'grid-cols-4';
-        const verticalAlign = block.content?.verticalAlign || 'top';
-        const alignItems = verticalAlign === 'center' ? 'items-center' : verticalAlign === 'bottom' ? 'items-end' : 'items-start';
-        const reverseOnMobile = block.content?.reverseOnMobile ? 'flex-col-reverse md:flex-row' : 'flex-col md:flex-row';
+        
+        // Check if vertical alignment is enabled
+        const verticalAlignEnabled = block.content?.verticalAlign === true;
+        const alignItems = verticalAlignEnabled ? 'items-center' : 'items-start';
+        
+        // Check if reverse mobile is enabled
+        const reverseMobileEnabled = block.content?.reverseMobile === true;
+        const reverseClass = reverseMobileEnabled ? 'flex-col-reverse md:flex-row' : 'flex-col md:flex-row';
         
         return (
-          <div key={block.id} className={`flex ${reverseOnMobile} gap-4 w-full ${alignItems} ${visibilityClass} md:grid md:${gridCols}`}>
+          <div key={block.id} className={`flex ${reverseClass} gap-4 w-full ${alignItems} ${visibilityClass} md:grid md:${gridCols}`}>
             {columns.map((column) => (
               <div key={column.id} className="flex flex-col gap-2 w-full">
                 {column.blocks?.map((colBlock) => renderHeaderBlock(colBlock))}
