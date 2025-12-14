@@ -1124,6 +1124,341 @@ class AIAgentHubTester:
             print("   ⚠️ Follow-up message test failed")
             
         return True
+
+    # ============== PAGE TEMPLATE EXPORT/IMPORT TESTS ==============
+
+    def test_page_template_export_import_feature(self):
+        """Test the new Page Template Export/Import feature as requested in review"""
+        print(f"\n🎯 Testing Page Template Export/Import Feature")
+        
+        # Test all scenarios from the review request
+        export_test = self.test_export_homepage_template()
+        import_pricing_test = self.test_import_template_to_pricing()
+        import_custom_test = self.test_import_template_to_custom_page()
+        invalid_import_test = self.test_invalid_import_scenarios()
+        
+        # Summary of template tests
+        print(f"\n📋 Page Template Test Results:")
+        print(f"   Export Homepage Template: {'✅ PASSED' if export_test else '❌ FAILED'}")
+        print(f"   Import to Pricing Page: {'✅ PASSED' if import_pricing_test else '❌ FAILED'}")
+        print(f"   Import to Custom Page: {'✅ PASSED' if import_custom_test else '❌ FAILED'}")
+        print(f"   Invalid Import Scenarios: {'✅ PASSED' if invalid_import_test else '❌ FAILED'}")
+        
+        return export_test and import_pricing_test and import_custom_test and invalid_import_test
+
+    def test_export_homepage_template(self):
+        """Test Scenario 1: Export Template from Homepage"""
+        print(f"\n🔧 Testing Export Template from Homepage")
+        
+        success, response = self.run_test(
+            "Export Homepage Template",
+            "GET",
+            "admin/pages/homepage/export",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to export homepage template")
+            return False
+            
+        # Verify the exported JSON contains required fields
+        if 'blocks' not in response:
+            print("❌ Exported template missing 'blocks' field")
+            return False
+            
+        if 'content' not in response:
+            print("❌ Exported template missing 'content' field")
+            return False
+            
+        # Verify NO metadata is included (no slug, name, seo, etc.)
+        metadata_fields = ['slug', 'name', 'seo', 'path', 'visible', 'updated_at', 'updated_by']
+        has_metadata = any(field in response for field in metadata_fields)
+        
+        if has_metadata:
+            found_fields = [field for field in metadata_fields if field in response]
+            print(f"❌ Exported template contains metadata fields: {found_fields}")
+            return False
+            
+        print(f"   ✅ Export contains only blocks and content (no metadata)")
+        print(f"   ✅ Blocks array: {len(response.get('blocks', []))} items")
+        print(f"   ✅ Content field: {'present' if response.get('content') is not None else 'null'}")
+        
+        # Store the exported template for import tests
+        self.exported_homepage_template = response
+        
+        return True
+
+    def test_import_template_to_pricing(self):
+        """Test Scenario 2: Import Template to Pricing Page"""
+        print(f"\n🔧 Testing Import Template to Pricing Page")
+        
+        if not hasattr(self, 'exported_homepage_template'):
+            print("❌ No exported template available - run export test first")
+            return False
+            
+        # First, get the current pricing page data to compare
+        success, original_pricing = self.run_test(
+            "Get Original Pricing Page Data",
+            "GET",
+            "admin/pages/pricing",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get original pricing page data")
+            return False
+            
+        print(f"   ✅ Original pricing page retrieved")
+        print(f"   Original blocks: {len(original_pricing.get('blocks', []))}")
+        print(f"   Original SEO title: {original_pricing.get('seo', {}).get('title', 'N/A')}")
+        
+        # Import homepage template to pricing page
+        success, response = self.run_test(
+            "Import Homepage Template to Pricing",
+            "POST",
+            "admin/pages/pricing/import",
+            200,
+            data=self.exported_homepage_template
+        )
+        
+        if not success:
+            print("❌ Failed to import template to pricing page")
+            return False
+            
+        # Verify the import was successful
+        print(f"   ✅ Template imported successfully")
+        
+        # Verify blocks were replaced with homepage blocks
+        new_blocks = response.get('blocks', [])
+        homepage_blocks = self.exported_homepage_template.get('blocks', [])
+        
+        if len(new_blocks) != len(homepage_blocks):
+            print(f"❌ Block count mismatch: expected {len(homepage_blocks)}, got {len(new_blocks)}")
+            return False
+            
+        print(f"   ✅ Pricing page blocks replaced with homepage blocks ({len(new_blocks)} items)")
+        
+        # Verify page metadata is preserved (name, slug, path, SEO)
+        if response.get('slug') != 'pricing':
+            print(f"❌ Slug changed: expected 'pricing', got '{response.get('slug')}'")
+            return False
+            
+        if response.get('name') != original_pricing.get('name'):
+            print(f"❌ Name changed: expected '{original_pricing.get('name')}', got '{response.get('name')}'")
+            return False
+            
+        if response.get('path') != original_pricing.get('path'):
+            print(f"❌ Path changed: expected '{original_pricing.get('path')}', got '{response.get('path')}'")
+            return False
+            
+        # Verify SEO metadata is preserved
+        original_seo = original_pricing.get('seo', {})
+        new_seo = response.get('seo', {})
+        
+        if new_seo.get('title') != original_seo.get('title'):
+            print(f"❌ SEO title changed unexpectedly")
+            return False
+            
+        print(f"   ✅ Page metadata preserved (name, slug, path, SEO)")
+        
+        # Verify updated_at and updated_by fields are updated
+        if not response.get('updated_at'):
+            print("❌ updated_at field not set")
+            return False
+            
+        if not response.get('updated_by'):
+            print("❌ updated_by field not set")
+            return False
+            
+        print(f"   ✅ Updated timestamp and user recorded")
+        print(f"   ✅ Import to pricing page completed successfully")
+        
+        return True
+
+    def test_import_template_to_custom_page(self):
+        """Test Scenario 3: Import to Custom Page"""
+        print(f"\n🔧 Testing Import Template to Custom Page")
+        
+        if not hasattr(self, 'exported_homepage_template'):
+            print("❌ No exported template available - run export test first")
+            return False
+            
+        # First, create a test custom page
+        custom_page_data = {
+            "name": "Test Custom Page",
+            "slug": "test-custom-page",
+            "path": "/test-custom",
+            "content": "Original custom page content",
+            "blocks": [
+                {
+                    "id": "custom-block-1",
+                    "type": "text",
+                    "content": {"text": "Original custom content"},
+                    "order": 1
+                }
+            ],
+            "visible": True
+        }
+        
+        success, custom_page = self.run_test(
+            "Create Test Custom Page",
+            "POST",
+            "admin/pages",
+            200,
+            data=custom_page_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test custom page")
+            return False
+            
+        print(f"   ✅ Test custom page created: {custom_page.get('slug')}")
+        
+        # Import homepage template to the custom page
+        success, response = self.run_test(
+            "Import Template to Custom Page",
+            "POST",
+            f"admin/pages/{custom_page.get('slug')}/import",
+            200,
+            data=self.exported_homepage_template
+        )
+        
+        if not success:
+            print("❌ Failed to import template to custom page")
+            return False
+            
+        # Verify blocks are replaced correctly
+        new_blocks = response.get('blocks', [])
+        homepage_blocks = self.exported_homepage_template.get('blocks', [])
+        
+        if len(new_blocks) != len(homepage_blocks):
+            print(f"❌ Block replacement failed: expected {len(homepage_blocks)}, got {len(new_blocks)}")
+            return False
+            
+        print(f"   ✅ Custom page blocks replaced with homepage blocks")
+        
+        # Verify custom page metadata is preserved
+        if response.get('slug') != custom_page.get('slug'):
+            print("❌ Custom page slug changed unexpectedly")
+            return False
+            
+        if response.get('name') != custom_page.get('name'):
+            print("❌ Custom page name changed unexpectedly")
+            return False
+            
+        print(f"   ✅ Custom page metadata preserved")
+        
+        # Clean up: Delete the test custom page
+        success, _ = self.run_test(
+            "Delete Test Custom Page",
+            "DELETE",
+            f"admin/pages/{custom_page.get('slug')}",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Test custom page cleaned up")
+        else:
+            print(f"   ⚠️ Failed to clean up test custom page")
+            
+        return True
+
+    def test_invalid_import_scenarios(self):
+        """Test Scenario 4: Invalid Import Scenarios"""
+        print(f"\n🔧 Testing Invalid Import Scenarios")
+        
+        # Test 1: Import to non-existent page (should return 404)
+        valid_template = {
+            "blocks": [{"id": "test", "type": "text", "content": {"text": "test"}, "order": 1}],
+            "content": "test content"
+        }
+        
+        success, response = self.run_test(
+            "Import to Non-existent Page",
+            "POST",
+            "admin/pages/non-existent-page/import",
+            404,
+            data=valid_template
+        )
+        
+        if not success:
+            print("❌ Expected 404 for non-existent page, but got different status")
+            return False
+            
+        print(f"   ✅ Correctly returns 404 for non-existent page")
+        
+        # Test 2: Import with invalid JSON structure (missing blocks field)
+        invalid_template_1 = {
+            "content": "test content"
+            # Missing blocks field
+        }
+        
+        success, response = self.run_test(
+            "Import with Missing Blocks Field",
+            "POST",
+            "admin/pages/homepage/import",
+            422,  # Validation error
+            data=invalid_template_1
+        )
+        
+        if not success:
+            print("❌ Expected 422 for missing blocks field, but got different status")
+            return False
+            
+        print(f"   ✅ Correctly validates missing blocks field")
+        
+        # Test 3: Import with invalid blocks structure
+        invalid_template_2 = {
+            "blocks": "invalid_blocks_not_array",
+            "content": "test content"
+        }
+        
+        success, response = self.run_test(
+            "Import with Invalid Blocks Structure",
+            "POST",
+            "admin/pages/homepage/import",
+            422,  # Validation error
+            data=invalid_template_2
+        )
+        
+        if not success:
+            print("❌ Expected 422 for invalid blocks structure, but got different status")
+            return False
+            
+        print(f"   ✅ Correctly validates blocks structure")
+        
+        # Test 4: Import with empty template (should work but clear content)
+        empty_template = {
+            "blocks": [],
+            "content": ""
+        }
+        
+        success, response = self.run_test(
+            "Import Empty Template",
+            "POST",
+            "admin/pages/homepage/import",
+            200,
+            data=empty_template
+        )
+        
+        if not success:
+            print("❌ Empty template import failed")
+            return False
+            
+        # Verify empty template was applied
+        if len(response.get('blocks', [])) != 0:
+            print("❌ Empty blocks not applied correctly")
+            return False
+            
+        if response.get('content', '') != '':
+            print("❌ Empty content not applied correctly")
+            return False
+            
+        print(f"   ✅ Empty template import works correctly")
+        
+        print(f"   ✅ All invalid import scenarios handled correctly")
+        
+        return True
 def main():
     print("🚀 Starting AI Agent Hub Comprehensive Backend Testing")
     print("=" * 70)
