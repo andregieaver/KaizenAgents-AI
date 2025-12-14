@@ -128,6 +128,59 @@ const GlobalHeader = () => {
           </div>
         );
       
+      case 'logo_text':
+        const logoSrc = block.content?.logoUrl ? (
+          block.content.logoUrl.startsWith('/api/') 
+            ? `${process.env.REACT_APP_BACKEND_URL}${block.content.logoUrl}`
+            : block.content.logoUrl
+        ) : null;
+        
+        return (
+          <Link key={block.id} to={block.content?.linkUrl || '/'} className={`flex items-center gap-2 ${visibilityClass}`}>
+            <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
+              {logoSrc ? (
+                <img src={logoSrc} alt={block.content?.platformName} className="h-full w-full object-contain" />
+              ) : (
+                <MessageSquare className="h-4 w-4 text-primary-foreground" />
+              )}
+            </div>
+            <span className="font-heading font-bold text-lg">{block.content?.platformName || 'Platform'}</span>
+          </Link>
+        );
+      
+      case 'theme_toggle':
+        return (
+          <Button
+            key={block.id}
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            className={`h-9 w-9 ${visibilityClass}`}
+          >
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+        );
+      
+      case 'auth_buttons':
+        return (
+          <div key={block.id} className={`flex items-center gap-3 ${visibilityClass}`}>
+            {isAuthenticated ? (
+              <Link to="/dashboard">
+                <Button className="btn-hover">{block.content?.dashboardText || 'Dashboard'}</Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost">{block.content?.signInText || 'Sign in'}</Button>
+                </Link>
+                <Link to="/pricing">
+                  <Button className="btn-hover">{block.content?.signUpText || 'Get Started'}</Button>
+                </Link>
+              </>
+            )}
+          </div>
+        );
+      
       default:
         return null;
     }
