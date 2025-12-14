@@ -80,16 +80,20 @@ const GlobalFooter = () => {
       
       case 'button':
         const IconComponent = block.content?.icon ? Icons[block.content.icon] : null;
+        const buttonAlignment = block.content?.alignment || 'left';
+        const textAlign = buttonAlignment === 'center' ? 'text-center' : buttonAlignment === 'right' ? 'text-right' : 'text-left';
         return (
-          <a key={block.id} href={block.content?.url || '#'} className={visibilityClass}>
-            <Button
-              variant={block.content?.variant || 'default'}
-              size={block.content?.size || 'sm'}
-            >
-              {block.content?.text || 'Button'}
-              {IconComponent && <IconComponent className="ml-2 h-4 w-4" />}
-            </Button>
-          </a>
+          <div key={block.id} className={`${textAlign} ${visibilityClass}`}>
+            <a href={block.content?.url || '#'} className="inline-block">
+              <Button
+                variant={block.content?.variant || 'default'}
+                size={block.content?.size || 'sm'}
+              >
+                {block.content?.text || 'Button'}
+                {IconComponent && <IconComponent className="ml-2 h-4 w-4" />}
+              </Button>
+            </a>
+          </div>
         );
       
       case 'image':
