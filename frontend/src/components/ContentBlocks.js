@@ -524,6 +524,19 @@ const ContentBlocks = ({ blocks, onChange }) => {
                 onChange={(e) => updateBlock(block.id, { ...block.content, caption: e.target.value })}
               />
             </div>
+
+            <div>
+              <Label htmlFor={`link-${block.id}`}>Link URL (Optional)</Label>
+              <Input
+                id={`link-${block.id}`}
+                placeholder="https://example.com"
+                value={block.content.link || ''}
+                onChange={(e) => updateBlock(block.id, { ...block.content, link: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Make the image clickable by adding a link URL
+              </p>
+            </div>
           </div>
         );
 
