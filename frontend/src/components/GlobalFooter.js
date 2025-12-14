@@ -97,30 +97,33 @@ const GlobalFooter = () => {
         );
       
       case 'image':
+        const imageAlignment = block.content?.alignment || 'left';
+        const imageTextAlign = imageAlignment === 'center' ? 'text-center' : imageAlignment === 'right' ? 'text-right' : 'text-left';
         const imageElement = (
           <img
             src={block.content?.url || ''}
             alt={block.content?.alt || ''}
-            className="h-6 w-auto object-contain"
+            className="h-6 w-auto object-contain inline-block"
           />
         );
         
         if (block.content?.link) {
           return (
-            <a 
-              key={block.id} 
-              href={block.content.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={visibilityClass}
-            >
-              {imageElement}
-            </a>
+            <div key={block.id} className={`${imageTextAlign} ${visibilityClass}`}>
+              <a 
+                href={block.content.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block"
+              >
+                {imageElement}
+              </a>
+            </div>
           );
         }
         
         return (
-          <div key={block.id} className={visibilityClass}>
+          <div key={block.id} className={`${imageTextAlign} ${visibilityClass}`}>
             {imageElement}
           </div>
         );
