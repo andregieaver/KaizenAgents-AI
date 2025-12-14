@@ -62,7 +62,7 @@ import { toast } from 'sonner';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Sortable Block Item Component
-const SortableBlockItem = ({ block, children, onDelete }) => {
+const SortableBlockItem = ({ block, children, onDelete, onVisibilityChange }) => {
   const {
     attributes,
     listeners,
@@ -76,6 +76,14 @@ const SortableBlockItem = ({ block, children, onDelete }) => {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+  };
+
+  // Default visibility settings
+  const visibility = block.visibility || { desktop: true, tablet: true, mobile: true };
+
+  const toggleVisibility = (device) => {
+    const newVisibility = { ...visibility, [device]: !visibility[device] };
+    onVisibilityChange(block.id, newVisibility);
   };
 
   const getBlockIcon = (type) => {
