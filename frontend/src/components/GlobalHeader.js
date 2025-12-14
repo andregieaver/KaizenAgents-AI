@@ -200,11 +200,14 @@ const GlobalHeader = () => {
       case 'row':
         const columns = block.content?.columns || [];
         const gridCols = columns.length === 2 ? 'grid-cols-2' : columns.length === 3 ? 'grid-cols-3' : 'grid-cols-4';
+        const verticalAlign = block.content?.verticalAlign || 'top';
+        const alignItems = verticalAlign === 'center' ? 'items-center' : verticalAlign === 'bottom' ? 'items-end' : 'items-start';
+        const reverseOnMobile = block.content?.reverseOnMobile ? 'flex-col-reverse md:flex-row' : 'flex-col md:flex-row';
         
         return (
-          <div key={block.id} className={`grid ${gridCols} gap-4 w-full ${visibilityClass}`}>
+          <div key={block.id} className={`flex ${reverseOnMobile} gap-4 w-full ${alignItems} ${visibilityClass} md:grid md:${gridCols}`}>
             {columns.map((column) => (
-              <div key={column.id} className="flex flex-col gap-2">
+              <div key={column.id} className="flex flex-col gap-2 w-full">
                 {column.blocks?.map((colBlock) => renderHeaderBlock(colBlock))}
               </div>
             ))}
