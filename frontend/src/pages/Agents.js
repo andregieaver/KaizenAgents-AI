@@ -283,6 +283,65 @@ const Agents = () => {
     return url;
   };
 
+  const openWooCommerceDialog = async (agent) => {
+    setWooCommerceAgent(agent);
+    try {
+      const response = await axios.get(`${API}/agents/${agent.id}/woocommerce-config`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setWooCommerceConfig({
+        store_url: response.data.store_url || '',
+        consumer_key: '',
+        consumer_secret: '',
+        enabled: response.data.enabled || false
+      });
+    } catch (error) {
+      console.error('Error fetching WooCommerce config:', error);
+    }
+    setShowWooCommerceDialog(true);
+  };
+
+  const handleSaveWooCommerceConfig = async () => {
+    if (!wooCommerceConfig.store_url || !wooCommerceConfig.consumer_key || !wooCommerceConfig.consumer_secret) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+
+    try {
+      await axios.post(
+        `${API}/agents/${wooCommerceAgent.id}/woocommerce-config`,
+        wooCommerceConfig,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('WooCommerce integration configured');
+      setShowWooCommerceDialog(false);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to configure WooCommerce');
+    }
+  };
+
+  const handleTestWooCommerceConnection = async () => {
+    setTestingWooCommerce(true);
+    try {
+      const response = await axios.post(
+        `${API}/agents/${wooCommerceAgent.id}/woocommerce-test`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (response.data.success) {
+        toast.success(response.data.message);
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Connection test failed');
+    } finally {
+      setTestingWooCommerce(false);
+    }
+  };
+
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}
