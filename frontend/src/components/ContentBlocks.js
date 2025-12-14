@@ -119,6 +119,8 @@ const SortableBlockItem = ({ block, children, onDelete, onVisibilityChange }) =>
         return <Moon className="h-4 w-4" />;
       case 'auth_buttons':
         return <UserCircle className="h-4 w-4" />;
+      case 'menu':
+        return <MenuIcon className="h-4 w-4" />;
       default:
         return <Type className="h-4 w-4" />;
     }
