@@ -94,16 +94,20 @@ const GlobalHeader = () => {
       
       case 'button':
         const IconComponent = block.content?.icon ? Icons[block.content.icon] : null;
+        const buttonAlignment = block.content?.alignment || 'left';
+        const alignClass = buttonAlignment === 'center' ? 'mx-auto' : buttonAlignment === 'right' ? 'ml-auto' : '';
         return (
-          <a key={block.id} href={block.content?.url || '#'} className={visibilityClass}>
-            <Button
-              variant={block.content?.variant || 'default'}
-              size={block.content?.size || 'default'}
-            >
-              {block.content?.text || 'Button'}
-              {IconComponent && <IconComponent className="ml-2 h-4 w-4" />}
-            </Button>
-          </a>
+          <div key={block.id} className={`flex ${visibilityClass}`}>
+            <a href={block.content?.url || '#'} className={alignClass}>
+              <Button
+                variant={block.content?.variant || 'default'}
+                size={block.content?.size || 'default'}
+              >
+                {block.content?.text || 'Button'}
+                {IconComponent && <IconComponent className="ml-2 h-4 w-4" />}
+              </Button>
+            </a>
+          </div>
         );
       
       case 'image':
