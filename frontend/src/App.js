@@ -36,6 +36,8 @@ import PageEditor from "./pages/PageEditor";
 import CustomPage from "./pages/CustomPage";
 import GlobalComponents from "./pages/GlobalComponents";
 import ComponentEditor from "./pages/ComponentEditor";
+import MenusList from "./pages/MenusList";
+import MenuEditor from "./pages/MenuEditor";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
