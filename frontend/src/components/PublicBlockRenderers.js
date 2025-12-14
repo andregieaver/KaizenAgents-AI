@@ -5,12 +5,36 @@ import PricingWidget from './PricingWidget';
 
 const { ArrowRight, ExternalLink, Download, Play, Send } = Icons;
 
+// Generate responsive visibility classes
+const getVisibilityClasses = (visibility) => {
+  if (!visibility) return '';
+  
+  const classes = [];
+  
+  // Mobile (default, no prefix)
+  if (!visibility.mobile) classes.push('hidden');
+  else classes.push('block');
+  
+  // Tablet (sm: breakpoint >= 640px)
+  if (visibility.tablet !== visibility.mobile) {
+    classes.push(visibility.tablet ? 'sm:block' : 'sm:hidden');
+  }
+  
+  // Desktop (lg: breakpoint >= 1024px)
+  if (visibility.desktop !== visibility.tablet) {
+    classes.push(visibility.desktop ? 'lg:block' : 'lg:hidden');
+  }
+  
+  return classes.join(' ');
+};
+
 export const renderHeroBlock = (block) => {
   const content = block.content || {};
   const BadgeIcon = Icons.Bot;
+  const visibilityClass = getVisibilityClasses(block.visibility);
   
   return (
-    <section key={block.id} className="py-20 lg:py-32">
+    <section key={block.id} className={`py-20 lg:py-32 ${visibilityClass}`}>
       <div className="grid lg:grid-cols-2 gap-12 items-center">
         <div>
           {content.badge && (
