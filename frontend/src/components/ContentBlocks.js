@@ -776,6 +776,36 @@ const ContentBlocks = ({ blocks, onChange }) => {
                 Make the image clickable by adding a link URL
               </p>
             </div>
+
+            <div>
+              <Label>Alignment</Label>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  type="button"
+                  variant={block.content.alignment === 'left' || !block.content.alignment ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => updateBlock(block.id, { ...block.content, alignment: 'left' })}
+                >
+                  Left
+                </Button>
+                <Button
+                  type="button"
+                  variant={block.content.alignment === 'center' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => updateBlock(block.id, { ...block.content, alignment: 'center' })}
+                >
+                  Center
+                </Button>
+                <Button
+                  type="button"
+                  variant={block.content.alignment === 'right' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => updateBlock(block.id, { ...block.content, alignment: 'right' })}
+                >
+                  Right
+                </Button>
+              </div>
+            </div>
           </div>
         );
 
