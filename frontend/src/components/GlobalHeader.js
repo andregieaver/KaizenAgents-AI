@@ -191,6 +191,20 @@ const GlobalHeader = () => {
       case 'menu':
         return <MenuBlock key={block.id} block={block} visibilityClass={visibilityClass} />;
       
+      case 'row':
+        const columns = block.content?.columns || [];
+        const gridCols = columns.length === 2 ? 'grid-cols-2' : columns.length === 3 ? 'grid-cols-3' : 'grid-cols-4';
+        
+        return (
+          <div key={block.id} className={`grid ${gridCols} gap-4 w-full ${visibilityClass}`}>
+            {columns.map((column) => (
+              <div key={column.id} className="flex flex-col gap-2">
+                {column.blocks?.map((colBlock) => renderHeaderBlock(colBlock))}
+              </div>
+            ))}
+          </div>
+        );
+      
       default:
         return null;
     }
