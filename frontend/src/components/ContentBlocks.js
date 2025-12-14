@@ -157,6 +157,41 @@ const SortableBlockItem = ({ block, children, onDelete, onVisibilityChange }) =>
             {getBlockLabel(block.type)}
           </span>
         </div>
+        
+        {/* Device Visibility Toggles */}
+        <div className="flex items-center gap-1 border-l pl-3">
+          <Button
+            type="button"
+            variant={visibility.desktop ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => toggleVisibility('desktop')}
+            className="h-8 w-8"
+            title="Show/hide on desktop"
+          >
+            <Monitor className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant={visibility.tablet ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => toggleVisibility('tablet')}
+            className="h-8 w-8"
+            title="Show/hide on tablet"
+          >
+            <Tablet className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            variant={visibility.mobile ? 'default' : 'ghost'}
+            size="icon"
+            onClick={() => toggleVisibility('mobile')}
+            className="h-8 w-8"
+            title="Show/hide on mobile"
+          >
+            <Smartphone className="h-4 w-4" />
+          </Button>
+        </div>
+        
         <Button
           type="button"
           variant="ghost"
