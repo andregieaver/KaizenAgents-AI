@@ -135,6 +135,9 @@ function AppRoutes() {
         <Route path="admin/pages/edit/:slug" element={<PageEditor />} />
         <Route path="admin/components" element={<GlobalComponents />} />
         <Route path="admin/components/edit/:componentType" element={<ComponentEditor />} />
+        <Route path="admin/menus" element={<MenusList />} />
+        <Route path="admin/menus/create" element={<MenuEditor />} />
+        <Route path="admin/menus/edit/:menuId" element={<MenuEditor />} />
         <Route path="affiliates" element={<Affiliates />} />
       </Route>
 
