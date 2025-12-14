@@ -279,6 +279,66 @@ const RowEditor = ({ blockId, content, onUpdate }) => {
               />
             )}
           </div>
+
+          {/* Vertical Alignment */}
+          <div>
+            <Label>Vertical Alignment of Column Contents</Label>
+            <div className="flex gap-2 mt-2">
+              <Button
+                type="button"
+                variant={content.verticalAlign === 'top' || !content.verticalAlign ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onUpdate({ ...content, verticalAlign: 'top' })}
+              >
+                Top
+              </Button>
+              <Button
+                type="button"
+                variant={content.verticalAlign === 'center' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onUpdate({ ...content, verticalAlign: 'center' })}
+              >
+                Center
+              </Button>
+              <Button
+                type="button"
+                variant={content.verticalAlign === 'bottom' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onUpdate({ ...content, verticalAlign: 'bottom' })}
+              >
+                Bottom
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Align content vertically within all columns
+            </p>
+          </div>
+
+          {/* Reverse Columns on Mobile */}
+          <div>
+            <Label>Mobile Column Order</Label>
+            <div className="flex gap-2 mt-2">
+              <Button
+                type="button"
+                variant={!content.reverseOnMobile ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onUpdate({ ...content, reverseOnMobile: false })}
+              >
+                Normal
+              </Button>
+              <Button
+                type="button"
+                variant={content.reverseOnMobile ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => onUpdate({ ...content, reverseOnMobile: true })}
+              >
+                Reversed
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              When reversed, columns stack in opposite order on mobile (right column appears first)
+            </p>
+          </div>
         </CardContent>
       </Card>
 
