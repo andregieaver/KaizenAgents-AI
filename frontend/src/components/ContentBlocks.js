@@ -321,30 +321,13 @@ const ContentBlocks = ({ blocks, onChange }) => {
       };
     } else if (type === 'menu') {
       content = {
+        menuId: '', // Selected menu ID
         layout: 'horizontal', // horizontal or vertical
         displayMode: {
           desktop: 'normal',
           tablet: 'normal',
           mobile: 'hamburger'
-        },
-        items: [
-          {
-            id: `menu_item_${Date.now()}_1`,
-            label: 'Home',
-            url: '/',
-            icon: 'Home',
-            visibility: { desktop: true, tablet: true, mobile: true },
-            order: 0
-          },
-          {
-            id: `menu_item_${Date.now()}_2`,
-            label: 'About',
-            url: '/about',
-            icon: 'Info',
-            visibility: { desktop: true, tablet: true, mobile: true },
-            order: 1
-          }
-        ]
+        }
       };
     }
     
