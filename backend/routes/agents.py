@@ -172,6 +172,122 @@ async def delete_user_agent(
         {"_id": 0}
     )
     
+
+@router.post("/{agent_id}/woocommerce-config")
+async def configure_woocommerce(
+    agent_id: str,
+    wc_config: WooCommerceConfig,
+    current_user: dict = Depends(get_current_user)
+):
+    """Configure WooCommerce integration for an agent"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Check agent exists
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Encrypt credentials
+    encrypted_key = encrypt_credential(wc_config.consumer_key)
+    encrypted_secret = encrypt_credential(wc_config.consumer_secret)
+    
+    # Update agent config
+    config = agent.get("config", {})
+    config["woocommerce"] = {
+        "enabled": wc_config.enabled,
+        "store_url": wc_config.store_url,
+        "consumer_key_encrypted": encrypted_key,
+        "consumer_secret_encrypted": encrypted_secret
+    }
+    
+    await db.user_agents.update_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {
+            "$set": {
+                "config": config,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+        }
+    )
+    
+    return {
+        "message": "WooCommerce integration configured successfully",
+        "enabled": wc_config.enabled
+    }
+
+@router.get("/{agent_id}/woocommerce-config", response_model=WooCommerceConfigResponse)
+async def get_woocommerce_config(
+    agent_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get WooCommerce configuration for an agent"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    wc_config = agent.get("config", {}).get("woocommerce", {})
+    
+    return {
+        "enabled": wc_config.get("enabled", False),
+        "store_url": wc_config.get("store_url"),
+        "has_credentials": bool(wc_config.get("consumer_key_encrypted"))
+    }
+
+@router.post("/{agent_id}/woocommerce-test")
+async def test_woocommerce_connection(
+    agent_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Test WooCommerce API connection"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    wc_config = agent.get("config", {}).get("woocommerce", {})
+    
+    if not wc_config.get("enabled"):
+        raise HTTPException(status_code=400, detail="WooCommerce integration not enabled")
+    
+    try:
+        # Decrypt credentials
+        store_url = wc_config.get("store_url")
+        consumer_key = decrypt_credential(wc_config.get("consumer_key_encrypted", ""))
+        consumer_secret = decrypt_credential(wc_config.get("consumer_secret_encrypted", ""))
+        
+        # Create client and test
+        wc_service = WooCommerceService(store_url, consumer_key, consumer_secret)
+        result = await wc_service.test_connection()
+        
+        return result
+    except Exception as e:
+        logger.error(f"WooCommerce test failed: {str(e)}")
+        return {
+            "success": False,
+            "message": f"Connection test failed: {str(e)}"
+        }
+
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     
