@@ -111,11 +111,13 @@ const GlobalHeader = () => {
         );
       
       case 'image':
+        const imageAlignment = block.content?.alignment || 'left';
+        const imageAlignClass = imageAlignment === 'center' ? 'mx-auto' : imageAlignment === 'right' ? 'ml-auto' : '';
         const imageElement = (
           <img
             src={block.content?.url || ''}
             alt={block.content?.alt || ''}
-            className="h-8 w-auto object-contain"
+            className={`h-8 w-auto object-contain ${imageAlignClass}`}
           />
         );
         
@@ -126,7 +128,7 @@ const GlobalHeader = () => {
               href={block.content.link}
               target="_blank"
               rel="noopener noreferrer"
-              className={visibilityClass}
+              className={`flex ${visibilityClass}`}
             >
               {imageElement}
             </a>
@@ -134,7 +136,7 @@ const GlobalHeader = () => {
         }
         
         return (
-          <div key={block.id} className={visibilityClass}>
+          <div key={block.id} className={`flex ${visibilityClass}`}>
             {imageElement}
           </div>
         );
