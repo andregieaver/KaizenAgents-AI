@@ -49,8 +49,32 @@ const GlobalHeader = () => {
     return url;
   };
 
+  // Generate responsive visibility classes
+  const getVisibilityClasses = (visibility) => {
+    if (!visibility) return '';
+    
+    const classes = [];
+    
+    // Mobile (default, no prefix)
+    if (!visibility.mobile) classes.push('hidden');
+    else classes.push('block');
+    
+    // Tablet (sm: breakpoint >= 640px)
+    if (visibility.tablet !== visibility.mobile) {
+      classes.push(visibility.tablet ? 'sm:block' : 'sm:hidden');
+    }
+    
+    // Desktop (lg: breakpoint >= 1024px)
+    if (visibility.desktop !== visibility.tablet) {
+      classes.push(visibility.desktop ? 'lg:block' : 'lg:hidden');
+    }
+    
+    return classes.join(' ');
+  };
+
   // Render individual block for header
   const renderHeaderBlock = (block) => {
+    const visibilityClass = getVisibilityClasses(block.visibility);
     switch (block.type) {
       case 'text':
         return (
