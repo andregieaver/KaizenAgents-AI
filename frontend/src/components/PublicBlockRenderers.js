@@ -89,6 +89,7 @@ export const renderHeroBlock = (block) => {
 export const renderFeaturesBlock = (block) => {
   const content = block.content || {};
   const features = content.features || [];
+  const visibilityClass = getVisibilityClasses(block.visibility);
 
   const getIcon = (iconName) => {
     const IconComponent = Icons[iconName];
@@ -96,7 +97,7 @@ export const renderFeaturesBlock = (block) => {
   };
 
   return (
-    <section key={block.id} className="py-20 border-t border-border">
+    <section key={block.id} className={`py-20 border-t border-border ${visibilityClass}`}>
       <div className="text-center mb-16">
         <h2 className="font-heading text-3xl sm:text-4xl font-bold tracking-tight mb-4">
           {content.heading}
