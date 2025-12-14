@@ -73,7 +73,7 @@ const GlobalFooter = () => {
         return (
           <div
             key={block.id}
-            className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground"
+            className={`prose prose-sm dark:prose-invert max-w-none text-muted-foreground ${visibilityClass}`}
             dangerouslySetInnerHTML={{ __html: block.content?.html || '' }}
           />
         );
@@ -81,7 +81,7 @@ const GlobalFooter = () => {
       case 'button':
         const IconComponent = block.content?.icon ? Icons[block.content.icon] : null;
         return (
-          <a key={block.id} href={block.content?.url || '#'}>
+          <a key={block.id} href={block.content?.url || '#'} className={visibilityClass}>
             <Button
               variant={block.content?.variant || 'default'}
               size={block.content?.size || 'sm'}
@@ -98,7 +98,7 @@ const GlobalFooter = () => {
             key={block.id}
             src={block.content?.url || ''}
             alt={block.content?.alt || ''}
-            className="h-6 w-auto object-contain"
+            className={`h-6 w-auto object-contain ${visibilityClass}`}
           />
         );
       
