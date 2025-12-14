@@ -200,6 +200,50 @@ export const renderPricingWidgetBlock = (block) => {
   );
 };
 
+export const renderImageBlock = (block) => {
+  const content = block.content || {};
+  const visibilityClass = getVisibilityClasses(block.visibility);
+  
+  const imageElement = (
+    <img
+      src={content.url || ''}
+      alt={content.alt || ''}
+      className="w-full h-auto rounded-lg"
+    />
+  );
+  
+  if (content.link) {
+    return (
+      <div key={block.id} className={`my-8 ${visibilityClass}`}>
+        <a 
+          href={content.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block hover:opacity-90 transition-opacity"
+        >
+          {imageElement}
+        </a>
+        {content.caption && (
+          <p className="text-sm text-muted-foreground text-center mt-2">
+            {content.caption}
+          </p>
+        )}
+      </div>
+    );
+  }
+  
+  return (
+    <div key={block.id} className={`my-8 ${visibilityClass}`}>
+      {imageElement}
+      {content.caption && (
+        <p className="text-sm text-muted-foreground text-center mt-2">
+          {content.caption}
+        </p>
+      )}
+    </div>
+  );
+};
+
 export const renderTextBlock = (block) => {
   const content = block.content || {};
   const alignment = content.alignment || 'center';
