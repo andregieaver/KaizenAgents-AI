@@ -49,15 +49,55 @@ const GlobalHeader = () => {
     return url;
   };
 
+  // Render individual block for header
+  const renderHeaderBlock = (block) => {
+    switch (block.type) {
+      case 'text':
+        return (
+          <div
+            key={block.id}
+            className="prose prose-sm dark:prose-invert max-w-none"
+            dangerouslySetInnerHTML={{ __html: block.content?.html || '' }}
+          />
+        );
+      
+      case 'button':
+        const IconComponent = block.content?.icon ? Icons[block.content.icon] : null;
+        return (
+          <a key={block.id} href={block.content?.url || '#'}>
+            <Button
+              variant={block.content?.variant || 'default'}
+              size={block.content?.size || 'default'}
+            >
+              {block.content?.text || 'Button'}
+              {IconComponent && <IconComponent className="ml-2 h-4 w-4" />}
+            </Button>
+          </a>
+        );
+      
+      case 'image':
+        return (
+          <img
+            key={block.id}
+            src={block.content?.url || ''}
+            alt={block.content?.alt || ''}
+            className="h-8 w-auto object-contain"
+          />
+        );
+      
+      default:
+        return null;
+    }
+  };
+
   // If header has custom blocks, render them
   if (headerBlocks.length > 0) {
     return (
       <nav className="border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Render custom header blocks here if needed */}
-          {/* For now, we'll keep the default structure with blocks as enhancements */}
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center gap-2">
+          <div className="flex justify-between items-center h-16 gap-6">
+            {/* Logo and platform name */}
+            <Link to="/" className="flex items-center gap-2 flex-shrink-0">
               <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
                 {getPlatformLogoSrc(platformLogo) ? (
                   <img src={getPlatformLogoSrc(platformLogo)} alt={platformName} className="h-full w-full object-contain" />
@@ -67,7 +107,14 @@ const GlobalHeader = () => {
               </div>
               <span className="font-heading font-bold text-lg">{platformName}</span>
             </Link>
-            <div className="flex items-center gap-3">
+
+            {/* Custom blocks - navigation/content area */}
+            <div className="flex items-center gap-4 flex-1">
+              {headerBlocks.map(block => renderHeaderBlock(block))}
+            </div>
+
+            {/* Fixed right side - theme toggle and auth buttons */}
+            <div className="flex items-center gap-3 flex-shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
