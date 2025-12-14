@@ -42,7 +42,10 @@ import {
   Sparkles,
   Grid3x3,
   Megaphone,
-  MousePointerClick
+  MousePointerClick,
+  Tag,
+  Moon,
+  UserCircle
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
