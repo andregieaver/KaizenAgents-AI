@@ -186,31 +186,30 @@ const GlobalHeader = () => {
     }
   };
 
-  // If header has custom blocks, render them
-  if (headerBlocks.length > 0) {
-    return (
-      <nav className="border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 gap-6">
-            {/* Logo and platform name */}
-            <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-              <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
-                {getPlatformLogoSrc(platformLogo) ? (
-                  <img src={getPlatformLogoSrc(platformLogo)} alt={platformName} className="h-full w-full object-contain" />
-                ) : (
-                  <MessageSquare className="h-4 w-4 text-primary-foreground" />
-                )}
-              </div>
-              <span className="font-heading font-bold text-lg">{platformName}</span>
-            </Link>
-
-            {/* Custom blocks - navigation/content area */}
-            <div className="flex items-center gap-4 flex-1">
-              {headerBlocks.map(block => renderHeaderBlock(block))}
-            </div>
-
-            {/* Fixed right side - theme toggle and auth buttons */}
-            <div className="flex items-center gap-3 flex-shrink-0">
+  // Render header with blocks (or default if no blocks)
+  return (
+    <nav className="border-b border-border">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center h-16 gap-4">
+          {headerBlocks.length > 0 ? (
+            // Render custom blocks
+            headerBlocks.map(block => renderHeaderBlock(block))
+          ) : (
+            // Default header (fallback when no blocks are configured)
+            <>
+              <Link to="/" className="flex items-center gap-2 flex-shrink-0">
+                <div className="h-8 w-8 rounded-sm bg-primary flex items-center justify-center overflow-hidden">
+                  {getPlatformLogoSrc(platformLogo) ? (
+                    <img src={getPlatformLogoSrc(platformLogo)} alt={platformName} className="h-full w-full object-contain" />
+                  ) : (
+                    <MessageSquare className="h-4 w-4 text-primary-foreground" />
+                  )}
+                </div>
+                <span className="font-heading font-bold text-lg">{platformName}</span>
+              </Link>
+              
+              <div className="flex-1"></div>
+              
               <Button
                 variant="ghost"
                 size="icon"
@@ -233,12 +232,12 @@ const GlobalHeader = () => {
                   </Link>
                 </>
               )}
-            </div>
-          </div>
+            </>
+          )}
         </div>
-      </nav>
-    );
-  }
+      </div>
+    </nav>
+  );
 
   // Default header (fallback)
   return (
