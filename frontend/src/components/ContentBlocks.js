@@ -111,6 +111,12 @@ const SortableBlockItem = ({ block, children, onDelete, onVisibilityChange }) =>
         return <Megaphone className="h-4 w-4" />;
       case 'button':
         return <MousePointerClick className="h-4 w-4" />;
+      case 'logo_text':
+        return <Tag className="h-4 w-4" />;
+      case 'theme_toggle':
+        return <Moon className="h-4 w-4" />;
+      case 'auth_buttons':
+        return <UserCircle className="h-4 w-4" />;
       default:
         return <Type className="h-4 w-4" />;
     }
