@@ -1274,6 +1274,10 @@ const ContentBlocks = ({ blocks, onChange }) => {
                         <Megaphone className="h-4 w-4 mr-2" />
                         Call to Action
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('pricing_cards')}>
+                        <Tag className="h-4 w-4 mr-2" />
+                        Pricing Cards
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => addBlock('button')}>
                         <MousePointerClick className="h-4 w-4 mr-2" />
                         Button
