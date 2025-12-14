@@ -1352,6 +1352,171 @@ The CMS-powered pricing page infrastructure is **PARTIALLY FUNCTIONAL** but has 
 *Environment: Production Preview*
 *Status: CRITICAL ISSUE - REQUIRES IMMEDIATE ATTENTION*
 
+## Responsive Visibility Feature for Global Components Tests
+
+### Test Scope
+- Responsive visibility controls for Global Components blocks
+- Device toggle buttons (Monitor, Tablet, Smartphone) in block headers
+- Visibility settings persistence and responsive rendering
+- Multi-viewport testing (375px mobile, 768px tablet, 1920px desktop)
+- Header and footer component visibility controls
+- Multiple blocks with independent visibility settings
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Test Results Summary
+
+#### ✅ FULLY WORKING FEATURES
+
+**1. Visibility Controls UI:**
+- ✅ All blocks in component editor have 3 device toggle buttons (Monitor, Tablet, Smartphone)
+- ✅ Device icons are clearly visible in block headers with proper styling
+- ✅ Buttons are clickable and change appearance when toggled (default vs ghost variant)
+- ✅ Button states persist correctly after clicking
+- ✅ Visual feedback is immediate and clear (bg-card vs hover:bg-accent classes)
+- ✅ Tooltips show "Show/hide on desktop/tablet/mobile" for accessibility
+
+**2. Toggle Visibility Settings:**
+- ✅ Smartphone icon successfully toggles mobile visibility (hidden/visible)
+- ✅ Monitor icon successfully toggles desktop visibility (hidden/visible)
+- ✅ Tablet icon successfully toggles tablet visibility (hidden/visible)
+- ✅ Button appearance changes to ghost variant when visibility is OFF
+- ✅ Button appearance changes to default variant when visibility is ON
+- ✅ All visibility changes persist after saving component
+- ✅ Multiple blocks can have independent visibility settings
+
+**3. Responsive Rendering - Mobile View (375px):**
+- ✅ Blocks with mobile visibility OFF are properly hidden (CSS class: "hidden")
+- ✅ Blocks with mobile visibility ON are displayed correctly
+- ✅ CSS classes correctly applied: "hidden sm:block" for mobile-hidden blocks
+- ✅ Layout remains intact when blocks are hidden on mobile
+- ✅ No layout breaks or visual issues on mobile viewport
+
+**4. Responsive Rendering - Tablet View (768px):**
+- ✅ Blocks with tablet visibility OFF are properly hidden (CSS class: "sm:hidden")
+- ✅ Blocks with tablet visibility ON are displayed correctly
+- ✅ CSS classes correctly applied: "hidden sm:block" shows blocks on tablet+
+- ✅ Responsive breakpoint (sm: >= 640px) working correctly
+- ✅ Layout adapts properly to tablet viewport
+
+**5. Responsive Rendering - Desktop View (1920px):**
+- ✅ Blocks with desktop visibility OFF are properly hidden (CSS class: "lg:hidden")
+- ✅ Blocks with desktop visibility ON are displayed correctly
+- ✅ CSS classes correctly applied: "block lg:hidden" hides blocks on desktop
+- ✅ Responsive breakpoint (lg: >= 1024px) working correctly
+- ✅ Layout maintains professional appearance on desktop
+
+**6. Multiple Blocks Test:**
+- ✅ Successfully added multiple blocks to header component
+- ✅ Each block has independent visibility controls
+- ✅ Different visibility settings work correctly (e.g., Block 1: desktop+tablet only, Block 2: mobile only)
+- ✅ CSS classes generated independently for each block
+- ✅ No conflicts between different block visibility settings
+- ✅ Save functionality preserves all individual block settings
+
+**7. Footer Visibility:**
+- ✅ Footer component editor has identical device toggle buttons
+- ✅ Footer blocks support same responsive visibility controls
+- ✅ Footer visibility settings work independently from header
+- ✅ Footer blocks render correctly with responsive CSS classes
+- ✅ Both header and footer maintain consistent behavior
+
+**8. CSS Implementation Verification:**
+- ✅ Responsive CSS classes correctly generated: "hidden", "sm:block", "lg:hidden"
+- ✅ Tailwind CSS breakpoints working properly (sm: 640px, lg: 1024px)
+- ✅ CSS classes applied to correct elements (.prose blocks)
+- ✅ No CSS conflicts or overrides detected
+- ✅ Professional responsive behavior across all viewport sizes
+
+**9. Backend Integration:**
+- ✅ Visibility settings properly stored in block.visibility object
+- ✅ API endpoints handle visibility data correctly
+- ✅ Data persistence working across page refreshes
+- ✅ Component save functionality includes visibility settings
+- ✅ Real-time updates when visibility settings change
+
+**10. Technical Implementation:**
+- ✅ ContentBlocks component properly implements device toggle buttons
+- ✅ getVisibilityClasses function generates correct CSS classes
+- ✅ GlobalHeader and GlobalFooter components apply visibility classes
+- ✅ React state management working correctly for visibility changes
+- ✅ Professional UI/UX with consistent design patterns
+
+### Detailed Test Results
+
+**Visibility Controls UI Test:**
+- ✅ Found 10 blocks in header component editor with device toggle buttons
+- ✅ All three device icons (Monitor, Tablet, Smartphone) present and functional
+- ✅ Button states change correctly: default variant (ON) vs ghost variant (OFF)
+- ✅ Visual feedback immediate and clear for users
+
+**Responsive CSS Classes Verification:**
+- ✅ Mobile-hidden block: "prose prose-sm dark:prose-invert max-w-none hidden sm:block"
+- ✅ Desktop-hidden block: "prose prose-sm dark:prose-invert max-w-none text-muted-foreground block lg:hidden"
+- ✅ CSS classes correctly implement Tailwind responsive design patterns
+- ✅ Breakpoints working: mobile (default), tablet (sm: >= 640px), desktop (lg: >= 1024px)
+
+**Multi-Viewport Testing Results:**
+- ✅ Mobile (375px): Blocks correctly hidden/shown based on mobile visibility settings
+- ✅ Tablet (768px): Blocks correctly hidden/shown based on tablet visibility settings  
+- ✅ Desktop (1920px): Blocks correctly hidden/shown based on desktop visibility settings
+- ✅ Layout maintains integrity across all viewport sizes
+- ✅ No visual breaks or layout issues detected
+
+### Backend API Verification
+
+**Global Components APIs:**
+- ✅ GET /api/global-components/header returns blocks with visibility data
+- ✅ PUT /api/global-components/header saves visibility settings correctly
+- ✅ GET /api/global-components/footer returns blocks with visibility data
+- ✅ PUT /api/global-components/footer saves visibility settings correctly
+- ✅ Visibility object structure: { desktop: boolean, tablet: boolean, mobile: boolean }
+- ✅ Default visibility settings: { desktop: true, tablet: true, mobile: true }
+
+### Conclusion
+The Responsive Visibility Feature for Global Components is **FULLY FUNCTIONAL** and exceeds expectations. All requested test scenarios have been successfully verified:
+
+**Status: READY FOR PRODUCTION** ✅
+
+### Key Achievements Verified
+- ✅ **Complete Visibility Controls:** Device toggle buttons (Monitor, Tablet, Smartphone) working perfectly
+- ✅ **Perfect Responsive Rendering:** Blocks hide/show correctly on different screen sizes
+- ✅ **Independent Block Settings:** Each block can have unique visibility configurations
+- ✅ **Professional CSS Implementation:** Proper Tailwind responsive classes generated
+- ✅ **Multi-Component Support:** Both header and footer components support visibility controls
+- ✅ **Data Persistence:** All settings save and persist correctly
+- ✅ **Error-Free Implementation:** No console errors or layout issues detected
+
+### What Works vs. What Doesn't
+
+**✅ FULLY WORKING:**
+- Device toggle buttons (Monitor, Tablet, Smartphone) in block headers
+- Visibility settings toggle functionality with visual feedback
+- Responsive rendering at 375px (mobile), 768px (tablet), 1920px (desktop)
+- Multiple blocks with independent visibility settings
+- Header and footer component visibility controls
+- CSS class generation and application
+- Data persistence and backend integration
+- Professional UI/UX implementation
+
+**❌ NO CRITICAL ISSUES FOUND**
+
+**⚠️ MINOR OBSERVATIONS:**
+- Button visual states could be slightly more pronounced for better accessibility
+- No issues affecting core functionality
+
+### Test Environment Details
+- **Frontend URL:** https://global-cms-manager.preview.emergentagent.com
+- **Authentication:** Working correctly with super admin credentials
+- **API Integration:** All global component endpoints responding correctly
+- **Responsive Testing:** Verified across mobile (375px), tablet (768px), desktop (1920px)
+
+---
+*Responsive Visibility Feature Test completed on: December 14, 2025*
+*Tester: Testing Agent*
+*Environment: Production Preview*
+
 ## Global Components CMS Feature Tests - COMPREHENSIVE BLOCK RENDERING
 
 ### Test Scope
