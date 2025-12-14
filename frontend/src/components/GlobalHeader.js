@@ -207,12 +207,16 @@ const GlobalHeader = () => {
     const menuId = content.menuId;
 
     useEffect(() => {
-      if (menuId) {
+      // Support old format with inline items (backward compatibility)
+      if (content.items && content.items.length > 0) {
+        setItems(content.items);
+        setLoading(false);
+      } else if (menuId) {
         fetchMenuItems();
       } else {
         setLoading(false);
       }
-    }, [menuId]);
+    }, [menuId, content.items]);
 
     const fetchMenuItems = async () => {
       try {
@@ -229,7 +233,7 @@ const GlobalHeader = () => {
       return <div className={visibilityClass}><Loader2 className="h-4 w-4 animate-spin" /></div>;
     }
 
-    if (!menuId || items.length === 0) {
+    if (items.length === 0) {
       return null;
     }
     
