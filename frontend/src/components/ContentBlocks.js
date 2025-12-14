@@ -144,6 +144,12 @@ const SortableBlockItem = ({ block, children, onDelete, onVisibilityChange }) =>
         return 'Call to Action';
       case 'button':
         return 'Button';
+      case 'logo_text':
+        return 'Logo with Text';
+      case 'theme_toggle':
+        return 'Theme Toggle';
+      case 'auth_buttons':
+        return 'Auth Buttons';
       default:
         return 'Block';
     }
