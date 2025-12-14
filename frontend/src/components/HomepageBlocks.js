@@ -576,7 +576,7 @@ export const PricingCardsBlockEditor = ({ block, updateBlock }) => {
           </Button>
         </div>
 
-        {content.plans.length === 0 ? (
+        {(!content.plans || content.plans.length === 0) ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
               No pricing plans yet. Click &quot;Add Plan&quot; to create your first plan.
