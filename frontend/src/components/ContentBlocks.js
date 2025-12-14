@@ -71,8 +71,6 @@ import {
   SelectValue,
 } from './ui/select';
 
-const API = process.env.REACT_APP_BACKEND_URL;
-
 // Menu Block Editor Component
 const MenuBlockEditor = ({ block, updateBlock }) => {
   const [menus, setMenus] = useState([]);
