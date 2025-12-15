@@ -27,7 +27,7 @@ import { cn } from '../lib/utils';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const Marketplace = () => {
-  const { token } = useAuth();
+  const { token, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
   const [agents, setAgents] = useState([]);
   const [filteredAgents, setFilteredAgents] = useState([]);
