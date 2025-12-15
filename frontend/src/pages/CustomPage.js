@@ -126,6 +126,9 @@ const CustomPage = () => {
         )}
       </Helmet>
 
+      {/* Global Header */}
+      <GlobalHeader />
+
       {/* Page Content */}
       <div className="min-h-screen bg-background">
         {/* Simple Header */}
