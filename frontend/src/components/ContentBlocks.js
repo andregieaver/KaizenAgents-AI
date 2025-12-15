@@ -1284,6 +1284,10 @@ const ContentBlocks = ({ blocks, onChange }) => {
                         <Tag className="h-4 w-4 mr-2" />
                         Pricing Cards
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => addBlock('agent_grid')}>
+                        <Bot className="h-4 w-4 mr-2" />
+                        Agent Grid
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => addBlock('button')}>
                         <MousePointerClick className="h-4 w-4 mr-2" />
                         Button
