@@ -1,11 +1,28 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 
 class DocumentInfo(BaseModel):
     filename: str
     filepath: str
     upload_date: str
     file_size: int
+
+
+class OrchestrationPolicyConfig(BaseModel):
+    """Policy settings for orchestration behavior"""
+    max_delegation_depth: int = 1
+    require_confirmation: bool = False
+    fallback_to_mother: bool = True
+    timeout_seconds: int = 30
+
+
+class OrchestrationConfigEmbedded(BaseModel):
+    """Embedded orchestration configuration in company agent config"""
+    enabled: bool = False
+    mother_admin_agent_id: Optional[str] = None
+    allowed_child_agent_ids: List[str] = []
+    policy: OrchestrationPolicyConfig = OrchestrationPolicyConfig()
+
 
 class CompanyAgentConfigUpdate(BaseModel):
     agent_id: Optional[str] = None
@@ -15,6 +32,8 @@ class CompanyAgentConfigUpdate(BaseModel):
     scraping_max_pages: Optional[int] = None
     response_language: Optional[str] = None
     language_mode: Optional[str] = None  # 'force', 'browser', 'geo'
+    orchestration: Optional[Dict[str, Any]] = None  # Orchestration settings
+
 
 class CompanyAgentConfigResponse(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -33,6 +52,8 @@ class CompanyAgentConfigResponse(BaseModel):
     language_mode: str = "browser"  # 'force', 'browser', 'geo'
     is_active: bool
     updated_at: str
+    # Orchestration settings
+    orchestration: Optional[Dict[str, Any]] = None
 
 class ScrapingTriggerRequest(BaseModel):
     force_refresh: bool = False
