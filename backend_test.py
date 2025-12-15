@@ -1125,6 +1125,289 @@ class AIAgentHubTester:
             
         return True
 
+    # ============== ORCHESTRATOR AGENT ARCHITECTURE TESTS ==============
+
+    def test_orchestrator_agent_architecture(self):
+        """Test the new Orchestrator Agent Architecture backend APIs"""
+        print(f"\n🎯 Testing Orchestrator Agent Architecture APIs")
+        
+        # Test all orchestrator endpoints as requested in review
+        get_config_test = self.test_get_orchestration_config()
+        update_config_test = self.test_update_orchestration_config()
+        update_child_agent_test = self.test_update_child_agent_orchestration()
+        get_child_agent_test = self.test_get_child_agent_orchestration()
+        list_available_children_test = self.test_list_available_children()
+        get_audit_logs_test = self.test_get_orchestration_audit_logs()
+        validation_tests = self.test_orchestration_validation()
+        
+        # Summary of orchestrator tests
+        print(f"\n📋 Orchestrator Agent Architecture Test Results:")
+        print(f"   GET /api/settings/orchestration: {'✅ PASSED' if get_config_test else '❌ FAILED'}")
+        print(f"   PUT /api/settings/orchestration: {'✅ PASSED' if update_config_test else '❌ FAILED'}")
+        print(f"   PATCH /api/agents/{{}}/orchestration: {'✅ PASSED' if update_child_agent_test else '❌ FAILED'}")
+        print(f"   GET /api/agents/{{}}/orchestration: {'✅ PASSED' if get_child_agent_test else '❌ FAILED'}")
+        print(f"   GET /api/agents/orchestration/available-children: {'✅ PASSED' if list_available_children_test else '❌ FAILED'}")
+        print(f"   GET /api/settings/orchestration/runs: {'✅ PASSED' if get_audit_logs_test else '❌ FAILED'}")
+        print(f"   Validation Tests: {'✅ PASSED' if validation_tests else '❌ FAILED'}")
+        
+        return all([get_config_test, update_config_test, update_child_agent_test, 
+                   get_child_agent_test, list_available_children_test, get_audit_logs_test, validation_tests])
+
+    def test_get_orchestration_config(self):
+        """Test GET /api/settings/orchestration - Get orchestration configuration"""
+        print(f"\n🔧 Testing GET /api/settings/orchestration")
+        
+        success, response = self.run_test(
+            "Get Orchestration Configuration",
+            "GET",
+            "settings/orchestration",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get orchestration configuration")
+            return False
+            
+        # Verify response structure
+        required_fields = ['enabled', 'mother_agent_id', 'mother_agent_name', 
+                          'available_children_count', 'allowed_children_count', 
+                          'recent_runs_count', 'policy']
+        
+        for field in required_fields:
+            if field not in response:
+                print(f"❌ Missing required field: {field}")
+                return False
+                
+        print(f"   ✅ All required fields present")
+        print(f"   Enabled: {response.get('enabled')}")
+        print(f"   Mother Agent ID: {response.get('mother_agent_id')}")
+        print(f"   Mother Agent Name: {response.get('mother_agent_name')}")
+        print(f"   Available Children: {response.get('available_children_count')}")
+        print(f"   Allowed Children: {response.get('allowed_children_count')}")
+        print(f"   Recent Runs: {response.get('recent_runs_count')}")
+        print(f"   Policy: {response.get('policy')}")
+        
+        return True
+
+    def test_update_orchestration_config(self):
+        """Test PUT /api/settings/orchestration - Update orchestration configuration"""
+        print(f"\n🔧 Testing PUT /api/settings/orchestration")
+        
+        # Test data from review request
+        config_data = {
+            "enabled": True,
+            "mother_admin_agent_id": "cb4928cf-907c-4ee5-8f3e-13b94334d36f",
+            "allowed_child_agent_ids": ["54dee30e-3c3f-496d-8a79-79747ef6dc1c"],
+            "policy": {
+                "max_delegation_depth": 2
+            }
+        }
+        
+        success, response = self.run_test(
+            "Update Orchestration Configuration",
+            "PUT",
+            "settings/orchestration",
+            200,
+            data=config_data
+        )
+        
+        if not success:
+            print("❌ Failed to update orchestration configuration")
+            return False
+            
+        print(f"   ✅ Orchestration configuration updated successfully")
+        
+        # Verify the update by getting the configuration again
+        success, verify_response = self.run_test(
+            "Verify Updated Orchestration Configuration",
+            "GET",
+            "settings/orchestration",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Configuration verified - Enabled: {verify_response.get('enabled')}")
+            print(f"   Mother Agent ID: {verify_response.get('mother_agent_id')}")
+            
+        return success
+
+    def test_update_child_agent_orchestration(self):
+        """Test PATCH /api/agents/{agent_id}/orchestration - Update child agent settings"""
+        print(f"\n🔧 Testing PATCH /api/agents/{{agent_id}}/orchestration")
+        
+        # Use the agent ID from review request
+        agent_id = "54dee30e-3c3f-496d-8a79-79747ef6dc1c"
+        
+        update_data = {
+            "orchestration_enabled": True,
+            "tags": ["test-tag", "automation"]
+        }
+        
+        success, response = self.run_test(
+            "Update Child Agent Orchestration Settings",
+            "PATCH",
+            f"agents/{agent_id}/orchestration",
+            200,
+            data=update_data
+        )
+        
+        if not success:
+            print("❌ Failed to update child agent orchestration settings")
+            return False
+            
+        print(f"   ✅ Child agent orchestration settings updated successfully")
+        
+        return True
+
+    def test_get_child_agent_orchestration(self):
+        """Test GET /api/agents/{agent_id}/orchestration - Get child agent orchestration settings"""
+        print(f"\n🔧 Testing GET /api/agents/{{agent_id}}/orchestration")
+        
+        # Use the agent ID from review request
+        agent_id = "54dee30e-3c3f-496d-8a79-79747ef6dc1c"
+        
+        success, response = self.run_test(
+            "Get Child Agent Orchestration Settings",
+            "GET",
+            f"agents/{agent_id}/orchestration",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get child agent orchestration settings")
+            return False
+            
+        # Verify response structure
+        required_fields = ['id', 'name', 'orchestration_enabled', 'tags']
+        
+        for field in required_fields:
+            if field not in response:
+                print(f"❌ Missing required field: {field}")
+                return False
+                
+        print(f"   ✅ All required fields present")
+        print(f"   ID: {response.get('id')}")
+        print(f"   Name: {response.get('name')}")
+        print(f"   Orchestration Enabled: {response.get('orchestration_enabled')}")
+        print(f"   Tags: {response.get('tags')}")
+        
+        return True
+
+    def test_list_available_children(self):
+        """Test GET /api/agents/orchestration/available-children - List available children"""
+        print(f"\n🔧 Testing GET /api/agents/orchestration/available-children")
+        
+        success, response = self.run_test(
+            "List Available Children Agents",
+            "GET",
+            "agents/orchestration/available-children",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to list available children agents")
+            return False
+            
+        # Verify response is an array
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+            
+        print(f"   ✅ Available children agents: {len(response)} found")
+        
+        # Check each agent has required fields
+        for agent in response:
+            if 'orchestration_enabled' not in agent:
+                print(f"❌ Agent missing orchestration_enabled field")
+                return False
+            if not agent.get('orchestration_enabled'):
+                print(f"❌ Found agent with orchestration_enabled=false in available children")
+                return False
+                
+        if response:
+            print(f"   Sample agent: {response[0].get('name', 'Unknown')} (ID: {response[0].get('id', 'Unknown')[:8]}...)")
+            
+        return True
+
+    def test_get_orchestration_audit_logs(self):
+        """Test GET /api/settings/orchestration/runs - Get audit log"""
+        print(f"\n🔧 Testing GET /api/settings/orchestration/runs")
+        
+        success, response = self.run_test(
+            "Get Orchestration Audit Logs",
+            "GET",
+            "settings/orchestration/runs",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get orchestration audit logs")
+            return False
+            
+        # Verify response is an array (may be empty)
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+            
+        print(f"   ✅ Orchestration audit logs: {len(response)} runs found")
+        
+        if response:
+            print(f"   Sample run: {response[0]}")
+        else:
+            print(f"   ℹ️ No orchestration runs found (expected for new system)")
+            
+        return True
+
+    def test_orchestration_validation(self):
+        """Test validation scenarios for orchestration endpoints"""
+        print(f"\n🔧 Testing Orchestration Validation Scenarios")
+        
+        # Test 1: Invalid mother_admin_agent_id
+        invalid_config = {
+            "enabled": True,
+            "mother_admin_agent_id": "invalid-id",
+            "allowed_child_agent_ids": [],
+            "policy": {}
+        }
+        
+        success, response = self.run_test(
+            "Invalid Mother Agent ID Validation",
+            "PUT",
+            "settings/orchestration",
+            404,  # Should return 404 for invalid agent
+            data=invalid_config
+        )
+        
+        if not success:
+            print("❌ Expected 404 for invalid mother_admin_agent_id")
+            return False
+            
+        print(f"   ✅ Correctly validates invalid mother_admin_agent_id (404)")
+        
+        # Test 2: Invalid child agent ID
+        invalid_child_config = {
+            "enabled": True,
+            "mother_admin_agent_id": "cb4928cf-907c-4ee5-8f3e-13b94334d36f",
+            "allowed_child_agent_ids": ["invalid-child-id"],
+            "policy": {}
+        }
+        
+        success, response = self.run_test(
+            "Invalid Child Agent ID Validation",
+            "PUT",
+            "settings/orchestration",
+            404,  # Should return 404 for invalid child agent
+            data=invalid_child_config
+        )
+        
+        if not success:
+            print("❌ Expected 404 for invalid child agent ID")
+            return False
+            
+        print(f"   ✅ Correctly validates invalid child agent ID (404)")
+        
+        return True
+
     # ============== PAGE TEMPLATE EXPORT/IMPORT TESTS ==============
 
     def test_page_template_export_import_feature(self):
