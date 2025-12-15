@@ -44,10 +44,9 @@ class CloneAgentRequest(BaseModel):
 @router.get("/", response_model=List[AgentTemplate])
 async def get_marketplace_agents(
     category: Optional[str] = None,
-    search: Optional[str] = None,
-    current_user: dict = Depends(get_current_user)
+    search: Optional[str] = None
 ):
-    """Get all marketplace agent templates"""
+    """Get all marketplace agent templates (public endpoint)"""
     query = {"is_public": True}
     
     if category and category != "all":
