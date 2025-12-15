@@ -98,6 +98,7 @@ function AppRoutes() {
       />
       <Route path="/widget-demo" element={<WidgetDemo />} />
       <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/marketplace" element={<Marketplace />} />
       
       {/* Custom Pages Route - must be before catch-all */}
       <Route path="/page/:slug" element={<CustomPage />} />
