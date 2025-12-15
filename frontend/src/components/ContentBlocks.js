@@ -1004,6 +1004,9 @@ const ContentBlocks = ({ blocks, onChange }) => {
       case 'pricing_cards':
         return <PricingCardsBlockEditor block={block} updateBlock={updateBlock} />;
 
+      case 'agent_grid':
+        return <AgentGridBlockEditor block={block} updateBlock={updateBlock} />;
+
       case 'button':
         return <ButtonBlockEditor block={block} updateBlock={updateBlock} />;
 
