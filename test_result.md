@@ -2215,3 +2215,64 @@ The Page Template Export/Import feature is **FULLY FUNCTIONAL** and working exac
 *Environment: Production Preview*
 *Status: FULLY FUNCTIONAL - ALL SCENARIOS PASSED* ✅
 
+
+---
+
+## Orchestrator Agent Architecture Implementation Tests
+
+### Test Scope
+- Orchestration API endpoints for Mother/Child agent architecture
+- Company-level orchestration configuration
+- Child agent orchestration settings (tags, enabled status)
+- Audit log collection for orchestration runs
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Test Instructions for Testing Agent
+
+**Backend Endpoints to Test:**
+
+1. **GET /api/settings/orchestration** - Get orchestration configuration for company
+   - Should return: enabled, mother_agent_id, mother_agent_name, counts, policy
+
+2. **PUT /api/settings/orchestration** - Update orchestration configuration
+   - Body: `{"enabled": true, "mother_admin_agent_id": "<id>", "allowed_child_agent_ids": ["<id>"], "policy": {}}`
+   - Should validate mother agent exists
+   - Should validate child agents belong to tenant
+
+3. **PATCH /api/agents/{agent_id}/orchestration** - Update child agent settings
+   - Body: `{"orchestration_enabled": true, "tags": ["tag1", "tag2"]}`
+   - Should update orchestration_enabled and tags fields
+
+4. **GET /api/agents/{agent_id}/orchestration** - Get child agent orchestration settings
+   - Should return: id, name, orchestration_enabled, tags
+
+5. **GET /api/agents/orchestration/available-children** - List all orchestration-enabled agents
+   - Should return agents with orchestration_enabled=true
+   - Should include capabilities derived from config
+
+6. **GET /api/settings/orchestration/runs** - Get orchestration run audit logs
+   - Should return recent orchestration runs
+
+7. **GET /api/settings/orchestration/runs/{run_id}** - Get specific run details
+   - Should return detailed run information
+
+### Key Test Scenarios
+
+1. **Enable orchestration on a child agent**
+   - PATCH an agent with orchestration_enabled=true and tags
+   - Verify it appears in available-children list
+
+2. **Configure company orchestration**
+   - PUT orchestration config with valid mother_admin_agent_id
+   - Verify mother_agent_name is populated in GET response
+
+3. **Security validation**
+   - Try to set a child_agent_id from a different tenant (should fail)
+   - Try to set an invalid mother_admin_agent_id (should fail 404)
+
+4. **Audit log retrieval**
+   - Get runs list (may be empty initially)
+   - Verify run_id lookup returns 404 for non-existent runs
+
