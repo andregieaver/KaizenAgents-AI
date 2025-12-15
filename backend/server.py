@@ -115,8 +115,12 @@ get_tenant_admin_user = get_admin_or_owner_user
 
 # ============== AI SERVICE ==============
 
-async def generate_ai_response(messages: List[dict], settings: dict) -> str:
-    """Generate AI response using company's configured agent"""
+async def generate_ai_response(messages: List[dict], settings: dict, conversation_id: str = None) -> str:
+    """Generate AI response using company's configured agent
+    
+    If orchestration is enabled, routes through the Mother agent for intelligent delegation.
+    Otherwise, uses the standard agent configuration.
+    """
     try:
         # Get tenant_id from settings
         tenant_id = settings.get("tenant_id")
@@ -127,6 +131,45 @@ async def generate_ai_response(messages: List[dict], settings: dict) -> str:
         agent_config = await db.company_agent_configs.find_one({"company_id": tenant_id}, {"_id": 0})
         if not agent_config or not agent_config.get("agent_id"):
             return "I apologize, but no AI agent has been configured for your company yet. Please contact your administrator."
+        
+        # Check if orchestration is enabled and try to use it
+        orchestration = agent_config.get("orchestration", {})
+        if orchestration.get("enabled") and orchestration.get("mother_admin_agent_id"):
+            try:
+                from services.orchestrator import get_orchestrator
+                
+                orchestrator = await get_orchestrator(tenant_id)
+                if orchestrator:
+                    # Get the latest user message
+                    latest_message = ""
+                    for msg in reversed(messages):
+                        if msg.get("author_type") == "customer":
+                            latest_message = msg.get("content", "")
+                            break
+                    
+                    if latest_message:
+                        # Build message history for context
+                        message_history = []
+                        for msg in messages[-10:]:
+                            role = "user" if msg.get("author_type") == "customer" else "assistant"
+                            message_history.append({"role": role, "content": msg.get("content", "")})
+                        
+                        # Process through orchestrator
+                        result = await orchestrator.process_with_mother(
+                            conversation_id=conversation_id or "unknown",
+                            user_prompt=latest_message,
+                            message_history=message_history
+                        )
+                        
+                        if result.get("success"):
+                            logger.info(f"Orchestration successful, delegated={result.get('delegated')}")
+                            return result.get("response", "I apologize, but I couldn't process your request.")
+                        else:
+                            logger.warning(f"Orchestration failed: {result.get('error')}")
+                            # Fall through to standard processing
+            except Exception as e:
+                logger.error(f"Orchestration error: {str(e)}")
+                # Fall through to standard processing if orchestration fails
         
         # Get the agent - including user_agents for WooCommerce config
         agent = await db.agents.find_one({"id": agent_config["agent_id"], "is_active": True}, {"_id": 0})
