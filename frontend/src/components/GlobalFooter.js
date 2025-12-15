@@ -138,15 +138,32 @@ const GlobalFooter = () => {
         
         // Check if reverse mobile is enabled
         const reverseMobileEnabled = block.content?.reverseMobile === true;
-        const reverseClass = reverseMobileEnabled ? 'flex-col-reverse md:grid' : 'flex-col md:grid';
+        
+        // Check if any column has custom mobile width
+        const hasCustomMobileWidths = columns.some(col => col.mobileWidth);
+        
+        // Use flex-row for custom widths, otherwise use flex-col
+        const reverseClass = hasCustomMobileWidths 
+          ? 'flex-row md:grid' 
+          : (reverseMobileEnabled ? 'flex-col-reverse md:grid' : 'flex-col md:grid');
         
         return (
           <div key={block.id} className={`flex ${reverseClass} gap-6 ${gridCols} ${alignItems} ${visibilityClass}`}>
-            {columns.map((column) => (
-              <div key={column.id} className="flex flex-col gap-3 w-full">
-                {column.blocks?.map((colBlock) => renderFooterBlock(colBlock))}
-              </div>
-            ))}
+            {columns.map((column) => {
+              // Apply custom mobile width if specified using inline style
+              const columnStyle = column.mobileWidth ? { width: column.mobileWidth } : {};
+              const responsiveWidthClass = hasCustomMobileWidths ? 'md:w-auto' : 'w-full';
+              
+              return (
+                <div 
+                  key={column.id} 
+                  className={`flex flex-col gap-3 ${responsiveWidthClass}`}
+                  style={columnStyle}
+                >
+                  {column.blocks?.map((colBlock) => renderFooterBlock(colBlock))}
+                </div>
+              );
+            })}
           </div>
         );
       
