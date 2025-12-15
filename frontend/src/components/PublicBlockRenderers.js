@@ -739,10 +739,11 @@ const AgentGridBlockComponent = ({ block }) => {
       </div>
 
 
+  );
+};
+
 // Agent Grid Block Renderer (wrapper function)
 export const renderAgentGridBlock = (block) => {
   return <AgentGridBlockComponent key={block.id} block={block} />;
-};
-  );
 };
 
