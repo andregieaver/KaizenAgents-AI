@@ -100,8 +100,9 @@ function AppRoutes() {
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/marketplace" element={<Marketplace />} />
       
-      {/* Custom Pages Route - must be before catch-all */}
+      {/* Custom Pages Routes - must be before catch-all */}
       <Route path="/page/:slug" element={<CustomPage />} />
+      <Route path="/:slug" element={<CustomPage />} />
 
       {/* Protected Dashboard Routes */}
       <Route
