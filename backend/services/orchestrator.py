@@ -1,0 +1,498 @@
+"""Orchestrator Service - Core logic for Mother/Child agent delegation
+
+This service implements the System 1/System 2 architecture where:
+- Mother Agent (System 2): An LLM-based orchestrator that reasons about tasks
+- Child Agents (System 1): Deterministic agents that execute specific functions
+"""
+import logging
+import uuid
+from datetime import datetime, timezone
+from typing import Optional, List, Dict, Any
+import os
+import json
+
+from middleware.database import db
+
+logger = logging.getLogger(__name__)
+
+
+class OrchestratorService:
+    """Service for orchestrating Mother/Child agent interactions"""
+    
+    def __init__(self, tenant_id: str):
+        self.tenant_id = tenant_id
+        self.config = None
+        self.mother_agent = None
+        self.available_children = []
+    
+    async def initialize(self) -> bool:
+        """Initialize orchestrator with tenant configuration"""
+        # Load company agent config
+        config = await db.company_agent_configs.find_one(
+            {"company_id": self.tenant_id},
+            {"_id": 0}
+        )
+        
+        if not config:
+            logger.warning(f"No agent config found for tenant {self.tenant_id}")
+            return False
+        
+        orchestration = config.get("orchestration", {})
+        if not orchestration.get("enabled"):
+            logger.info(f"Orchestration not enabled for tenant {self.tenant_id}")
+            return False
+        
+        self.config = orchestration
+        
+        # Load mother agent
+        mother_id = orchestration.get("mother_admin_agent_id")
+        if mother_id:
+            self.mother_agent = await db.agents.find_one(
+                {"id": mother_id, "is_active": True},
+                {"_id": 0}
+            )
+            if not self.mother_agent:
+                logger.error(f"Mother agent {mother_id} not found or inactive")
+                return False
+        else:
+            logger.error("No mother agent configured")
+            return False
+        
+        # Load available child agents (filtered by tenant_id for security)
+        allowed_ids = orchestration.get("allowed_child_agent_ids", [])
+        if allowed_ids:
+            self.available_children = await db.user_agents.find(
+                {
+                    "tenant_id": self.tenant_id,
+                    "id": {"$in": allowed_ids},
+                    "orchestration_enabled": True
+                },
+                {"_id": 0}
+            ).to_list(100)
+        
+        logger.info(f"Orchestrator initialized for tenant {self.tenant_id} with {len(self.available_children)} children")
+        return True
+    
+    async def get_children_for_prompt(self, user_prompt: str) -> List[Dict[str, Any]]:
+        """Get list of available children with their capabilities for the LLM prompt"""
+        children_info = []
+        
+        for child in self.available_children:
+            tags = child.get("tags", [])
+            config = child.get("config", {})
+            
+            # Determine capabilities based on config
+            capabilities = []
+            if config.get("woocommerce", {}).get("enabled"):
+                capabilities.append("woocommerce_operations")
+            
+            children_info.append({
+                "id": child["id"],
+                "name": child["name"],
+                "description": child.get("description", ""),
+                "tags": tags,
+                "capabilities": capabilities,
+                "category": child.get("category", "general")
+            })
+        
+        return children_info
+    
+    def build_orchestration_prompt(self, user_prompt: str, children: List[Dict[str, Any]]) -> str:
+        """Build the system prompt for the Mother agent to decide on delegation"""
+        children_json = json.dumps(children, indent=2)
+        
+        return f"""You are an orchestrator AI that decides how to handle user requests.
+
+You have access to the following child agents that can execute specific tasks:
+{children_json}
+
+When a user makes a request, analyze it and decide:
+1. If the request can be handled by one of the child agents, return a JSON response with the delegation.
+2. If you can handle the request directly with your knowledge, respond directly.
+3. If no child agent is suitable and you cannot answer, explain what capabilities would be needed.
+
+For delegation, respond with EXACTLY this JSON format (no other text):
+{{
+  "delegate": true,
+  "child_agent_id": "<agent_id>",
+  "action_type": "<action_type>",
+  "parameters": {{}},
+  "reasoning": "<brief explanation>"
+}}
+
+For direct response, just respond naturally without JSON.
+
+Current user request: {user_prompt}"""
+    
+    async def create_run_log(self, conversation_id: str, user_prompt: str) -> str:
+        """Create an audit log entry for this orchestration run"""
+        run_id = str(uuid.uuid4())
+        now = datetime.now(timezone.utc).isoformat()
+        
+        run_doc = {
+            "id": run_id,
+            "tenant_id": self.tenant_id,
+            "conversation_id": conversation_id,
+            "mother_admin_agent_id": self.mother_agent["id"],
+            "user_prompt": user_prompt,
+            "requested_actions": [],
+            "executed_actions": [],
+            "final_response": None,
+            "status": "pending",
+            "created_at": now,
+            "completed_at": None
+        }
+        
+        await db.orchestration_runs.insert_one(run_doc)
+        return run_id
+    
+    async def update_run_log(
+        self,
+        run_id: str,
+        requested_actions: List[Dict] = None,
+        executed_actions: List[Dict] = None,
+        final_response: str = None,
+        status: str = None
+    ):
+        """Update the orchestration run log"""
+        update_data = {}
+        
+        if requested_actions is not None:
+            update_data["requested_actions"] = requested_actions
+        if executed_actions is not None:
+            update_data["executed_actions"] = executed_actions
+        if final_response is not None:
+            update_data["final_response"] = final_response
+        if status is not None:
+            update_data["status"] = status
+            if status in ["completed", "failed"]:
+                update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
+        
+        if update_data:
+            await db.orchestration_runs.update_one(
+                {"id": run_id},
+                {"$set": update_data}
+            )
+    
+    async def execute_child_agent(
+        self,
+        child_agent_id: str,
+        action_type: str,
+        parameters: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Execute a specific child agent's function"""
+        # Find the child agent
+        child = None
+        for c in self.available_children:
+            if c["id"] == child_agent_id:
+                child = c
+                break
+        
+        if not child:
+            return {
+                "success": False,
+                "error": f"Child agent {child_agent_id} not found or not available"
+            }
+        
+        # Execute based on action type
+        if action_type == "woocommerce_operations":
+            return await self._execute_woocommerce_action(child, parameters)
+        else:
+            return {
+                "success": False,
+                "error": f"Unknown action type: {action_type}"
+            }
+    
+    async def _execute_woocommerce_action(
+        self,
+        child: Dict[str, Any],
+        parameters: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Execute WooCommerce action via child agent"""
+        from services.woocommerce_service import decrypt_credential, WooCommerceService
+        
+        wc_config = child.get("config", {}).get("woocommerce", {})
+        if not wc_config.get("enabled"):
+            return {"success": False, "error": "WooCommerce not enabled for this agent"}
+        
+        try:
+            store_url = wc_config.get("store_url")
+            consumer_key = decrypt_credential(wc_config.get("consumer_key_encrypted", ""))
+            consumer_secret = decrypt_credential(wc_config.get("consumer_secret_encrypted", ""))
+            
+            wc_service = WooCommerceService(store_url, consumer_key, consumer_secret)
+            
+            action = parameters.get("action", "list_products")
+            
+            if action == "list_products":
+                result = await wc_service.list_products(limit=parameters.get("limit", 10))
+            elif action == "get_order":
+                result = await wc_service.get_order(parameters.get("order_id"))
+            elif action == "list_orders":
+                result = await wc_service.list_orders(limit=parameters.get("limit", 10))
+            else:
+                return {"success": False, "error": f"Unknown WooCommerce action: {action}"}
+            
+            return {"success": True, "data": result}
+            
+        except Exception as e:
+            logger.error(f"WooCommerce action failed: {str(e)}")
+            return {"success": False, "error": str(e)}
+    
+    async def process_with_mother(
+        self,
+        conversation_id: str,
+        user_prompt: str,
+        message_history: List[Dict[str, str]] = None
+    ) -> Dict[str, Any]:
+        """Main orchestration flow - Mother agent processes request"""
+        if not self.mother_agent:
+            return {
+                "success": False,
+                "error": "Orchestrator not properly initialized"
+            }
+        
+        # Create audit log
+        run_id = await self.create_run_log(conversation_id, user_prompt)
+        
+        try:
+            # Get children info
+            children = await self.get_children_for_prompt(user_prompt)
+            
+            # Build orchestration prompt
+            system_prompt = self.build_orchestration_prompt(user_prompt, children)
+            
+            # Get provider for Mother agent
+            provider = await db.providers.find_one(
+                {"id": self.mother_agent["provider_id"], "is_active": True},
+                {"_id": 0}
+            )
+            
+            if not provider:
+                await self.update_run_log(run_id, status="failed")
+                return {"success": False, "error": "Mother agent provider not available"}
+            
+            # Call the Mother agent LLM
+            response_text = await self._call_mother_llm(
+                provider,
+                system_prompt,
+                message_history or []
+            )
+            
+            # Check if Mother wants to delegate
+            delegation = self._parse_delegation_response(response_text)
+            
+            if delegation:
+                # Log the requested action
+                await self.update_run_log(
+                    run_id,
+                    requested_actions=[delegation],
+                    status="processing"
+                )
+                
+                # Execute the child agent
+                result = await self.execute_child_agent(
+                    delegation["child_agent_id"],
+                    delegation["action_type"],
+                    delegation.get("parameters", {})
+                )
+                
+                # Log execution
+                executed = {**delegation, "result": result}
+                await self.update_run_log(
+                    run_id,
+                    executed_actions=[executed],
+                    status="completed" if result["success"] else "failed"
+                )
+                
+                # Generate final response using Mother with the result
+                if result["success"]:
+                    final_response = await self._generate_final_response(
+                        provider,
+                        user_prompt,
+                        result["data"]
+                    )
+                else:
+                    final_response = f"I tried to help but encountered an issue: {result.get('error', 'Unknown error')}"
+                
+                await self.update_run_log(run_id, final_response=final_response)
+                
+                return {
+                    "success": True,
+                    "response": final_response,
+                    "delegated": True,
+                    "run_id": run_id
+                }
+            else:
+                # Mother responded directly
+                await self.update_run_log(
+                    run_id,
+                    final_response=response_text,
+                    status="completed"
+                )
+                
+                return {
+                    "success": True,
+                    "response": response_text,
+                    "delegated": False,
+                    "run_id": run_id
+                }
+                
+        except Exception as e:
+            logger.error(f"Orchestration failed: {str(e)}")
+            await self.update_run_log(run_id, status="failed")
+            return {
+                "success": False,
+                "error": str(e),
+                "run_id": run_id
+            }
+    
+    async def _call_mother_llm(
+        self,
+        provider: Dict[str, Any],
+        system_prompt: str,
+        message_history: List[Dict[str, str]]
+    ) -> str:
+        """Call the Mother agent's LLM"""
+        from dotenv import load_dotenv
+        load_dotenv()
+        
+        # Use emergent integrations for LLM calls
+        try:
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            
+            # Get API key - prefer EMERGENT_LLM_KEY for orchestration
+            api_key = os.environ.get("EMERGENT_LLM_KEY") or provider.get("api_key")
+            
+            # Create chat instance
+            chat = LlmChat(
+                api_key=api_key,
+                session_id=f"orchestrator_{self.tenant_id}",
+                system_message=system_prompt
+            )
+            
+            # Configure model based on Mother agent's settings
+            model = self.mother_agent.get("model", "gpt-5.2")
+            provider_type = provider.get("type", "openai")
+            
+            chat.with_model(provider_type, model)
+            
+            # Create user message
+            user_message = UserMessage(text="Please analyze and respond to the user's request.")
+            
+            # Send message
+            response = await chat.send_message(user_message)
+            
+            return response
+            
+        except ImportError:
+            # Fallback to direct OpenAI call if emergent integrations not available
+            logger.warning("emergentintegrations not available, using direct OpenAI")
+            import openai
+            
+            client = openai.OpenAI(api_key=provider.get("api_key"))
+            
+            messages = [{"role": "system", "content": system_prompt}]
+            messages.extend(message_history)
+            
+            response = client.chat.completions.create(
+                model=self.mother_agent.get("model", "gpt-4o"),
+                messages=messages,
+                temperature=self.mother_agent.get("temperature", 0.7),
+                max_tokens=self.mother_agent.get("max_tokens", 2000)
+            )
+            
+            return response.choices[0].message.content
+    
+    def _parse_delegation_response(self, response: str) -> Optional[Dict[str, Any]]:
+        """Parse Mother's response to check for delegation intent"""
+        try:
+            # Try to parse as JSON
+            response = response.strip()
+            
+            # Handle markdown code blocks
+            if response.startswith("```json"):
+                response = response[7:]
+            if response.startswith("```"):
+                response = response[3:]
+            if response.endswith("```"):
+                response = response[:-3]
+            
+            response = response.strip()
+            
+            data = json.loads(response)
+            
+            if data.get("delegate") == True and data.get("child_agent_id"):
+                return {
+                    "child_agent_id": data["child_agent_id"],
+                    "action_type": data.get("action_type", "unknown"),
+                    "parameters": data.get("parameters", {}),
+                    "reasoning": data.get("reasoning", "")
+                }
+        except (json.JSONDecodeError, KeyError, TypeError):
+            pass
+        
+        return None
+    
+    async def _generate_final_response(
+        self,
+        provider: Dict[str, Any],
+        original_prompt: str,
+        child_result: Any
+    ) -> str:
+        """Generate a human-friendly response from the child agent's result"""
+        from dotenv import load_dotenv
+        load_dotenv()
+        
+        result_json = json.dumps(child_result, indent=2, default=str)
+        
+        synthesis_prompt = f"""Based on the user's original request and the data retrieved, provide a helpful response.
+
+Original request: {original_prompt}
+
+Retrieved data:
+{result_json}
+
+Provide a natural, helpful response that addresses the user's request using this data."""
+        
+        try:
+            from emergentintegrations.llm.chat import LlmChat, UserMessage
+            
+            api_key = os.environ.get("EMERGENT_LLM_KEY") or provider.get("api_key")
+            
+            chat = LlmChat(
+                api_key=api_key,
+                session_id=f"orchestrator_synthesis_{self.tenant_id}",
+                system_message="You are a helpful assistant that synthesizes information into clear responses."
+            )
+            
+            model = self.mother_agent.get("model", "gpt-5.2")
+            provider_type = provider.get("type", "openai")
+            chat.with_model(provider_type, model)
+            
+            user_message = UserMessage(text=synthesis_prompt)
+            response = await chat.send_message(user_message)
+            
+            return response
+            
+        except ImportError:
+            import openai
+            
+            client = openai.OpenAI(api_key=provider.get("api_key"))
+            
+            response = client.chat.completions.create(
+                model=self.mother_agent.get("model", "gpt-4o"),
+                messages=[{"role": "user", "content": synthesis_prompt}],
+                temperature=0.7,
+                max_tokens=2000
+            )
+            
+            return response.choices[0].message.content
+
+
+async def get_orchestrator(tenant_id: str) -> Optional[OrchestratorService]:
+    """Factory function to get an initialized orchestrator for a tenant"""
+    orchestrator = OrchestratorService(tenant_id)
+    if await orchestrator.initialize():
+        return orchestrator
+    return None
