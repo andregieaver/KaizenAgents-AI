@@ -2535,3 +2535,49 @@ The Orchestrator Runtime Integration is **SUBSTANTIALLY FUNCTIONAL** with proper
 *Tester: Testing Agent*
 *Environment: Production Preview*
 
+
+---
+
+## Orchestration UI Tests
+
+### Test Scope
+- Orchestration Settings tab in Settings page
+- Mother agent selection
+- Child agent configuration (enable, tags, delegation)
+- Orchestration runs audit log
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Test Instructions for Frontend Testing Agent
+
+**Test Flow:**
+
+1. **Login and navigate to Settings -> Orchestration tab**
+   - Should see Orchestration Settings card
+   - Should see toggle to enable/disable orchestration
+
+2. **Verify orchestration overview stats**
+   - Should show Mother Agent name (Aida)
+   - Should show Available Children count
+   - Should show Recent Runs count
+
+3. **Test Mother Agent selection**
+   - Click the Aida dropdown
+   - Verify admin agents are listed
+   - Select a different agent (if available)
+
+4. **Test Child Agent configuration**
+   - Find "Restaurant & Hospitality Agent" card
+   - Toggle "Available for orchestration" 
+   - Verify "Allow delegation" toggle appears when enabled
+   - Click "+ Add" to add a new tag
+   - Type "test" and press Enter
+   - Verify tag appears
+   - Click X on a tag to remove it
+
+5. **Test Orchestration Runs**
+   - Scroll down to "Recent Orchestration Runs" section
+   - Click Refresh button
+   - Verify runs are listed (if any)
+
