@@ -498,8 +498,8 @@ export const renderTextBlock = (block) => {
 };
 
 
-// Agent Grid Block Renderer
-export const renderAgentGridBlock = (block) => {
+// Agent Grid Block Component (must be a component to use hooks)
+const AgentGridBlockComponent = ({ block }) => {
   const [agents, setAgents] = useState([]);
   const [filteredAgents, setFilteredAgents] = useState([]);
   const [loading, setLoading] = useState(true);
