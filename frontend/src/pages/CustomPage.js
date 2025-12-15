@@ -152,17 +152,19 @@ const CustomPage = () => {
                     
                     case 'image':
                       return (
-                        <div key={block.id} className="space-y-2">
-                          <img
-                            src={block.content?.url}
-                            alt={block.content?.alt || ''}
-                            className="w-full rounded-lg shadow-md"
-                          />
-                          {block.content?.caption && (
-                            <p className="text-sm text-muted-foreground text-center italic">
-                              {block.content.caption}
-                            </p>
-                          )}
+                        <div key={block.id} className="container mx-auto px-4 py-8">
+                          <div className="max-w-4xl mx-auto space-y-2">
+                            <img
+                              src={block.content?.url}
+                              alt={block.content?.alt || ''}
+                              className="w-full rounded-lg shadow-md"
+                            />
+                            {block.content?.caption && (
+                              <p className="text-sm text-muted-foreground text-center italic">
+                                {block.content.caption}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       );
 
