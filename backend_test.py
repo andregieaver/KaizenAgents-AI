@@ -1794,7 +1794,10 @@ def main():
         # 10. Widget Endpoint Specific Tests (Review Request)
         ("Widget Endpoint Comprehensive Test", tester.test_widget_endpoint_specific),
         
-        # 11. Page Template Export/Import Feature Tests (Review Request)
+        # 11. Orchestrator Agent Architecture Tests (Review Request)
+        ("Orchestrator Agent Architecture APIs", tester.test_orchestrator_agent_architecture),
+        
+        # 12. Page Template Export/Import Feature Tests (Review Request)
         ("Page Template Export/Import Feature", tester.test_page_template_export_import_feature),
     ]
     
