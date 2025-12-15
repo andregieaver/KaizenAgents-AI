@@ -7,11 +7,21 @@ from typing import List, Optional, Literal, Dict, Any
 from datetime import datetime, timezone, timedelta
 import uuid
 import jwt
+import logging
 
 from models import *
 from middleware import get_current_user, get_super_admin_user, get_admin_or_owner_user
 from middleware.database import db
 from middleware.auth import create_token, hash_password, verify_password, is_super_admin, JWT_SECRET, JWT_ALGORITHM
+
+logger = logging.getLogger(__name__)
+
+# Import generate_ai_response from server module
+# This is needed for AI response generation with orchestration support
+async def _get_generate_ai_response():
+    """Lazy import to avoid circular dependency"""
+    from server import generate_ai_response
+    return generate_ai_response
 
 # Widget-specific models
 class WidgetSessionCreate(BaseModel):
