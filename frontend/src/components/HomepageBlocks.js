@@ -487,7 +487,48 @@ export const PricingCardsBlockEditor = ({ block, updateBlock }) => {
           <Input
             id="pricing-heading"
             value={content.heading}
+            onChange={(e) => updateBlock(block.id, { ...content, heading: e.target.value })}
+            placeholder="Choose Your Plan"
+          />
+        </div>
 
+        <div>
+          <Label htmlFor="pricing-description">Section Description</Label>
+          <Textarea
+            id="pricing-description"
+            value={content.description}
+            onChange={(e) => updateBlock(block.id, { ...content, description: e.target.value })}
+            placeholder="Select the perfect plan for your needs"
+            rows={2}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="show-yearly"
+            checked={content.showYearlyPricing}
+            onChange={(e) => updateBlock(block.id, { ...content, showYearlyPricing: e.target.checked })}
+            className="h-4 w-4"
+          />
+          <Label htmlFor="show-yearly" className="cursor-pointer">
+            Show yearly pricing (if available)
+          </Label>
+        </div>
+
+        <div>
+          <Label htmlFor="button-text">Button Text</Label>
+          <Input
+            id="button-text"
+            value={content.buttonText}
+            onChange={(e) => updateBlock(block.id, { ...content, buttonText: e.target.value })}
+            placeholder="Get Started"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Agent Grid Block Editor
 export const AgentGridBlockEditor = ({ block, updateBlock }) => {
