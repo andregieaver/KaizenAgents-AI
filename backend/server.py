@@ -2381,6 +2381,32 @@ async def update_company_agent_config(
         update_data["response_language"] = config_update.response_language
     if config_update.language_mode is not None:
         update_data["language_mode"] = config_update.language_mode
+    if config_update.orchestration is not None:
+        # Validate orchestration config
+        orchestration = config_update.orchestration
+        if orchestration.get("mother_admin_agent_id"):
+            # Verify mother agent exists
+            mother = await db.agents.find_one(
+                {"id": orchestration["mother_admin_agent_id"], "is_active": True},
+                {"_id": 0}
+            )
+            if not mother:
+                raise HTTPException(status_code=404, detail="Mother agent not found or inactive")
+        
+        # Validate allowed children belong to this tenant
+        if orchestration.get("allowed_child_agent_ids"):
+            for child_id in orchestration["allowed_child_agent_ids"]:
+                child = await db.user_agents.find_one(
+                    {"id": child_id, "tenant_id": company_id},
+                    {"_id": 0}
+                )
+                if not child:
+                    raise HTTPException(
+                        status_code=404, 
+                        detail=f"Child agent {child_id} not found or does not belong to this company"
+                    )
+        
+        update_data["orchestration"] = orchestration
     
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
     
