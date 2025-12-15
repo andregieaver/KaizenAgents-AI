@@ -725,7 +725,7 @@ const AgentGridBlockComponent = ({ block }) => {
                   <div>
                     <h4 className="font-semibold mb-2">Welcome Message</h4>
                     <p className="text-sm text-muted-foreground italic">
-                      "{selectedAgent.config.welcome_message}"
+                      &ldquo;{selectedAgent.config.welcome_message}&rdquo;
                     </p>
                   </div>
                 )}
