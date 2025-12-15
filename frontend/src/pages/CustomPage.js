@@ -354,6 +354,9 @@ const CustomPage = () => {
           )}
         </main>
       </div>
+
+      {/* Global Footer */}
+      <GlobalFooter />
     </>
   );
 };
