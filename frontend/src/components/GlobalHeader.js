@@ -215,12 +215,16 @@ const GlobalHeader = () => {
         return (
           <div key={block.id} className={`flex ${hasCustomMobileWidths ? 'flex-row' : reverseClass} gap-4 w-full ${alignItems} ${visibilityClass} ${hasCustomMobileWidths ? '' : 'md:grid md:' + gridCols}`}>
             {columns.map((column) => {
-              // Apply custom mobile width if specified
-              const mobileWidthClass = column.mobileWidth ? `w-[${column.mobileWidth}]` : 'w-full';
-              const responsiveWidthClass = hasCustomMobileWidths ? `${mobileWidthClass} md:w-auto` : 'w-full';
+              // Apply custom mobile width if specified using inline style
+              const columnStyle = column.mobileWidth ? { width: column.mobileWidth } : {};
+              const responsiveWidthClass = hasCustomMobileWidths ? 'md:w-auto md:flex-1' : 'w-full';
               
               return (
-                <div key={column.id} className={`flex flex-col gap-2 ${responsiveWidthClass}`}>
+                <div 
+                  key={column.id} 
+                  className={`flex flex-col gap-2 ${responsiveWidthClass}`}
+                  style={columnStyle}
+                >
                   {column.blocks?.map((colBlock) => renderHeaderBlock(colBlock))}
                 </div>
               );
