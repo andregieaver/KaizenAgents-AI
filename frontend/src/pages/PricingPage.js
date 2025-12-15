@@ -11,7 +11,8 @@ import {
   renderButtonBlock,
   renderPricingWidgetBlock,
   renderImageBlock,
-  renderPricingCardsBlock
+  renderPricingCardsBlock,
+  renderAgentGridBlock
 } from '../components/PublicBlockRenderers';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
