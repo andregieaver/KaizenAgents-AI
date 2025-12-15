@@ -308,20 +308,6 @@ async def test_woocommerce_connection(
             "message": f"Connection test failed: {str(e)}"
         }
 
-    if not agent:
-        raise HTTPException(status_code=404, detail="Agent not found")
-    
-    if agent.get("is_active"):
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot delete active agent. Please activate another agent first."
-        )
-    
-    # Delete agent
-    await db.user_agents.delete_one({"id": agent_id, "tenant_id": tenant_id})
-    
-    return {"message": "Agent deleted successfully"}
-
 
 # ============== ORCHESTRATION ENDPOINTS ==============
 
