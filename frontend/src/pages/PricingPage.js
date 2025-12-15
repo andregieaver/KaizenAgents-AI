@@ -118,6 +118,8 @@ const PricingPage = () => {
                 return renderButtonBlock(block);
               case 'pricing_cards':
                 return renderPricingCardsBlock(block);
+              case 'agent_grid':
+                return renderAgentGridBlock(block);
               case 'pricing_widget':
                 return renderPricingWidgetBlock(block);
               case 'image':
