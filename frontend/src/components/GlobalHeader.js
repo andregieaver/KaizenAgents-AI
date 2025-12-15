@@ -209,13 +209,22 @@ const GlobalHeader = () => {
         const reverseMobileEnabled = block.content?.reverseMobile === true;
         const reverseClass = reverseMobileEnabled ? 'flex-col-reverse md:flex-row' : 'flex-col md:flex-row';
         
+        // Check if any column has custom mobile width
+        const hasCustomMobileWidths = columns.some(col => col.mobileWidth);
+        
         return (
-          <div key={block.id} className={`flex ${reverseClass} gap-4 w-full ${alignItems} ${visibilityClass} md:grid md:${gridCols}`}>
-            {columns.map((column) => (
-              <div key={column.id} className="flex flex-col gap-2 w-full">
-                {column.blocks?.map((colBlock) => renderHeaderBlock(colBlock))}
-              </div>
-            ))}
+          <div key={block.id} className={`flex ${hasCustomMobileWidths ? 'flex-row' : reverseClass} gap-4 w-full ${alignItems} ${visibilityClass} ${hasCustomMobileWidths ? '' : 'md:grid md:' + gridCols}`}>
+            {columns.map((column) => {
+              // Apply custom mobile width if specified
+              const mobileWidthClass = column.mobileWidth ? `w-[${column.mobileWidth}]` : 'w-full';
+              const responsiveWidthClass = hasCustomMobileWidths ? `${mobileWidthClass} md:w-auto` : 'w-full';
+              
+              return (
+                <div key={column.id} className={`flex flex-col gap-2 ${responsiveWidthClass}`}>
+                  {column.blocks?.map((colBlock) => renderHeaderBlock(colBlock))}
+                </div>
+              );
+            })}
           </div>
         );
       
