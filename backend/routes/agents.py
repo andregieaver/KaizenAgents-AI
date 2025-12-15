@@ -172,12 +172,26 @@ async def delete_user_agent(
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
     
-    # Check if agent is active
+    # Check if agent exists and is active
     agent = await db.user_agents.find_one(
         {"id": agent_id, "tenant_id": tenant_id},
         {"_id": 0}
     )
     
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    if agent.get("is_active"):
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot delete active agent. Please activate another agent first."
+        )
+    
+    # Delete agent
+    await db.user_agents.delete_one({"id": agent_id, "tenant_id": tenant_id})
+    
+    return {"message": "Agent deleted successfully"}
+
 
 @router.post("/{agent_id}/woocommerce-config")
 async def configure_woocommerce(
