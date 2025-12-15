@@ -27,19 +27,29 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const CustomPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const location = window.location;
   const [page, setPage] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchPage();
-  }, [slug]);
+  }, [slug, location.pathname]);
 
   const fetchPage = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`${API}/admin/pages/public/${slug}`);
+      // Determine the slug to fetch:
+      // If we have a slug param from /page/:slug, use that
+      // Otherwise, extract from the pathname (e.g., /privacy)
+      let pageSlug = slug;
+      if (!pageSlug) {
+        // Extract slug from pathname (remove leading slash)
+        pageSlug = location.pathname.replace(/^\//, '').split('/')[0];
+      }
+      
+      const response = await axios.get(`${API}/admin/pages/public/${pageSlug}`);
       setPage(response.data);
     } catch (error) {
       console.error('Error fetching page:', error);
