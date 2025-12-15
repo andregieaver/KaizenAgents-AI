@@ -6,6 +6,8 @@ import { Button } from '../components/ui/button';
 import { Home, Loader2 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import GlobalHeader from '../components/GlobalHeader';
+import GlobalFooter from '../components/GlobalFooter';
 import {
   Accordion,
   AccordionContent,
