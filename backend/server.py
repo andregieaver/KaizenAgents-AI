@@ -2784,6 +2784,141 @@ async def get_scraping_status(current_user: dict = Depends(get_current_user)):
         domains=config.get("scraping_domains", [])
     )
 
+
+# ============== ORCHESTRATION ROUTES ==============
+
+@settings_router.get("/orchestration")
+async def get_orchestration_config(current_user: dict = Depends(get_current_user)):
+    """Get orchestration configuration for the company"""
+    if not current_user.get("tenant_id"):
+        raise HTTPException(status_code=400, detail="User not associated with a company")
+    
+    company_id = current_user["tenant_id"]
+    
+    config = await db.company_agent_configs.find_one({"company_id": company_id}, {"_id": 0})
+    orchestration = config.get("orchestration", {}) if config else {}
+    
+    # Get mother agent name if configured
+    mother_name = None
+    if orchestration.get("mother_admin_agent_id"):
+        mother = await db.agents.find_one(
+            {"id": orchestration["mother_admin_agent_id"]},
+            {"_id": 0, "name": 1}
+        )
+        mother_name = mother.get("name") if mother else None
+    
+    # Get count of available children
+    available_children = await db.user_agents.count_documents({
+        "tenant_id": company_id,
+        "orchestration_enabled": True
+    })
+    
+    # Get count of recent runs
+    from datetime import timedelta
+    week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    recent_runs = await db.orchestration_runs.count_documents({
+        "tenant_id": company_id,
+        "created_at": {"$gte": week_ago}
+    })
+    
+    return {
+        "enabled": orchestration.get("enabled", False),
+        "mother_agent_id": orchestration.get("mother_admin_agent_id"),
+        "mother_agent_name": mother_name,
+        "allowed_children_count": len(orchestration.get("allowed_child_agent_ids", [])),
+        "available_children_count": available_children,
+        "recent_runs_count": recent_runs,
+        "policy": orchestration.get("policy", {})
+    }
+
+
+@settings_router.put("/orchestration")
+async def update_orchestration_config(
+    orchestration_update: dict,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update orchestration configuration for the company"""
+    if not current_user.get("tenant_id"):
+        raise HTTPException(status_code=400, detail="User not associated with a company")
+    
+    company_id = current_user["tenant_id"]
+    
+    # Validate mother agent if provided
+    if orchestration_update.get("mother_admin_agent_id"):
+        mother = await db.agents.find_one(
+            {"id": orchestration_update["mother_admin_agent_id"], "is_active": True},
+            {"_id": 0}
+        )
+        if not mother:
+            raise HTTPException(status_code=404, detail="Mother agent not found or inactive")
+    
+    # Validate allowed children belong to this tenant
+    if orchestration_update.get("allowed_child_agent_ids"):
+        for child_id in orchestration_update["allowed_child_agent_ids"]:
+            child = await db.user_agents.find_one(
+                {"id": child_id, "tenant_id": company_id},
+                {"_id": 0}
+            )
+            if not child:
+                raise HTTPException(
+                    status_code=404,
+                    detail=f"Child agent {child_id} not found or does not belong to this company"
+                )
+    
+    # Update orchestration config
+    await db.company_agent_configs.update_one(
+        {"company_id": company_id},
+        {"$set": {
+            "orchestration": orchestration_update,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }},
+        upsert=True
+    )
+    
+    return {"status": "success", "message": "Orchestration configuration updated"}
+
+
+@settings_router.get("/orchestration/runs")
+async def get_orchestration_runs(
+    limit: int = 50,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get recent orchestration run logs for audit"""
+    if not current_user.get("tenant_id"):
+        raise HTTPException(status_code=400, detail="User not associated with a company")
+    
+    company_id = current_user["tenant_id"]
+    
+    runs = await db.orchestration_runs.find(
+        {"tenant_id": company_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    return runs
+
+
+@settings_router.get("/orchestration/runs/{run_id}")
+async def get_orchestration_run_detail(
+    run_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get detailed information about a specific orchestration run"""
+    if not current_user.get("tenant_id"):
+        raise HTTPException(status_code=400, detail="User not associated with a company")
+    
+    company_id = current_user["tenant_id"]
+    
+    run = await db.orchestration_runs.find_one(
+        {"id": run_id, "tenant_id": company_id},
+        {"_id": 0}
+    )
+    
+    if not run:
+        raise HTTPException(status_code=404, detail="Orchestration run not found")
+    
+    return run
+
+
 # ============== ANALYTICS ROUTES ==============
 
 analytics_router = APIRouter(prefix="/analytics", tags=["analytics"])
