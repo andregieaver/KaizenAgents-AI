@@ -130,18 +130,7 @@ const CustomPage = () => {
       <GlobalHeader />
 
       {/* Page Content */}
-      <div className="min-h-screen bg-background">
-        {/* Simple Header */}
-        <header className="border-b border-border bg-card">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-            <Button variant="ghost" onClick={() => navigate('/')}>
-              <Home className="h-4 w-4 mr-2" />
-              Home
-            </Button>
-            <h1 className="font-heading text-xl font-bold">{page?.name}</h1>
-            <div className="w-20" />
-          </div>
-        </header>
+      <div className="bg-background">
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-12">
