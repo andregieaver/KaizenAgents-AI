@@ -16,13 +16,6 @@ from middleware.auth import create_token, hash_password, verify_password, is_sup
 
 logger = logging.getLogger(__name__)
 
-# Import generate_ai_response from server module
-# This is needed for AI response generation with orchestration support
-async def _get_generate_ai_response():
-    """Lazy import to avoid circular dependency"""
-    from server import generate_ai_response
-    return generate_ai_response
-
 # Widget-specific models
 class WidgetSessionCreate(BaseModel):
     tenant_id: str
