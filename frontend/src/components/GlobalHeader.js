@@ -209,14 +209,15 @@ const GlobalHeader = () => {
         const reverseMobileEnabled = block.content?.reverseMobile === true;
         const reverseClass = reverseMobileEnabled ? 'flex-col-reverse md:flex-row' : 'flex-col md:flex-row';
         
-        // Check if any column has custom mobile width
-        const hasCustomMobileWidths = columns.some(col => col.mobileWidth);
+        // Check if any column has custom mobile width (stored in column.width.mobile)
+        const hasCustomMobileWidths = columns.some(col => col.width?.mobile && col.width.mobile !== 100);
         
         return (
           <div key={block.id} className={`flex ${hasCustomMobileWidths ? 'flex-row' : reverseClass} gap-4 w-full ${alignItems} ${visibilityClass} ${hasCustomMobileWidths ? '' : 'md:grid md:' + gridCols}`}>
             {columns.map((column) => {
               // Apply custom mobile width if specified using inline style
-              const columnStyle = column.mobileWidth ? { width: column.mobileWidth } : {};
+              const mobileWidth = column.width?.mobile;
+              const columnStyle = mobileWidth && mobileWidth !== 100 ? { width: `${mobileWidth}%` } : {};
               const responsiveWidthClass = hasCustomMobileWidths ? 'md:w-auto md:flex-1' : 'w-full';
               
               return (
