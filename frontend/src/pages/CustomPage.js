@@ -133,9 +133,9 @@ const CustomPage = () => {
       <div className="bg-background">
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-12">
+        <main>
           {page?.blocks && page.blocks.length > 0 ? (
-            <div className="max-w-4xl mx-auto space-y-8">
+            <div className="space-y-0">
               {page.blocks
                 .sort((a, b) => a.order - b.order)
                 .map((block) => {
