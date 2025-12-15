@@ -422,7 +422,7 @@ Current user request: {user_prompt}"""
             
             data = json.loads(response)
             
-            if data.get("delegate") == True and data.get("child_agent_id"):
+            if data.get("delegate") is True and data.get("child_agent_id"):
                 return {
                     "child_agent_id": data["child_agent_id"],
                     "action_type": data.get("action_type", "unknown"),
