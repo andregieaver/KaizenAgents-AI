@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import * as Icons from 'lucide-react';
 import PricingWidget from './PricingWidget';
+import axios from 'axios';
 
-const { ArrowRight, ExternalLink, Download, Play, Send } = Icons;
+const { ArrowRight, ExternalLink, Download, Play, Send, Search, Bot } = Icons;
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Generate responsive visibility classes
 const getVisibilityClasses = (visibility) => {
