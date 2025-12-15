@@ -60,9 +60,8 @@ const Marketplace = () => {
   const fetchAgents = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/marketplace/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const response = await axios.get(`${API}/marketplace/`, { headers });
       setAgents(response.data);
     } catch (error) {
       console.error('Error fetching agents:', error);
