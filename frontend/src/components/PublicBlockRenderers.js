@@ -496,3 +496,248 @@ export const renderTextBlock = (block) => {
     </div>
   );
 };
+
+
+// Agent Grid Block Renderer
+export const renderAgentGridBlock = (block) => {
+  const [agents, setAgents] = useState([]);
+  const [filteredAgents, setFilteredAgents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const content = block.content || {
+    title: 'Explore Our AI Agents',
+    subtitle: 'Choose from our collection of specialized AI agents',
+    showSearch: true,
+    showCategories: true,
+    columns: 3
+  };
+
+  const visibilityClass = getVisibilityClasses(block.visibility);
+
+  useEffect(() => {
+    const fetchAgents = async () => {
+      try {
+        const response = await axios.get(`${API}/marketplace/`);
+        setAgents(response.data);
+        setFilteredAgents(response.data);
+      } catch (error) {
+        console.error('Error fetching agents:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAgents();
+  }, []);
+
+  useEffect(() => {
+    let filtered = agents;
+
+    if (selectedCategory !== 'all') {
+      filtered = filtered.filter(agent => agent.category === selectedCategory);
+    }
+
+    if (searchQuery) {
+      filtered = filtered.filter(agent =>
+        agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        agent.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    setFilteredAgents(filtered);
+  }, [searchQuery, selectedCategory, agents]);
+
+  const categories = [
+    { id: 'all', name: 'All Agents' },
+    { id: 'ecommerce', name: 'E-commerce' },
+    { id: 'technical', name: 'Technical Support' },
+    { id: 'sales', name: 'Sales' },
+    { id: 'healthcare', name: 'Healthcare' },
+    { id: 'hospitality', name: 'Hospitality' },
+    { id: 'education', name: 'Education' },
+    { id: 'customer_service', name: 'Customer Service' },
+    { id: 'other', name: 'Other' }
+  ];
+
+  const gridColsClass = {
+    2: 'grid-cols-1 md:grid-cols-2',
+    3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+    4: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'
+  }[content.columns] || 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3';
+
+  return (
+    <section key={block.id} className={`py-16 ${visibilityClass}`}>
+      <div className="container mx-auto px-4">
+        {/* Header */}
+        <div className="text-center mb-12">
+          {content.title && (
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              {content.title}
+            </h2>
+          )}
+          {content.subtitle && (
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              {content.subtitle}
+            </p>
+          )}
+        </div>
+
+        {/* Search & Filters */}
+        {(content.showSearch || content.showCategories) && (
+          <div className="mb-8 space-y-4">
+            {content.showSearch && (
+              <div className="relative max-w-md mx-auto">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search agents..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            )}
+
+            {content.showCategories && (
+              <div className="flex flex-wrap justify-center gap-2">
+                {categories.map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      selectedCategory === cat.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary hover:bg-secondary/80'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Agent Grid */}
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent"></div>
+            <p className="mt-4 text-muted-foreground">Loading agents...</p>
+          </div>
+        ) : filteredAgents.length === 0 ? (
+          <div className="text-center py-12">
+            <Bot className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">No agents found matching your criteria.</p>
+          </div>
+        ) : (
+          <div className={`grid ${gridColsClass} gap-6`}>
+            {filteredAgents.map(agent => (
+              <div
+                key={agent.id}
+                className="border rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer bg-card"
+                onClick={() => {
+                  setSelectedAgent(agent);
+                  setShowModal(true);
+                }}
+              >
+                <div className="text-4xl mb-4">{agent.icon || '🤖'}</div>
+                <h3 className="text-xl font-bold mb-2">{agent.name}</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {agent.description}
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs px-2 py-1 rounded-full bg-secondary">
+                    {categories.find(c => c.id === agent.category)?.name || agent.category}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Used by {agent.usage_count || 0} teams
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Agent Detail Modal */}
+        {showModal && selectedAgent && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowModal(false)}
+          >
+            <div
+              className="bg-card rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <div className="text-4xl mb-2">{selectedAgent.icon || '🤖'}</div>
+                  <h3 className="text-2xl font-bold">{selectedAgent.name}</h3>
+                </div>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <p className="text-muted-foreground mb-6">{selectedAgent.description}</p>
+
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">AI Model</h4>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedAgent.config?.ai_model || 'Not specified'}
+                  </p>
+                </div>
+
+                {selectedAgent.config?.ai_persona && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Agent Persona</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedAgent.config.ai_persona}
+                    </p>
+                  </div>
+                )}
+
+                {selectedAgent.config?.welcome_message && (
+                  <div>
+                    <h4 className="font-semibold mb-2">Welcome Message</h4>
+                    <p className="text-sm text-muted-foreground italic">
+                      "{selectedAgent.config.welcome_message}"
+                    </p>
+                  </div>
+                )}
+
+                <div>
+                  <h4 className="font-semibold mb-2">Category</h4>
+                  <span className="text-sm px-2 py-1 rounded-full bg-secondary">
+                    {categories.find(c => c.id === selectedAgent.category)?.name || selectedAgent.category}
+                  </span>
+                </div>
+
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <span>Used by {selectedAgent.usage_count || 0} teams</span>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <Button variant="outline" onClick={() => setShowModal(false)}>
+                  Close
+                </Button>
+                <Button onClick={() => window.location.href = '/dashboard/marketplace'}>
+                  Sign Up to Use This Agent
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+};
+
