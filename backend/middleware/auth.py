@@ -62,7 +62,7 @@ async def get_current_user(
         )
     return user
 
-SUPER_ADMIN_EMAIL = "andre@humanweb.no"
+SUPER_ADMIN_EMAIL = os.environ.get("SUPER_ADMIN_EMAIL", "andre@humanweb.no")
 
 def is_super_admin(user: dict) -> bool:
     """Check if user is a super admin"""
