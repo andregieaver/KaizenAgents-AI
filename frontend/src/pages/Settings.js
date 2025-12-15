@@ -439,6 +439,11 @@ const Settings = () => {
           <AgentConfiguration />
         </TabsContent>
 
+        {/* Orchestration Settings */}
+        <TabsContent value="orchestration">
+          <OrchestrationSettings />
+        </TabsContent>
+
         {/* Widget Settings */}
         <TabsContent value="widget">
           <Card className="border border-border">
