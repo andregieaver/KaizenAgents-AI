@@ -47,7 +47,8 @@ import {
   Moon,
   UserCircle,
   Menu as MenuIcon,
-  X
+  X,
+  Bot
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
