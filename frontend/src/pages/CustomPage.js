@@ -142,11 +142,12 @@ const CustomPage = () => {
                   switch (block.type) {
                     case 'text':
                       return (
-                        <article
-                          key={block.id}
-                          className="prose prose-slate dark:prose-invert max-w-none"
-                          dangerouslySetInnerHTML={{ __html: block.content?.html || '' }}
-                        />
+                        <div key={block.id} className="container mx-auto px-4 py-8">
+                          <article
+                            className="prose prose-slate dark:prose-invert max-w-4xl mx-auto"
+                            dangerouslySetInnerHTML={{ __html: block.content?.html || '' }}
+                          />
+                        </div>
                       );
                     
                     case 'image':
