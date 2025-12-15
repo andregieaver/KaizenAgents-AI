@@ -612,3 +612,4 @@ export const AgentGridBlockEditor = ({ block, updateBlock }) => {
     </div>
   );
 };
+};
