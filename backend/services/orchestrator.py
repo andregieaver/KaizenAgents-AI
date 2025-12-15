@@ -373,12 +373,28 @@ Current user request: {user_prompt}"""
             messages = [{"role": "system", "content": system_prompt}]
             messages.extend(message_history)
             
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=self.mother_agent.get("temperature", 0.7),
-                max_tokens=self.mother_agent.get("max_tokens", 2000)
-            )
+            # Handle different OpenAI model parameter requirements
+            # o-series models (o1, o3, etc.) and gpt-5.x use max_completion_tokens
+            # Older models (gpt-4, gpt-4o) use max_tokens
+            max_tokens_value = self.mother_agent.get("max_tokens", 2000)
+            
+            # Check if model requires max_completion_tokens (newer models)
+            uses_new_param = any(prefix in model.lower() for prefix in ['o1', 'o3', 'o4', 'gpt-5'])
+            
+            if uses_new_param:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=self.mother_agent.get("temperature", 0.7),
+                    max_completion_tokens=max_tokens_value
+                )
+            else:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=self.mother_agent.get("temperature", 0.7),
+                    max_tokens=max_tokens_value
+                )
             
             return response.choices[0].message.content
         
