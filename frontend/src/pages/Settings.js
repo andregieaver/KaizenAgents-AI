@@ -12,6 +12,7 @@ import { Separator } from '../components/ui/separator';
 import { Switch } from '../components/ui/switch';
 import AgentConfiguration from '../components/AgentConfiguration';
 import SavedAgents from '../components/SavedAgents';
+import OrchestrationSettings from '../components/OrchestrationSettings';
 import {
   Settings as SettingsIcon,
   Palette,
@@ -26,7 +27,8 @@ import {
   Image as ImageIcon,
   X,
   Loader2,
-  Sparkles
+  Sparkles,
+  Network
 } from 'lucide-react';
 import { toast } from 'sonner';
 
