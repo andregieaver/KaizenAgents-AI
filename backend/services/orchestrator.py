@@ -432,9 +432,11 @@ Current user request: {user_prompt}"""
         original_prompt: str,
         child_result: Any
     ) -> str:
-        """Generate a human-friendly response from the child agent's result"""
-        from dotenv import load_dotenv
-        load_dotenv()
+        """Generate a human-friendly response from the child agent's result
+        
+        Uses the provider's API key from Admin Providers - never the Emergent key
+        """
+        import openai
         
         result_json = json.dumps(child_result, indent=2, default=str)
         
@@ -447,39 +449,44 @@ Retrieved data:
 
 Provide a natural, helpful response that addresses the user's request using this data."""
         
-        try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage
-            
-            api_key = os.environ.get("EMERGENT_LLM_KEY") or provider.get("api_key")
-            
-            chat = LlmChat(
-                api_key=api_key,
-                session_id=f"orchestrator_synthesis_{self.tenant_id}",
-                system_message="You are a helpful assistant that synthesizes information into clear responses."
-            )
-            
-            model = self.mother_agent.get("model", "gpt-5.2")
-            provider_type = provider.get("type", "openai")
-            chat.with_model(provider_type, model)
-            
-            user_message = UserMessage(text=synthesis_prompt)
-            response = await chat.send_message(user_message)
-            
-            return response
-            
-        except ImportError:
-            import openai
-            
-            client = openai.OpenAI(api_key=provider.get("api_key"))
+        # IMPORTANT: Always use the API key from the Admin Provider
+        api_key = provider.get("api_key")
+        if not api_key:
+            raise ValueError("Provider does not have an API key configured")
+        
+        provider_type = provider.get("type", "openai")
+        model = self.mother_agent.get("model", "gpt-4o")
+        
+        if provider_type == "openai":
+            client = openai.OpenAI(api_key=api_key)
             
             response = client.chat.completions.create(
-                model=self.mother_agent.get("model", "gpt-4o"),
-                messages=[{"role": "user", "content": synthesis_prompt}],
+                model=model,
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant that synthesizes information into clear responses."},
+                    {"role": "user", "content": synthesis_prompt}
+                ],
                 temperature=0.7,
                 max_tokens=2000
             )
             
             return response.choices[0].message.content
+        
+        elif provider_type == "anthropic":
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            
+            response = client.messages.create(
+                model=model,
+                max_tokens=2000,
+                system="You are a helpful assistant that synthesizes information into clear responses.",
+                messages=[{"role": "user", "content": synthesis_prompt}]
+            )
+            
+            return response.content[0].text
+        
+        else:
+            raise ValueError(f"Unsupported provider type: {provider_type}")
 
 
 async def get_orchestrator(tenant_id: str) -> Optional[OrchestratorService]:
