@@ -141,17 +141,20 @@ const Marketplace = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold flex items-center gap-3">
-          <Store className="h-8 w-8" />
-          Agent Marketplace
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Discover and use pre-configured AI agents for different use cases
-        </p>
-      </div>
+    <>
+      <GlobalHeader />
+      
+      <div className="p-6 space-y-6">
+        {/* Header */}
+        <div className="container mx-auto">
+          <h1 className="text-3xl font-bold flex items-center gap-3">
+            <Store className="h-8 w-8" />
+            Agent Marketplace
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Discover and use pre-configured AI agents for different use cases
+          </p>
+        </div>
 
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
