@@ -139,8 +139,8 @@ const GlobalFooter = () => {
         // Check if reverse mobile is enabled
         const reverseMobileEnabled = block.content?.reverseMobile === true;
         
-        // Check if any column has custom mobile width
-        const hasCustomMobileWidths = columns.some(col => col.mobileWidth);
+        // Check if any column has custom mobile width (stored in column.width.mobile)
+        const hasCustomMobileWidths = columns.some(col => col.width?.mobile && col.width.mobile !== 100);
         
         // Use flex-row for custom widths, otherwise use flex-col
         const reverseClass = hasCustomMobileWidths 
@@ -151,7 +151,8 @@ const GlobalFooter = () => {
           <div key={block.id} className={`flex ${reverseClass} gap-6 ${gridCols} ${alignItems} ${visibilityClass}`}>
             {columns.map((column) => {
               // Apply custom mobile width if specified using inline style
-              const columnStyle = column.mobileWidth ? { width: column.mobileWidth } : {};
+              const mobileWidth = column.width?.mobile;
+              const columnStyle = mobileWidth && mobileWidth !== 100 ? { width: `${mobileWidth}%` } : {};
               const responsiveWidthClass = hasCustomMobileWidths ? 'md:w-auto' : 'w-full';
               
               return (
