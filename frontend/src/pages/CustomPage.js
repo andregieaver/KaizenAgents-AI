@@ -245,6 +245,9 @@ const CustomPage = () => {
                     case 'button':
                       return renderButtonBlock(block);
 
+                    case 'agent_grid':
+                      return renderAgentGridBlock(block);
+
                     case 'pricing_widget':
                       const { renderPricingWidgetBlock } = require('../components/PublicBlockRenderers');
                       return renderPricingWidgetBlock(block);
