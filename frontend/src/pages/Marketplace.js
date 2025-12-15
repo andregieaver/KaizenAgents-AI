@@ -279,19 +279,21 @@ const Marketplace = () => {
                 <Button variant="outline" onClick={() => setDetailModalOpen(false)}>
                   Close
                 </Button>
-                <Button onClick={handleCloneAgent} disabled={cloning}>
-                  {cloning ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Adding...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Use This Agent
-                    </>
-                  )}
-                </Button>
+                {isAuthenticated && (
+                  <Button onClick={handleCloneAgent} disabled={cloning}>
+                    {cloning ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Adding...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Use This Agent
+                      </>
+                    )}
+                  </Button>
+                )}
               </DialogFooter>
             </>
           )}
