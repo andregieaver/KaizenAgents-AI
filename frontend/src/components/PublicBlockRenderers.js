@@ -417,17 +417,34 @@ export const PricingCardsBlock = ({ block }) => {
                   placeholder="Discount code"
                   className="w-full px-3 py-2 text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                   id={`discount-${plan.id}`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const code = e.target.value?.trim();
+                      if (code) {
+                        localStorage.setItem('pendingDiscountCode', code);
+                        localStorage.setItem('pendingPlanId', plan.id);
+                        window.location.href = '/dashboard/pricing';
+                      }
+                    }
+                  }}
                 />
                 <button
                   className="w-full px-3 py-2 text-sm border rounded-md hover:bg-accent transition-colors"
                   onClick={() => {
                     const input = document.getElementById(`discount-${plan.id}`);
-                    const code = input?.value;
+                    const code = input?.value?.trim();
                     if (code) {
                       // Store discount code in localStorage to apply on pricing page
                       localStorage.setItem('pendingDiscountCode', code);
                       localStorage.setItem('pendingPlanId', plan.id);
                       window.location.href = '/dashboard/pricing';
+                    } else {
+                      // Visual feedback for empty input
+                      input?.focus();
+                      input?.classList.add('ring-2', 'ring-red-500');
+                      setTimeout(() => {
+                        input?.classList.remove('ring-2', 'ring-red-500');
+                      }, 2000);
                     }
                   }}
                 >
