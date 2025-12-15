@@ -2370,3 +2370,43 @@ The Orchestrator Agent Architecture backend APIs are **FULLY FUNCTIONAL** and wo
 *Tester: Testing Agent*
 *Environment: Production Preview*
 
+
+---
+
+## Orchestrator Runtime Integration Tests
+
+### Test Scope
+- Orchestration runtime wired into widget message flow
+- Mother agent delegation based on child agent capabilities
+- Audit log creation for orchestration runs
+
+### Test Instructions for Testing Agent
+
+**Test Setup:**
+1. Orchestration is enabled for the tenant (andre@humanweb.no)
+2. Mother agent: "Aida" (cb4928cf-907c-4ee5-8f3e-13b94334d36f) using gpt-5.1
+3. Child agent: "Restaurant & Hospitality Agent" (54dee30e-3c3f-496d-8a79-79747ef6dc1c) with tags: restaurant, reservations, hospitality
+
+**Test the Widget Chat Flow:**
+1. Create a widget session for tenant
+2. Send a message that should trigger orchestration
+3. Check if orchestration runs are logged
+
+**API Flow:**
+1. POST /api/widget/session - Create session
+   - Body: `{"tenant_id": "<tenant_id>"}`
+   - Returns: session_token, conversation_id
+
+2. POST /api/widget/messages/{conversation_id}?token={session_token}
+   - Body: `{"content": "I want to make a restaurant reservation"}`
+   - Should trigger orchestration since "restaurant" matches child agent tags
+
+3. GET /api/settings/orchestration/runs - Check audit logs
+   - Should show new orchestration run entries
+
+**Expected Behavior:**
+- The Mother agent analyzes the user message
+- If it matches child agent tags, it delegates to the child
+- Response is generated and returned to the user
+- Orchestration run is logged in the audit collection
+
