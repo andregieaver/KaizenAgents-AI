@@ -117,6 +117,8 @@ const HomePage = () => {
                 return renderButtonBlock(block);
               case 'pricing_cards':
                 return renderPricingCardsBlock(block);
+              case 'agent_grid':
+                return renderAgentGridBlock(block);
               case 'image':
                 return renderImageBlock(block);
               default:
