@@ -353,56 +353,48 @@ Current user request: {user_prompt}"""
         system_prompt: str,
         message_history: List[Dict[str, str]]
     ) -> str:
-        """Call the Mother agent's LLM"""
-        from dotenv import load_dotenv
-        load_dotenv()
+        """Call the Mother agent's LLM using the provider's API key from Admin Providers"""
+        import openai
         
-        # Use emergent integrations for LLM calls
-        try:
-            from emergentintegrations.llm.chat import LlmChat, UserMessage
-            
-            # Get API key - prefer EMERGENT_LLM_KEY for orchestration
-            api_key = os.environ.get("EMERGENT_LLM_KEY") or provider.get("api_key")
-            
-            # Create chat instance
-            chat = LlmChat(
-                api_key=api_key,
-                session_id=f"orchestrator_{self.tenant_id}",
-                system_message=system_prompt
-            )
-            
-            # Configure model based on Mother agent's settings
-            model = self.mother_agent.get("model", "gpt-5.2")
-            provider_type = provider.get("type", "openai")
-            
-            chat.with_model(provider_type, model)
-            
-            # Create user message
-            user_message = UserMessage(text="Please analyze and respond to the user's request.")
-            
-            # Send message
-            response = await chat.send_message(user_message)
-            
-            return response
-            
-        except ImportError:
-            # Fallback to direct OpenAI call if emergent integrations not available
-            logger.warning("emergentintegrations not available, using direct OpenAI")
-            import openai
-            
-            client = openai.OpenAI(api_key=provider.get("api_key"))
+        # IMPORTANT: Always use the API key from the Admin Provider configured for the Mother agent
+        # Never use EMERGENT_LLM_KEY - always use the provider's own key
+        api_key = provider.get("api_key")
+        if not api_key:
+            raise ValueError("Mother agent's provider does not have an API key configured")
+        
+        provider_type = provider.get("type", "openai")
+        model = self.mother_agent.get("model", "gpt-4o")
+        
+        if provider_type == "openai":
+            client = openai.OpenAI(api_key=api_key)
             
             messages = [{"role": "system", "content": system_prompt}]
             messages.extend(message_history)
             
             response = client.chat.completions.create(
-                model=self.mother_agent.get("model", "gpt-4o"),
+                model=model,
                 messages=messages,
                 temperature=self.mother_agent.get("temperature", 0.7),
                 max_tokens=self.mother_agent.get("max_tokens", 2000)
             )
             
             return response.choices[0].message.content
+        
+        elif provider_type == "anthropic":
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            
+            response = client.messages.create(
+                model=model,
+                max_tokens=self.mother_agent.get("max_tokens", 2000),
+                system=system_prompt,
+                messages=message_history if message_history else [{"role": "user", "content": "Please analyze and respond."}]
+            )
+            
+            return response.content[0].text
+        
+        else:
+            raise ValueError(f"Unsupported provider type: {provider_type}")
     
     def _parse_delegation_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Parse Mother's response to check for delegation intent"""
