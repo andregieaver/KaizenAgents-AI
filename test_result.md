@@ -1057,6 +1057,109 @@ The Header Block Components System is **PARTIALLY FUNCTIONAL** with a critical r
 *Environment: Production Preview*
 *Status: CRITICAL ISSUE - REQUIRES IMMEDIATE ATTENTION*
 
+## Discount Code Functionality Backend API Tests
+
+### Test Scope
+- Test the Discount Code functionality end-to-end as requested in review
+- Backend API Tests for all discount code endpoints
+- Credentials: andre@humanweb.no / Pernilla66!
+
+### Test Results Summary
+
+#### ✅ ALL TESTS PASSED
+
+**Backend API Tests:**
+
+1. **✅ List existing discount codes (GET /api/discounts):**
+   - Successfully retrieved 5 discount codes
+   - TEST25 code found: "25% Off Test Code" - percentage - 25.0%
+   - Other codes: TEST50, FREETRIAL30, SAVE10, SUMMER20
+   - All codes properly formatted with correct data structure
+
+2. **✅ Apply valid discount code (POST /api/discounts/apply):**
+   - TEST25 code applied successfully to monthly plan
+   - Plan ID: 2fa0c312-981c-4fa9-8e9f-4bbd6593764c
+   - Billing cycle: monthly
+   - Response: valid=true with "25.0% discount applied!"
+   - Original Price: $29.0, Discounted Price: $21.75
+   - Discount calculation verified: 25% off $29.0 = $21.75 ✅
+
+3. **✅ Apply invalid discount code (POST /api/discounts/apply):**
+   - INVALID123 code properly rejected
+   - Plan ID: 2fa0c312-981c-4fa9-8e9f-4bbd6593764c
+   - Billing cycle: monthly
+   - Response: valid=false with "Invalid discount code"
+   - Error handling working correctly ✅
+
+4. **✅ Test yearly billing cycle (POST /api/discounts/apply):**
+   - TEST25 code applied successfully to yearly plan
+   - Plan ID: 2fa0c312-981c-4fa9-8e9f-4bbd6593764c
+   - Billing cycle: yearly
+   - Response: valid=true with "25.0% discount applied!"
+   - Original Price (Yearly): $278.4, Discounted Price (Yearly): $208.8
+   - Yearly discount calculation verified: 25% off $278.4 = $208.8 ✅
+
+5. **✅ Verify discount code incrementing (POST /api/discounts/use/{code}):**
+   - Initial usage count for TEST25: 0
+   - Usage increment endpoint called successfully
+   - Response: "Discount code usage recorded"
+   - Final usage count for TEST25: 1
+   - Usage count incremented correctly: 0 → 1 ✅
+
+### Technical Implementation Verification
+
+**Backend API Endpoints Tested:**
+- ✅ GET /api/discounts - List all discount codes (Super Admin only)
+- ✅ POST /api/discounts/apply - Apply discount code to plan (Authenticated users)
+- ✅ POST /api/discounts/use/{code} - Increment usage count (Authenticated users)
+
+**Authentication & Authorization:**
+- ✅ Super Admin authentication working correctly
+- ✅ JWT token validation functional
+- ✅ Proper access control for admin endpoints
+
+**Data Validation & Processing:**
+- ✅ Discount calculations accurate for percentage discounts
+- ✅ Monthly vs yearly billing cycle handling
+- ✅ Invalid code rejection with appropriate error messages
+- ✅ Usage tracking and incrementing functional
+- ✅ Response structure consistent and complete
+
+### Test Environment Details
+- **Backend URL:** https://mothership-ai.preview.emergentagent.com/api
+- **Authentication:** Working correctly with super admin credentials
+- **Test Framework:** Custom Python test suite (discount_test.py)
+- **Test Execution:** All 8 tests passed (100% success rate)
+
+### Conclusion
+The Discount Code functionality is **FULLY FUNCTIONAL** at the backend API level. All requested test scenarios passed successfully:
+
+**Status: BACKEND APIs READY FOR PRODUCTION** ✅
+
+### Key Features Verified
+- ✅ **Discount Code Listing:** GET endpoint returns all codes including TEST25
+- ✅ **Valid Code Application:** Proper discount calculation and response structure
+- ✅ **Invalid Code Handling:** Appropriate error responses for invalid codes
+- ✅ **Billing Cycle Support:** Both monthly and yearly pricing correctly handled
+- ✅ **Usage Tracking:** Discount code usage incrementing works correctly
+- ✅ **Authentication:** Super admin access control properly enforced
+- ✅ **Data Integrity:** All calculations and data persistence verified
+
+### Test Results
+```
+📊 Test Summary:
+   Tests Run: 8
+   Tests Passed: 8
+   Success Rate: 100.0%
+🎉 All discount code tests passed!
+```
+
+---
+*Discount Code Backend API Tests completed on: December 15, 2025*
+*Tester: Testing Agent*
+*Environment: Production Preview*
+*Status: ALL TESTS PASSED - BACKEND READY*
+
 ## Pages Management Feature Tests
 
 ### Test Scope
