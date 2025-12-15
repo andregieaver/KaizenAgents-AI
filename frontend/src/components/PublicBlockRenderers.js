@@ -743,8 +743,6 @@ const AgentGridBlockComponent = ({ block }) => {
 export const renderAgentGridBlock = (block) => {
   return <AgentGridBlockComponent key={block.id} block={block} />;
 };
-
-    </section>
   );
 };
 
