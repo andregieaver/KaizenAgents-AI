@@ -478,15 +478,29 @@ Provide a natural, helpful response that addresses the user's request using this
         if provider_type == "openai":
             client = openai.OpenAI(api_key=api_key)
             
-            response = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant that synthesizes information into clear responses."},
-                    {"role": "user", "content": synthesis_prompt}
-                ],
-                temperature=0.7,
-                max_tokens=2000
-            )
+            # Handle different OpenAI model parameter requirements
+            uses_new_param = any(prefix in model.lower() for prefix in ['o1', 'o3', 'o4', 'gpt-5'])
+            
+            if uses_new_param:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant that synthesizes information into clear responses."},
+                        {"role": "user", "content": synthesis_prompt}
+                    ],
+                    temperature=0.7,
+                    max_completion_tokens=2000
+                )
+            else:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant that synthesizes information into clear responses."},
+                        {"role": "user", "content": synthesis_prompt}
+                    ],
+                    temperature=0.7,
+                    max_tokens=2000
+                )
             
             return response.choices[0].message.content
         
