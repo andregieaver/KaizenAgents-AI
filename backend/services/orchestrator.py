@@ -3,12 +3,14 @@
 This service implements the System 1/System 2 architecture where:
 - Mother Agent (System 2): An LLM-based orchestrator that reasons about tasks
 - Child Agents (System 1): Deterministic agents that execute specific functions
+
+IMPORTANT: This service uses the API key from Admin Providers (stored in db.providers)
+for all LLM calls. It does NOT use the Emergent LLM key.
 """
 import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Optional, List, Dict, Any
-import os
 import json
 
 from middleware.database import db
