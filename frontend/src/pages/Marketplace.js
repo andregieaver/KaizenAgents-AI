@@ -305,6 +305,9 @@ const Marketplace = () => {
         </DialogContent>
       </Dialog>
     </div>
+    
+    <GlobalFooter />
+    </>
   );
 };
 
