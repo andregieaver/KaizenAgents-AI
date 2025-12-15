@@ -207,8 +207,8 @@ async def send_widget_message(conversation_id: str, token: str, message_data: Wi
         ).sort("created_at", -1).to_list(20)
         recent_messages.reverse()
         
-        # Generate AI response
-        ai_response = await generate_ai_response(recent_messages, settings or {})
+        # Generate AI response (with conversation_id for orchestration support)
+        ai_response = await generate_ai_response(recent_messages, settings or {}, conversation_id)
         
         # Save AI message
         ai_now = datetime.now(timezone.utc).isoformat()
