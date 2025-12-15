@@ -218,6 +218,7 @@ async def send_widget_message(conversation_id: str, token: str, message_data: Wi
         recent_messages.reverse()
         
         # Generate AI response (with conversation_id for orchestration support)
+        from server import generate_ai_response
         ai_response = await generate_ai_response(recent_messages, settings or {}, conversation_id)
         
         # Save AI message
