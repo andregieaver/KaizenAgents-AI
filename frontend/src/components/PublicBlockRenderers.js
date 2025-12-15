@@ -737,8 +737,7 @@ const AgentGridBlockComponent = ({ block }) => {
           </div>
         )}
       </div>
-
-
+    </section>
   );
 };
 
