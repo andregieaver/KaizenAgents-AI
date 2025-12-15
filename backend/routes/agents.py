@@ -27,10 +27,16 @@ class UserAgentResponse(BaseModel):
     is_active: bool
     created_at: str
     updated_at: str
+    # Orchestration fields
+    orchestration_enabled: bool = False
+    tags: List[str] = []
 
 class UserAgentUpdate(BaseModel):
     name: Optional[str] = None
     config: Optional[Dict[str, Any]] = None
+    # Orchestration fields
+    orchestration_enabled: Optional[bool] = None
+    tags: Optional[List[str]] = None
 
 class WooCommerceConfig(BaseModel):
     store_url: str
