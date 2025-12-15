@@ -36,6 +36,26 @@ const Pricing = () => {
   useEffect(() => {
     fetchData();
     fetchPlatformInfo();
+    
+    // Check for pending discount code from public pricing page
+    const pendingCode = localStorage.getItem('pendingDiscountCode');
+    const pendingPlanId = localStorage.getItem('pendingPlanId');
+    
+    if (pendingCode) {
+      setDiscountCode(pendingCode);
+      // Clear localStorage after reading
+      localStorage.removeItem('pendingDiscountCode');
+      localStorage.removeItem('pendingPlanId');
+      
+      // Auto-apply discount if authenticated and plan ID is available
+      if (token && pendingPlanId) {
+        setDiscountPlanId(pendingPlanId);
+        // Delay to ensure plans are loaded
+        setTimeout(() => {
+          handleApplyDiscountFromStorage(pendingCode, pendingPlanId);
+        }, 1000);
+      }
+    }
   }, [token]);
 
   const fetchPlatformInfo = async () => {
