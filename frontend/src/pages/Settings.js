@@ -215,7 +215,7 @@ const Settings = () => {
       </div>
 
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:w-auto lg:inline-flex">
           <TabsTrigger value="general" className="gap-2" data-testid="tab-general">
             <SettingsIcon className="h-4 w-4 hidden sm:block" />
             General
@@ -227,6 +227,10 @@ const Settings = () => {
           <TabsTrigger value="agent-config" className="gap-2" data-testid="tab-agent-config">
             <Sparkles className="h-4 w-4 hidden sm:block" />
             Active Agent
+          </TabsTrigger>
+          <TabsTrigger value="orchestration" className="gap-2" data-testid="tab-orchestration">
+            <Network className="h-4 w-4 hidden sm:block" />
+            Orchestration
           </TabsTrigger>
           <TabsTrigger value="widget" className="gap-2" data-testid="tab-widget">
             <Palette className="h-4 w-4 hidden sm:block" />
