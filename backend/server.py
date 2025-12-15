@@ -3847,6 +3847,9 @@ api_router.include_router(menus_router_mod)
 # Include the admin router with providers and agents endpoints
 api_router.include_router(admin_router)
 
+# Include the settings_router with agent-config and orchestration endpoints
+api_router.include_router(settings_router)
+
 app.include_router(api_router)
 
 # Mount uploads directory for serving avatar images
