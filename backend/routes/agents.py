@@ -117,6 +117,10 @@ async def create_user_agent(
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
     
+    # Check quota limit for max agents
+    from services.quota_service import check_quota_limit
+    await check_quota_limit(tenant_id, "max_agents", increment=1)
+    
     # Get tenant's active provider to determine model
     settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
     if not settings:
