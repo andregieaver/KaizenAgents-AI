@@ -135,12 +135,9 @@ async def get_feature_gate_config(current_user: dict = Depends(get_super_admin_u
 @router.put("/config")
 async def update_feature_gate_config(
     update: FeatureGateUpdate,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_super_admin_user)
 ):
     """Update feature gate configuration (admin only)"""
-    # Check if user is admin
-    if not current_user.get("is_super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required")
     
     now = datetime.now(timezone.utc).isoformat()
     
