@@ -180,8 +180,8 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl w-[95vw] max-h-[95vh] h-auto overflow-hidden flex flex-col p-4 sm:p-6">
-        <DialogHeader className="flex-shrink-0">
+      <DialogContent className="max-w-5xl w-[95vw] max-h-[95vh] overflow-hidden flex flex-col p-4 sm:p-6 gap-0">
+        <DialogHeader className="flex-shrink-0 pb-4">
           <DialogTitle className="text-xl sm:text-2xl font-heading">Upgrade Your Plan</DialogTitle>
           <DialogDescription className="text-sm">
             {feature ? (
@@ -195,24 +195,25 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="plans" className="mt-4 flex-1 flex flex-col overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
-            <TabsTrigger value="plans" className="text-xs sm:text-sm">
-              <Crown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Upgrade Plan</span>
-              <span className="sm:hidden">Upgrade</span>
-            </TabsTrigger>
-            <TabsTrigger value="seats" disabled={isFreePlan} className="text-xs sm:text-sm">
-              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Add Seats</span>
-              <span className="sm:hidden">Seats</span>
-              {isFreePlan && <span className="hidden sm:inline ml-1">(Paid Plans Only)</span>}
-            </TabsTrigger>
-          </TabsList>
+        <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+          <Tabs defaultValue="plans" className="flex flex-col h-full">
+            <TabsList className="grid w-full grid-cols-2 flex-shrink-0 mb-4">
+              <TabsTrigger value="plans" className="text-xs sm:text-sm">
+                <Crown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Upgrade Plan</span>
+                <span className="sm:hidden">Upgrade</span>
+              </TabsTrigger>
+              <TabsTrigger value="seats" disabled={isFreePlan} className="text-xs sm:text-sm">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Add Seats</span>
+                <span className="sm:hidden">Seats</span>
+                {isFreePlan && <span className="hidden sm:inline ml-1">(Paid Plans Only)</span>}
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Plans Tab */}
-          <TabsContent value="plans" className="space-y-4 mt-4 overflow-y-auto flex-1">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 pb-4">
+            {/* Plans Tab */}
+            <TabsContent value="plans" className="flex-1 overflow-y-auto mt-0" style={{maxHeight: 'calc(95vh - 200px)'}}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 pb-4">
               {plans.map((plan) => {
                 const isCurrent = plan.name.toLowerCase() === currentPlan?.name?.toLowerCase();
                 const price = getPlanPrice(plan.name);
