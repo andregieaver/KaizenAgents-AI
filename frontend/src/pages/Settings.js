@@ -39,6 +39,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 const Settings = () => {
   const { token, user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [settings, setSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -47,6 +48,10 @@ const Settings = () => {
   const [apiKey, setApiKey] = useState('');
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoInputRef = useRef(null);
+  
+  // Get initial tab from URL query param
+  const initialTab = searchParams.get('tab') || 'general';
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   useEffect(() => {
     const fetchSettings = async () => {
