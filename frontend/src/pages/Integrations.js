@@ -33,6 +33,9 @@ const Integrations = () => {
   const [saving, setSaving] = useState(false);
   const [showTestKeys, setShowTestKeys] = useState(false);
   const [showLiveKeys, setShowLiveKeys] = useState(false);
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [syncingToStripe, setSyncingToStripe] = useState(false);
+  const [syncingFromStripe, setSyncingFromStripe] = useState(false);
   
   // Stripe settings
   const [stripeSettings, setStripeSettings] = useState({
