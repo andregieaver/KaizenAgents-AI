@@ -251,6 +251,10 @@ const Settings = () => {
               <Code className="h-4 w-4" />
               <span className="hidden sm:inline">Embed</span>
             </TabsTrigger>
+            <TabsTrigger value="usage" className="gap-2 px-3" data-testid="tab-usage">
+              <TrendingUp className="h-4 w-4" />
+              <span className="hidden sm:inline">Usage</span>
+            </TabsTrigger>
           </TabsList>
           <ScrollBar orientation="horizontal" className="invisible" />
         </ScrollArea>
@@ -258,6 +262,11 @@ const Settings = () => {
         {/* Saved Agents Tab */}
         <TabsContent value="agents">
           <SavedAgents />
+        </TabsContent>
+
+        {/* Usage & Quotas Tab */}
+        <TabsContent value="usage">
+          <QuotaUsageDashboard />
         </TabsContent>
 
         {/* General Settings */}
