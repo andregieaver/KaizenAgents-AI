@@ -99,7 +99,7 @@ const SavedAgents = () => {
   return (
     <Card className="border border-border">
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <CardTitle className="font-heading">My Saved Agents</CardTitle>
             <CardDescription>
@@ -109,7 +109,8 @@ const SavedAgents = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => navigate('/dashboard/marketplace')}
+            onClick={() => navigate('/marketplace')}
+            className="w-full sm:w-auto"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             Browse Marketplace
