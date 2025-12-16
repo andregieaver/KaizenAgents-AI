@@ -29,7 +29,7 @@ class FeatureGateConfig(BaseModel):
     """Complete feature gate configuration"""
     model_config = ConfigDict(extra="ignore")
     id: str
-    routes: List[FeatureGateRoute]
+    features: List[FeatureQuota]              # Changed from routes to features
     plans: List[str]                          # Available plan names
     created_at: str
     updated_at: str
@@ -37,7 +37,7 @@ class FeatureGateConfig(BaseModel):
 
 class FeatureGateUpdate(BaseModel):
     """Update request for feature gate configuration"""
-    routes: List[FeatureGateRoute]
+    features: List[FeatureQuota]              # Changed from routes to features
 
 
 class UsageRecord(BaseModel):
