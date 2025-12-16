@@ -211,8 +211,8 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
           </TabsList>
 
           {/* Plans Tab */}
-          <TabsContent value="plans" className="space-y-4 mt-6">
-            <div className="grid md:grid-cols-3 gap-4">
+          <TabsContent value="plans" className="space-y-4 mt-4 overflow-y-auto flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 pb-4">
               {plans.map((plan) => {
                 const isCurrent = plan.name.toLowerCase() === currentPlan?.name?.toLowerCase();
                 const price = getPlanPrice(plan.name);
