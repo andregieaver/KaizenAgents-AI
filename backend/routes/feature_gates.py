@@ -13,7 +13,7 @@ from models.feature_gate import (
     RouteLimit,
     SubscriptionPlan
 )
-from middleware import get_current_user
+from middleware import get_current_user, get_super_admin_user
 from middleware.database import db
 
 router = APIRouter(prefix="/feature-gates", tags=["feature-gates"])
