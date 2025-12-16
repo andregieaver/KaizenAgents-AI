@@ -106,6 +106,69 @@ async def get_user_agent(
     
     return agent
 
+@router.post("/", response_model=UserAgentResponse)
+async def create_user_agent(
+    agent_data: UserAgentCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new custom user agent"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get tenant's active provider to determine model
+    settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    if not settings:
+        raise HTTPException(status_code=404, detail="Tenant settings not found")
+    
+    # Get provider details
+    active_provider_id = settings.get("active_provider_id")
+    if not active_provider_id:
+        raise HTTPException(status_code=400, detail="No active provider configured. Please configure a provider in Admin settings first.")
+    
+    provider = await db.providers.find_one({"id": active_provider_id}, {"_id": 0})
+    if not provider:
+        raise HTTPException(status_code=404, detail="Provider not found")
+    
+    # Use provided model or default from provider
+    model = agent_data.model or provider.get("default_model", "gpt-4")
+    
+    # Create agent document
+    import uuid
+    agent_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    agent = {
+        "id": agent_id,
+        "tenant_id": tenant_id,
+        "name": agent_data.name,
+        "description": agent_data.description,
+        "category": agent_data.category,
+        "icon": agent_data.icon,
+        "profile_image_url": agent_data.profile_image_url,
+        "config": {
+            "provider_id": active_provider_id,
+            "provider_name": provider.get("name", ""),
+            "model": model,
+            "system_prompt": agent_data.system_prompt,
+            "temperature": agent_data.temperature,
+            "max_tokens": agent_data.max_tokens
+        },
+        "is_active": False,
+        "is_public": False,
+        "created_at": now,
+        "updated_at": now,
+        "activated_at": None,
+        "published_at": None,
+        "orchestration_enabled": False,
+        "tags": []
+    }
+    
+    await db.user_agents.insert_one(agent)
+    
+    logger.info(f"Created new agent {agent_id} for tenant {tenant_id}")
+    return agent
+
 @router.patch("/{agent_id}", response_model=UserAgentResponse)
 async def update_user_agent(
     agent_id: str,
