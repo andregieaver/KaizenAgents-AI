@@ -197,13 +197,22 @@ async def update_feature_gate_config(
 
 @router.get("/plans")
 async def get_available_plans(current_user: dict = Depends(get_current_user)):
-    """Get list of available subscription plans"""
+    """Get list of available subscription plans from database"""
+    # Fetch actual plans from subscription_plans collection
+    plans = await db.subscription_plans.find(
+        {"is_public": True},
+        {"_id": 0, "name": 1, "description": 1}
+    ).sort("sort_order", 1).to_list(100)
+    
+    # Transform to expected format
     return {
         "plans": [
-            {"name": "free", "display_name": "Free", "description": "Basic features with limits"},
-            {"name": "basic", "display_name": "Basic", "description": "More features and higher limits"},
-            {"name": "pro", "display_name": "Pro", "description": "Advanced features and orchestration"},
-            {"name": "enterprise", "display_name": "Enterprise", "description": "Unlimited access to all features"}
+            {
+                "name": plan["name"].lower().replace(" ", "_"),  # "Free" -> "free", "Starter" -> "starter"
+                "display_name": plan["name"],
+                "description": plan.get("description", "")
+            }
+            for plan in plans
         ]
     }
 
