@@ -38,6 +38,7 @@ import GlobalComponents from "./pages/GlobalComponents";
 import ComponentEditor from "./pages/ComponentEditor";
 import MenusList from "./pages/MenusList";
 import MenuEditor from "./pages/MenuEditor";
+import FeatureGatesAdmin from "./pages/FeatureGatesAdmin";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
