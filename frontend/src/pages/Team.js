@@ -947,6 +947,13 @@ const Team = () => {
           Only owners and admins can manage team members and teams.
         </p>
       )}
+
+      {/* Upgrade Modal */}
+      <UpgradePlanModal 
+        open={upgradeModalOpen}
+        onOpenChange={setUpgradeModalOpen}
+        feature="Maximum Company Seats"
+      />
     </div>
   );
 };
