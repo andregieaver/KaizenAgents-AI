@@ -110,11 +110,6 @@ const QuotaUsageDashboard = () => {
 
   const criticalQuotas = usage.quotas?.filter(q => q.percentage >= 80 && q.limit !== null) || [];
 
-  const handleUpgradeClick = (featureName = null) => {
-    setSelectedFeature(featureName);
-    setUpgradeModalOpen(true);
-  };
-
   return (
     <div className="space-y-4">
       {/* Alert for Critical Quotas */}
@@ -126,7 +121,7 @@ const QuotaUsageDashboard = () => {
               <span className="font-medium">
                 {criticalQuotas.length} quota{criticalQuotas.length > 1 ? 's' : ''} near or at limit
               </span>
-              <Button size="sm" variant="outline" onClick={() => handleUpgradeClick()}>
+              <Button size="sm" variant="outline" onClick={() => navigate('/dashboard/pricing')}>
                 <ArrowUpRight className="h-4 w-4 mr-2" />
                 Upgrade Plan
               </Button>
@@ -134,13 +129,6 @@ const QuotaUsageDashboard = () => {
           </AlertDescription>
         </Alert>
       )}
-
-      {/* Upgrade Modal */}
-      <UpgradePlanModal 
-        open={upgradeModalOpen}
-        onOpenChange={setUpgradeModalOpen}
-        feature={selectedFeature}
-      />
 
       <Card>
         <CardHeader>
