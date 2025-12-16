@@ -3648,3 +3648,120 @@ The Agent CRUD functionality is **FULLY FUNCTIONAL** and working as designed. Al
 *Status: ALL TESTS PASSED - READY FOR PRODUCTION*
 
 ---
+
+## Test Report: Quota Usage Dashboard (Phase 4 - Partial)
+**Date:** December 16, 2025  
+**Tester:** E1 Agent  
+**Feature:** User-Facing Quota Usage Dashboard  
+
+### Overview
+Implemented the user-facing Quota Usage Dashboard that displays resource consumption against plan limits in real-time. This is part of Phase 4 of the Feature Gating system.
+
+### Test Results
+
+#### ✅ Backend Implementation
+**Route File:** `/app/backend/routes/quotas.py`
+- ✅ GET `/api/quotas/usage` endpoint implemented and functional
+- ✅ Returns complete usage data with plan information
+- ✅ Calculates usage percentages correctly
+- ✅ Warning levels (warning at 80%, critical at 100%)
+- ✅ Proper authentication via JWT token
+- ✅ Fetches data from database correctly
+
+**Sample API Response:**
+```json
+{
+    "tenant_id": "1c752635-c958-435d-8a48-a1f1209cccd4",
+    "plan_name": "free",
+    "plan_display_name": "Free",
+    "quotas": [
+        {
+            "feature_key": "max_agents",
+            "feature_name": "Maximum Active Agents",
+            "current": 9,
+            "limit": 1,
+            "percentage": 900.0,
+            "warning_level": "critical"
+        },
+        ...
+    ]
+}
+```
+
+#### ✅ Frontend Implementation
+**Component:** `/app/frontend/src/components/QuotaUsageDashboard.js`
+- ✅ Integrated into Settings page as new "Usage" tab
+- ✅ Fetches data from `/api/quotas/usage` endpoint
+- ✅ Displays current plan name (e.g., "Free")
+- ✅ Shows all tracked quotas with visual indicators
+- ✅ Color-coded progress bars:
+  - Green: 0-79% usage (healthy)
+  - Amber: 80-89% usage (warning)
+  - Red: 90%+ usage (critical)
+- ✅ Alert banner for quotas near/at limit
+- ✅ Refresh button to reload data
+- ✅ Icons for each resource type (agents, seats, messages, etc.)
+- ✅ Formatted numbers (e.g., 100K, 1M)
+- ✅ Percentage display with usage ratio
+
+#### ✅ Visual Testing Results
+**Screenshots captured:**
+1. Settings page with new "Usage" tab visible
+2. Quota Dashboard showing critical quotas (agents: 9/1, seats: 5/1)
+3. Alert banner: "2 quotas near or at limit"
+4. All quota types displayed with proper formatting
+
+#### ✅ Integration Testing
+- ✅ Router registered in `server.py`
+- ✅ Backend service restarted successfully
+- ✅ API endpoint accessible and returns correct data
+- ✅ Frontend component renders without errors
+- ✅ No console errors (WebSocket errors unrelated to feature)
+
+### Features Verified
+
+**1. Resource Tracking:**
+- ✅ Maximum Active Agents (quota type)
+- ✅ Maximum Company Seats (quota type)
+- ✅ Monthly Token Usage (usage type)
+- ✅ Monthly Message Limit (usage type)
+- ✅ Maximum CMS Pages (quota type)
+
+**2. Visual Indicators:**
+- ✅ Progress bars with color coding
+- ✅ Status icons (check for healthy, warning for approaching limit)
+- ✅ Warning badges ("At Limit", "Near Limit")
+- ✅ Usage percentages displayed clearly
+
+**3. User Experience:**
+- ✅ Professional card-based layout
+- ✅ Responsive design
+- ✅ Proper loading states
+- ✅ Clear plan information displayed
+- ✅ Refresh functionality
+
+### Status: ✅ PHASE 4 (PARTIAL) - COMPLETE
+
+**What's Working:**
+- ✅ Backend endpoint for quota usage
+- ✅ Frontend dashboard component
+- ✅ Visual progress indicators
+- ✅ Alert system for approaching limits
+- ✅ Integration with Settings page
+
+**Still To Do (Phase 4 Remaining Items):**
+- ⏳ Email alerts for quota limits
+- ⏳ Purchase extra seats functionality (backend exists, UI needs work)
+- ⏳ Soft limits implementation
+- ⏳ Token usage tracking enhancement
+
+### Conclusion
+The Quota Usage Dashboard is **FULLY FUNCTIONAL** and provides users with clear visibility into their resource consumption. The implementation follows best practices with proper separation of concerns, clean UI design, and robust backend integration.
+
+**Next Steps:** Continue with remaining Phase 4 items (email alerts, extra seats UI, etc.)
+
+---
+*Quota Dashboard Test completed on: December 16, 2025*
+*Status: FEATURE COMPLETE AND TESTED*
+
+---
