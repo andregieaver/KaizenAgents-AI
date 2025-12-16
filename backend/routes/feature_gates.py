@@ -46,9 +46,8 @@ DEFAULT_QUOTA_FEATURES = [
         "unit": "seats",
         "plans": {
             "free": {"enabled": True, "limit_value": 1, "limit_type": "quota", "unit": "seats"},
-            "basic": {"enabled": True, "limit_value": 5, "limit_type": "quota", "unit": "seats"},
-            "pro": {"enabled": True, "limit_value": 25, "limit_type": "quota", "unit": "seats"},
-            "enterprise": {"enabled": True, "limit_value": None, "limit_type": "quota", "unit": "seats"}
+            "starter": {"enabled": True, "limit_value": 5, "limit_type": "quota", "unit": "seats"},
+            "professional": {"enabled": True, "limit_value": 25, "limit_type": "quota", "unit": "seats"}
         }
     },
     {
