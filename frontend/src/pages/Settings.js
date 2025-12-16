@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -10,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Separator } from '../components/ui/separator';
 import { Switch } from '../components/ui/switch';
+import { ScrollArea, ScrollBar } from '../components/ui/scroll-area';
 import AgentConfiguration from '../components/AgentConfiguration';
 import SavedAgents from '../components/SavedAgents';
 import OrchestrationSettings from '../components/OrchestrationSettings';
