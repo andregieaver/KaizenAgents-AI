@@ -19,8 +19,8 @@ from middleware.database import db
 router = APIRouter(prefix="/feature-gates", tags=["feature-gates"])
 logger = logging.getLogger(__name__)
 
-# Default plans
-DEFAULT_PLANS = ["free", "basic", "pro", "enterprise"]
+# Default plans - will be populated from subscription_plans collection
+DEFAULT_PLANS = ["free", "starter", "professional"]
 
 # Default company quota features
 DEFAULT_QUOTA_FEATURES = [
