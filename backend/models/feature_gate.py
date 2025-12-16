@@ -41,13 +41,13 @@ class FeatureGateUpdate(BaseModel):
 
 
 class UsageRecord(BaseModel):
-    """Track API usage for rate limiting"""
+    """Track usage for limits (tokens, messages, etc.)"""
     tenant_id: str
-    route_path: str
-    route_method: str
+    feature_key: str                          # e.g., "token_usage", "message_count"
+    usage_amount: int                         # Amount used
     timestamp: str
-    hour_bucket: str   # e.g., "2025-12-16-15"
-    day_bucket: str    # e.g., "2025-12-16"
+    month_bucket: str                         # e.g., "2025-12"
+    metadata: Dict[str, Any] = {}             # Additional context
 
 
 class SubscriptionPlan(BaseModel):
