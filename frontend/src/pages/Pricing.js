@@ -237,7 +237,10 @@ const Pricing = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      if (response.data.checkout_url) {
+      if (response.data.checkout_url && response.data.session_id) {
+        // Store session_id in localStorage before redirecting
+        localStorage.setItem('stripe_session_id', response.data.session_id);
+        
         // Redirect to Stripe checkout
         window.location.href = response.data.checkout_url;
       } else {
