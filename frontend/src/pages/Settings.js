@@ -586,13 +586,6 @@ const Settings = () => {
             </CardContent>
           </Card>
         </TabsContent>
-
-        {/* Feature Gates Tab (Admin Only) */}
-        {user?.is_super_admin && (
-          <TabsContent value="feature-gates">
-            <FeatureGateAdmin />
-          </TabsContent>
-        )}
       </Tabs>
     </div>
   );
