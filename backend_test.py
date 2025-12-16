@@ -2590,6 +2590,35 @@ class AIAgentHubTester:
         print(f"   ✅ All invalid import scenarios handled correctly")
         
         return True
+def main_quota_tests():
+    """Main function to run only quota enforcement tests as requested in review"""
+    print("🎯 Starting Quota Enforcement Middleware Testing")
+    print("=" * 70)
+    
+    tester = AIAgentHubTester()
+    
+    # Run quota enforcement tests as requested in review
+    print(f"\n📋 Running Quota Enforcement Middleware Tests...")
+    print("   Testing subscription plan limits and quota enforcement")
+    
+    try:
+        success = tester.test_quota_enforcement_middleware()
+        
+        # Print detailed results
+        print("\n" + "=" * 70)
+        print(f"📊 Quota Test Results: {tester.tests_passed}/{tester.tests_run} tests passed")
+        
+        if success:
+            print("\n🎉 All quota enforcement tests passed! Middleware is working correctly.")
+            return 0
+        else:
+            print(f"\n⚠️  Some quota enforcement tests failed - see details above")
+            return 1
+            
+    except Exception as e:
+        print(f"❌ Quota enforcement testing failed with error: {str(e)}")
+        return 1
+
 def main():
     print("🚀 Starting AI Agent Hub Comprehensive Backend Testing")
     print("=" * 70)
