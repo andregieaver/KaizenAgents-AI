@@ -373,7 +373,8 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
               </div>
             </div>
           </TabsContent>
-        </Tabs>
+          </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );
