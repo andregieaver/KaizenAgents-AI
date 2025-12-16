@@ -205,3 +205,254 @@ async def get_public_code_injection():
         }
     
     return code_settings["value"]
+
+@router.post("/stripe/test-connection")
+async def test_stripe_connection(admin_user: dict = Depends(get_super_admin_user)):
+    """Test Stripe API connection (Super Admin only)"""
+    import stripe
+    
+    # Get Stripe settings
+    stripe_settings = await db.platform_settings.find_one({"key": "stripe_integration"})
+    
+    if not stripe_settings or not stripe_settings.get("value"):
+        raise HTTPException(status_code=400, detail="Stripe not configured")
+    
+    settings_value = stripe_settings["value"]
+    use_live = settings_value.get("use_live_mode", False)
+    
+    # Get the appropriate secret key
+    if use_live:
+        secret_key = settings_value.get("live_secret_key")
+        mode = "live"
+    else:
+        secret_key = settings_value.get("test_secret_key")
+        mode = "test"
+    
+    if not secret_key:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Stripe {mode} secret key not configured"
+        )
+    
+    try:
+        # Test the connection by retrieving account info
+        stripe.api_key = secret_key
+        account = stripe.Account.retrieve()
+        
+        return {
+            "message": f"Successfully connected to Stripe ({mode} mode)",
+            "details": {
+                "account_id": account.id,
+                "mode": mode,
+                "country": account.country,
+                "email": account.email
+            }
+        }
+    except stripe.error.AuthenticationError:
+        raise HTTPException(status_code=401, detail="Invalid Stripe API key")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Stripe connection failed: {str(e)}")
+
+@router.post("/stripe/sync-to-stripe")
+async def sync_plans_to_stripe(admin_user: dict = Depends(get_super_admin_user)):
+    """Sync subscription plans from database to Stripe (Super Admin only)"""
+    import stripe
+    
+    # Get Stripe settings
+    stripe_settings = await db.platform_settings.find_one({"key": "stripe_integration"})
+    
+    if not stripe_settings or not stripe_settings.get("value"):
+        raise HTTPException(status_code=400, detail="Stripe not configured")
+    
+    settings_value = stripe_settings["value"]
+    use_live = settings_value.get("use_live_mode", False)
+    secret_key = settings_value.get("live_secret_key" if use_live else "test_secret_key")
+    
+    if not secret_key:
+        mode = "live" if use_live else "test"
+        raise HTTPException(status_code=400, detail=f"Stripe {mode} secret key not configured")
+    
+    stripe.api_key = secret_key
+    
+    # Get all plans from database
+    plans = await db.subscription_plans.find({}, {"_id": 0}).to_list(1000)
+    
+    if not plans:
+        raise HTTPException(status_code=404, detail="No subscription plans found in database")
+    
+    synced_count = 0
+    errors = []
+    
+    for plan in plans:
+        try:
+            plan_name = plan.get("name", "Unknown")
+            
+            # Check if product already exists in Stripe
+            product_id = plan.get("stripe_product_id")
+            
+            if product_id:
+                # Update existing product
+                try:
+                    stripe.Product.modify(
+                        product_id,
+                        name=plan_name,
+                        description=plan.get("description", ""),
+                        metadata={"plan_id": plan.get("id")}
+                    )
+                except stripe.error.InvalidRequestError:
+                    # Product doesn't exist, create new one
+                    product_id = None
+            
+            if not product_id:
+                # Create new product
+                product = stripe.Product.create(
+                    name=plan_name,
+                    description=plan.get("description", ""),
+                    metadata={"plan_id": plan.get("id")}
+                )
+                product_id = product.id
+                
+                # Save product ID to database
+                await db.subscription_plans.update_one(
+                    {"id": plan.get("id")},
+                    {"$set": {"stripe_product_id": product_id}}
+                )
+            
+            # Create or update prices
+            price_monthly = plan.get("price_monthly", 0)
+            price_yearly = plan.get("price_yearly", 0)
+            
+            # Monthly price
+            if price_monthly > 0:
+                price_monthly_id = plan.get("stripe_price_monthly_id")
+                if not price_monthly_id:
+                    price = stripe.Price.create(
+                        product=product_id,
+                        unit_amount=int(price_monthly * 100),  # Convert to cents
+                        currency="usd",
+                        recurring={"interval": "month"},
+                        metadata={"plan_id": plan.get("id"), "interval": "monthly"}
+                    )
+                    await db.subscription_plans.update_one(
+                        {"id": plan.get("id")},
+                        {"$set": {"stripe_price_monthly_id": price.id}}
+                    )
+            
+            # Yearly price
+            if price_yearly > 0:
+                price_yearly_id = plan.get("stripe_price_yearly_id")
+                if not price_yearly_id:
+                    price = stripe.Price.create(
+                        product=product_id,
+                        unit_amount=int(price_yearly * 100),  # Convert to cents
+                        currency="usd",
+                        recurring={"interval": "year"},
+                        metadata={"plan_id": plan.get("id"), "interval": "yearly"}
+                    )
+                    await db.subscription_plans.update_one(
+                        {"id": plan.get("id")},
+                        {"$set": {"stripe_price_yearly_id": price.id}}
+                    )
+            
+            synced_count += 1
+            
+        except Exception as e:
+            errors.append(f"{plan.get('name', 'Unknown')}: {str(e)}")
+    
+    result = {
+        "message": f"Successfully synced {synced_count} plan(s) to Stripe",
+        "synced_count": synced_count
+    }
+    
+    if errors:
+        result["errors"] = errors
+    
+    return result
+
+@router.post("/stripe/sync-from-stripe")
+async def sync_plans_from_stripe(admin_user: dict = Depends(get_super_admin_user)):
+    """Sync subscription plans from Stripe to database (Super Admin only)"""
+    import stripe
+    
+    # Get Stripe settings
+    stripe_settings = await db.platform_settings.find_one({"key": "stripe_integration"})
+    
+    if not stripe_settings or not stripe_settings.get("value"):
+        raise HTTPException(status_code=400, detail="Stripe not configured")
+    
+    settings_value = stripe_settings["value"]
+    use_live = settings_value.get("use_live_mode", False)
+    secret_key = settings_value.get("live_secret_key" if use_live else "test_secret_key")
+    
+    if not secret_key:
+        mode = "live" if use_live else "test"
+        raise HTTPException(status_code=400, detail=f"Stripe {mode} secret key not configured")
+    
+    stripe.api_key = secret_key
+    
+    try:
+        # Get all products from Stripe
+        products = stripe.Product.list(active=True, limit=100)
+        
+        synced_count = 0
+        
+        for product in products.data:
+            # Get prices for this product
+            prices = stripe.Price.list(product=product.id, active=True, limit=10)
+            
+            monthly_price = None
+            yearly_price = None
+            
+            for price in prices.data:
+                if price.recurring:
+                    if price.recurring.interval == "month":
+                        monthly_price = price.unit_amount / 100  # Convert from cents
+                    elif price.recurring.interval == "year":
+                        yearly_price = price.unit_amount / 100
+            
+            # Check if plan exists in database by stripe_product_id
+            existing_plan = await db.subscription_plans.find_one(
+                {"stripe_product_id": product.id},
+                {"_id": 0}
+            )
+            
+            plan_data = {
+                "name": product.name,
+                "description": product.description or "",
+                "stripe_product_id": product.id,
+                "price_monthly": monthly_price or 0,
+                "price_yearly": yearly_price or 0,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            if prices.data:
+                # Store price IDs
+                for price in prices.data:
+                    if price.recurring:
+                        if price.recurring.interval == "month":
+                            plan_data["stripe_price_monthly_id"] = price.id
+                        elif price.recurring.interval == "year":
+                            plan_data["stripe_price_yearly_id"] = price.id
+            
+            if existing_plan:
+                # Update existing plan
+                await db.subscription_plans.update_one(
+                    {"stripe_product_id": product.id},
+                    {"$set": plan_data}
+                )
+            else:
+                # Create new plan
+                from uuid import uuid4
+                plan_data["id"] = str(uuid4())
+                plan_data["created_at"] = datetime.now(timezone.utc).isoformat()
+                await db.subscription_plans.insert_one(plan_data)
+            
+            synced_count += 1
+        
+        return {
+            "message": f"Successfully synced {synced_count} plan(s) from Stripe",
+            "synced_count": synced_count
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to sync from Stripe: {str(e)}")
