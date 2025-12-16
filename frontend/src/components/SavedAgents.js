@@ -426,6 +426,52 @@ const SavedAgents = () => {
         )}
       </CardContent>
     </Card>
+    
+    {/* Create/Edit Agent Modal */}
+    <AgentFormModal
+      open={showCreateModal || !!editingAgent}
+      onClose={() => {
+        setShowCreateModal(false);
+        setEditingAgent(null);
+      }}
+      agent={editingAgent}
+      onSuccess={fetchAgents}
+      token={token}
+    />
+    
+    {/* Publish Confirmation Dialog */}
+    <AlertDialog open={!!publishDialog} onOpenChange={() => setPublishDialog(null)}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Publish Agent to Marketplace?</AlertDialogTitle>
+          <AlertDialogDescription className="space-y-2">
+            <p>
+              Your agent will be reviewed by our AI moderator for ethical, legal, and privacy compliance before being published.
+            </p>
+            <p className="font-medium">
+              The review checks for:
+            </p>
+            <ul className="list-disc list-inside text-sm space-y-1">
+              <li>Ethical violations or harmful content</li>
+              <li>Racial or identity-based bias</li>
+              <li>Legal issues or illegal activities</li>
+              <li>Privacy concerns or sensitive information</li>
+              <li>Company confidential information</li>
+            </ul>
+            <p className="text-sm">
+              If your agent passes review, it will be available to all users in the marketplace.
+            </p>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={() => publishDialog && handlePublish(publishDialog)}>
+            Submit for Review
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </>
   );
 };
 
