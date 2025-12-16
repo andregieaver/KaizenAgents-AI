@@ -195,6 +195,9 @@ async def update_plan(
     update_fields = {k: v for k, v in plan_data.model_dump().items() if v is not None}
     update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
     
+    # Initialize Stripe from database
+    await StripeService.initialize_from_db()
+    
     # Update Stripe product if configured and exists
     if StripeService.is_configured() and plan.get("stripe_product_id"):
         if plan_data.name or plan_data.description:
