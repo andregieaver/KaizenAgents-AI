@@ -458,59 +458,52 @@ async def test_woocommerce_connection(
 @router.post("/{agent_id}/upload-image")
 async def upload_agent_profile_image(
     agent_id: str,
-    file: Any = None,
+    file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
 ):
     """Upload profile image for an agent"""
-    from fastapi import UploadFile, File
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
     
-    # Re-define file parameter with proper type
-    async def _upload(file: UploadFile = File(...)):
-        tenant_id = current_user.get("tenant_id")
-        if not tenant_id:
-            raise HTTPException(status_code=404, detail="No tenant associated")
-        
-        # Check agent exists
-        agent = await db.user_agents.find_one(
-            {"id": agent_id, "tenant_id": tenant_id},
-            {"_id": 0}
-        )
-        
-        if not agent:
-            raise HTTPException(status_code=404, detail="Agent not found")
-        
-        # Validate file type
-        allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
-        if file.content_type not in allowed_types:
-            raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPEG, PNG, GIF, WebP")
-        
-        # Validate file size (max 2MB)
-        contents = await file.read()
-        if len(contents) > 2 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="File too large. Maximum size: 2MB")
-        
-        # Get storage service
-        from storage_service import get_storage_service
-        storage = await get_storage_service(db)
-        
-        # Generate unique filename
-        import uuid
-        ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
-        filename = f"agent_{agent_id}_{uuid.uuid4().hex[:8]}.{ext}"
-        destination_path = f"agents/{filename}"
-        
-        # Upload to configured storage
-        image_url = await storage.upload_file(contents, destination_path, file.content_type)
-        
-        # Update agent
-        await db.user_agents.update_one(
-            {"id": agent_id, "tenant_id": tenant_id},
-            {"$set": {"profile_image_url": image_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
-        )
-        
-        return {"message": "Profile image uploaded", "profile_image_url": image_url}
+    # Check agent exists
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
     
-    return await _upload(file)
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Validate file type
+    allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+    if file.content_type not in allowed_types:
+        raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPEG, PNG, GIF, WebP")
+    
+    # Validate file size (max 2MB)
+    contents = await file.read()
+    if len(contents) > 2 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File too large. Maximum size: 2MB")
+    
+    # Get storage service
+    from storage_service import get_storage_service
+    storage = await get_storage_service(db)
+    
+    # Generate unique filename
+    ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+    filename = f"agent_{agent_id}_{uuid.uuid4().hex[:8]}.{ext}"
+    destination_path = f"agents/{filename}"
+    
+    # Upload to configured storage
+    image_url = await storage.upload_file(contents, destination_path, file.content_type)
+    
+    # Update agent
+    await db.user_agents.update_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"$set": {"profile_image_url": image_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Profile image uploaded", "profile_image_url": image_url}
 
 
 @router.post("/{agent_id}/publish")
