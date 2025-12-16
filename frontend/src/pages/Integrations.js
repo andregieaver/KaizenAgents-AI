@@ -21,7 +21,8 @@ import {
   Code, 
   AlertTriangle,
   CheckCircle,
-  Info
+  Info,
+  ArrowRight
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
