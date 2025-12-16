@@ -74,9 +74,24 @@ const SavedAgents = () => {
     }
   };
 
-  const handleDelete = async (agentId) => {
-    if (!window.confirm('Are you sure you want to delete this agent?')) return;
+  const handleDeactivate = async (agentId) => {
+    setDeactivating(agentId);
+    try {
+      await axios.post(
+        `${API}/agents/${agentId}/deactivate`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Agent deactivated successfully');
+      fetchAgents();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to deactivate agent');
+    } finally {
+      setDeactivating(null);
+    }
+  };
 
+  const handleDelete = async (agentId) => {
     setDeleting(agentId);
     try {
       await axios.delete(`${API}/agents/${agentId}`, {
@@ -88,6 +103,75 @@ const SavedAgents = () => {
       toast.error(error.response?.data?.detail || 'Failed to delete agent');
     } finally {
       setDeleting(null);
+    }
+  };
+  
+  const handlePublish = async (agent) => {
+    setPublishing(agent.id);
+    try {
+      const response = await axios.post(
+        `${API}/agents/${agent.id}/publish`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      if (response.data.approved) {
+        toast.success('Agent published to marketplace!');
+        fetchAgents();
+      } else {
+        // Show rejection reasons
+        const issues = response.data.issues || [];
+        const suggestions = response.data.suggestions || [];
+        
+        toast.error(
+          <div className="space-y-2">
+            <p className="font-semibold">Agent Review Failed</p>
+            {issues.length > 0 && (
+              <div>
+                <p className="text-sm font-medium">Issues Found:</p>
+                <ul className="text-xs list-disc list-inside">
+                  {issues.map((issue, i) => (
+                    <li key={i}>{issue}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {suggestions.length > 0 && (
+              <div>
+                <p className="text-sm font-medium">Suggestions:</p>
+                <ul className="text-xs list-disc list-inside">
+                  {suggestions.map((suggestion, i) => (
+                    <li key={i}>{suggestion}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>,
+          { duration: 10000 }
+        );
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to publish agent');
+    } finally {
+      setPublishing(null);
+      setPublishDialog(null);
+    }
+  };
+  
+  const handleUnpublish = async (agentId) => {
+    setUnpublishing(agentId);
+    try {
+      await axios.post(
+        `${API}/agents/${agentId}/unpublish`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Agent removed from marketplace');
+      fetchAgents();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to unpublish agent');
+    } finally {
+      setUnpublishing(null);
     }
   };
 
