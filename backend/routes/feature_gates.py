@@ -295,8 +295,8 @@ async def get_route_categories(current_user: dict = Depends(get_super_admin_user
     config = await db.feature_gate_config.find_one({}, {"_id": 0})
     
     if not config:
-        categories = set(route["category"] for route in DEFAULT_GATED_ROUTES)
+        categories = set(feature["category"] for feature in DEFAULT_QUOTA_FEATURES)
     else:
-        categories = set(route["category"] for route in config.get("routes", []))
+        categories = set(feature["category"] for feature in config.get("features", []))
     
     return {"categories": sorted(list(categories))}
