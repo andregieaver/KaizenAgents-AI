@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { AlertCircle, CheckCircle, Trash2, Loader2, Bot, ExternalLink, Plus, Edit, Globe, GlobeOff, PowerOff } from 'lucide-react';
+import { AlertCircle, CheckCircle, Trash2, Loader2, Bot, ExternalLink, Plus, Edit, Globe, PowerOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
