@@ -144,9 +144,13 @@ const Team = () => {
       
       // Check if it's a quota error
       if (errorDetail && typeof errorDetail === 'object' && errorDetail.error === 'quota_exceeded') {
-        toast.error(errorDetail.message);
+        toast.error(errorDetail.message, {
+          action: {
+            label: 'View Plans',
+            onClick: () => navigate('/dashboard/pricing')
+          }
+        });
         setInviteOpen(false);
-        setUpgradeModalOpen(true);
       } else {
         toast.error(errorDetail || 'Failed to invite user');
       }
