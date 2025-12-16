@@ -197,7 +197,7 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
         </DialogHeader>
 
         <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-          <Tabs defaultValue="plans" className="flex flex-col h-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
             <TabsList className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground flex-shrink-0 mb-4">
               <TabsTrigger value="plans" className="flex-1 text-xs sm:text-sm inline-flex items-center justify-center">
                 <Crown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
