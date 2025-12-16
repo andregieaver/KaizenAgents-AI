@@ -40,6 +40,7 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
   // Extra seats state
   const [seatQuantity, setSeatQuantity] = useState(1);
   const [purchasingSeats, setPurchasingSeats] = useState(false);
+  const [activeTab, setActiveTab] = useState('plans');
   const pricePerSeat = 5.0;
 
   useEffect(() => {
