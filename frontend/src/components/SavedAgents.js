@@ -121,8 +121,8 @@ const SavedAgents = () => {
         {agents.length === 0 ? (
           <div className="text-center py-12">
             <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground mb-4">You haven't added any agents yet</p>
-            <Button onClick={() => navigate('/dashboard/marketplace')}>
+            <p className="text-muted-foreground mb-4">You haven&apos;t added any agents yet</p>
+            <Button onClick={() => navigate('/marketplace')}>
               Browse Agent Marketplace
             </Button>
           </div>
@@ -138,12 +138,12 @@ const SavedAgents = () => {
                     : "border-border hover:border-primary/50"
                 )}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4 flex-1">
-                    <div className="text-3xl">{agent.icon}</div>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                  <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+                    <div className="text-2xl sm:text-3xl">{agent.icon}</div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-base truncate">{agent.name}</h3>
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <h3 className="font-semibold text-sm sm:text-base truncate">{agent.name}</h3>
                         <Badge
                           variant="outline"
                           className={cn("text-xs", getCategoryBadgeColor(agent.category))}
@@ -157,15 +157,15 @@ const SavedAgents = () => {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-1">
+                      <p className="text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
                         {agent.description}
                       </p>
-                      <div className="mt-3 text-xs text-muted-foreground">
+                      <div className="mt-2 sm:mt-3 text-xs text-muted-foreground">
                         <span>Added {new Date(agent.created_at).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 ml-4">
+                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                     {!agent.is_active && (
                       <Button
                         size="sm"
