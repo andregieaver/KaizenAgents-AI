@@ -520,6 +520,10 @@ async def publish_agent_to_marketplace(
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
     
+    # Check quota limit for marketplace publishing
+    from services.quota_service import check_quota_limit
+    await check_quota_limit(tenant_id, "marketplace_publishing", increment=1)
+    
     # Get agent
     agent = await db.user_agents.find_one(
         {"id": agent_id, "tenant_id": tenant_id},
