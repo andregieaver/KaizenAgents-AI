@@ -295,13 +295,13 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
           <TabsContent value="seats" className="space-y-4 sm:space-y-6 mt-4 overflow-y-auto flex-1">
             <div className="max-w-2xl mx-auto pb-4">
               <div className="bg-muted/50 rounded-lg p-4 sm:p-6 space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-primary/10 rounded-lg">
-                    <Users className="h-6 w-6 text-primary" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                    <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
                   </div>
-                  <div>
-                    <h3 className="text-lg font-semibold">Purchase Additional Seats</h3>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base sm:text-lg font-semibold">Purchase Additional Seats</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Add more team members to your account
                     </p>
                   </div>
@@ -310,9 +310,9 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
                 <Separator />
 
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <Label htmlFor="quantity">Number of Seats</Label>
+                      <Label htmlFor="quantity" className="text-sm">Number of Seats</Label>
                       <Input
                         id="quantity"
                         type="number"
@@ -320,27 +320,27 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
                         max="100"
                         value={seatQuantity}
                         onChange={(e) => setSeatQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="mt-1"
+                        className="mt-1 h-10"
                       />
                     </div>
                     <div>
-                      <Label>Price per Seat</Label>
+                      <Label className="text-sm">Price per Seat</Label>
                       <div className="mt-1 h-10 flex items-center">
-                        <span className="text-2xl font-bold">${pricePerSeat}</span>
-                        <span className="text-muted-foreground ml-2">/month</span>
+                        <span className="text-xl sm:text-2xl font-bold">${pricePerSeat}</span>
+                        <span className="text-muted-foreground ml-1 sm:ml-2 text-sm">/month</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="bg-background rounded-lg p-4 border">
+                  <div className="bg-background rounded-lg p-3 sm:p-4 border">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm text-muted-foreground">Subtotal</span>
-                      <span className="font-semibold">${(seatQuantity * pricePerSeat).toFixed(2)}</span>
+                      <span className="text-xs sm:text-sm text-muted-foreground">Subtotal</span>
+                      <span className="font-semibold text-sm sm:text-base">${(seatQuantity * pricePerSeat).toFixed(2)}</span>
                     </div>
                     <Separator className="my-2" />
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold">Total per Month</span>
-                      <span className="text-2xl font-bold text-primary">
+                      <span className="font-semibold text-sm sm:text-base">Total per Month</span>
+                      <span className="text-xl sm:text-2xl font-bold text-primary">
                         ${(seatQuantity * pricePerSeat).toFixed(2)}
                       </span>
                     </div>
@@ -348,24 +348,24 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
 
                   <Button
                     className="w-full"
-                    size="lg"
+                    size="default"
                     onClick={handlePurchaseSeats}
                     disabled={purchasingSeats || seatQuantity < 1}
                   >
                     {purchasingSeats ? (
                       <>
-                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 mr-2 animate-spin" />
                         Processing...
                       </>
                     ) : (
                       <>
-                        <CreditCard className="h-5 w-5 mr-2" />
+                        <CreditCard className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                         Purchase {seatQuantity} Seat{seatQuantity > 1 ? 's' : ''}
                       </>
                     )}
                   </Button>
 
-                  <p className="text-xs text-center text-muted-foreground">
+                  <p className="text-xs text-center text-muted-foreground px-2">
                     Extra seats will be added to your current plan immediately. You can cancel anytime.
                   </p>
                 </div>
