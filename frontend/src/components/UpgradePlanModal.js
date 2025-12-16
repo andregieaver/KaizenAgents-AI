@@ -197,17 +197,16 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
 
         <div className="flex-1 overflow-hidden flex flex-col min-h-0">
           <Tabs defaultValue="plans" className="flex flex-col h-full">
-            <TabsList className="grid w-full grid-cols-2 flex-shrink-0 mb-4">
-              <TabsTrigger value="plans" className="text-xs sm:text-sm">
-                <Crown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+            <TabsList className="inline-flex h-10 w-full items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground flex-shrink-0 mb-4">
+              <TabsTrigger value="plans" className="flex-1 text-xs sm:text-sm inline-flex items-center justify-center">
+                <Crown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
                 <span className="hidden sm:inline">Upgrade Plan</span>
                 <span className="sm:hidden">Upgrade</span>
               </TabsTrigger>
-              <TabsTrigger value="seats" disabled={isFreePlan} className="text-xs sm:text-sm">
-                <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <TabsTrigger value="seats" className="flex-1 text-xs sm:text-sm inline-flex items-center justify-center">
+                <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
                 <span className="hidden sm:inline">Add Seats</span>
                 <span className="sm:hidden">Seats</span>
-                {isFreePlan && <span className="hidden sm:inline ml-1">(Paid Plans Only)</span>}
               </TabsTrigger>
             </TabsList>
 
