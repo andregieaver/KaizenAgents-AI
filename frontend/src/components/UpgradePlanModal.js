@@ -339,11 +339,7 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
 
                     <Button
                       className="w-full"
-                      onClick={() => {
-                        // Switch to plans tab
-                        const plansTab = document.querySelector('[value="plans"]');
-                        if (plansTab) plansTab.click();
-                      }}
+                      onClick={() => setActiveTab('plans')}
                     >
                       <Crown className="h-4 w-4 mr-2" />
                       View Plans
