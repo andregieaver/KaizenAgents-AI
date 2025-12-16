@@ -416,6 +416,7 @@ async def get_usage(current_user: dict = Depends(get_current_user)):
 @router.post("/checkout")
 async def create_checkout_session(
     subscription_data: SubscriptionCreate,
+    request: Request,
     current_user: dict = Depends(get_current_user)
 ):
     """Create Stripe checkout session for subscription"""
