@@ -71,10 +71,9 @@ DEFAULT_QUOTA_FEATURES = [
         "limit_type": "usage",
         "unit": "messages",
         "plans": {
-            "free": {"enabled": True, "limit_value": 1000, "limit_type": "usage", "unit": "messages"},
-            "basic": {"enabled": True, "limit_value": 10000, "limit_type": "usage", "unit": "messages"},
-            "pro": {"enabled": True, "limit_value": 100000, "limit_type": "usage", "unit": "messages"},
-            "enterprise": {"enabled": True, "limit_value": None, "limit_type": "usage", "unit": "messages"}
+            "free": {"enabled": True, "limit_value": 50, "limit_type": "usage", "unit": "messages"},
+            "starter": {"enabled": True, "limit_value": 500, "limit_type": "usage", "unit": "messages"},
+            "professional": {"enabled": True, "limit_value": 2000, "limit_type": "usage", "unit": "messages"}
         }
     },
     {
