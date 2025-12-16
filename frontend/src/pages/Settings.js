@@ -249,12 +249,6 @@ const Settings = () => {
               <Code className="h-4 w-4" />
               <span className="hidden sm:inline">Embed</span>
             </TabsTrigger>
-            {user?.is_super_admin && (
-              <TabsTrigger value="feature-gates" className="gap-2 px-3" data-testid="tab-feature-gates">
-                <Shield className="h-4 w-4" />
-                <span className="hidden sm:inline">Feature Gates</span>
-              </TabsTrigger>
-            )}
           </TabsList>
           <ScrollBar orientation="horizontal" className="invisible" />
         </ScrollArea>
