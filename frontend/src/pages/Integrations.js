@@ -143,6 +143,63 @@ const Integrations = () => {
     }
   };
 
+  const handleTestConnection = async () => {
+    setTestingConnection(true);
+    try {
+      const response = await axios.post(
+        `${API}/admin/integrations/stripe/test-connection`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(response.data.message || 'Stripe connection successful!', {
+        description: response.data.details ? `Account: ${response.data.details.account_id}` : undefined
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to connect to Stripe');
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
+  const handleSyncToStripe = async () => {
+    setSyncingToStripe(true);
+    try {
+      const response = await axios.post(
+        `${API}/admin/integrations/stripe/sync-to-stripe`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(response.data.message || 'Plans synced to Stripe successfully!', {
+        description: response.data.synced_count ? `${response.data.synced_count} plan(s) synced` : undefined
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to sync plans to Stripe');
+    } finally {
+      setSyncingToStripe(false);
+    }
+  };
+
+  const handleSyncFromStripe = async () => {
+    setSyncingFromStripe(true);
+    try {
+      const response = await axios.post(
+        `${API}/admin/integrations/stripe/sync-from-stripe`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(response.data.message || 'Plans synced from Stripe successfully!', {
+        description: response.data.synced_count ? `${response.data.synced_count} plan(s) synced` : undefined
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to sync plans from Stripe');
+    } finally {
+      setSyncingFromStripe(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[400px]">
