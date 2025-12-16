@@ -292,9 +292,9 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
           </TabsContent>
 
           {/* Extra Seats Tab */}
-          <TabsContent value="seats" className="space-y-6 mt-6">
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-muted/50 rounded-lg p-6 space-y-4">
+          <TabsContent value="seats" className="space-y-4 sm:space-y-6 mt-4 overflow-y-auto flex-1">
+            <div className="max-w-2xl mx-auto pb-4">
+              <div className="bg-muted/50 rounded-lg p-4 sm:p-6 space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-primary/10 rounded-lg">
                     <Users className="h-6 w-6 text-primary" />
