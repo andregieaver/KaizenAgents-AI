@@ -7,10 +7,10 @@ from typing import List, Dict, Any
 import logging
 
 from models.feature_gate import (
-    FeatureGateRoute, 
+    FeatureQuota, 
     FeatureGateConfig, 
     FeatureGateUpdate,
-    RouteLimit,
+    PlanLimit,
     SubscriptionPlan
 )
 from middleware import get_current_user, get_super_admin_user
