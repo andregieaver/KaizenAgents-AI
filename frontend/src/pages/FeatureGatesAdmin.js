@@ -63,7 +63,7 @@ const FeatureGatesAdmin = () => {
   };
 
   const handleLimitChange = (featureIndex, planName, field, value) => {
-    const newConfig = { ...config };
+    const newConfig = JSON.parse(JSON.stringify(config)); // Deep copy
     const feature = newConfig.features[featureIndex];
     
     if (!feature.plans[planName]) {
