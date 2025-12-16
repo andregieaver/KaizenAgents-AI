@@ -406,6 +406,21 @@ const DashboardLayout = () => {
                     {planManagementNavItem.label}
                   </Link>
                 )}
+                {featureGatesNavItem && (
+                  <Link
+                    to={featureGatesNavItem.path}
+                    onClick={() => setSidebarOpen(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                      isActive(featureGatesNavItem.path)
+                        ? "bg-destructive text-destructive-foreground"
+                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
+                    )}
+                  >
+                    <featureGatesNavItem.icon className="h-4 w-4" />
+                    {featureGatesNavItem.label}
+                  </Link>
+                )}
                 {integrationsNavItem && (
                   <Link
                     to={integrationsNavItem.path}
