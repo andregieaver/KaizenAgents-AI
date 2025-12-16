@@ -436,6 +436,9 @@ async def create_checkout_session(
     if not tenant:
         raise HTTPException(status_code=404, detail="Tenant not found")
     
+    # Initialize Stripe from database settings
+    await StripeService.initialize_from_db()
+    
     # Check if Stripe is configured
     if not StripeService.is_configured():
         raise HTTPException(
