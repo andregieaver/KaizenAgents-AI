@@ -426,7 +426,7 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
                     Extra seats will be added to your current plan immediately. You can cancel anytime.
                   </p>
                 </div>
-              </div>
+              )}
             </div>
           </TabsContent>
           </Tabs>
