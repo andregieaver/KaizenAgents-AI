@@ -60,6 +60,10 @@ async def invite_user(
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
     
+    # Check quota limit for max seats
+    from services.quota_service import check_quota_limit
+    await check_quota_limit(tenant_id, "max_seats", increment=1)
+    
     # Check if email already exists
     existing = await db.users.find_one({"email": user_data.email})
     if existing:
