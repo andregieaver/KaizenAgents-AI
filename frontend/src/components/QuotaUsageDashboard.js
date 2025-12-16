@@ -29,6 +29,8 @@ const QuotaUsageDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [usage, setUsage] = useState(null);
   const [subscription, setSubscription] = useState(null);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState(null);
 
   useEffect(() => {
     loadQuotaUsage();
