@@ -223,6 +223,10 @@ const DashboardLayout = () => {
     ? { path: '/dashboard/admin/plans', icon: DollarSign, label: 'Plan Management', isAdmin: true }
     : null;
 
+  const featureGatesNavItem = user?.is_super_admin
+    ? { path: '/dashboard/admin/feature-gates', icon: Shield, label: 'Feature Gates', isAdmin: true }
+    : null;
+
   const integrationsNavItem = user?.is_super_admin
     ? { path: '/dashboard/integrations', icon: Plug, label: 'Integrations', isAdmin: true }
     : null;
