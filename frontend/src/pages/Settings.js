@@ -15,6 +15,7 @@ import { ScrollArea, ScrollBar } from '../components/ui/scroll-area';
 import AgentConfiguration from '../components/AgentConfiguration';
 import SavedAgents from '../components/SavedAgents';
 import OrchestrationSettings from '../components/OrchestrationSettings';
+import FeatureGateAdmin from '../components/FeatureGateAdmin';
 import {
   Settings as SettingsIcon,
   Palette,
@@ -30,7 +31,8 @@ import {
   X,
   Loader2,
   Sparkles,
-  Network
+  Network,
+  Shield
 } from 'lucide-react';
 import { toast } from 'sonner';
 
