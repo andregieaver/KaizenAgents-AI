@@ -171,7 +171,7 @@ async def update_feature_gate_config(
             {"id": existing["id"]},
             {
                 "$set": {
-                    "routes": [route.model_dump() for route in update.routes],
+                    "features": [feature.model_dump() for feature in update.features],
                     "updated_at": now
                 }
             }
@@ -183,7 +183,7 @@ async def update_feature_gate_config(
         config_id = str(uuid.uuid4())
         config_doc = {
             "id": config_id,
-            "routes": [route.model_dump() for route in update.routes],
+            "features": [feature.model_dump() for feature in update.features],
             "plans": DEFAULT_PLANS,
             "created_at": now,
             "updated_at": now
