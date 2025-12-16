@@ -1766,10 +1766,11 @@ class AIAgentHubTester:
         
         # Step 3: Try to create a new page
         page_data = {
-            "title": "Quota Test Page",
+            "name": "Quota Test Page",
             "slug": "quota-test-page",
+            "path": "/quota-test-page",
             "content": "This is a test page for quota enforcement testing.",
-            "is_published": True
+            "visible": True
         }
         
         success, response = self.run_test(
