@@ -23,16 +23,39 @@ class UserAgentResponse(BaseModel):
     description: str
     category: str
     icon: str
+    profile_image_url: Optional[str] = None
     config: Dict[str, Any]
     is_active: bool
+    is_public: bool = False
     created_at: str
     updated_at: str
+    activated_at: Optional[str] = None
+    published_at: Optional[str] = None
     # Orchestration fields
     orchestration_enabled: bool = False
     tags: List[str] = []
 
+class UserAgentCreate(BaseModel):
+    name: str
+    description: str
+    category: str
+    icon: str = "🤖"
+    profile_image_url: Optional[str] = None
+    system_prompt: str
+    temperature: float = 0.7
+    max_tokens: int = 2000
+    model: Optional[str] = None  # If not provided, use default from provider
+
 class UserAgentUpdate(BaseModel):
     name: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    icon: Optional[str] = None
+    profile_image_url: Optional[str] = None
+    system_prompt: Optional[str] = None
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
+    model: Optional[str] = None
     config: Optional[Dict[str, Any]] = None
     # Orchestration fields
     orchestration_enabled: Optional[bool] = None
