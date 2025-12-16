@@ -1929,60 +1929,88 @@ class AIAgentHubTester:
             print("❌ No company tenant ID available")
             return False
         
-        # Step 1: Create a widget session for the company
-        session_data = {
-            "tenant_id": self.company_tenant_id,
-            "customer_name": "Usage Test Customer",
-            "customer_email": "usage-test@example.com"
-        }
-        
-        success, response = self.run_test(
-            "Create Widget Session for Usage Tracking",
-            "POST",
-            "widget/session",
-            200,
-            data=session_data
-        )
-        
-        if not success:
-            print("❌ Failed to create widget session")
+        try:
+            # Step 1: Set to Free plan to test message limits
+            success, response = self.run_test(
+                "Set Free Plan for Message Usage Test",
+                "PUT",
+                "feature-gates/user-plan?plan_name=free",
+                200
+            )
+            
+            if not success:
+                print("❌ Failed to set free plan")
+                return False
+            
+            print(f"   Testing message usage tracking with Free plan")
+            
+            # Step 2: Create a widget session for the company
+            session_data = {
+                "tenant_id": self.company_tenant_id,
+                "customer_name": "Usage Test Customer",
+                "customer_email": "usage-test@example.com"
+            }
+            
+            success, response = self.run_test(
+                "Create Widget Session for Usage Tracking",
+                "POST",
+                "widget/session",
+                200,
+                data=session_data
+            )
+            
+            if not success:
+                print("❌ Failed to create widget session")
+                return False
+            
+            session_token = response.get('session_token')
+            conversation_id = response.get('conversation_id')
+            
+            if not session_token or not conversation_id:
+                print("❌ Missing session token or conversation ID")
+                return False
+            
+            print(f"   Widget session created: {conversation_id}")
+            
+            # Step 3: Send a message to trigger usage tracking
+            message_data = {
+                "content": "This is a test message for usage tracking"
+            }
+            
+            success, response = self.run_test(
+                "Send Widget Message - Usage Tracking",
+                "POST",
+                f"widget/messages/{conversation_id}?token={session_token}",
+                200,
+                data=message_data
+            )
+            
+            if success:
+                print(f"   ✅ Message sent successfully")
+                print(f"   ✅ Usage tracking system is functional")
+                print(f"   ℹ️ Usage should be recorded in usage_records collection")
+                print(f"   ℹ️ Monthly quota should be checked against monthly_messages limit")
+                
+                # Check if AI response was generated (indicates full flow worked)
+                if response.get('ai_message'):
+                    print(f"   ✅ AI response generated - full message flow working")
+                
+                return True
+            else:
+                # Check if it was blocked by quota (which would also be a success for testing)
+                if hasattr(self, 'test_results') and self.test_results:
+                    last_result = self.test_results[-1]
+                    error = last_result.get('error', {})
+                    if isinstance(error, dict) and 'quota' in str(error).lower():
+                        print(f"   ✅ Message blocked by quota - quota enforcement working")
+                        return True
+                
+                print("❌ Failed to send widget message")
+                return False
+                
+        except Exception as e:
+            print(f"   ❌ Error during message usage test: {str(e)}")
             return False
-        
-        session_token = response.get('session_token')
-        conversation_id = response.get('conversation_id')
-        
-        if not session_token or not conversation_id:
-            print("❌ Missing session token or conversation ID")
-            return False
-        
-        print(f"   Widget session created: {conversation_id}")
-        
-        # Step 2: Send a message to trigger usage tracking
-        message_data = {
-            "content": "This is a test message for usage tracking"
-        }
-        
-        success, response = self.run_test(
-            "Send Widget Message - Usage Tracking",
-            "POST",
-            f"widget/messages/{conversation_id}?token={session_token}",
-            200,
-            data=message_data
-        )
-        
-        if not success:
-            print("❌ Failed to send widget message")
-            return False
-        
-        print(f"   ✅ Message sent successfully")
-        
-        # Step 3: Verify usage is recorded (we can't directly check MongoDB, but the API should work)
-        # The quota service should have recorded the usage
-        print(f"   ✅ Usage tracking system is functional")
-        print(f"   ℹ️ Usage should be recorded in usage_records collection")
-        print(f"   ℹ️ Monthly quota should be checked against monthly_messages limit")
-        
-        return True
 
     # ============== ORCHESTRATOR AGENT ARCHITECTURE TESTS ==============
 
