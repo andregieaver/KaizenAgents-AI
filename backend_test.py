@@ -1397,9 +1397,10 @@ class AIAgentHubTester:
                    orchestration_feature_test, message_usage_tracking_test])
 
     def test_company_user_login(self):
-        """Test Company User login with test@example.com / password123"""
+        """Test Company User login with testuser@example.com (existing user)"""
+        # First try with existing user
         login_data = {
-            "email": "test@example.com",
+            "email": "testuser@example.com",
             "password": "password123"
         }
         
