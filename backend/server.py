@@ -2886,6 +2886,11 @@ async def update_orchestration_config(
     
     company_id = current_user["tenant_id"]
     
+    # Check if orchestration is enabled for this plan
+    if orchestration_update.get("enabled"):
+        from services.quota_service import check_quota_limit
+        await check_quota_limit(company_id, "orchestration", increment=0)
+    
     # Validate mother agent if provided
     if orchestration_update.get("mother_admin_agent_id"):
         mother = await db.agents.find_one(
