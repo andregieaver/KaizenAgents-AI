@@ -480,7 +480,20 @@ async def create_checkout_session(
         trial_days = 0  # No trial for returning customers
     
     # Create checkout session
-    frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    # Dynamically determine frontend URL from request
+    origin = request.headers.get("origin") or request.headers.get("referer")
+    if origin:
+        # Remove trailing slash and any path from referer
+        frontend_url = origin.rstrip('/').split('?')[0]
+        # If it's a referer with path, get just the origin
+        if origin.startswith('http'):
+            from urllib.parse import urlparse
+            parsed = urlparse(origin)
+            frontend_url = f"{parsed.scheme}://{parsed.netloc}"
+    else:
+        # Fallback to env variable or localhost
+        frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    
     checkout = await StripeService.create_checkout_session(
         stripe_customer_id,
         price_id,
