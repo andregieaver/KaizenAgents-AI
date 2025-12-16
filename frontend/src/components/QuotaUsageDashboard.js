@@ -26,11 +26,10 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const QuotaUsageDashboard = () => {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [usage, setUsage] = useState(null);
   const [subscription, setSubscription] = useState(null);
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-  const [selectedFeature, setSelectedFeature] = useState(null);
 
   useEffect(() => {
     loadQuotaUsage();
