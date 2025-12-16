@@ -5,7 +5,9 @@ from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional, Dict, Any, Literal
 from datetime import datetime, timezone, timedelta
+from urllib.parse import urlparse
 import uuid
+import os
 
 from models import *
 from middleware import get_current_user, get_super_admin_user
