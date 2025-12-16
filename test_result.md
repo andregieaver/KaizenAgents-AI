@@ -1573,6 +1573,140 @@ The refactored Feature Gates standalone page has **CRITICAL BACKEND ISSUES** pre
 *Environment: Production Preview*
 *Status: CRITICAL BACKEND ISSUE - REQUIRES IMMEDIATE ATTENTION*
 
+## Feature Gates Subscription Plans Verification Tests
+
+### Test Scope
+- Feature Gates page subscription plans verification
+- Verify correct plans displayed: Free, Starter, Professional (NOT Basic, Pro, Enterprise)
+- Verify plan descriptions match expected values
+- Verify features matrix has all 8 features for all 3 plans
+- Verify default limits match expected values for key features
+- Test configuration changes and save functionality
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Test Results Summary
+
+#### ✅ ALL TESTS PASSED - FEATURE GATES WORKING CORRECTLY
+
+**1. Access Control and Navigation:**
+- ✅ Super admin login successful with provided credentials
+- ✅ Feature Gates link visible in sidebar (below Plan Management) with Shield icon
+- ✅ Page accessible at /dashboard/admin/feature-gates
+- ✅ Proper authentication and authorization working
+- ✅ Page loads successfully with "Feature Gate Management" title
+
+**2. Correct Subscription Plans Displayed:**
+- ✅ **Free** plan column header present with correct description: "Perfect for trying out our platform"
+- ✅ **Starter** plan column header present with correct description: "Great for small teams getting started"
+- ✅ **Professional** plan column header present with correct description: "For growing businesses with advanced needs"
+- ✅ **NO old plans found**: Verified NO columns for "Basic", "Pro", or "Enterprise"
+
+**3. Plan Descriptions Verification:**
+- ✅ Free: "Perfect for trying out our platform" ✓
+- ✅ Starter: "Great for small teams getting started" ✓
+- ✅ Professional: "For growing businesses with advanced needs" ✓
+- ✅ All descriptions match exactly as requested
+
+**4. Features Matrix Verification:**
+- ✅ Complete features matrix displaying all company-level quota features
+- ✅ All 8+ features present and properly configured:
+  - Maximum Active Agents (agents category)
+  - Maximum Company Seats (team category)
+  - Monthly Token Usage (usage category)
+  - Monthly Message Limit (usage category)
+  - Maximum CMS Pages (content category)
+  - Marketplace Publishing (agents category)
+  - Agent Orchestration (agents category)
+  - Custom Branding (branding category)
+- ✅ Each feature has configuration for all 3 plans (Free, Starter, Professional)
+
+**5. Default Limits Verification:**
+- ✅ **Maximum Active Agents:**
+  - Free: 1 agent ✓
+  - Starter: 3 agents ✓
+  - Professional: 10 agents ✓
+- ✅ **Maximum Company Seats:**
+  - Free: 1 seat ✓
+  - Starter: 5 seats ✓
+  - Professional: 25 seats ✓
+- ✅ **Monthly Message Limit:**
+  - Free: 50 messages ✓
+  - Starter: 500 messages ✓
+  - Professional: 2000 messages ✓
+
+**6. Configuration Functionality:**
+- ✅ Toggle switches working for enable/disable features per plan
+- ✅ Input fields functional for setting custom limits
+- ✅ "Unsaved Changes" warning appears when modifications made
+- ✅ "Save Changes" button enabled when changes detected
+- ✅ Save functionality operational
+- ✅ "Refresh" button working to reload configuration
+
+**7. Category Filtering:**
+- ✅ Category filter badges present: all, agents, branding, content, team, usage
+- ✅ Filtering functionality working correctly
+- ✅ Features display properly based on selected category
+
+**8. UI/UX Features:**
+- ✅ Professional design with proper Shield icon and layout
+- ✅ Responsive design elements working correctly
+- ✅ Proper form validation and user feedback
+- ✅ Category badges with color coding
+- ✅ Feature descriptions and metadata display correctly
+- ✅ Toggle switches and input controls properly styled
+
+### Backend Integration Verification
+- ✅ GET /api/feature-gates/config endpoint working correctly
+- ✅ GET /api/feature-gates/plans endpoint returning correct plans (Free, Starter, Professional)
+- ✅ GET /api/feature-gates/categories endpoint working
+- ✅ PUT /api/feature-gates/config endpoint functional for saving changes
+- ✅ Proper super admin authorization enforced on all endpoints
+- ✅ Default configuration created automatically with correct structure
+- ✅ Data persistence working correctly
+
+### Test Environment Details
+- **Frontend URL:** https://fix-ui-bugs.preview.emergentagent.com
+- **Authentication:** Working correctly with super admin credentials
+- **Session Management:** Stable during testing operations
+- **API Integration:** All feature gates endpoints responding correctly
+- **Database:** MongoDB feature_gate_config collection working properly
+
+### Screenshots Captured
+1. Feature Gates page with correct plan headers (Free, Starter, Professional)
+2. Complete features matrix showing all 8+ features
+3. Plan descriptions verification
+4. Default limits verification for key features
+5. Configuration functionality testing
+
+### Conclusion
+The Feature Gates page is **FULLY FUNCTIONAL** and correctly displays the updated subscription plans. All requested verification points have been confirmed:
+
+**Status: ALL TESTS PASSED - READY FOR PRODUCTION** ✅
+
+### Key Achievements Verified
+- ✅ **Correct Plans**: Feature Gates now shows Free, Starter, Professional (NOT Basic, Pro, Enterprise)
+- ✅ **Plan Descriptions**: All descriptions match exactly as requested
+- ✅ **Features Matrix**: Complete 8+ features configured for all 3 plans
+- ✅ **Default Limits**: All key limits match expected values (agents, seats, messages)
+- ✅ **Configuration**: Save and modify functionality working correctly
+- ✅ **Backend Integration**: All APIs working with correct plan data
+- ✅ **UI/UX**: Professional interface with proper navigation and controls
+
+### Recommendations
+1. **Feature Gates system is complete and working correctly**
+2. **All subscription plans properly updated from old to new structure**
+3. **Default limits configured appropriately for each plan tier**
+4. **Configuration management is comprehensive and user-friendly**
+5. **System ready for production use with confidence**
+
+---
+*Feature Gates Subscription Plans Verification completed on: December 16, 2025*
+*Tester: Testing Agent*
+*Environment: Production Preview*
+*Status: ALL TESTS PASSED - FEATURE GATES WORKING CORRECTLY*
+
 ## Pages Management Feature Tests
 
 ### Test Scope
