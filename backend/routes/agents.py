@@ -454,6 +454,257 @@ async def test_woocommerce_connection(
             "message": f"Connection test failed: {str(e)}"
         }
 
+@router.post("/{agent_id}/upload-image")
+async def upload_agent_profile_image(
+    agent_id: str,
+    file: Any = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Upload profile image for an agent"""
+    from fastapi import UploadFile, File
+    
+    # Re-define file parameter with proper type
+    async def _upload(file: UploadFile = File(...)):
+        tenant_id = current_user.get("tenant_id")
+        if not tenant_id:
+            raise HTTPException(status_code=404, detail="No tenant associated")
+        
+        # Check agent exists
+        agent = await db.user_agents.find_one(
+            {"id": agent_id, "tenant_id": tenant_id},
+            {"_id": 0}
+        )
+        
+        if not agent:
+            raise HTTPException(status_code=404, detail="Agent not found")
+        
+        # Validate file type
+        allowed_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
+        if file.content_type not in allowed_types:
+            raise HTTPException(status_code=400, detail="Invalid file type. Allowed: JPEG, PNG, GIF, WebP")
+        
+        # Validate file size (max 2MB)
+        contents = await file.read()
+        if len(contents) > 2 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="File too large. Maximum size: 2MB")
+        
+        # Get storage service
+        from storage_service import get_storage_service
+        storage = await get_storage_service(db)
+        
+        # Generate unique filename
+        import uuid
+        ext = file.filename.split(".")[-1] if "." in file.filename else "jpg"
+        filename = f"agent_{agent_id}_{uuid.uuid4().hex[:8]}.{ext}"
+        destination_path = f"agents/{filename}"
+        
+        # Upload to configured storage
+        image_url = await storage.upload_file(contents, destination_path, file.content_type)
+        
+        # Update agent
+        await db.user_agents.update_one(
+            {"id": agent_id, "tenant_id": tenant_id},
+            {"$set": {"profile_image_url": image_url, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+        
+        return {"message": "Profile image uploaded", "profile_image_url": image_url}
+    
+    return await _upload(file)
+
+
+@router.post("/{agent_id}/publish")
+async def publish_agent_to_marketplace(
+    agent_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Publish user agent to marketplace after AI review"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get agent
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # AI Review using orchestrator
+    review_result = await review_agent_for_marketplace(agent)
+    
+    if not review_result["approved"]:
+        return {
+            "success": False,
+            "approved": False,
+            "message": "Agent did not pass review",
+            "issues": review_result.get("issues", []),
+            "suggestions": review_result.get("suggestions", [])
+        }
+    
+    # Create template in marketplace
+    import uuid
+    template_id = str(uuid.uuid4())
+    now = datetime.now(timezone.utc).isoformat()
+    
+    template = {
+        "id": template_id,
+        "source_agent_id": agent_id,
+        "source_tenant_id": tenant_id,
+        "name": agent["name"],
+        "description": agent["description"],
+        "category": agent["category"],
+        "icon": agent["icon"],
+        "profile_image_url": agent.get("profile_image_url"),
+        "config": agent["config"],
+        "is_public": True,
+        "usage_count": 0,
+        "created_at": now,
+        "published_at": now
+    }
+    
+    await db.agent_templates.insert_one(template)
+    
+    # Mark original agent as published
+    await db.user_agents.update_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"$set": {
+            "is_public": True,
+            "published_at": now,
+            "marketplace_template_id": template_id,
+            "updated_at": now
+        }}
+    )
+    
+    logger.info(f"Agent {agent_id} published to marketplace as template {template_id}")
+    
+    return {
+        "success": True,
+        "approved": True,
+        "message": "Agent published to marketplace successfully",
+        "template_id": template_id
+    }
+
+
+@router.post("/{agent_id}/unpublish")
+async def unpublish_agent_from_marketplace(
+    agent_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Remove agent from marketplace"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get agent
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    template_id = agent.get("marketplace_template_id")
+    if not template_id:
+        raise HTTPException(status_code=400, detail="Agent is not published")
+    
+    # Remove from marketplace
+    await db.agent_templates.delete_one({"id": template_id})
+    
+    # Update agent
+    await db.user_agents.update_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"$set": {
+            "is_public": False,
+            "published_at": None,
+            "marketplace_template_id": None,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Agent removed from marketplace"}
+
+
+async def review_agent_for_marketplace(agent: Dict[str, Any]) -> Dict[str, Any]:
+    """Use AI (orchestrator mother agent) to review agent for ethical, legal, and privacy concerns"""
+    
+    # Get system-wide orchestrator mother agent
+    # For now, we'll use a simple admin agent or the first available GPT model
+    system_providers = await db.providers.find({"is_active": True}, {"_id": 0}).to_list(10)
+    
+    if not system_providers:
+        # No AI available, auto-approve (or could reject)
+        logger.warning("No AI provider available for agent review, auto-approving")
+        return {"approved": True, "issues": [], "suggestions": []}
+    
+    # Use emergentintegrations to call LLM for review
+    try:
+        from emergentintegrations import UniversalLLMClient
+        import os
+        
+        # Get Emergent LLM key
+        emergent_key = os.environ.get("EMERGENT_LLM_KEY")
+        if not emergent_key:
+            logger.warning("No Emergent LLM key available for review, auto-approving")
+            return {"approved": True, "issues": [], "suggestions": []}
+        
+        client = UniversalLLMClient(emergent_key)
+        
+        # Build review prompt
+        config = agent.get("config", {})
+        system_prompt = config.get("system_prompt", "")
+        
+        review_prompt = f"""You are an AI content moderator reviewing a chatbot agent before it can be published to a public marketplace.
+
+Review the following agent for:
+1. Ethical violations (discrimination, hate speech, harmful content)
+2. Racial or identity-based bias
+3. Legal issues (illegal activities, copyright violations)
+4. Privacy concerns (requests for sensitive personal information)
+5. Company confidential information exposure
+
+Agent Details:
+- Name: {agent['name']}
+- Description: {agent['description']}
+- Category: {agent['category']}
+- System Prompt: {system_prompt}
+
+Respond in JSON format:
+{{
+  "approved": true/false,
+  "issues": ["list of specific issues found"],
+  "suggestions": ["list of suggestions to fix issues"]
+}}
+
+If the agent is safe and appropriate for public use, return approved: true with empty issues array.
+If there are any concerns, return approved: false with detailed issues and suggestions."""
+
+        response = client.create_completion(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": review_prompt}],
+            temperature=0.3,
+            max_tokens=500
+        )
+        
+        result_text = response.choices[0].message.content.strip()
+        
+        # Parse JSON response
+        import json
+        result = json.loads(result_text)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Agent review failed: {str(e)}")
+        # On error, reject for safety
+        return {
+            "approved": False,
+            "issues": ["Unable to complete automated review. Please try again later."],
+            "suggestions": ["Contact support if this issue persists."]
+        }
+
 
 # ============== ORCHESTRATION ENDPOINTS ==============
 
