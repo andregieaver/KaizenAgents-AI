@@ -294,20 +294,77 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
           {/* Extra Seats Tab */}
           <TabsContent value="seats" className="flex-1 overflow-y-auto mt-0" style={{maxHeight: 'calc(95vh - 200px)'}}>
             <div className="max-w-2xl mx-auto pb-4">
-              <div className="bg-muted/50 rounded-lg p-4 sm:p-6 space-y-4">
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
-                    <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              {isFreePlan ? (
+                // Free plan message
+                <div className="bg-muted/50 rounded-lg p-4 sm:p-6 space-y-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="p-2 sm:p-3 bg-amber-500/10 rounded-lg flex-shrink-0">
+                      <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6 text-amber-500" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base sm:text-lg font-semibold">Upgrade Required</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Additional seats are only available for paid plans
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-base sm:text-lg font-semibold">Purchase Additional Seats</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Add more team members to your account
+
+                  <Separator />
+
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      To purchase additional seats for your team, you need to upgrade to a paid plan first.
                     </p>
+                    
+                    <div className="bg-background/50 rounded-lg p-3 sm:p-4 border">
+                      <div className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium">Starter Plan</p>
+                          <p className="text-xs text-muted-foreground">Includes 5 seats + option to purchase more</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-background/50 rounded-lg p-3 sm:p-4 border">
+                      <div className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-sm font-medium">Professional Plan</p>
+                          <p className="text-xs text-muted-foreground">Includes 25 seats + option to purchase more</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        // Switch to plans tab
+                        const plansTab = document.querySelector('[value="plans"]');
+                        if (plansTab) plansTab.click();
+                      }}
+                    >
+                      <Crown className="h-4 w-4 mr-2" />
+                      View Plans
+                    </Button>
                   </div>
                 </div>
+              ) : (
+                // Paid plan - show seat purchase
+                <div className="bg-muted/50 rounded-lg p-4 sm:p-6 space-y-4">
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="p-2 sm:p-3 bg-primary/10 rounded-lg flex-shrink-0">
+                      <Users className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base sm:text-lg font-semibold">Purchase Additional Seats</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground">
+                        Add more team members to your account
+                      </p>
+                    </div>
+                  </div>
 
-                <Separator />
+                  <Separator />
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
