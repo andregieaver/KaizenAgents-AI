@@ -1799,6 +1799,15 @@ class AIAgentHubTester:
                 200
             )
             
+            # If user agents endpoint fails, try admin agents
+            if not success:
+                success, agents_response = self.run_test(
+                    "Get Available Admin Agents for Publishing",
+                    "GET",
+                    "admin/agents",
+                    200
+                )
+            
             if not success or not agents_response:
                 print("   ℹ️ No agents available for publishing test")
                 return True
