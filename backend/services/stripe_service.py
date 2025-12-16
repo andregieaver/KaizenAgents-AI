@@ -5,12 +5,44 @@ import stripe
 import os
 from typing import Dict, Any, Optional
 from utils.logger import log_info, log_error
+from middleware.database import db
 
-# Initialize Stripe
+# Initialize Stripe (will be overridden by database settings)
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
 
 class StripeService:
     """Stripe API wrapper for subscription management"""
+    
+    @staticmethod
+    async def initialize_from_db():
+        """Load Stripe API key from database settings"""
+        try:
+            settings = await db.platform_settings.find_one({"key": "stripe_integration"})
+            if settings and settings.get("value"):
+                value = settings["value"]
+                use_live = value.get("use_live_mode", False)
+                
+                if use_live:
+                    secret_key = value.get("live_secret_key")
+                else:
+                    secret_key = value.get("test_secret_key")
+                
+                if secret_key:
+                    stripe.api_key = secret_key
+                    log_info(f"Stripe initialized from database ({'live' if use_live else 'test'} mode)")
+                    return True
+            
+            # Fallback to env variable
+            env_key = os.environ.get("STRIPE_SECRET_KEY", "")
+            if env_key:
+                stripe.api_key = env_key
+                log_info("Stripe initialized from environment variable")
+                return True
+                
+            return False
+        except Exception as e:
+            log_error("Failed to initialize Stripe from database", error=e)
+            return False
     
     @staticmethod
     def is_configured() -> bool:
