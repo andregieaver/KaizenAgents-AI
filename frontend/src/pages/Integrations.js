@@ -461,6 +461,122 @@ const Integrations = () => {
               )}
             </Button>
           </div>
+
+          {/* Connection & Sync Tools */}
+          <Card className="border border-border">
+            <CardHeader>
+              <CardTitle>Stripe Tools</CardTitle>
+              <CardDescription>
+                Test your connection and sync subscription plans with Stripe
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Test Connection */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium">Test Connection</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Verify your Stripe API keys are working correctly
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleTestConnection}
+                    disabled={testingConnection}
+                  >
+                    {testingConnection ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Testing...
+                      </>
+                    ) : (
+                      <>
+                        <Plug className="h-4 w-4 mr-2" />
+                        Test Connection
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="border-t pt-4 space-y-3">
+                <div>
+                  <h4 className="text-sm font-medium mb-2">Plan Synchronization</h4>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Keep your subscription plans in sync between your database and Stripe
+                  </p>
+                </div>
+
+                {/* Sync to Stripe */}
+                <div className="flex items-start justify-between gap-4 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex-1">
+                    <h5 className="text-sm font-medium">Sync to Stripe</h5>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Create or update products and prices in Stripe based on your local plans
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSyncToStripe}
+                    disabled={syncingToStripe}
+                    className="flex-shrink-0"
+                  >
+                    {syncingToStripe ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Syncing...
+                      </>
+                    ) : (
+                      <>
+                        <ArrowRight className="h-4 w-4 mr-2" />
+                        Sync →
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Sync from Stripe */}
+                <div className="flex items-start justify-between gap-4 p-3 bg-muted/50 rounded-lg">
+                  <div className="flex-1">
+                    <h5 className="text-sm font-medium">Sync from Stripe</h5>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Import products and prices from Stripe to update your local plans
+                    </p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSyncFromStripe}
+                    disabled={syncingFromStripe}
+                    className="flex-shrink-0"
+                  >
+                    {syncingFromStripe ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Syncing...
+                      </>
+                    ) : (
+                      <>
+                        <ArrowRight className="h-4 w-4 mr-2 rotate-180" />
+                        ← Sync
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+
+              <Alert className="border-blue-500 bg-blue-500/10">
+                <Info className="h-4 w-4 text-blue-500" />
+                <AlertDescription className="text-blue-700 text-xs">
+                  <strong>Note:</strong> Syncing to Stripe will create new products/prices if they don't exist. 
+                  Syncing from Stripe will update your local database with Stripe's data.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Code Injection Tab */}
