@@ -187,7 +187,7 @@ const DashboardLayout = () => {
     { path: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
     { path: '/dashboard/conversations', icon: Inbox, label: 'Conversations' },
     { path: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
-    { path: '/dashboard/marketplace', icon: Bot, label: 'Marketplace' },
+    { path: '/marketplace', icon: Bot, label: 'Marketplace' },
     { path: '/dashboard/team', icon: Users, label: 'Team' },
     { path: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
     { path: '/dashboard/affiliates', icon: Gift, label: 'Affiliates' },
