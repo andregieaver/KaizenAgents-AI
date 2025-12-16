@@ -1057,6 +1057,104 @@ The Header Block Components System is **PARTIALLY FUNCTIONAL** with a critical r
 *Environment: Production Preview*
 *Status: CRITICAL ISSUE - REQUIRES IMMEDIATE ATTENTION*
 
+## UI Fixes Testing - Marketplace and Settings
+
+### Test Scope
+- Test UI fixes for marketplace navigation, agent modal button spacing, clone agent flow, and mobile responsiveness
+- Credentials: andre@humanweb.no / Pernilla66!
+
+### Test Results Summary
+
+#### ✅ ALL TESTS PASSED
+
+**1. Marketplace Link in Sidebar:**
+- ✅ Marketplace link found in sidebar navigation
+- ✅ Correctly navigates to `/marketplace` (NOT `/dashboard/marketplace`)
+- ✅ "Agent Marketplace" page loads with proper title and content
+- ✅ URL routing working as expected
+
+**2. Agent Modal Button Spacing:**
+- ✅ "View Details" button functional on agent cards
+- ✅ Agent modal opens correctly with proper layout
+- ✅ Modal footer has proper gap classes (`gap-3 sm:gap-2`) for button spacing
+- ✅ "Close" and "Use This Agent" buttons have appropriate spacing
+- ✅ No cramped or touching buttons detected
+
+**3. Clone Agent Flow:**
+- ✅ "Use This Agent" button functional in modal
+- ✅ Agent cloning process works correctly
+- ✅ Redirects to `/dashboard/settings` with agents tab
+- ✅ Agents tab shows saved agents list
+- ✅ New agent appears in "My Saved Agents" section
+- ✅ E-commerce Support Agent successfully added (Added 12/16/2025)
+
+**4. Mobile Responsiveness of Settings Tabs:**
+- ✅ **Desktop View (1920x1080):** Icons + text labels visible
+- ✅ **Tablet View (768x1024):** Responsive classes working correctly
+- ✅ **Mobile View (390x844):** Icons visible, text hidden with responsive classes
+- ✅ Horizontal scrolling available via ScrollArea component
+- ✅ All 6 tabs accessible across different screen sizes
+- ✅ Tab navigation smooth and functional on all devices
+
+**5. UI/UX Verification:**
+- ✅ Professional design maintained across all screen sizes
+- ✅ Proper responsive breakpoints implemented
+- ✅ ScrollArea component provides horizontal scrolling capability
+- ✅ Tab icons remain visible on mobile while text adapts responsively
+- ✅ Navigation flows work seamlessly between marketplace and settings
+
+### Technical Implementation Verification
+
+**Frontend Components Tested:**
+- ✅ Marketplace.js - Navigation and agent modal functionality
+- ✅ Settings.js - Tab responsiveness and mobile layout
+- ✅ DashboardLayout.js - Sidebar navigation links
+- ✅ Agent cloning API integration working correctly
+
+**Responsive Design Features:**
+- ✅ Tailwind CSS responsive classes (`hidden sm:inline`) working correctly
+- ✅ ScrollArea component providing horizontal scrolling
+- ✅ Mobile-first design approach implemented properly
+- ✅ Viewport-specific layouts adapting correctly
+
+### Test Environment Details
+- **Frontend URL:** https://mothership-ai.preview.emergentagent.com
+- **Authentication:** Working correctly with provided credentials
+- **Session Management:** Stable during testing operations
+- **Cross-device Testing:** Desktop, tablet, and mobile viewports tested
+
+### Screenshots Captured
+1. Marketplace page with agent cards
+2. Agent modal with proper button spacing
+3. Settings page with agents tab active
+4. Desktop tabs with icons and text
+5. Mobile tabs with responsive layout
+
+### Conclusion
+All UI fixes have been **SUCCESSFULLY IMPLEMENTED** and are working as designed:
+
+**Status: ALL FIXES VERIFIED AND WORKING** ✅
+
+### Key Achievements Verified
+- ✅ **Marketplace Navigation:** Correct routing to `/marketplace` instead of `/dashboard/marketplace`
+- ✅ **Modal Button Spacing:** Proper gap classes ensure buttons are not cramped together
+- ✅ **Clone Agent Flow:** Complete workflow from marketplace to settings with proper redirect
+- ✅ **Mobile Responsiveness:** Tabs adapt correctly across all screen sizes with horizontal scrolling
+- ✅ **User Experience:** Smooth navigation and interaction flows throughout the application
+
+### Recommendations
+1. All requested UI fixes have been successfully implemented
+2. Mobile responsiveness is excellent with proper responsive design patterns
+3. Navigation flows work seamlessly between different sections
+4. Button spacing and modal layouts are professional and user-friendly
+5. System ready for production use with confidence
+
+---
+*UI Fixes Test completed on: December 16, 2025*
+*Tester: Testing Agent*
+*Environment: Production Preview*
+*Status: ALL TESTS PASSED - READY FOR PRODUCTION*
+
 ## Discount Code Functionality Backend API Tests
 
 ### Test Scope
