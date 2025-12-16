@@ -255,9 +255,10 @@ async def activate_agent(
     )
     
     # Activate this agent
+    now = datetime.now(timezone.utc).isoformat()
     await db.user_agents.update_one(
         {"id": agent_id, "tenant_id": tenant_id},
-        {"$set": {"is_active": True, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        {"$set": {"is_active": True, "activated_at": now, "updated_at": now}}
     )
     
     # Update settings to reference this agent
