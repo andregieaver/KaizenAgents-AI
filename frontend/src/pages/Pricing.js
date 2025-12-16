@@ -9,7 +9,7 @@ import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
-import { Check, Loader2, Sparkles, Zap, Crown, ArrowRight, MessageSquare, Moon, Sun, Tag, X } from 'lucide-react';
+import { Check, Loader2, Sparkles, Zap, Crown, ArrowRight, MessageSquare, Moon, Sun, Tag, X, Users, CreditCard } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useTheme } from '../context/ThemeContext';
 
