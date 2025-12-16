@@ -1433,6 +1433,146 @@ The Discount Code functionality is **FULLY FUNCTIONAL** at the backend API level
 *Environment: Production Preview*
 *Status: ALL TESTS PASSED - BACKEND READY*
 
+## Refactored Feature Gates Standalone Admin Page Tests
+
+### Test Scope
+- Test the NEW refactored Feature Gates standalone admin page
+- Company-level quota features (NOT API route restrictions)
+- Standalone page at /dashboard/admin/feature-gates (NOT Settings tab)
+- Super admin access control and authentication
+- Company quota features matrix display and configuration
+- Category filtering (agents, team, usage, content, branding)
+- Configure limits functionality
+- Save and refresh functionality
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Test Results Summary
+
+#### ❌ CRITICAL BACKEND ISSUE IDENTIFIED
+
+**1. API Response Validation Error:**
+- ❌ **CRITICAL**: Backend API `/api/feature-gates/config` returning old structure with 'routes' instead of 'features'
+- ❌ Response validation error: `Field required: 'features'` but API returns 'routes'
+- ❌ Frontend expects new company quota structure but backend returns old API route structure
+
+**2. Data Structure Mismatch:**
+- ❌ API returns old route-based data: `{'routes': [{'route_path': '/api/agents/', 'route_method': 'POST', ...}]}`
+- ❌ Frontend expects new quota-based data: `{'features': [{'feature_key': 'max_agents', 'feature_name': 'Maximum Active Agents', ...}]}`
+- ❌ Config ID found: `ba036e91-f097-4980-8d58-3ebd68b95b6a` with old structure
+
+**3. Page Loading Issues:**
+- ❌ Feature Gates page fails to load due to API errors
+- ❌ Page shows loading state but never renders content
+- ❌ Frontend receives 500 Internal Server Error from backend
+
+#### ✅ WORKING COMPONENTS
+
+**1. Navigation and Access Control:**
+- ✅ Super admin login successful with provided credentials
+- ✅ "Feature Gates" menu item found in sidebar with Shield icon
+- ✅ Menu item positioned below "Plan Management" as expected
+- ✅ Standalone URL structure: `/dashboard/admin/feature-gates` (not in Settings)
+- ✅ Proper super admin access control
+
+**2. Frontend Implementation:**
+- ✅ FeatureGatesAdmin.js component properly implemented with new quota structure
+- ✅ Component expects company-level features like "Maximum Active Agents", "Maximum Company Seats"
+- ✅ Proper category filtering: agents, team, usage, content, branding
+- ✅ Toggle switches and limit input fields implemented
+- ✅ Unsaved changes detection and save functionality coded
+
+**3. Backend Route Structure:**
+- ✅ New feature_gates.py routes properly defined with quota-based DEFAULT_QUOTA_FEATURES
+- ✅ Correct company quota features implemented:
+  - Maximum Active Agents (agents category)
+  - Maximum Company Seats (team category)
+  - Monthly Token Usage (usage category)
+  - Monthly Message Limit (usage category)
+  - Maximum CMS Pages (content category)
+  - Marketplace Publishing (agents category)
+  - Agent Orchestration (agents category)
+  - Custom Branding (branding category)
+
+#### 🔧 ROOT CAUSE ANALYSIS
+
+**Issue:** Backend API validation error due to data structure mismatch
+- The new frontend expects 'features' array with company quota structure
+- But the API is returning old 'routes' array with API endpoint structure
+- This causes FastAPI ResponseValidationError when trying to serialize response
+
+**Potential Causes:**
+1. **Old Database Config**: There may be an old feature gate config in database with 'routes' structure
+2. **Middleware Conflict**: Feature gate middleware still expects old 'routes' structure
+3. **Cached Data**: Old compiled Python files or cached responses
+4. **Code Path Issue**: Some other code creating old structure config
+
+**Investigation Results:**
+- ✅ Database check shows no old configs in feature_gate_config collection
+- ✅ New routes/feature_gates.py code uses correct 'features' structure
+- ✅ Deleted compiled .pyc files and restarted backend
+- ❌ Issue persists after restart - API still returns old structure
+
+### Test Environment Details
+- **Frontend URL:** https://fix-ui-bugs.preview.emergentagent.com
+- **Authentication:** Working correctly with super admin credentials
+- **Backend API:** Failing with ResponseValidationError on /api/feature-gates/config
+- **Error Pattern:** Consistent 500 Internal Server Error on feature gates endpoints
+
+### Screenshots Captured
+1. Feature Gates menu item in sidebar (working)
+2. Page loading state (stuck due to API error)
+3. Error state screenshots
+
+### Conclusion
+The refactored Feature Gates standalone page has **CRITICAL BACKEND ISSUES** preventing functionality:
+
+**Status: REQUIRES IMMEDIATE BACKEND FIX** ❌
+
+### Issues Requiring Resolution
+
+**CRITICAL - BACKEND:**
+1. **API Response Structure**: Backend returning old 'routes' structure instead of new 'features' structure
+2. **Data Model Mismatch**: Response validation failing due to structure incompatibility
+3. **Config Creation**: Some process creating old-format configs despite new code
+
+**WORKING - FRONTEND:**
+1. **Navigation**: Standalone page structure and menu placement correct
+2. **Component**: FeatureGatesAdmin.js properly implemented for new quota system
+3. **Access Control**: Super admin authentication and authorization working
+
+### Recommendations for Main Agent
+
+**IMMEDIATE ACTION REQUIRED:**
+1. **Debug API Response**: Investigate why `/api/feature-gates/config` returns 'routes' instead of 'features'
+2. **Check Database**: Verify no old configs exist that override new structure
+3. **Middleware Update**: Update feature_gate_middleware.py to work with new 'features' structure
+4. **Response Model**: Ensure FeatureGateConfig model matches actual API response
+5. **Data Migration**: If old configs exist, migrate them to new structure
+
+### What Works vs. What Doesn't
+
+**✅ WORKING:**
+- Super admin authentication and sidebar navigation
+- Feature Gates menu item with Shield icon and correct positioning
+- Standalone page URL structure (/dashboard/admin/feature-gates)
+- Frontend component implementation for company quotas
+- New backend route definitions with correct quota features
+
+**❌ NOT WORKING:**
+- Backend API response structure (returns 'routes' instead of 'features')
+- Page content loading (fails due to API errors)
+- Feature matrix display (cannot load due to backend issues)
+- Configuration functionality (blocked by API failures)
+- Save/refresh operations (dependent on working API)
+
+---
+*Refactored Feature Gates Test completed on: December 16, 2025*
+*Tester: Testing Agent*
+*Environment: Production Preview*
+*Status: CRITICAL BACKEND ISSUE - REQUIRES IMMEDIATE ATTENTION*
+
 ## Pages Management Feature Tests
 
 ### Test Scope
