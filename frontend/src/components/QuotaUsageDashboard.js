@@ -231,7 +231,7 @@ const QuotaUsageDashboard = () => {
                     Purchase additional seats or upgrade your plan
                   </p>
                 </div>
-                <Button size="sm">
+                <Button size="sm" onClick={() => handleUpgradeClick('seats')}>
                   <ArrowUpRight className="h-4 w-4 mr-2" />
                   Add Seats
                 </Button>
