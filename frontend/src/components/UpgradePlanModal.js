@@ -224,44 +224,45 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
                   <div
                     key={plan.id}
                     className={cn(
-                      "relative border rounded-lg p-6 transition-all",
+                      "relative border rounded-lg p-4 sm:p-6 transition-all",
                       isCurrent && "border-primary bg-primary/5",
                       plan.name.toLowerCase() === 'professional' && !isCurrent && "border-primary shadow-lg"
                     )}
                   >
                     {isCurrent && (
-                      <Badge className="absolute top-4 right-4" variant="default">
-                        Current Plan
+                      <Badge className="absolute top-3 right-3 sm:top-4 sm:right-4 text-xs" variant="default">
+                        Current
                       </Badge>
                     )}
                     {plan.name.toLowerCase() === 'professional' && !isCurrent && (
-                      <Badge className="absolute top-4 right-4 bg-amber-500">
+                      <Badge className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-amber-500 text-xs">
                         Popular
                       </Badge>
                     )}
 
-                    <div className="space-y-4">
+                    <div className="space-y-3 sm:space-y-4">
                       <div>
-                        <h3 className="text-xl font-semibold font-heading">{plan.name}</h3>
-                        <div className="mt-2 flex items-baseline">
-                          <span className="text-3xl font-bold">${price}</span>
-                          <span className="text-muted-foreground ml-2">/month</span>
+                        <h3 className="text-lg sm:text-xl font-semibold font-heading">{plan.name}</h3>
+                        <div className="mt-1 sm:mt-2 flex items-baseline">
+                          <span className="text-2xl sm:text-3xl font-bold">${price}</span>
+                          <span className="text-muted-foreground ml-1 sm:ml-2 text-sm">/month</span>
                         </div>
                       </div>
 
                       <Separator />
 
-                      <ul className="space-y-2">
+                      <ul className="space-y-1.5 sm:space-y-2">
                         {features.map((feature, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-sm">
-                            <Check className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                          <li key={idx} className="flex items-start gap-2 text-xs sm:text-sm">
+                            <Check className="h-3 w-3 sm:h-4 sm:w-4 text-green-500 mt-0.5 flex-shrink-0" />
                             <span>{feature}</span>
                           </li>
                         ))}
                       </ul>
 
                       <Button
-                        className="w-full"
+                        className="w-full text-sm"
+                        size="sm"
                         variant={isCurrent ? 'outline' : 'default'}
                         disabled={isCurrent || upgrading || isDowngrade}
                         onClick={() => handleUpgrade(plan.name.toLowerCase())}
@@ -277,8 +278,9 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
                           'Contact Support'
                         ) : (
                           <>
-                            Upgrade to {plan.name}
-                            <ArrowRight className="h-4 w-4 ml-2" />
+                            <span className="hidden sm:inline">Upgrade to {plan.name}</span>
+                            <span className="sm:hidden">Upgrade</span>
+                            <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
                           </>
                         )}
                       </Button>
