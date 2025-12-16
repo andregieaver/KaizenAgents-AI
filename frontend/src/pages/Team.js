@@ -142,7 +142,16 @@ const Team = () => {
       setInviteForm({ name: '', email: '', role: 'agent' });
       toast.success('User invited successfully!');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to invite user');
+      const errorDetail = error.response?.data?.detail;
+      
+      // Check if it's a quota error
+      if (errorDetail && typeof errorDetail === 'object' && errorDetail.error === 'quota_exceeded') {
+        toast.error(errorDetail.message);
+        setInviteOpen(false);
+        setUpgradeModalOpen(true);
+      } else {
+        toast.error(errorDetail || 'Failed to invite user');
+      }
     } finally {
       setInviteLoading(false);
     }
