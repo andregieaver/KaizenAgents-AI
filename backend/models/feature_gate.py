@@ -1,28 +1,28 @@
 """
-Feature Gate Models for subscription-based API access control
+Feature Gate Models for subscription-based quota and limit management
 """
 from pydantic import BaseModel, ConfigDict
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 
 
-class RouteLimit(BaseModel):
-    """Limits for a specific route on a specific plan"""
+class PlanLimit(BaseModel):
+    """Limits for a specific feature on a specific plan"""
     enabled: bool = True
-    rate_limit_per_hour: Optional[int] = None  # Max requests per hour
-    rate_limit_per_day: Optional[int] = None   # Max requests per day
-    quota_limit: Optional[int] = None          # Max items (e.g., max agents, max pages)
-    custom_params: Dict[str, Any] = {}         # Additional custom parameters
+    limit_value: Optional[int] = None          # Quota limit (None = unlimited)
+    limit_type: str = "quota"                  # "quota" or "usage"
+    unit: Optional[str] = None                 # e.g., "agents", "seats", "tokens", "messages"
+    
 
-
-class FeatureGateRoute(BaseModel):
-    """A single route configuration across all plans"""
-    route_path: str                           # e.g., "/api/agents/"
-    route_method: str                         # e.g., "POST", "GET", "*"
-    route_name: str                           # Human-readable name
-    route_description: str                    # Description of what this route does
-    category: str                             # e.g., "agents", "pages", "conversations"
-    plans: Dict[str, RouteLimit]              # Plan name -> RouteLimit
+class FeatureQuota(BaseModel):
+    """A single feature quota configuration across all plans"""
+    feature_key: str                           # Unique key, e.g., "max_agents"
+    feature_name: str                          # Human-readable name
+    feature_description: str                   # Description of what this limits
+    category: str                              # e.g., "agents", "team", "usage", "content"
+    limit_type: str                            # "quota" (max items) or "usage" (consumption)
+    unit: str                                  # e.g., "agents", "seats", "tokens", "pages"
+    plans: Dict[str, PlanLimit]                # Plan name -> PlanLimit
     
 
 class FeatureGateConfig(BaseModel):
