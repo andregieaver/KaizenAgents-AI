@@ -189,8 +189,31 @@ async def update_user_agent(
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     
-    # Build update
-    update_fields = {k: v for k, v in update_data.model_dump().items() if v is not None}
+    # Build update - handle both direct fields and config fields
+    update_fields = {}
+    config_updates = {}
+    
+    for key, value in update_data.model_dump().items():
+        if value is not None:
+            # Fields that go into config
+            if key in ["system_prompt", "temperature", "max_tokens", "model"]:
+                config_updates[key] = value
+            # Fields that are direct on agent
+            elif key in ["name", "description", "category", "icon", "profile_image_url", "orchestration_enabled", "tags"]:
+                update_fields[key] = value
+            # Config object itself
+            elif key == "config" and value:
+                # Merge with existing config
+                existing_config = agent.get("config", {})
+                existing_config.update(value)
+                update_fields["config"] = existing_config
+    
+    # If we have config updates, merge them
+    if config_updates:
+        existing_config = agent.get("config", {})
+        existing_config.update(config_updates)
+        update_fields["config"] = existing_config
+    
     update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
     
     await db.user_agents.update_one(
