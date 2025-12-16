@@ -221,33 +221,37 @@ const Settings = () => {
         <p className="text-muted-foreground">Configure your support hub and widget</p>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 lg:w-auto lg:inline-flex">
-          <TabsTrigger value="general" className="gap-2" data-testid="tab-general">
-            <SettingsIcon className="h-4 w-4 hidden sm:block" />
-            General
-          </TabsTrigger>
-          <TabsTrigger value="agents" className="gap-2" data-testid="tab-agents">
-            <Bot className="h-4 w-4 hidden sm:block" />
-            Agents
-          </TabsTrigger>
-          <TabsTrigger value="agent-config" className="gap-2" data-testid="tab-agent-config">
-            <Sparkles className="h-4 w-4 hidden sm:block" />
-            Active Agent
-          </TabsTrigger>
-          <TabsTrigger value="orchestration" className="gap-2" data-testid="tab-orchestration">
-            <Network className="h-4 w-4 hidden sm:block" />
-            Orchestration
-          </TabsTrigger>
-          <TabsTrigger value="widget" className="gap-2" data-testid="tab-widget">
-            <Palette className="h-4 w-4 hidden sm:block" />
-            Widget
-          </TabsTrigger>
-          <TabsTrigger value="embed" className="gap-2" data-testid="tab-embed">
-            <Code className="h-4 w-4 hidden sm:block" />
-            Embed
-          </TabsTrigger>
-        </TabsList>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        {/* Mobile-friendly scrollable tabs */}
+        <ScrollArea className="w-full whitespace-nowrap">
+          <TabsList className="inline-flex w-max p-1">
+            <TabsTrigger value="general" className="gap-2 px-3" data-testid="tab-general">
+              <SettingsIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">General</span>
+            </TabsTrigger>
+            <TabsTrigger value="agents" className="gap-2 px-3" data-testid="tab-agents">
+              <Bot className="h-4 w-4" />
+              <span className="hidden sm:inline">Agents</span>
+            </TabsTrigger>
+            <TabsTrigger value="agent-config" className="gap-2 px-3" data-testid="tab-agent-config">
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Active</span>
+            </TabsTrigger>
+            <TabsTrigger value="orchestration" className="gap-2 px-3" data-testid="tab-orchestration">
+              <Network className="h-4 w-4" />
+              <span className="hidden sm:inline">Orchestration</span>
+            </TabsTrigger>
+            <TabsTrigger value="widget" className="gap-2 px-3" data-testid="tab-widget">
+              <Palette className="h-4 w-4" />
+              <span className="hidden sm:inline">Widget</span>
+            </TabsTrigger>
+            <TabsTrigger value="embed" className="gap-2 px-3" data-testid="tab-embed">
+              <Code className="h-4 w-4" />
+              <span className="hidden sm:inline">Embed</span>
+            </TabsTrigger>
+          </TabsList>
+          <ScrollBar orientation="horizontal" className="invisible" />
+        </ScrollArea>
 
         {/* Saved Agents Tab */}
         <TabsContent value="agents">
