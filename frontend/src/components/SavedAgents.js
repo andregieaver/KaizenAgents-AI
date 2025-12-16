@@ -252,35 +252,59 @@ const SavedAgents = () => {
                     : "border-border hover:border-primary/50"
                 )}
               >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-                  <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
-                    <div className="text-2xl sm:text-3xl">{agent.icon}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-sm sm:text-base truncate">{agent.name}</h3>
-                        <Badge
-                          variant="outline"
-                          className={cn("text-xs", getCategoryBadgeColor(agent.category))}
-                        >
-                          {agent.category.replace('_', ' ')}
-                        </Badge>
-                        {agent.is_active && (
-                          <Badge className="bg-green-500 text-white">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Active
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                    <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+                      {agent.profile_image_url ? (
+                        <img 
+                          src={agent.profile_image_url} 
+                          alt={agent.name} 
+                          className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover border-2 border-border"
+                        />
+                      ) : (
+                        <div className="text-2xl sm:text-3xl">{agent.icon}</div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-sm sm:text-base truncate">{agent.name}</h3>
+                          <Badge
+                            variant="outline"
+                            className={cn("text-xs", getCategoryBadgeColor(agent.category))}
+                          >
+                            {agent.category.replace('_', ' ')}
                           </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2 sm:line-clamp-1">
-                        {agent.description}
-                      </p>
-                      <div className="mt-2 sm:mt-3 text-xs text-muted-foreground">
-                        <span>Added {new Date(agent.created_at).toLocaleDateString()}</span>
+                          {agent.is_active && (
+                            <Badge className="bg-green-500 text-white text-xs">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Active
+                            </Badge>
+                          )}
+                          {agent.is_public && (
+                            <Badge className="bg-blue-500 text-white text-xs">
+                              <Globe className="h-3 w-3 mr-1" />
+                              Public
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {agent.description}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                          <span>Created: {new Date(agent.created_at).toLocaleDateString()}</span>
+                          {agent.updated_at && agent.updated_at !== agent.created_at && (
+                            <span>Updated: {new Date(agent.updated_at).toLocaleDateString()}</span>
+                          )}
+                          {agent.activated_at && (
+                            <span>Last Activated: {new Date(agent.activated_at).toLocaleDateString()}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                    {!agent.is_active && (
+                  
+                  {/* Action Buttons */}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {!agent.is_active ? (
                       <Button
                         size="sm"
                         onClick={() => handleActivate(agent.id)}
@@ -292,10 +316,82 @@ const SavedAgents = () => {
                             Activating...
                           </>
                         ) : (
-                          'Activate'
+                          <>
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Activate
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDeactivate(agent.id)}
+                        disabled={deactivating === agent.id}
+                      >
+                        {deactivating === agent.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Deactivating...
+                          </>
+                        ) : (
+                          <>
+                            <PowerOff className="h-4 w-4 mr-2" />
+                            Deactivate
+                          </>
                         )}
                       </Button>
                     )}
+                    
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setEditingAgent(agent)}
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    
+                    {!agent.is_public ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setPublishDialog(agent)}
+                        disabled={publishing === agent.id}
+                      >
+                        {publishing === agent.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Publishing...
+                          </>
+                        ) : (
+                          <>
+                            <Globe className="h-4 w-4 mr-2" />
+                            Publish
+                          </>
+                        )}
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleUnpublish(agent.id)}
+                        disabled={unpublishing === agent.id}
+                      >
+                        {unpublishing === agent.id ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Unpublishing...
+                          </>
+                        ) : (
+                          <>
+                            <GlobeOff className="h-4 w-4 mr-2" />
+                            Unpublish
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    
                     {!agent.is_active && (
                       <Button
                         size="sm"
@@ -306,7 +402,7 @@ const SavedAgents = () => {
                         {deleting === agent.id ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4 text-red-500" />
                         )}
                       </Button>
                     )}
