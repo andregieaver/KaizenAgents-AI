@@ -214,6 +214,12 @@ async def create_page(
     current_user: dict = Depends(is_super_admin)
 ):
     """Create a new custom page"""
+    # Check quota limit for max pages (if user has tenant_id)
+    tenant_id = current_user.get("tenant_id")
+    if tenant_id:
+        from services.quota_service import check_quota_limit
+        await check_quota_limit(tenant_id, "max_pages", increment=1)
+    
     # Check if slug already exists
     existing = await db.pages.find_one({"slug": page_data.slug})
     if existing:
