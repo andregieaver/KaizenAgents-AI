@@ -22,97 +22,118 @@ logger = logging.getLogger(__name__)
 # Default plans
 DEFAULT_PLANS = ["free", "basic", "pro", "enterprise"]
 
-# Default gated routes with their configurations
-DEFAULT_GATED_ROUTES = [
+# Default company quota features
+DEFAULT_QUOTA_FEATURES = [
     {
-        "route_path": "/api/agents/",
-        "route_method": "POST",
-        "route_name": "Create Agent",
-        "route_description": "Create a custom AI agent",
+        "feature_key": "max_agents",
+        "feature_name": "Maximum Active Agents",
+        "feature_description": "Maximum number of AI agents that can be active simultaneously",
         "category": "agents",
+        "limit_type": "quota",
+        "unit": "agents",
         "plans": {
-            "free": {"enabled": True, "quota_limit": 2},
-            "basic": {"enabled": True, "quota_limit": 5},
-            "pro": {"enabled": True, "quota_limit": 20},
-            "enterprise": {"enabled": True, "quota_limit": None}
+            "free": {"enabled": True, "limit_value": 2, "limit_type": "quota", "unit": "agents"},
+            "basic": {"enabled": True, "limit_value": 5, "limit_type": "quota", "unit": "agents"},
+            "pro": {"enabled": True, "limit_value": 20, "limit_type": "quota", "unit": "agents"},
+            "enterprise": {"enabled": True, "limit_value": None, "limit_type": "quota", "unit": "agents"}
         }
     },
     {
-        "route_path": "/api/agents/{agent_id}/publish",
-        "route_method": "POST",
-        "route_name": "Publish Agent to Marketplace",
-        "route_description": "Publish an agent to the public marketplace",
+        "feature_key": "max_seats",
+        "feature_name": "Maximum Company Seats",
+        "feature_description": "Maximum number of team members/users allowed in the company",
+        "category": "team",
+        "limit_type": "quota",
+        "unit": "seats",
+        "plans": {
+            "free": {"enabled": True, "limit_value": 1, "limit_type": "quota", "unit": "seats"},
+            "basic": {"enabled": True, "limit_value": 5, "limit_type": "quota", "unit": "seats"},
+            "pro": {"enabled": True, "limit_value": 25, "limit_type": "quota", "unit": "seats"},
+            "enterprise": {"enabled": True, "limit_value": None, "limit_type": "quota", "unit": "seats"}
+        }
+    },
+    {
+        "feature_key": "monthly_token_limit",
+        "feature_name": "Monthly Token Usage",
+        "feature_description": "Maximum LLM tokens (API calls) allowed per month",
+        "category": "usage",
+        "limit_type": "usage",
+        "unit": "tokens",
+        "plans": {
+            "free": {"enabled": True, "limit_value": 100000, "limit_type": "usage", "unit": "tokens"},
+            "basic": {"enabled": True, "limit_value": 500000, "limit_type": "usage", "unit": "tokens"},
+            "pro": {"enabled": True, "limit_value": 5000000, "limit_type": "usage", "unit": "tokens"},
+            "enterprise": {"enabled": True, "limit_value": None, "limit_type": "usage", "unit": "tokens"}
+        }
+    },
+    {
+        "feature_key": "monthly_messages",
+        "feature_name": "Monthly Message Limit",
+        "feature_description": "Maximum chat messages users can send per month",
+        "category": "usage",
+        "limit_type": "usage",
+        "unit": "messages",
+        "plans": {
+            "free": {"enabled": True, "limit_value": 1000, "limit_type": "usage", "unit": "messages"},
+            "basic": {"enabled": True, "limit_value": 10000, "limit_type": "usage", "unit": "messages"},
+            "pro": {"enabled": True, "limit_value": 100000, "limit_type": "usage", "unit": "messages"},
+            "enterprise": {"enabled": True, "limit_value": None, "limit_type": "usage", "unit": "messages"}
+        }
+    },
+    {
+        "feature_key": "max_pages",
+        "feature_name": "Maximum CMS Pages",
+        "feature_description": "Maximum number of CMS pages that can be created",
+        "category": "content",
+        "limit_type": "quota",
+        "unit": "pages",
+        "plans": {
+            "free": {"enabled": True, "limit_value": 5, "limit_type": "quota", "unit": "pages"},
+            "basic": {"enabled": True, "limit_value": 25, "limit_type": "quota", "unit": "pages"},
+            "pro": {"enabled": True, "limit_value": 100, "limit_type": "quota", "unit": "pages"},
+            "enterprise": {"enabled": True, "limit_value": None, "limit_type": "quota", "unit": "pages"}
+        }
+    },
+    {
+        "feature_key": "marketplace_publishing",
+        "feature_name": "Marketplace Publishing",
+        "feature_description": "Ability to publish agents to the public marketplace",
         "category": "agents",
+        "limit_type": "quota",
+        "unit": "feature",
         "plans": {
-            "free": {"enabled": False},
-            "basic": {"enabled": True, "rate_limit_per_day": 3},
-            "pro": {"enabled": True, "rate_limit_per_day": 10},
-            "enterprise": {"enabled": True}
+            "free": {"enabled": False, "limit_value": 0, "limit_type": "quota", "unit": "feature"},
+            "basic": {"enabled": True, "limit_value": 3, "limit_type": "quota", "unit": "publishes/month"},
+            "pro": {"enabled": True, "limit_value": 10, "limit_type": "quota", "unit": "publishes/month"},
+            "enterprise": {"enabled": True, "limit_value": None, "limit_type": "quota", "unit": "publishes/month"}
         }
     },
     {
-        "route_path": "/api/pages/",
-        "route_method": "POST",
-        "route_name": "Create Page",
-        "route_description": "Create a new CMS page",
-        "category": "cms",
-        "plans": {
-            "free": {"enabled": True, "quota_limit": 5},
-            "basic": {"enabled": True, "quota_limit": 20},
-            "pro": {"enabled": True, "quota_limit": 100},
-            "enterprise": {"enabled": True}
-        }
-    },
-    {
-        "route_path": "/api/widget/messages/{conversation_id}",
-        "route_method": "POST",
-        "route_name": "Send Chat Message",
-        "route_description": "Send a message to an AI agent",
-        "category": "conversations",
-        "plans": {
-            "free": {"enabled": True, "rate_limit_per_hour": 50, "rate_limit_per_day": 200},
-            "basic": {"enabled": True, "rate_limit_per_hour": 200, "rate_limit_per_day": 1000},
-            "pro": {"enabled": True, "rate_limit_per_hour": 1000, "rate_limit_per_day": 10000},
-            "enterprise": {"enabled": True}
-        }
-    },
-    {
-        "route_path": "/api/agents/{agent_id}/upload-image",
-        "route_method": "POST",
-        "route_name": "Upload Agent Image",
-        "route_description": "Upload a profile image for an agent",
+        "feature_key": "orchestration",
+        "feature_name": "Agent Orchestration",
+        "feature_description": "Advanced multi-agent orchestration (Mother/Child architecture)",
         "category": "agents",
+        "limit_type": "quota",
+        "unit": "feature",
         "plans": {
-            "free": {"enabled": False},
-            "basic": {"enabled": True},
-            "pro": {"enabled": True},
-            "enterprise": {"enabled": True}
+            "free": {"enabled": False, "limit_value": 0, "limit_type": "quota", "unit": "feature"},
+            "basic": {"enabled": False, "limit_value": 0, "limit_type": "quota", "unit": "feature"},
+            "pro": {"enabled": True, "limit_value": 1, "limit_type": "quota", "unit": "feature"},
+            "enterprise": {"enabled": True, "limit_value": 1, "limit_type": "quota", "unit": "feature"}
         }
     },
     {
-        "route_path": "/api/settings/orchestration",
-        "route_method": "PUT",
-        "route_name": "Configure Orchestration",
-        "route_description": "Enable and configure agent orchestration",
-        "category": "orchestration",
+        "feature_key": "custom_branding",
+        "feature_name": "Custom Branding",
+        "feature_description": "Custom logos, colors, and white-label branding",
+        "category": "branding",
+        "limit_type": "quota",
+        "unit": "feature",
         "plans": {
-            "free": {"enabled": False},
-            "basic": {"enabled": False},
-            "pro": {"enabled": True},
-            "enterprise": {"enabled": True}
-        }
-    },
-    {
-        "route_path": "/api/pages/{page_slug}/export",
-        "route_method": "GET",
-        "route_name": "Export Page",
-        "route_description": "Export a page as HTML",
-        "category": "cms",
-        "plans": {
-            "free": {"enabled": True, "rate_limit_per_day": 5},
-            "basic": {"enabled": True, "rate_limit_per_day": 20},
-            "pro": {"enabled": True, "rate_limit_per_day": 100},
-            "enterprise": {"enabled": True}
+            "free": {"enabled": False, "limit_value": 0, "limit_type": "quota", "unit": "feature"},
+            "basic": {"enabled": True, "limit_value": 1, "limit_type": "quota", "unit": "feature"},
+            "pro": {"enabled": True, "limit_value": 1, "limit_type": "quota", "unit": "feature"},
+            "enterprise": {"enabled": True, "limit_value": 1, "limit_type": "quota", "unit": "feature"}
         }
     }
 ]
