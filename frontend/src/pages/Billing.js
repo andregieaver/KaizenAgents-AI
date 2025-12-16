@@ -23,14 +23,47 @@ const Billing = () => {
   const [usage, setUsage] = useState(null);
 
   useEffect(() => {
-    fetchData();
+    const handleStripeReturn = async () => {
+      // Handle redirect from Stripe
+      if (searchParams.get('success') === 'true') {
+        // Get session_id from localStorage
+        const sessionId = localStorage.getItem('stripe_session_id');
+        
+        if (sessionId) {
+          try {
+            // Verify and activate subscription
+            const response = await axios.post(
+              `${API}/subscriptions/verify-checkout`,
+              null,
+              {
+                headers: { Authorization: `Bearer ${token}` },
+                params: { session_id: sessionId }
+              }
+            );
+            
+            if (response.data.status === 'active') {
+              toast.success('Payment successful! Your subscription is now active.');
+              localStorage.removeItem('stripe_session_id'); // Clean up
+            } else {
+              toast.info('Payment received. Activating your subscription...');
+            }
+          } catch (error) {
+            console.error('Error verifying checkout:', error);
+            toast.warning('Payment successful, but subscription activation is pending. Please refresh in a moment.');
+          }
+        } else {
+          toast.success('Payment successful! Your subscription is now active.');
+        }
+      } else if (searchParams.get('canceled') === 'true') {
+        toast.error('Payment canceled. You can try again anytime.');
+        localStorage.removeItem('stripe_session_id'); // Clean up
+      }
+      
+      // Fetch data after handling return
+      fetchData();
+    };
     
-    // Handle redirect from Stripe
-    if (searchParams.get('success') === 'true') {
-      toast.success('Payment successful! Your subscription is now active.');
-    } else if (searchParams.get('canceled') === 'true') {
-      toast.error('Payment canceled. You can try again anytime.');
-    }
+    handleStripeReturn();
   }, [token, searchParams]);
 
   const fetchData = async () => {
