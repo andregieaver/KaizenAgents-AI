@@ -46,6 +46,7 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
   useEffect(() => {
     if (open) {
       loadPlansAndUsage();
+      setActiveTab('plans'); // Reset to plans tab when modal opens
     }
   }, [open, token]);
 
