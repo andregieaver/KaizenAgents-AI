@@ -287,6 +287,42 @@ const Pricing = () => {
     return plan.price_monthly > currentPlan.price_monthly;
   };
 
+  const handlePurchaseSeats = async () => {
+    if (seatQuantity < 1) {
+      toast.error('Please enter a valid quantity');
+      return;
+    }
+
+    setPurchasingSeats(true);
+    try {
+      const response = await axios.post(
+        `${API}/quotas/extra-seats/purchase`,
+        { 
+          quantity: seatQuantity,
+          payment_method: 'stripe'
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(response.data.message || `Successfully purchased ${seatQuantity} seat${seatQuantity > 1 ? 's' : ''}!`);
+      setSeatQuantity(1); // Reset quantity
+      
+      // Reload subscription data
+      fetchData();
+    } catch (error) {
+      console.error('Error purchasing seats:', error);
+      toast.error(error.response?.data?.detail || 'Failed to purchase seats');
+    } finally {
+      setPurchasingSeats(false);
+    }
+  };
+
+  const isFreePlan = () => {
+    if (!currentSubscription) return true;
+    const currentPlan = plans.find(p => p.id === currentSubscription.plan_id);
+    return currentPlan?.price_monthly === 0;
+  };
+
   const getButtonText = (plan, isCurrent) => {
     if (checkoutLoading === plan.id) {
       return (
