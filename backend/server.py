@@ -1219,6 +1219,19 @@ async def send_widget_message(conversation_id: str, token: str, message_data: Wi
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
     
+    # Check message quota
+    from services.quota_service import check_quota_limit
+    try:
+        await check_quota_limit(tenant_id, "monthly_messages", increment=1)
+    except HTTPException:
+        # Quota exceeded, but don't block - just log
+        logger.warning(f"Message quota exceeded for tenant {tenant_id}")
+        # Could optionally still allow the message or block here
+    
+    # Record usage
+    from services.quota_service import quota_service
+    await quota_service.record_usage(tenant_id, "monthly_messages", amount=1)
+    
     # Save customer message
     customer_message_id = str(uuid.uuid4())
     customer_message_doc = {
