@@ -59,9 +59,8 @@ DEFAULT_QUOTA_FEATURES = [
         "unit": "tokens",
         "plans": {
             "free": {"enabled": True, "limit_value": 100000, "limit_type": "usage", "unit": "tokens"},
-            "basic": {"enabled": True, "limit_value": 500000, "limit_type": "usage", "unit": "tokens"},
-            "pro": {"enabled": True, "limit_value": 5000000, "limit_type": "usage", "unit": "tokens"},
-            "enterprise": {"enabled": True, "limit_value": None, "limit_type": "usage", "unit": "tokens"}
+            "starter": {"enabled": True, "limit_value": 500000, "limit_type": "usage", "unit": "tokens"},
+            "professional": {"enabled": True, "limit_value": 2000000, "limit_type": "usage", "unit": "tokens"}
         }
     },
     {
