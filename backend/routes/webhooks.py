@@ -15,7 +15,27 @@ router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 @router.post("/stripe")
 async def stripe_webhook(request: Request, stripe_signature: Optional[str] = Header(None)):
     """Handle Stripe webhook events"""
-    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+    
+    # Initialize Stripe API key from database
+    try:
+        settings = await db.platform_settings.find_one({"key": "stripe_integration"})
+        if settings and settings.get("value"):
+            value = settings["value"]
+            use_live = value.get("use_live_mode", False)
+            secret_key = value.get("live_secret_key" if use_live else "test_secret_key")
+            if secret_key:
+                stripe.api_key = secret_key
+            
+            # Get webhook secret from database
+            if use_live:
+                webhook_secret = value.get("live_webhook_secret", "")
+            else:
+                webhook_secret = value.get("test_webhook_secret", "")
+        else:
+            webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+    except Exception as e:
+        log_error("Failed to load Stripe settings from database", error=e)
+        webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
     
     if not webhook_secret:
         log_info("Stripe webhook secret not configured, processing without verification")
