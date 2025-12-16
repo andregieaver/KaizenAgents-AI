@@ -272,6 +272,42 @@ async def activate_agent(
     
     return {"message": "Agent activated successfully", "agent_id": agent_id}
 
+@router.post("/{agent_id}/deactivate")
+async def deactivate_agent(
+    agent_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Deactivate agent"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Check agent exists
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Deactivate this agent
+    await db.user_agents.update_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"$set": {"is_active": False, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Update settings to clear active agent reference
+    await db.settings.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": {
+            "active_agent_id": None,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Agent deactivated successfully", "agent_id": agent_id}
+
 @router.delete("/{agent_id}")
 async def delete_user_agent(
     agent_id: str,
