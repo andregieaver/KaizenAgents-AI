@@ -180,14 +180,14 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-heading">Upgrade Your Plan</DialogTitle>
-          <DialogDescription>
+      <DialogContent className="max-w-5xl w-[95vw] max-h-[95vh] h-auto overflow-hidden flex flex-col p-4 sm:p-6">
+        <DialogHeader className="flex-shrink-0">
+          <DialogTitle className="text-xl sm:text-2xl font-heading">Upgrade Your Plan</DialogTitle>
+          <DialogDescription className="text-sm">
             {feature ? (
-              <span className="flex items-center gap-2 mt-2">
-                <AlertCircle className="h-4 w-4 text-amber-500" />
-                You've reached the limit for <strong>{feature}</strong> on your current plan.
+              <span className="flex items-start gap-2 mt-2">
+                <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                <span>You've reached the limit for <strong>{feature}</strong> on your current plan.</span>
               </span>
             ) : (
               'Choose a plan that fits your needs or purchase additional seats'
@@ -195,15 +195,18 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="plans" className="mt-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="plans">
-              <Crown className="h-4 w-4 mr-2" />
-              Upgrade Plan
+        <Tabs defaultValue="plans" className="mt-4 flex-1 flex flex-col overflow-hidden">
+          <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
+            <TabsTrigger value="plans" className="text-xs sm:text-sm">
+              <Crown className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Upgrade Plan</span>
+              <span className="sm:hidden">Upgrade</span>
             </TabsTrigger>
-            <TabsTrigger value="seats" disabled={isFreePlan}>
-              <Users className="h-4 w-4 mr-2" />
-              Add Seats {isFreePlan && '(Paid Plans Only)'}
+            <TabsTrigger value="seats" disabled={isFreePlan} className="text-xs sm:text-sm">
+              <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+              <span className="hidden sm:inline">Add Seats</span>
+              <span className="sm:hidden">Seats</span>
+              {isFreePlan && <span className="hidden sm:inline ml-1">(Paid Plans Only)</span>}
             </TabsTrigger>
           </TabsList>
 
