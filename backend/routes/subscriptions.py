@@ -112,6 +112,9 @@ async def create_plan(
     stripe_price_monthly_id = None
     stripe_price_yearly_id = None
     
+    # Initialize Stripe from database
+    await StripeService.initialize_from_db()
+    
     if StripeService.is_configured():
         # Create Stripe product
         stripe_product_id = await StripeService.create_product(
