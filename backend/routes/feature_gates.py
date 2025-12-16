@@ -213,11 +213,9 @@ async def get_user_plan(current_user: dict = Depends(get_current_user)):
 @router.put("/user-plan")
 async def update_user_plan(
     plan_name: str,
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_super_admin_user)
 ):
     """Update user's subscription plan (admin only for now)"""
-    if not current_user.get("is_super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required")
     
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
