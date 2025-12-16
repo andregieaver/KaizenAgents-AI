@@ -4,10 +4,21 @@ import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { AlertCircle, CheckCircle, Trash2, Loader2, Bot, ExternalLink } from 'lucide-react';
+import { AlertCircle, CheckCircle, Trash2, Loader2, Bot, ExternalLink, Plus, Edit, Globe, GlobeOff, PowerOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
+import AgentFormModal from './AgentFormModal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -17,7 +28,15 @@ const SavedAgents = () => {
   const [loading, setLoading] = useState(true);
   const [agents, setAgents] = useState([]);
   const [activating, setActivating] = useState(null);
+  const [deactivating, setDeactivating] = useState(null);
   const [deleting, setDeleting] = useState(null);
+  const [publishing, setPublishing] = useState(null);
+  const [unpublishing, setUnpublishing] = useState(null);
+  
+  // Modal states
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingAgent, setEditingAgent] = useState(null);
+  const [publishDialog, setPublishDialog] = useState(null);
 
   useEffect(() => {
     fetchAgents();
