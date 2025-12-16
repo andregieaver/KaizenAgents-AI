@@ -288,12 +288,12 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
                   </div>
                 );
               })}
-            </div>
-          </TabsContent>
+              </div>
+            </TabsContent>
 
-          {/* Extra Seats Tab */}
-          <TabsContent value="seats" className="flex-1 overflow-y-auto mt-0" style={{maxHeight: 'calc(95vh - 200px)'}}>
-            <div className="max-w-2xl mx-auto pb-4">
+            {/* Extra Seats Tab */}
+            <TabsContent value="seats" className="flex-1 overflow-y-auto mt-0" style={{maxHeight: 'calc(95vh - 200px)'}}>
+              <div className="max-w-2xl mx-auto pb-4">
               {isFreePlan ? (
                 // Free plan message
                 <div className="bg-muted/50 rounded-lg p-4 sm:p-6 space-y-4">
