@@ -268,10 +268,8 @@ async def _create_default_config():
 
 
 @router.get("/categories")
-async def get_route_categories(current_user: dict = Depends(get_current_user)):
+async def get_route_categories(current_user: dict = Depends(get_super_admin_user)):
     """Get list of route categories for filtering"""
-    if not current_user.get("is_super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required")
     
     config = await db.feature_gate_config.find_one({}, {"_id": 0})
     
