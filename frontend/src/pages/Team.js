@@ -82,9 +82,7 @@ const Team = () => {
   const [selectedTeamForAgent, setSelectedTeamForAgent] = useState(null);
   const [assigningAgent, setAssigningAgent] = useState(false);
   
-  // Upgrade modal state
-  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
-
+  const navigate = useNavigate();
   const canManageUsers = user?.role === 'owner' || user?.role === 'admin';
 
   const teamColors = [
