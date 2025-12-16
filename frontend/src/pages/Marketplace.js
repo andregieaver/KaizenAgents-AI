@@ -285,12 +285,12 @@ const Marketplace = () => {
                 </div>
               </div>
 
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setDetailModalOpen(false)}>
+              <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2">
+                <Button variant="outline" onClick={() => setDetailModalOpen(false)} className="w-full sm:w-auto">
                   Close
                 </Button>
                 {isAuthenticated && (
-                  <Button onClick={handleCloneAgent} disabled={cloning}>
+                  <Button onClick={handleCloneAgent} disabled={cloning} className="w-full sm:w-auto">
                     {cloning ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
