@@ -1633,7 +1633,9 @@ class AIAgentHubTester:
                 "role": "agent"
             }
             
-            expected_status = 200 if current_seats < (max_seats_limit or float('inf')) else 403
+            # Determine if we expect to be blocked
+            should_be_blocked = max_seats_limit and current_seats >= max_seats_limit
+            expected_status = 403 if should_be_blocked else 200
             
             success, response = self.run_test(
                 "Invite User - Seats Quota Check",
@@ -1643,10 +1645,16 @@ class AIAgentHubTester:
                 data=invite_data
             )
             
-            if max_seats_limit and current_seats >= max_seats_limit:
+            if should_be_blocked:
                 # Should be blocked by quota
-                if not success:
+                if not success:  # 403 received as expected
                     print(f"   ✅ User invitation correctly blocked by quota ({current_seats}/{max_seats_limit})")
+                    # Check error response structure
+                    if hasattr(self, 'test_results') and self.test_results:
+                        last_result = self.test_results[-1]
+                        error = last_result.get('error', {})
+                        if isinstance(error, dict) and 'quota' in str(error).lower():
+                            print(f"   ✅ Correct quota error returned")
                     return True
                 else:
                     print(f"   ❌ User invitation should have been blocked but succeeded")
