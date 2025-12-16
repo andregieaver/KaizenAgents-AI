@@ -2731,4 +2731,10 @@ def main():
         return 1
 
 if __name__ == "__main__":
-    sys.exit(main())
+    import sys
+    
+    # Check if quota tests are requested
+    if len(sys.argv) > 1 and sys.argv[1] == "quota":
+        sys.exit(main_quota_tests())
+    else:
+        sys.exit(main())
