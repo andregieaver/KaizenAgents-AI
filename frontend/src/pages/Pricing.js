@@ -543,8 +543,8 @@ const Pricing = () => {
         })}
       </div>
 
-      {/* Extra Seats Section - Only for authenticated paid plan users */}
-      {isAuthenticated && !isFreePlan() && (
+      {/* Extra Seats Section - For all authenticated users */}
+      {isAuthenticated && (
         <div className="max-w-2xl mx-auto pt-8">
           <Card className="border-2 border-primary/20">
             <CardHeader>
@@ -553,9 +553,14 @@ const Pricing = () => {
                   <Users className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">Purchase Additional Seats</CardTitle>
+                  <CardTitle className="text-xl">
+                    {isFreePlan() ? 'Need More Team Members?' : 'Purchase Additional Seats'}
+                  </CardTitle>
                   <CardDescription>
-                    Add more team members to your current plan
+                    {isFreePlan() 
+                      ? 'Upgrade to a paid plan to add more team members'
+                      : 'Add more team members to your current plan'
+                    }
                   </CardDescription>
                 </div>
               </div>
@@ -563,66 +568,105 @@ const Pricing = () => {
             <CardContent className="space-y-4">
               <Separator />
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="seat-quantity" className="text-sm font-medium">
-                    Number of Seats
-                  </Label>
-                  <Input
-                    id="seat-quantity"
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={seatQuantity}
-                    onChange={(e) => setSeatQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="mt-1.5"
-                  />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium">Price per Seat</Label>
-                  <div className="mt-1.5 h-10 flex items-center">
-                    <span className="text-2xl font-bold">${pricePerSeat}</span>
-                    <span className="text-muted-foreground ml-2">/month</span>
+              {isFreePlan() ? (
+                // Free plan message
+                <div className="space-y-4 text-center py-6">
+                  <p className="text-muted-foreground">
+                    Additional seats are only available for paid plans. Upgrade to Starter or Professional to expand your team.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                    <div className="bg-muted/50 rounded-lg p-4 text-left">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span className="font-semibold">Starter Plan</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">5 seats included + option to purchase more</p>
+                    </div>
+                    <div className="bg-muted/50 rounded-lg p-4 text-left">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span className="font-semibold">Professional Plan</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">25 seats included + option to purchase more</p>
+                    </div>
                   </div>
+                  <Button
+                    className="mt-4"
+                    size="lg"
+                    onClick={() => {
+                      // Scroll to top to see plans
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                  >
+                    <Crown className="h-5 w-5 mr-2" />
+                    View Plans Above
+                  </Button>
                 </div>
-              </div>
+              ) : (
+                // Paid plan - seat purchase form
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="seat-quantity" className="text-sm font-medium">
+                        Number of Seats
+                      </Label>
+                      <Input
+                        id="seat-quantity"
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={seatQuantity}
+                        onChange={(e) => setSeatQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="mt-1.5"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium">Price per Seat</Label>
+                      <div className="mt-1.5 h-10 flex items-center">
+                        <span className="text-2xl font-bold">${pricePerSeat}</span>
+                        <span className="text-muted-foreground ml-2">/month</span>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal ({seatQuantity} seat{seatQuantity > 1 ? 's' : ''})</span>
-                  <span className="font-semibold">${(seatQuantity * pricePerSeat).toFixed(2)}</span>
-                </div>
-                <Separator />
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold">Total per Month</span>
-                  <span className="text-2xl font-bold text-primary">
-                    ${(seatQuantity * pricePerSeat).toFixed(2)}
-                  </span>
-                </div>
-              </div>
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Subtotal ({seatQuantity} seat{seatQuantity > 1 ? 's' : ''})</span>
+                      <span className="font-semibold">${(seatQuantity * pricePerSeat).toFixed(2)}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold">Total per Month</span>
+                      <span className="text-2xl font-bold text-primary">
+                        ${(seatQuantity * pricePerSeat).toFixed(2)}
+                      </span>
+                    </div>
+                  </div>
 
-              <Button
-                className="w-full"
-                size="lg"
-                onClick={handlePurchaseSeats}
-                disabled={purchasingSeats || seatQuantity < 1}
-              >
-                {purchasingSeats ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="h-5 w-5 mr-2" />
-                    Purchase {seatQuantity} Seat{seatQuantity > 1 ? 's' : ''}
-                  </>
-                )}
-              </Button>
+                  <Button
+                    className="w-full"
+                    size="lg"
+                    onClick={handlePurchaseSeats}
+                    disabled={purchasingSeats || seatQuantity < 1}
+                  >
+                    {purchasingSeats ? (
+                      <>
+                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CreditCard className="h-5 w-5 mr-2" />
+                        Purchase {seatQuantity} Seat{seatQuantity > 1 ? 's' : ''}
+                      </>
+                    )}
+                  </Button>
 
-              <p className="text-xs text-center text-muted-foreground">
-                Extra seats will be added to your current plan immediately. Billed monthly at ${pricePerSeat}/seat.
-              </p>
+                  <p className="text-xs text-center text-muted-foreground">
+                    Extra seats will be added to your current plan immediately. Billed monthly at ${pricePerSeat}/seat.
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
