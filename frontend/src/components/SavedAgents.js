@@ -200,26 +200,37 @@ const SavedAgents = () => {
   }
 
   return (
-    <Card className="border border-border">
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <CardTitle className="font-heading">My Saved Agents</CardTitle>
-            <CardDescription>
-              Manage your AI agents. Activate one to use it in your chat widget.
-            </CardDescription>
+    <>
+      <Card className="border border-border">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="font-heading">My Saved Agents</CardTitle>
+              <CardDescription>
+                Create custom agents or browse the marketplace. Activate one to use in your chat widget.
+              </CardDescription>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button
+                size="sm"
+                onClick={() => setShowCreateModal(true)}
+                className="w-full sm:w-auto"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create Agent
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/marketplace')}
+                className="w-full sm:w-auto"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Browse Marketplace
+              </Button>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/marketplace')}
-            className="w-full sm:w-auto"
-          >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            Browse Marketplace
-          </Button>
-        </div>
-      </CardHeader>
+        </CardHeader>
       <CardContent>
         {agents.length === 0 ? (
           <div className="text-center py-12">
