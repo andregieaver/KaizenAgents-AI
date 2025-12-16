@@ -119,11 +119,8 @@ DEFAULT_GATED_ROUTES = [
 
 
 @router.get("/config", response_model=FeatureGateConfig)
-async def get_feature_gate_config(current_user: dict = Depends(get_current_user)):
+async def get_feature_gate_config(current_user: dict = Depends(get_super_admin_user)):
     """Get feature gate configuration (admin only)"""
-    # Check if user is admin
-    if not current_user.get("is_super_admin"):
-        raise HTTPException(status_code=403, detail="Admin access required")
     
     # Get existing config or create default
     config = await db.feature_gate_config.find_one({}, {"_id": 0})
