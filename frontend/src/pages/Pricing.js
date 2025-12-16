@@ -32,6 +32,11 @@ const Pricing = () => {
   const [appliedDiscount, setAppliedDiscount] = useState(null);
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [discountPlanId, setDiscountPlanId] = useState(null);
+  
+  // Extra seats state
+  const [seatQuantity, setSeatQuantity] = useState(1);
+  const [purchasingSeats, setPurchasingSeats] = useState(false);
+  const pricePerSeat = 5.0;
 
   useEffect(() => {
     fetchData();
