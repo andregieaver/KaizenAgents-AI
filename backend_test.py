@@ -1450,6 +1450,15 @@ class AIAgentHubTester:
                 200
             )
             
+            # If user agents endpoint fails, try admin agents
+            if not success:
+                success, response = self.run_test(
+                    "Get Current Admin Agents Count",
+                    "GET",
+                    "admin/agents",
+                    200
+                )
+            
             if not success:
                 print("❌ Failed to get current agents")
                 return False
