@@ -524,6 +524,93 @@ async def create_checkout_session(
         "session_id": checkout["session_id"]
     }
 
+@router.post("/verify-checkout")
+async def verify_checkout_session(
+    session_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Verify and activate subscription from Stripe checkout session"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Initialize Stripe from database
+    await StripeService.initialize_from_db()
+    
+    if not StripeService.is_configured():
+        raise HTTPException(status_code=503, detail="Payment system not configured")
+    
+    try:
+        # Retrieve the checkout session from Stripe
+        import stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        # Verify tenant_id matches
+        if session.metadata.get("tenant_id") != tenant_id:
+            raise HTTPException(status_code=403, detail="Unauthorized")
+        
+        # Check if subscription was created
+        if session.payment_status != "paid":
+            return {"status": "pending", "message": "Payment not completed"}
+        
+        subscription_id = session.get("subscription")
+        customer_id = session.get("customer")
+        plan_id = session.metadata.get("plan_id")
+        
+        if not subscription_id or not plan_id:
+            raise HTTPException(status_code=400, detail="Invalid session data")
+        
+        # Get plan details
+        plan = await db.subscription_plans.find_one({"id": plan_id}, {"_id": 0})
+        if not plan:
+            raise HTTPException(status_code=404, detail="Plan not found")
+        
+        # Get subscription details from Stripe
+        stripe_sub = stripe.Subscription.retrieve(subscription_id)
+        
+        now = datetime.now(timezone.utc)
+        period_start = datetime.fromtimestamp(stripe_sub.current_period_start, tz=timezone.utc)
+        period_end = datetime.fromtimestamp(stripe_sub.current_period_end, tz=timezone.utc)
+        trial_end = datetime.fromtimestamp(stripe_sub.trial_end, tz=timezone.utc) if stripe_sub.trial_end else None
+        
+        # Determine billing cycle
+        billing_cycle = "monthly"
+        if stripe_sub.items.data[0].price.recurring.interval == "year":
+            billing_cycle = "yearly"
+        
+        # Update or create subscription in database
+        subscription_doc = {
+            "tenant_id": tenant_id,
+            "plan_id": plan_id,
+            "plan_name": plan["name"],
+            "status": "active",
+            "billing_cycle": billing_cycle,
+            "current_period_start": period_start.isoformat(),
+            "current_period_end": period_end.isoformat(),
+            "trial_end": trial_end.isoformat() if trial_end else None,
+            "stripe_subscription_id": subscription_id,
+            "stripe_customer_id": customer_id,
+            "updated_at": now.isoformat()
+        }
+        
+        await db.subscriptions.update_one(
+            {"tenant_id": tenant_id},
+            {"$set": subscription_doc, "$setOnInsert": {"created_at": now.isoformat()}},
+            upsert=True
+        )
+        
+        return {
+            "status": "active",
+            "message": "Subscription activated successfully",
+            "subscription": subscription_doc
+        }
+        
+    except stripe.error.StripeError as e:
+        raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
+    except Exception as e:
+        log_error("Failed to verify checkout session", error=e, tenant_id=tenant_id)
+        raise HTTPException(status_code=500, detail="Failed to verify checkout session")
+
 @router.post("/subscribe")
 async def create_subscription(
     subscription_data: SubscriptionCreate,
