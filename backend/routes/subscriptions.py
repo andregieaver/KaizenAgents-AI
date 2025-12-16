@@ -253,6 +253,9 @@ async def delete_plan(
     # Get plan to find Stripe product ID
     plan = await db.subscription_plans.find_one({"id": plan_id}, {"_id": 0})
     
+    # Initialize Stripe from database
+    await StripeService.initialize_from_db()
+    
     # Archive Stripe product if configured
     if StripeService.is_configured() and plan and plan.get("stripe_product_id"):
         await StripeService.delete_product(plan["stripe_product_id"])
