@@ -277,7 +277,7 @@ async def _create_default_config():
     
     config = {
         "id": config_id,
-        "routes": DEFAULT_GATED_ROUTES,
+        "features": DEFAULT_QUOTA_FEATURES,
         "plans": DEFAULT_PLANS,
         "created_at": now,
         "updated_at": now
