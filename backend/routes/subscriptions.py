@@ -1,7 +1,7 @@
 """
 Subscription management routes
 """
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Request
 from pydantic import BaseModel, ConfigDict, Field
 from typing import List, Optional, Dict, Any, Literal
 from datetime import datetime, timezone, timedelta
