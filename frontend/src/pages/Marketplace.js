@@ -105,15 +105,18 @@ const Marketplace = () => {
 
     setCloning(true);
     try {
-      await axios.post(
+      const response = await axios.post(
         `${API}/marketplace/${selectedAgent.id}/clone`,
-        {},
+        { custom_name: selectedAgent.name },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success(`${selectedAgent.name} added to your workspace!`);
       setDetailModalOpen(false);
       setSelectedAgent(null);
+      // Redirect to Settings > Agents tab
+      navigate('/dashboard/settings?tab=agents');
     } catch (error) {
+      console.error('Clone error:', error);
       toast.error(error.response?.data?.detail || 'Failed to clone agent');
     } finally {
       setCloning(false);
