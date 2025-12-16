@@ -209,22 +209,22 @@ const QuotaUsageDashboard = () => {
           })}
 
           {/* Extra Seats Info */}
-          {subscription?.plan_name !== 'free' && (
-            <div className="pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">Need more resources?</p>
-                  <p className="text-xs text-muted-foreground">
-                    Purchase additional seats or upgrade your plan
-                  </p>
-                </div>
-                <Button size="sm" onClick={() => handleUpgradeClick('seats')}>
-                  <ArrowUpRight className="h-4 w-4 mr-2" />
-                  Add Seats
-                </Button>
+          <div className="pt-4 border-t">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">Need more resources?</p>
+                <p className="text-xs text-muted-foreground">
+                  {subscription?.plan_name === 'free' 
+                    ? 'Upgrade to a paid plan to add more team members'
+                    : 'Purchase additional seats or upgrade your plan'}
+                </p>
               </div>
+              <Button size="sm" onClick={() => navigate('/dashboard/pricing')}>
+                <ArrowUpRight className="h-4 w-4 mr-2" />
+                {subscription?.plan_name === 'free' ? 'View Plans' : 'Manage Plan'}
+              </Button>
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
     </div>
