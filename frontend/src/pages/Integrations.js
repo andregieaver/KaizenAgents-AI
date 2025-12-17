@@ -22,7 +22,10 @@ import {
   AlertTriangle,
   CheckCircle,
   Info,
-  ArrowRight
+  ArrowRight,
+  Mail,
+  Send,
+  CheckCircle2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
