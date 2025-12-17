@@ -116,6 +116,45 @@ const Team = () => {
     { name: 'Purple', value: '#a855f7' },
   ];
 
+  // Handle seat purchase success/cancel from URL params
+  useEffect(() => {
+    const handleSeatPurchaseCallback = async () => {
+      const seatsSuccess = searchParams.get('seats_success');
+      const seatsCanceled = searchParams.get('seats_canceled');
+      const sessionId = searchParams.get('session_id');
+      
+      if (seatsSuccess === 'true' && sessionId) {
+        // Verify the seat purchase
+        try {
+          const response = await axios.post(
+            `${API}/quotas/extra-seats/verify?session_id=${sessionId}`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          
+          if (response.data.status === 'completed') {
+            toast.success(`Successfully added ${response.data.quantity} seat(s)!`);
+          } else if (response.data.status === 'already_processed') {
+            toast.info('This seat purchase was already processed');
+          }
+        } catch (error) {
+          console.error('Error verifying seat purchase:', error);
+          toast.error('Failed to verify seat purchase');
+        }
+        
+        // Clear URL params
+        setSearchParams({});
+      } else if (seatsCanceled === 'true') {
+        toast.info('Seat purchase was canceled');
+        setSearchParams({});
+      }
+    };
+    
+    if (token) {
+      handleSeatPurchaseCallback();
+    }
+  }, [searchParams, token, setSearchParams]);
+
   useEffect(() => {
     fetchData();
   }, [token]);
@@ -123,7 +162,7 @@ const Team = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [membersRes, teamsRes, agentsRes, quotaRes] = await Promise.all([
+      const [membersRes, teamsRes, agentsRes, quotaRes, seatPricingRes] = await Promise.all([
         axios.get(`${API}/users`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
@@ -135,7 +174,10 @@ const Team = () => {
         }).catch(() => ({ data: [] })),
         axios.get(`${API}/quotas/usage`, {
           headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: null }))
+        }).catch(() => ({ data: null })),
+        axios.get(`${API}/quotas/extra-seats`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: { price_per_seat: 5 } }))
       ]);
       setMembers(membersRes.data);
       setTeams(teamsRes.data);
@@ -149,7 +191,9 @@ const Team = () => {
             current: seatQuota.current || 0,
             limit: seatQuota.limit || 0,
             extraSeats: quotaRes.data.extra_seats || 0,
-            percentage: seatQuota.percentage || 0
+            percentage: seatQuota.percentage || 0,
+            planName: quotaRes.data.plan_name || 'free',
+            pricePerSeat: seatPricingRes.data?.price_per_seat || 5
           });
         }
       }
@@ -158,6 +202,37 @@ const Team = () => {
       toast.error('Failed to load team data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePurchaseSeats = async () => {
+    if (seatQuantity <= 0) {
+      toast.error('Please enter a valid quantity');
+      return;
+    }
+    
+    setPurchaseLoading(true);
+    try {
+      const response = await axios.post(
+        `${API}/quotas/extra-seats/checkout`,
+        { quantity: seatQuantity },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      // Redirect to Stripe checkout
+      if (response.data.checkout_url) {
+        window.location.href = response.data.checkout_url;
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+      const detail = error.response?.data?.detail;
+      if (detail) {
+        toast.error(detail);
+      } else {
+        toast.error('Failed to create checkout session');
+      }
+    } finally {
+      setPurchaseLoading(false);
     }
   };
 
