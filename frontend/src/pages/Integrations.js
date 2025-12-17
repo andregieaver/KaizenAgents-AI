@@ -676,6 +676,225 @@ const Integrations = () => {
           </Card>
         </TabsContent>
 
+        {/* SendGrid Tab */}
+        <TabsContent value="sendgrid" className="space-y-6">
+          <Card className="border border-border">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mail className="h-5 w-5" />
+                    SendGrid Email Integration
+                  </CardTitle>
+                  <CardDescription>
+                    Configure SendGrid for transactional emails (welcome emails, notifications, password resets)
+                  </CardDescription>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="sendgrid-enabled"
+                    checked={sendgridSettings.is_enabled}
+                    onCheckedChange={(checked) => setSendgridSettings(prev => ({ ...prev, is_enabled: checked }))}
+                  />
+                  <Label htmlFor="sendgrid-enabled" className="text-sm">
+                    {sendgridSettings.is_enabled ? 'Enabled' : 'Disabled'}
+                  </Label>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* API Key */}
+              <div className="space-y-2">
+                <Label htmlFor="sendgrid-api-key">API Key</Label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="sendgrid-api-key"
+                      type={showSendgridKey ? 'text' : 'password'}
+                      value={sendgridSettings.api_key}
+                      onChange={(e) => setSendgridSettings(prev => ({ ...prev, api_key: e.target.value }))}
+                      placeholder="SG.xxxxxxxxxxxxxxxxxxxx"
+                      className="pr-10"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      type="button"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+                      onClick={() => setShowSendgridKey(!showSendgridKey)}
+                    >
+                      {showSendgridKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Get your API key from{' '}
+                  <a 
+                    href="https://app.sendgrid.com/settings/api_keys" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline"
+                  >
+                    SendGrid Dashboard → Settings → API Keys
+                  </a>
+                </p>
+              </div>
+
+              {/* Sender Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="sender-email">Sender Email</Label>
+                  <Input
+                    id="sender-email"
+                    type="email"
+                    value={sendgridSettings.sender_email}
+                    onChange={(e) => setSendgridSettings(prev => ({ ...prev, sender_email: e.target.value }))}
+                    placeholder="noreply@yourdomain.com"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Must be a verified sender in SendGrid
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="sender-name">Sender Name</Label>
+                  <Input
+                    id="sender-name"
+                    value={sendgridSettings.sender_name}
+                    onChange={(e) => setSendgridSettings(prev => ({ ...prev, sender_name: e.target.value }))}
+                    placeholder="Your Company Name"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    The name that appears in the &quot;From&quot; field
+                  </p>
+                </div>
+              </div>
+
+              {sendgridSettings.api_key_set && (
+                <Alert className="border-green-500 bg-green-500/10">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  <AlertDescription className="text-green-700">
+                    SendGrid API key is configured. Enter a new key to replace it.
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end">
+            <Button onClick={handleSaveSendgrid} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save SendGrid Settings
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* SendGrid Tools */}
+          <Card className="border border-border">
+            <CardHeader>
+              <CardTitle>SendGrid Tools</CardTitle>
+              <CardDescription>
+                Test your connection and send a test email
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Test Connection */}
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div>
+                  <h4 className="text-sm font-medium">Test Connection</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Verify your SendGrid API key is working correctly
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTestSendgridConnection}
+                  disabled={testingSendgrid || !sendgridSettings.api_key_set}
+                >
+                  {testingSendgrid ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Testing...
+                    </>
+                  ) : (
+                    <>
+                      <Plug className="h-4 w-4 mr-2" />
+                      Test Connection
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Send Test Email */}
+              <div className="p-3 bg-muted/50 rounded-lg space-y-3">
+                <div>
+                  <h4 className="text-sm font-medium">Send Test Email</h4>
+                  <p className="text-xs text-muted-foreground">
+                    Send a test email to verify everything is working
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    value={testEmailAddress}
+                    onChange={(e) => setTestEmailAddress(e.target.value)}
+                    placeholder="recipient@example.com"
+                    className="flex-1"
+                    disabled={!sendgridSettings.api_key_set || !sendgridSettings.sender_email}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSendTestEmail}
+                    disabled={sendingTestEmail || !sendgridSettings.api_key_set || !sendgridSettings.sender_email || !testEmailAddress}
+                  >
+                    {sendingTestEmail ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-4 w-4 mr-2" />
+                        Send Test
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {(!sendgridSettings.api_key_set || !sendgridSettings.sender_email) && (
+                  <p className="text-xs text-amber-500">
+                    Configure and save your API key and sender email first
+                  </p>
+                )}
+              </div>
+
+              <Alert className="border-blue-500 bg-blue-500/10">
+                <Info className="h-4 w-4 text-blue-500" />
+                <AlertDescription className="text-blue-700 text-xs">
+                  <strong>Tip:</strong> Make sure your sender email is verified in SendGrid before sending emails.
+                  You can verify it in{' '}
+                  <a 
+                    href="https://app.sendgrid.com/settings/sender_auth" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="underline"
+                  >
+                    Sender Authentication
+                  </a>
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Code Injection Tab */}
         <TabsContent value="code" className="space-y-6">
           <Alert className="border-amber-500 bg-amber-500/10">
