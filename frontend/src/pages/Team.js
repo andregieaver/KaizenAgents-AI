@@ -208,7 +208,7 @@ const Team = () => {
     }
   };
 
-  const handlePurchaseSeats = async () => {
+  const handleSubscribeSeats = async () => {
     if (seatQuantity <= 0) {
       toast.error('Please enter a valid quantity');
       return;
@@ -218,7 +218,7 @@ const Team = () => {
     try {
       const response = await axios.post(
         `${API}/quotas/extra-seats/checkout`,
-        { quantity: seatQuantity },
+        { quantity: seatQuantity, billing_cycle: billingCycle },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
