@@ -258,3 +258,95 @@ class StripeService:
         except Exception as e:
             log_error(f"Failed to create Stripe portal session", error=e, customer_id=customer_id)
             return None
+    
+    @staticmethod
+    async def create_seat_checkout_session(
+        customer_id: str,
+        price_id: str,
+        quantity: int,
+        success_url: str,
+        cancel_url: str,
+        tenant_id: str,
+        plan_name: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Create a Stripe checkout session for seat purchase (one-time payment)
+        Returns: {session_id, url} or None
+        """
+        if not StripeService.is_configured():
+            return None
+        
+        try:
+            session = stripe.checkout.Session.create(
+                customer=customer_id,
+                payment_method_types=["card"],
+                line_items=[{
+                    "price": price_id,
+                    "quantity": quantity
+                }],
+                mode="payment",  # One-time payment for seats
+                success_url=success_url,
+                cancel_url=cancel_url,
+                metadata={
+                    "tenant_id": tenant_id,
+                    "type": "seat_purchase",
+                    "quantity": str(quantity),
+                    "plan_name": plan_name
+                }
+            )
+            
+            log_info(f"Created seat checkout session: {session.id}", tenant_id=tenant_id, quantity=quantity)
+            return {
+                "session_id": session.id,
+                "url": session.url
+            }
+        except Exception as e:
+            log_error(f"Failed to create seat checkout session", error=e, tenant_id=tenant_id)
+            return None
+    
+    @staticmethod
+    async def create_one_time_price(
+        product_id: str,
+        amount: float,
+        currency: str = "usd"
+    ) -> Optional[str]:
+        """
+        Create a one-time Stripe price for seat purchases
+        Returns: price_id or None
+        """
+        if not StripeService.is_configured():
+            return None
+        
+        try:
+            amount_cents = int(amount * 100)
+            
+            price = stripe.Price.create(
+                product=product_id,
+                unit_amount=amount_cents,
+                currency=currency
+            )
+            log_info(f"Created Stripe one-time price: {price.id}", product_id=product_id, amount=amount)
+            return price.id
+        except Exception as e:
+            log_error(f"Failed to create one-time price", error=e, product_id=product_id)
+            return None
+    
+    @staticmethod
+    async def get_checkout_session(session_id: str) -> Optional[Dict[str, Any]]:
+        """Get Stripe checkout session details"""
+        if not StripeService.is_configured():
+            return None
+        
+        try:
+            session = stripe.checkout.Session.retrieve(session_id)
+            return {
+                "id": session.id,
+                "payment_status": session.payment_status,
+                "status": session.status,
+                "customer": session.customer,
+                "metadata": dict(session.metadata) if session.metadata else {},
+                "amount_total": session.amount_total
+            }
+        except Exception as e:
+            log_error(f"Failed to get checkout session", error=e, session_id=session_id)
+            return None
