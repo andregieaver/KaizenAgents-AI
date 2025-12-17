@@ -93,9 +93,32 @@ async def get_integration_settings(admin_user: dict = Depends(get_super_admin_us
     if code_settings and code_settings.get("value"):
         code_data = code_settings["value"]
     
+    # Get SendGrid settings
+    sendgrid_settings = await db.platform_settings.find_one(
+        {"key": "sendgrid_integration"},
+        {"_id": 0}
+    )
+    
+    sendgrid_data = {
+        "api_key_set": False,
+        "sender_email": "",
+        "sender_name": "",
+        "is_enabled": False
+    }
+    
+    if sendgrid_settings and sendgrid_settings.get("value"):
+        value = sendgrid_settings["value"]
+        sendgrid_data = {
+            "api_key_set": bool(value.get("api_key")),
+            "sender_email": value.get("sender_email", ""),
+            "sender_name": value.get("sender_name", ""),
+            "is_enabled": value.get("is_enabled", False)
+        }
+    
     return {
         "stripe": stripe_data,
-        "code_injection": code_data
+        "code_injection": code_data,
+        "sendgrid": sendgrid_data
     }
 
 @router.put("/stripe")
