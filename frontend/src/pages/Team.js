@@ -73,9 +73,10 @@ const Team = () => {
     pricePerSeat: 0
   });
   
-  // Seat purchase state
+  // Seat subscription state
   const [purchaseModalOpen, setPurchaseModalOpen] = useState(false);
   const [seatQuantity, setSeatQuantity] = useState(1);
+  const [billingCycle, setBillingCycle] = useState('monthly');
   const [purchaseLoading, setPurchaseLoading] = useState(false);
   
   // Invite user state
