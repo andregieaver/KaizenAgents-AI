@@ -899,7 +899,7 @@ const Team = () => {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete team?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  This will delete the team "{team.name}" and remove all member associations.
+                                  This will delete the team &quot;{team.name}&quot; and remove all member associations.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
