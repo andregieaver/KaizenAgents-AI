@@ -533,18 +533,25 @@ async def verify_checkout_session(
     """Verify and activate subscription from Stripe checkout session"""
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
+        log_error("No tenant_id in verify-checkout", user=current_user)
         raise HTTPException(status_code=404, detail="No tenant associated")
     
+    log_info(f"Verifying checkout session", session_id=session_id, tenant_id=tenant_id)
+    
     # Initialize Stripe from database
-    await StripeService.initialize_from_db()
+    initialized = await StripeService.initialize_from_db()
+    log_info(f"Stripe initialized from database", success=initialized)
     
     if not StripeService.is_configured():
+        log_error("Stripe not configured in verify-checkout")
         raise HTTPException(status_code=503, detail="Payment system not configured")
     
     try:
         # Retrieve the checkout session from Stripe
         import stripe
+        log_info(f"Retrieving checkout session from Stripe", session_id=session_id)
         session = stripe.checkout.Session.retrieve(session_id)
+        log_info(f"Checkout session retrieved", payment_status=session.payment_status, subscription_id=session.get("subscription"))
         
         # Verify tenant_id matches
         if session.metadata.get("tenant_id") != tenant_id:
