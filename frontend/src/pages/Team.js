@@ -60,6 +60,14 @@ const Team = () => {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   
+  // Seat quota state
+  const [seatInfo, setSeatInfo] = useState({
+    current: 0,
+    limit: 0,
+    extraSeats: 0,
+    percentage: 0
+  });
+  
   // Invite user state
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteLoading, setInviteLoading] = useState(false);
