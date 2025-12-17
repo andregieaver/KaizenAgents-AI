@@ -4054,3 +4054,30 @@ The Seat Pricing and Purchase backend API system is **FULLY FUNCTIONAL** and wor
 *Status: ALL CORE FUNCTIONALITY WORKING*
 
 ---
+
+## Seat Pricing Subscription System Tests
+
+### Test Scope
+- Seat pricing configuration per subscription plan
+- Subscription-based seat billing (monthly/yearly)
+- Admin seat pricing management
+- User seat subscription checkout
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Test Instructions
+1. Navigate to /dashboard/admin/feature-gates as super admin
+2. Click on "Seat Pricing" tab
+3. Verify seat pricing cards match subscription plans (Free, Starter, Professional)
+4. Verify each card shows monthly and yearly pricing
+5. Test editing seat pricing for a plan
+6. Navigate to /dashboard/team as a paid plan user
+7. Click "Buy seats" button (only visible for paid plans)
+8. Verify subscription modal shows billing cycle options (Monthly/Yearly)
+9. Verify price calculation updates based on quantity and billing cycle
+
+### API Endpoints to Test
+- GET /api/quotas/seat-pricing - Get all seat pricing configs
+- PATCH /api/quotas/seat-pricing/{plan_id} - Update seat pricing
+- POST /api/quotas/extra-seats/checkout - Create seat subscription checkout
