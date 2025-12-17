@@ -192,19 +192,6 @@ DEFAULT_QUOTA_FEATURES = [
             "starter": {"enabled": True, "limit_value": 0, "limit_type": "text", "unit": "priority", "text_value": "priority"},
             "professional": {"enabled": True, "limit_value": 0, "limit_type": "text", "unit": "premium", "text_value": "premium"}
         }
-    },
-    {
-        "feature_key": "custom_branding",
-        "feature_name": "Custom Branding",
-        "feature_description": "Custom logos, colors, and white-label branding",
-        "category": "branding",
-        "limit_type": "quota",
-        "unit": "feature",
-        "plans": {
-            "free": {"enabled": False, "limit_value": 0, "limit_type": "quota", "unit": "feature"},
-            "starter": {"enabled": True, "limit_value": 1, "limit_type": "quota", "unit": "feature"},
-            "professional": {"enabled": True, "limit_value": 1, "limit_type": "quota", "unit": "feature"}
-        }
     }
 ]
 
