@@ -454,7 +454,7 @@ const FeatureGatesAdmin = () => {
               ) : (
                 <div className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {seatPricing.filter(p => p.plan_name !== 'default').map((pricing) => (
+                    {seatPricing.map((pricing) => (
                       <Card 
                         key={pricing.id} 
                         className={cn(
@@ -464,7 +464,7 @@ const FeatureGatesAdmin = () => {
                       >
                         <CardHeader className="pb-3">
                           <div className="flex items-center justify-between">
-                            <CardTitle className="text-lg capitalize">
+                            <CardTitle className="text-lg">
                               {pricing.plan_name} Plan
                             </CardTitle>
                             <Badge variant={pricing.is_enabled ? "default" : "secondary"}>
@@ -473,42 +473,59 @@ const FeatureGatesAdmin = () => {
                           </div>
                         </CardHeader>
                         <CardContent>
-                          {editingPlan === pricing.plan_name ? (
+                          {editingPlan === pricing.plan_id ? (
                             <div className="space-y-4">
                               <div className="space-y-2">
-                                <Label htmlFor={`price-${pricing.plan_name}`}>
-                                  Price per Seat ({pricing.currency.toUpperCase()})
+                                <Label htmlFor={`price-monthly-${pricing.plan_id}`}>
+                                  Monthly Price ({pricing.currency?.toUpperCase() || 'USD'})
                                 </Label>
                                 <Input
-                                  id={`price-${pricing.plan_name}`}
+                                  id={`price-monthly-${pricing.plan_id}`}
                                   type="number"
                                   step="0.01"
                                   min="0"
-                                  value={editForm.price_per_seat}
+                                  value={editForm.price_per_seat_monthly}
                                   onChange={(e) => setEditForm({ 
                                     ...editForm, 
-                                    price_per_seat: e.target.value 
+                                    price_per_seat_monthly: e.target.value 
                                   })}
                                   placeholder="5.00"
                                 />
                               </div>
+                              <div className="space-y-2">
+                                <Label htmlFor={`price-yearly-${pricing.plan_id}`}>
+                                  Yearly Price ({pricing.currency?.toUpperCase() || 'USD'})
+                                </Label>
+                                <Input
+                                  id={`price-yearly-${pricing.plan_id}`}
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={editForm.price_per_seat_yearly}
+                                  onChange={(e) => setEditForm({ 
+                                    ...editForm, 
+                                    price_per_seat_yearly: e.target.value 
+                                  })}
+                                  placeholder="50.00"
+                                />
+                              </div>
                               <div className="flex items-center gap-2">
                                 <Switch
-                                  id={`enabled-${pricing.plan_name}`}
+                                  id={`enabled-${pricing.plan_id}`}
                                   checked={editForm.is_enabled}
                                   onCheckedChange={(checked) => setEditForm({ 
                                     ...editForm, 
                                     is_enabled: checked 
                                   })}
                                 />
-                                <Label htmlFor={`enabled-${pricing.plan_name}`}>
-                                  Enable seat purchases
+                                <Label htmlFor={`enabled-${pricing.plan_id}`}>
+                                  Enable seat subscriptions
                                 </Label>
                               </div>
                               <div className="flex gap-2 pt-2">
                                 <Button
                                   size="sm"
-                                  onClick={() => saveSeatPrice(pricing.plan_name)}
+                                  onClick={() => saveSeatPrice(pricing.plan_id)}
                                   disabled={savingSeatPrice}
                                 >
                                   {savingSeatPrice ? (
@@ -528,21 +545,25 @@ const FeatureGatesAdmin = () => {
                             </div>
                           ) : (
                             <div className="space-y-3">
-                              <div className="flex items-baseline gap-1">
-                                <span className="text-3xl font-bold">
-                                  ${pricing.price_per_seat.toFixed(2)}
-                                </span>
-                                <span className="text-muted-foreground">
-                                  / seat
-                                </span>
+                              <div className="space-y-1">
+                                <div className="flex items-baseline gap-1">
+                                  <span className="text-2xl font-bold">
+                                    ${(pricing.price_per_seat_monthly || 0).toFixed(2)}
+                                  </span>
+                                  <span className="text-muted-foreground text-sm">
+                                    / seat / month
+                                  </span>
+                                </div>
+                                {pricing.price_per_seat_yearly > 0 && (
+                                  <div className="text-sm text-muted-foreground">
+                                    ${(pricing.price_per_seat_yearly || 0).toFixed(2)} / seat / year
+                                  </div>
+                                )}
                               </div>
                               <div className="text-sm text-muted-foreground">
-                                {pricing.billing_type === 'one_time' 
-                                  ? 'One-time purchase' 
-                                  : 'Recurring'
-                                }
+                                Subscription billing
                               </div>
-                              {pricing.stripe_price_id && (
+                              {(pricing.stripe_price_monthly_id || pricing.stripe_price_yearly_id) && (
                                 <div className="text-xs text-muted-foreground">
                                   Stripe: Connected ✓
                                 </div>
