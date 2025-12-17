@@ -225,6 +225,74 @@ const Integrations = () => {
     }
   };
 
+  // SendGrid handlers
+  const handleSaveSendgrid = async () => {
+    setSaving(true);
+    try {
+      const payload = {
+        sender_email: sendgridSettings.sender_email,
+        sender_name: sendgridSettings.sender_name,
+        is_enabled: sendgridSettings.is_enabled
+      };
+      
+      // Only include API key if it's been changed (not masked)
+      if (!sendgridSettings.api_key.includes('••••') && sendgridSettings.api_key) {
+        payload.api_key = sendgridSettings.api_key;
+      }
+      
+      await axios.put(`${API}/admin/integrations/sendgrid`, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success('SendGrid settings saved successfully');
+      fetchSettings();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to save SendGrid settings');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTestSendgridConnection = async () => {
+    setTestingSendgrid(true);
+    try {
+      const response = await axios.post(
+        `${API}/admin/integrations/sendgrid/test-connection`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(response.data.message || 'SendGrid connection successful!');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'SendGrid connection failed');
+    } finally {
+      setTestingSendgrid(false);
+    }
+  };
+
+  const handleSendTestEmail = async () => {
+    if (!testEmailAddress) {
+      toast.error('Please enter an email address');
+      return;
+    }
+    
+    setSendingTestEmail(true);
+    try {
+      const response = await axios.post(
+        `${API}/admin/integrations/sendgrid/send-test-email`,
+        { to_email: testEmailAddress },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(response.data.message || 'Test email sent successfully!');
+      setTestEmailAddress('');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to send test email');
+    } finally {
+      setSendingTestEmail(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[400px]">
