@@ -58,6 +58,19 @@ const Integrations = () => {
     body_start_code: '',
     body_end_code: ''
   });
+  
+  // SendGrid settings
+  const [sendgridSettings, setSendgridSettings] = useState({
+    api_key: '',
+    api_key_set: false,
+    sender_email: '',
+    sender_name: '',
+    is_enabled: false
+  });
+  const [showSendgridKey, setShowSendgridKey] = useState(false);
+  const [testingSendgrid, setTestingSendgrid] = useState(false);
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
+  const [testEmailAddress, setTestEmailAddress] = useState('');
 
   useEffect(() => {
     fetchSettings();
