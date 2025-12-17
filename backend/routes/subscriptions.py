@@ -618,10 +618,13 @@ async def verify_checkout_session(
         }
         
     except stripe.error.StripeError as e:
+        log_error("Stripe error in verify-checkout", error=str(e), session_id=session_id, tenant_id=tenant_id)
         raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
     except Exception as e:
-        log_error("Failed to verify checkout session", error=e, tenant_id=tenant_id)
-        raise HTTPException(status_code=500, detail="Failed to verify checkout session")
+        log_error("Failed to verify checkout session", error=str(e), tenant_id=tenant_id, session_id=session_id)
+        import traceback
+        log_error("Traceback", traceback=traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Failed to verify checkout session: {str(e)}")
 
 @router.post("/subscribe")
 async def create_subscription(
