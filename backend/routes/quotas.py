@@ -280,18 +280,20 @@ async def get_quota_alerts(current_user: dict = Depends(get_current_user)):
 
 class SeatPricingConfig(BaseModel):
     """Seat pricing configuration for a plan tier"""
-    plan_name: str  # e.g., "Free", "Starter", "Professional", "Enterprise"
-    price_per_seat: float  # Price per additional seat
+    plan_id: str  # ID of the subscription plan
+    plan_name: str  # Display name of the plan
+    price_per_seat_monthly: float  # Monthly price per additional seat
+    price_per_seat_yearly: Optional[float] = None  # Yearly price per seat (optional)
     currency: str = "usd"
-    billing_type: str = "one_time"  # "one_time" or "recurring"
+    billing_type: str = "subscription"  # "subscription" for recurring billing
     is_enabled: bool = True
 
 
 class SeatPricingUpdate(BaseModel):
     """Update seat pricing for a plan"""
-    price_per_seat: Optional[float] = None
+    price_per_seat_monthly: Optional[float] = None
+    price_per_seat_yearly: Optional[float] = None
     currency: Optional[str] = None
-    billing_type: Optional[str] = None
     is_enabled: Optional[bool] = None
 
 
@@ -299,13 +301,16 @@ class SeatPricingResponse(BaseModel):
     """Seat pricing response"""
     model_config = ConfigDict(extra="ignore")
     id: str
+    plan_id: str
     plan_name: str
-    price_per_seat: float
+    price_per_seat_monthly: float
+    price_per_seat_yearly: Optional[float] = None
     currency: str
     billing_type: str
     is_enabled: bool
     stripe_product_id: Optional[str] = None
-    stripe_price_id: Optional[str] = None
+    stripe_price_monthly_id: Optional[str] = None
+    stripe_price_yearly_id: Optional[str] = None
     created_at: str
     updated_at: str
 
