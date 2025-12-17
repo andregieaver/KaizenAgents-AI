@@ -2,8 +2,11 @@
 Authentication routes
 """
 from fastapi import APIRouter, HTTPException, Depends
-from datetime import datetime, timezone
+from pydantic import BaseModel, EmailStr
+from datetime import datetime, timezone, timedelta
 import uuid
+import secrets
+import logging
 
 from models import UserCreate, UserLogin
 from middleware import get_current_user
@@ -11,6 +14,16 @@ from middleware.database import db
 from middleware.auth import create_token, hash_password, verify_password, is_super_admin
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
 
 @router.post("/register", response_model=dict)
 async def register(user_data: UserCreate):
