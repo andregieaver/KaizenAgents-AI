@@ -2041,6 +2041,350 @@ class AIAgentHubTester:
             print(f"   ❌ Error during message usage test: {str(e)}")
             return False
 
+    # ============== SEAT PRICING SUBSCRIPTION SYSTEM TESTS ==============
+
+    def test_seat_pricing_subscription_system(self):
+        """Test Seat Pricing Subscription System as requested in review"""
+        print(f"\n🎯 Testing Seat Pricing Subscription System")
+        
+        # Test all seat pricing subscription endpoints as requested
+        login_test = self.test_super_admin_login()
+        get_all_seat_pricing_test = self.test_get_all_seat_pricing_super_admin()
+        update_seat_pricing_test = self.test_update_seat_pricing_super_admin()
+        get_specific_seat_pricing_test = self.test_get_specific_seat_pricing_public()
+        checkout_extra_seats_test = self.test_checkout_extra_seats_authenticated()
+        sync_seat_pricing_test = self.test_sync_seat_pricing_super_admin()
+        
+        # Summary of seat pricing subscription tests
+        print(f"\n📋 Seat Pricing Subscription System Test Results:")
+        print(f"   Super Admin Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
+        print(f"   GET /api/quotas/seat-pricing (Super Admin): {'✅ PASSED' if get_all_seat_pricing_test else '❌ FAILED'}")
+        print(f"   PATCH /api/quotas/seat-pricing/{{plan_id}} (Super Admin): {'✅ PASSED' if update_seat_pricing_test else '❌ FAILED'}")
+        print(f"   GET /api/quotas/seat-pricing/{{plan_name}} (Public): {'✅ PASSED' if get_specific_seat_pricing_test else '❌ FAILED'}")
+        print(f"   POST /api/quotas/extra-seats/checkout (Authenticated): {'✅ PASSED' if checkout_extra_seats_test else '❌ FAILED'}")
+        print(f"   POST /api/quotas/seat-pricing/sync (Super Admin): {'✅ PASSED' if sync_seat_pricing_test else '❌ FAILED'}")
+        
+        return all([login_test, get_all_seat_pricing_test, update_seat_pricing_test, 
+                   get_specific_seat_pricing_test, checkout_extra_seats_test, sync_seat_pricing_test])
+
+    def test_get_all_seat_pricing_super_admin(self):
+        """Test GET /api/quotas/seat-pricing (Super Admin only)"""
+        print(f"\n🔧 Testing GET /api/quotas/seat-pricing (Super Admin only)")
+        
+        success, response = self.run_test(
+            "Get All Seat Pricing Configurations",
+            "GET",
+            "quotas/seat-pricing",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get seat pricing configurations")
+            return False
+        
+        # Verify response is an array
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+        
+        print(f"   ✅ Retrieved {len(response)} seat pricing configurations")
+        
+        # Verify each pricing has required fields
+        required_fields = ['plan_id', 'plan_name', 'price_per_seat_monthly', 'price_per_seat_yearly', 'billing_type', 'is_enabled']
+        
+        for pricing in response:
+            for field in required_fields:
+                if field not in pricing:
+                    print(f"❌ Missing required field '{field}' in pricing: {pricing.get('plan_name', 'Unknown')}")
+                    return False
+        
+        # Look for specific plans and verify structure
+        plan_names = [p.get('plan_name', '').lower() for p in response]
+        expected_plans = ['free', 'starter', 'professional']
+        
+        for plan in expected_plans:
+            if plan in plan_names:
+                plan_pricing = next(p for p in response if p.get('plan_name', '').lower() == plan)
+                print(f"   ✅ {plan.capitalize()} plan:")
+                print(f"     Monthly: ${plan_pricing.get('price_per_seat_monthly', 0)}/seat")
+                print(f"     Yearly: ${plan_pricing.get('price_per_seat_yearly', 0)}/seat")
+                print(f"     Billing: {plan_pricing.get('billing_type', 'N/A')}")
+                print(f"     Enabled: {plan_pricing.get('is_enabled', False)}")
+                
+                # Verify Free plan is disabled
+                if plan == 'free' and plan_pricing.get('is_enabled', True):
+                    print(f"   ⚠️ Free plan should be disabled (is_enabled=false)")
+                
+                # Verify billing type is subscription
+                if plan_pricing.get('billing_type') != 'subscription':
+                    print(f"   ❌ Expected billing_type='subscription', got '{plan_pricing.get('billing_type')}'")
+                    return False
+        
+        return True
+
+    def test_update_seat_pricing_super_admin(self):
+        """Test PATCH /api/quotas/seat-pricing/{plan_id} (Super Admin only)"""
+        print(f"\n🔧 Testing PATCH /api/quotas/seat-pricing/{{plan_id}} (Super Admin only)")
+        
+        # Test updating Starter plan monthly price to 10.0
+        update_data = {
+            "price_per_seat_monthly": 10.0
+        }
+        
+        success, response = self.run_test(
+            "Update Starter Plan Monthly Price to $10.00",
+            "PATCH",
+            "quotas/seat-pricing/starter",
+            200,
+            data=update_data
+        )
+        
+        if not success:
+            print("❌ Failed to update starter plan monthly pricing")
+            return False
+        
+        # Verify the update
+        if response.get('price_per_seat_monthly') != 10.0:
+            print(f"❌ Monthly price not updated correctly: expected 10.0, got {response.get('price_per_seat_monthly')}")
+            return False
+        
+        print(f"   ✅ Starter plan monthly price updated to ${response.get('price_per_seat_monthly')}")
+        
+        # Test updating yearly price to 100.0
+        update_yearly_data = {
+            "price_per_seat_yearly": 100.0
+        }
+        
+        success, response = self.run_test(
+            "Update Starter Plan Yearly Price to $100.00",
+            "PATCH",
+            "quotas/seat-pricing/starter",
+            200,
+            data=update_yearly_data
+        )
+        
+        if success and response.get('price_per_seat_yearly') == 100.0:
+            print(f"   ✅ Starter plan yearly price updated to ${response.get('price_per_seat_yearly')}")
+        else:
+            print(f"   ❌ Failed to update yearly price")
+            return False
+        
+        # Verify changes persist by getting the pricing again
+        success, verify_response = self.run_test(
+            "Verify Updated Starter Plan Pricing",
+            "GET",
+            "quotas/seat-pricing/starter",
+            200
+        )
+        
+        if success:
+            monthly_price = verify_response.get('price_per_seat_monthly')
+            yearly_price = verify_response.get('price_per_seat_yearly')
+            if monthly_price == 10.0 and yearly_price == 100.0:
+                print(f"   ✅ Price changes persisted correctly")
+            else:
+                print(f"   ❌ Price changes not persisted: monthly={monthly_price}, yearly={yearly_price}")
+                return False
+        else:
+            print(f"   ❌ Failed to verify price changes")
+            return False
+        
+        # Revert back to original values (5.0 monthly, 48.0 yearly)
+        revert_data = {
+            "price_per_seat_monthly": 5.0,
+            "price_per_seat_yearly": 48.0
+        }
+        
+        success, response = self.run_test(
+            "Revert Starter Plan Pricing to Original Values",
+            "PATCH",
+            "quotas/seat-pricing/starter",
+            200,
+            data=revert_data
+        )
+        
+        if success:
+            print(f"   ✅ Starter plan pricing reverted to original values")
+        else:
+            print(f"   ⚠️ Failed to revert starter plan pricing")
+        
+        return True
+
+    def test_get_specific_seat_pricing_public(self):
+        """Test GET /api/quotas/seat-pricing/{plan_name} (Public)"""
+        print(f"\n🔧 Testing GET /api/quotas/seat-pricing/{{plan_name}} (Public)")
+        
+        # Test with Starter plan as specified in review
+        success, response = self.run_test(
+            "Get Seat Pricing for Starter Plan",
+            "GET",
+            "quotas/seat-pricing/Starter",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get seat pricing for Starter plan")
+            return False
+        
+        # Verify response structure
+        required_fields = ['plan_name', 'price_per_seat_monthly', 'price_per_seat_yearly', 'currency', 'billing_type']
+        
+        for field in required_fields:
+            if field not in response:
+                print(f"❌ Missing required field '{field}' for Starter plan")
+                return False
+        
+        print(f"   ✅ Starter plan pricing:")
+        print(f"     Monthly: ${response.get('price_per_seat_monthly')}/seat")
+        print(f"     Yearly: ${response.get('price_per_seat_yearly')}/seat")
+        print(f"     Currency: {response.get('currency')}")
+        print(f"     Billing Type: {response.get('billing_type')}")
+        print(f"     Enabled: {response.get('is_enabled', True)}")
+        
+        # Verify billing type is subscription (recurring)
+        if response.get('billing_type') != 'subscription':
+            print(f"   ❌ Expected billing_type='subscription', got '{response.get('billing_type')}'")
+            return False
+        
+        # Verify pricing is reasonable (not 0 for paid plan)
+        monthly_price = response.get('price_per_seat_monthly', 0)
+        if monthly_price <= 0:
+            print(f"   ❌ Starter plan should have positive monthly price, got {monthly_price}")
+            return False
+        
+        return True
+
+    def test_checkout_extra_seats_authenticated(self):
+        """Test POST /api/quotas/extra-seats/checkout (Authenticated user)"""
+        print(f"\n🔧 Testing POST /api/quotas/extra-seats/checkout (Authenticated)")
+        
+        # Test 1: Monthly billing cycle
+        checkout_data_monthly = {
+            "quantity": 2,
+            "billing_cycle": "monthly"
+        }
+        
+        success, response = self.run_test(
+            "Create Checkout Session for 2 Extra Seats (Monthly)",
+            "POST",
+            "quotas/extra-seats/checkout",
+            200,  # Expect success for paid plan or 403 for free plan
+            data=checkout_data_monthly
+        )
+        
+        if success:
+            # Verify response structure for successful checkout
+            required_fields = ['checkout_url', 'session_id', 'quantity', 'price_per_seat', 'total_amount', 'billing_cycle']
+            
+            for field in required_fields:
+                if field not in response:
+                    print(f"❌ Missing required field '{field}' in checkout response")
+                    return False
+            
+            print(f"   ✅ Monthly checkout session created successfully")
+            print(f"     Quantity: {response.get('quantity')} seats")
+            print(f"     Price per seat: ${response.get('price_per_seat')}")
+            print(f"     Total amount: ${response.get('total_amount')}")
+            print(f"     Billing cycle: {response.get('billing_cycle')}")
+            print(f"     Session ID: {response.get('session_id')}")
+            
+            # Verify billing cycle is monthly
+            if response.get('billing_cycle') != 'monthly':
+                print(f"   ❌ Expected billing_cycle='monthly', got '{response.get('billing_cycle')}'")
+                return False
+                
+        else:
+            # Check if it's a free plan error (which is expected)
+            if hasattr(self, 'test_results') and self.test_results:
+                last_result = self.test_results[-1]
+                error = last_result.get('error', {})
+                
+                if isinstance(error, dict) and ('free' in str(error).lower() or 'paid subscription' in str(error).lower()):
+                    print(f"   ✅ Correctly blocked for free plan users")
+                elif last_result.get('status_code') == 403:
+                    print(f"   ✅ Correctly blocked with 403 status (free plan)")
+                else:
+                    print("❌ Checkout failed unexpectedly")
+                    return False
+        
+        # Test 2: Yearly billing cycle
+        checkout_data_yearly = {
+            "quantity": 2,
+            "billing_cycle": "yearly"
+        }
+        
+        success, response = self.run_test(
+            "Create Checkout Session for 2 Extra Seats (Yearly)",
+            "POST",
+            "quotas/extra-seats/checkout",
+            200,  # Expect success for paid plan or 403 for free plan
+            data=checkout_data_yearly
+        )
+        
+        if success:
+            print(f"   ✅ Yearly checkout session created successfully")
+            print(f"     Billing cycle: {response.get('billing_cycle')}")
+            
+            # Verify billing cycle is yearly
+            if response.get('billing_cycle') != 'yearly':
+                print(f"   ❌ Expected billing_cycle='yearly', got '{response.get('billing_cycle')}'")
+                return False
+        else:
+            # Same free plan check as above
+            if hasattr(self, 'test_results') and self.test_results:
+                last_result = self.test_results[-1]
+                if last_result.get('status_code') == 403:
+                    print(f"   ✅ Yearly checkout also correctly blocked for free plan")
+        
+        return True
+
+    def test_sync_seat_pricing_super_admin(self):
+        """Test POST /api/quotas/seat-pricing/sync (Super Admin only)"""
+        print(f"\n🔧 Testing POST /api/quotas/seat-pricing/sync (Super Admin only)")
+        
+        success, response = self.run_test(
+            "Sync Seat Pricing with Subscription Plans",
+            "POST",
+            "quotas/seat-pricing/sync",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to sync seat pricing with subscription plans")
+            return False
+        
+        # Verify response structure
+        if 'message' not in response:
+            print("❌ Missing 'message' field in sync response")
+            return False
+        
+        if 'pricing' not in response:
+            print("❌ Missing 'pricing' field in sync response")
+            return False
+        
+        print(f"   ✅ Sync completed successfully")
+        print(f"   Message: {response.get('message')}")
+        
+        # Verify pricing array
+        pricing = response.get('pricing', [])
+        if not isinstance(pricing, list):
+            print(f"❌ Expected pricing array, got {type(pricing)}")
+            return False
+        
+        print(f"   ✅ Synced {len(pricing)} seat pricing configurations")
+        
+        # Verify synced pricing contains expected plans
+        plan_names = [p.get('plan_name', '').lower() for p in pricing]
+        expected_plans = ['free', 'starter', 'professional']
+        
+        for plan in expected_plans:
+            if plan in plan_names:
+                print(f"   ✅ {plan.capitalize()} plan synced")
+            else:
+                print(f"   ⚠️ {plan.capitalize()} plan not found in synced pricing")
+        
+        return True
+
     # ============== SEAT PRICING AND PURCHASE TESTS ==============
 
     def test_seat_pricing_and_purchase(self):
