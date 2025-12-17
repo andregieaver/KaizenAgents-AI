@@ -237,7 +237,6 @@ const PlanManagement = () => {
                 <TableHead>Order</TableHead>
                 <TableHead>Plan Name</TableHead>
                 <TableHead>Pricing</TableHead>
-                <TableHead>Limits</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -245,7 +244,7 @@ const PlanManagement = () => {
             <TableBody>
               {plans.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
                     No plans found
                   </TableCell>
                 </TableRow>
@@ -276,16 +275,6 @@ const PlanManagement = () => {
                             ${plan.price_yearly}/yr
                           </p>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-xs space-y-1">
-                        <p>
-                          Conv: {plan.features.max_conversations || '∞'}
-                        </p>
-                        <p>
-                          Agents: {plan.features.max_agents || '∞'}
-                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
