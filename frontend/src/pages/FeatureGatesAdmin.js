@@ -25,6 +25,13 @@ const FeatureGatesAdmin = () => {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [hasChanges, setHasChanges] = useState(false);
+  
+  // Seat pricing state
+  const [seatPricing, setSeatPricing] = useState([]);
+  const [loadingSeatPricing, setLoadingSeatPricing] = useState(false);
+  const [editingPlan, setEditingPlan] = useState(null);
+  const [editForm, setEditForm] = useState({ price_per_seat: '', is_enabled: true });
+  const [savingSeatPrice, setSavingSeatPrice] = useState(false);
 
   useEffect(() => {
     // Check if user is super admin
@@ -35,6 +42,7 @@ const FeatureGatesAdmin = () => {
     }
     
     loadData();
+    loadSeatPricing();
   }, [token, user, navigate]);
 
   const loadData = async () => {
@@ -61,6 +69,57 @@ const FeatureGatesAdmin = () => {
       toast.error(error.response?.data?.detail || 'Failed to load feature gates');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadSeatPricing = async () => {
+    setLoadingSeatPricing(true);
+    try {
+      const response = await axios.get(`${API}/quotas/seat-pricing`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSeatPricing(response.data || []);
+    } catch (error) {
+      console.error('Error loading seat pricing:', error);
+      // Don't show error toast - pricing might not be configured yet
+    } finally {
+      setLoadingSeatPricing(false);
+    }
+  };
+
+  const startEditSeatPrice = (pricing) => {
+    setEditingPlan(pricing.plan_name);
+    setEditForm({
+      price_per_seat: pricing.price_per_seat.toString(),
+      is_enabled: pricing.is_enabled
+    });
+  };
+
+  const cancelEditSeatPrice = () => {
+    setEditingPlan(null);
+    setEditForm({ price_per_seat: '', is_enabled: true });
+  };
+
+  const saveSeatPrice = async (planName) => {
+    setSavingSeatPrice(true);
+    try {
+      const payload = {
+        price_per_seat: parseFloat(editForm.price_per_seat) || 0,
+        is_enabled: editForm.is_enabled
+      };
+      
+      await axios.patch(`${API}/quotas/seat-pricing/${planName}`, payload, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success(`Seat pricing updated for ${planName} plan`);
+      setEditingPlan(null);
+      loadSeatPricing();
+    } catch (error) {
+      console.error('Error saving seat pricing:', error);
+      toast.error(error.response?.data?.detail || 'Failed to save seat pricing');
+    } finally {
+      setSavingSeatPrice(false);
     }
   };
 
