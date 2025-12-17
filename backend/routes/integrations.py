@@ -2,15 +2,17 @@
 Integrations management routes (Super Admin only)
 """
 from fastapi import APIRouter, HTTPException, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import Optional, Dict, Any
 from datetime import datetime, timezone
 import os
+import logging
 
 from middleware import get_super_admin_user
 from middleware.database import db
 
 router = APIRouter(prefix="/admin/integrations", tags=["integrations"])
+logger = logging.getLogger(__name__)
 
 # Models
 class StripeSettingsUpdate(BaseModel):
@@ -26,6 +28,17 @@ class CodeInjectionUpdate(BaseModel):
     head_code: Optional[str] = None
     body_start_code: Optional[str] = None
     body_end_code: Optional[str] = None
+
+class SendGridSettingsUpdate(BaseModel):
+    api_key: Optional[str] = None
+    sender_email: Optional[str] = None
+    sender_name: Optional[str] = None
+    is_enabled: Optional[bool] = None
+
+class SendGridTestEmail(BaseModel):
+    to_email: str
+    subject: Optional[str] = "Test Email from Platform"
+    content: Optional[str] = "This is a test email to verify your SendGrid integration is working correctly."
 
 # Helper to mask sensitive keys
 def mask_key(key: str) -> str:
