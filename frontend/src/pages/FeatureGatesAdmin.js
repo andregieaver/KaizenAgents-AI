@@ -597,12 +597,13 @@ const FeatureGatesAdmin = () => {
                   )}
 
                   <div className="mt-6 p-4 bg-muted/50 rounded-lg">
-                    <h4 className="font-semibold mb-2">How Seat Pricing Works</h4>
+                    <h4 className="font-semibold mb-2">How Seat Subscriptions Work</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• Users on <strong>Free</strong> plans cannot purchase extra seats</li>
-                      <li>• Users on paid plans can buy additional seats at the configured price</li>
-                      <li>• Seats are one-time purchases added to the subscription quota</li>
-                      <li>• Stripe integration is required for payment processing</li>
+                      <li>• <strong>Synced with Plans:</strong> Seat pricing is automatically synced with your subscription plans</li>
+                      <li>• <strong>Subscription-based:</strong> Additional seats are billed as recurring subscriptions (monthly or yearly)</li>
+                      <li>• <strong>Free Plans:</strong> Users on Free plans cannot subscribe to additional seats</li>
+                      <li>• <strong>Upgrade/Downgrade:</strong> Users can adjust their seat count anytime through the subscription portal</li>
+                      <li>• <strong>Stripe Required:</strong> Stripe integration is required for seat subscription billing</li>
                     </ul>
                   </div>
                 </div>
