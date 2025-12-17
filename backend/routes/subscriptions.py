@@ -526,7 +526,7 @@ async def create_checkout_session(
 
 @router.post("/verify-checkout")
 async def verify_checkout_session(
-    session_id: str,
+    session_id: str = Query(..., description="Stripe checkout session ID"),
     current_user: dict = Depends(get_current_user)
 ):
     """Verify and activate subscription from Stripe checkout session"""
