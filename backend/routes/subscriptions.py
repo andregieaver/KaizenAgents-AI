@@ -603,11 +603,13 @@ async def verify_checkout_session(
             "updated_at": now.isoformat()
         }
         
-        await db.subscriptions.update_one(
+        result = await db.subscriptions.update_one(
             {"tenant_id": tenant_id},
             {"$set": subscription_doc, "$setOnInsert": {"created_at": now.isoformat()}},
             upsert=True
         )
+        
+        log_info(f"Subscription saved to database", tenant_id=tenant_id, matched_count=result.matched_count, modified_count=result.modified_count, upserted_id=result.upserted_id)
         
         return {
             "status": "active",
