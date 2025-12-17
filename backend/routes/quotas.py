@@ -791,76 +791,82 @@ async def verify_seat_subscription(
 
 # ============== HELPER FUNCTIONS ==============
 
-async def initialize_default_seat_pricing():
-    """Initialize default seat pricing for all plans"""
+async def sync_seat_pricing_with_plans():
+    """Sync seat pricing configurations with subscription plans from Plan Management"""
     now = datetime.now(timezone.utc).isoformat()
     
-    default_pricing = [
-        {
+    # Get all subscription plans from database
+    plans = await db.subscription_plans.find({}, {"_id": 0}).to_list(100)
+    
+    if not plans:
+        logger.warning("No subscription plans found - skipping seat pricing sync")
+        return
+    
+    # Default seat pricing percentages based on plan price
+    # Lower tier plans = lower seat price, higher tier = higher seat price
+    def calculate_seat_price(plan_monthly_price):
+        if plan_monthly_price == 0:
+            return 0  # Free plan
+        elif plan_monthly_price < 50:
+            return 5.0  # Entry tier
+        elif plan_monthly_price < 100:
+            return 8.0  # Mid tier
+        elif plan_monthly_price < 200:
+            return 12.0  # Pro tier
+        else:
+            return 15.0  # Enterprise tier
+    
+    for plan in plans:
+        plan_id = plan.get("id")
+        plan_name = plan.get("name", "Unknown")
+        plan_monthly_price = plan.get("price_monthly", 0)
+        
+        # Check if seat pricing already exists for this plan
+        existing = await db.seat_pricing.find_one({"plan_id": plan_id})
+        
+        if existing:
+            # Update plan_name if it changed
+            if existing.get("plan_name") != plan_name:
+                await db.seat_pricing.update_one(
+                    {"plan_id": plan_id},
+                    {"$set": {"plan_name": plan_name, "updated_at": now}}
+                )
+            continue
+        
+        # Calculate default seat pricing
+        monthly_seat_price = calculate_seat_price(plan_monthly_price)
+        yearly_seat_price = monthly_seat_price * 12 * 0.8 if monthly_seat_price > 0 else 0  # 20% yearly discount
+        
+        # Create new seat pricing for this plan
+        pricing_doc = {
             "id": str(uuid.uuid4()),
-            "plan_name": "free",
-            "price_per_seat": 0,
+            "plan_id": plan_id,
+            "plan_name": plan_name,
+            "price_per_seat_monthly": monthly_seat_price,
+            "price_per_seat_yearly": yearly_seat_price,
             "currency": "usd",
-            "billing_type": "one_time",
-            "is_enabled": False,  # Can't buy seats on free plan
+            "billing_type": "subscription",
+            "is_enabled": plan_monthly_price > 0,  # Disabled for free plans
             "stripe_product_id": None,
-            "stripe_price_id": None,
-            "created_at": now,
-            "updated_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "plan_name": "starter",
-            "price_per_seat": 5.0,
-            "currency": "usd",
-            "billing_type": "one_time",
-            "is_enabled": True,
-            "stripe_product_id": None,
-            "stripe_price_id": None,
-            "created_at": now,
-            "updated_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "plan_name": "professional",
-            "price_per_seat": 8.0,
-            "currency": "usd",
-            "billing_type": "one_time",
-            "is_enabled": True,
-            "stripe_product_id": None,
-            "stripe_price_id": None,
-            "created_at": now,
-            "updated_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "plan_name": "enterprise",
-            "price_per_seat": 12.0,
-            "currency": "usd",
-            "billing_type": "one_time",
-            "is_enabled": True,
-            "stripe_product_id": None,
-            "stripe_price_id": None,
-            "created_at": now,
-            "updated_at": now
-        },
-        {
-            "id": str(uuid.uuid4()),
-            "plan_name": "default",  # Fallback pricing
-            "price_per_seat": 5.0,
-            "currency": "usd",
-            "billing_type": "one_time",
-            "is_enabled": True,
-            "stripe_product_id": None,
-            "stripe_price_id": None,
+            "stripe_price_monthly_id": None,
+            "stripe_price_yearly_id": None,
             "created_at": now,
             "updated_at": now
         }
-    ]
+        
+        await db.seat_pricing.insert_one(pricing_doc)
+        logger.info(f"Created seat pricing for plan: {plan_name} (${monthly_seat_price}/month)")
     
-    for pricing in default_pricing:
-        existing = await db.seat_pricing.find_one({"plan_name": pricing["plan_name"]})
-        if not existing:
-            await db.seat_pricing.insert_one(pricing)
+    # Clean up orphaned seat pricing (plans that no longer exist)
+    plan_ids = [p.get("id") for p in plans]
+    orphaned = await db.seat_pricing.find(
+        {"plan_id": {"$nin": plan_ids, "$ne": None}},
+        {"_id": 0, "plan_name": 1}
+    ).to_list(100)
     
-    logger.info("Default seat pricing initialized")
+    if orphaned:
+        for orphan in orphaned:
+            logger.info(f"Removing orphaned seat pricing for: {orphan.get('plan_name')}")
+        await db.seat_pricing.delete_many({"plan_id": {"$nin": plan_ids, "$ne": None}})
+    
+    logger.info(f"Seat pricing synced with {len(plans)} subscription plans")
