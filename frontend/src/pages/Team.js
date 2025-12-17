@@ -491,6 +491,7 @@ const Team = () => {
   const usedSeats = seatInfo.current;
   const remainingSeats = Math.max(0, totalSeats - usedSeats);
   const baseSeats = seatInfo.limit - seatInfo.extraSeats;
+  const canPurchaseSeats = seatInfo.planName !== 'free';
 
   return (
     <div className="p-6 lg:p-8 page-transition" data-testid="team-page">
@@ -501,7 +502,7 @@ const Team = () => {
         </div>
         
         {/* Seat Usage Card */}
-        <Card className="sm:min-w-[280px]">
+        <Card className="sm:min-w-[300px]">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Seats</span>
@@ -517,17 +518,111 @@ const Team = () => {
                   : `${remainingSeats} available`
                 }
               </span>
-              <Link 
-                to="/dashboard/pricing" 
-                className="text-primary hover:underline flex items-center gap-1"
-              >
-                Add seats
-                <ExternalLink className="h-3 w-3" />
-              </Link>
+              {canPurchaseSeats ? (
+                <button 
+                  onClick={() => setPurchaseModalOpen(true)}
+                  className="text-primary hover:underline flex items-center gap-1"
+                >
+                  <Plus className="h-3 w-3" />
+                  Buy seats
+                </button>
+              ) : (
+                <Link 
+                  to="/dashboard/pricing" 
+                  className="text-primary hover:underline flex items-center gap-1"
+                >
+                  Upgrade plan
+                  <ExternalLink className="h-3 w-3" />
+                </Link>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Purchase Seats Modal */}
+      <Dialog open={purchaseModalOpen} onOpenChange={setPurchaseModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-heading flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              Purchase Additional Seats
+            </DialogTitle>
+            <DialogDescription>
+              Add more seats to your team. You currently have {usedSeats} users 
+              and {totalSeats} total seats.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="seat-quantity">Number of Seats</Label>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setSeatQuantity(Math.max(1, seatQuantity - 1))}
+                  disabled={seatQuantity <= 1}
+                >
+                  -
+                </Button>
+                <Input
+                  id="seat-quantity"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={seatQuantity}
+                  onChange={(e) => setSeatQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-20 text-center"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setSeatQuantity(seatQuantity + 1)}
+                >
+                  +
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-4 bg-muted rounded-lg space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Price per seat</span>
+                <span>${seatInfo.pricePerSeat?.toFixed(2) || '5.00'}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span>Quantity</span>
+                <span>× {seatQuantity}</span>
+              </div>
+              <div className="border-t pt-2 mt-2 flex justify-between font-semibold">
+                <span>Total</span>
+                <span>${((seatInfo.pricePerSeat || 5) * seatQuantity).toFixed(2)}</span>
+              </div>
+            </div>
+            
+            <p className="text-xs text-muted-foreground">
+              Seats are a one-time purchase and will be added to your current quota.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPurchaseModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handlePurchaseSeats} disabled={purchaseLoading}>
+              {purchaseLoading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Purchase Seats
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Tabs defaultValue="members" className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
