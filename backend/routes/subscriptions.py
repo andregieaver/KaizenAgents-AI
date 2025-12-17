@@ -586,24 +586,29 @@ async def verify_checkout_session(
         
         now = datetime.now(timezone.utc)
         
+        # Helper to safely get value from stripe object (can be dict or object)
+        def get_stripe_value(obj, key, default=None):
+            if isinstance(obj, dict):
+                return obj.get(key, default)
+            return getattr(obj, key, default)
+        
         # Safely get period dates with validation
-        if not hasattr(stripe_sub, 'current_period_start') or stripe_sub.current_period_start is None:
+        current_period_start = get_stripe_value(stripe_sub, 'current_period_start')
+        if current_period_start is None:
             log_error("Stripe subscription missing current_period_start", subscription_id=subscription_id)
-            # Use current time as fallback
             period_start = now
         else:
-            period_start = datetime.fromtimestamp(stripe_sub.current_period_start, tz=timezone.utc)
+            period_start = datetime.fromtimestamp(current_period_start, tz=timezone.utc)
         
-        if not hasattr(stripe_sub, 'current_period_end') or stripe_sub.current_period_end is None:
+        current_period_end = get_stripe_value(stripe_sub, 'current_period_end')
+        if current_period_end is None:
             log_error("Stripe subscription missing current_period_end", subscription_id=subscription_id)
-            # Default to 30 days from now
             period_end = now + timedelta(days=30)
         else:
-            period_end = datetime.fromtimestamp(stripe_sub.current_period_end, tz=timezone.utc)
+            period_end = datetime.fromtimestamp(current_period_end, tz=timezone.utc)
         
-        trial_end = None
-        if hasattr(stripe_sub, 'trial_end') and stripe_sub.trial_end:
-            trial_end = datetime.fromtimestamp(stripe_sub.trial_end, tz=timezone.utc)
+        trial_end_timestamp = get_stripe_value(stripe_sub, 'trial_end')
+        trial_end = datetime.fromtimestamp(trial_end_timestamp, tz=timezone.utc) if trial_end_timestamp else None
         
         # Determine billing cycle
         billing_cycle = "monthly"
