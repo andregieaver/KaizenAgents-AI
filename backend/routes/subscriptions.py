@@ -576,12 +576,28 @@ async def verify_checkout_session(
         # Get subscription details from Stripe
         log_info(f"Retrieving Stripe subscription", subscription_id=subscription_id)
         stripe_sub = stripe.Subscription.retrieve(subscription_id)
-        log_info(f"Stripe subscription retrieved", status=stripe_sub.status)
+        log_info(f"Stripe subscription retrieved", status=stripe_sub.status, has_current_period_start=hasattr(stripe_sub, 'current_period_start'))
         
         now = datetime.now(timezone.utc)
-        period_start = datetime.fromtimestamp(stripe_sub.current_period_start, tz=timezone.utc)
-        period_end = datetime.fromtimestamp(stripe_sub.current_period_end, tz=timezone.utc)
-        trial_end = datetime.fromtimestamp(stripe_sub.trial_end, tz=timezone.utc) if stripe_sub.trial_end else None
+        
+        # Safely get period dates with validation
+        if not hasattr(stripe_sub, 'current_period_start') or stripe_sub.current_period_start is None:
+            log_error("Stripe subscription missing current_period_start", subscription_id=subscription_id)
+            # Use current time as fallback
+            period_start = now
+        else:
+            period_start = datetime.fromtimestamp(stripe_sub.current_period_start, tz=timezone.utc)
+        
+        if not hasattr(stripe_sub, 'current_period_end') or stripe_sub.current_period_end is None:
+            log_error("Stripe subscription missing current_period_end", subscription_id=subscription_id)
+            # Default to 30 days from now
+            period_end = now + timedelta(days=30)
+        else:
+            period_end = datetime.fromtimestamp(stripe_sub.current_period_end, tz=timezone.utc)
+        
+        trial_end = None
+        if hasattr(stripe_sub, 'trial_end') and stripe_sub.trial_end:
+            trial_end = datetime.fromtimestamp(stripe_sub.trial_end, tz=timezone.utc)
         
         # Determine billing cycle
         billing_cycle = "monthly"
