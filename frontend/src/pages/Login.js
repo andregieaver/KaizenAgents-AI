@@ -63,16 +63,7 @@ const Login = () => {
                 />
               </div>
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link 
-                    to="/forgot-password" 
-                    className="text-sm text-primary hover:underline"
-                    data-testid="forgot-password-link"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -94,9 +85,12 @@ const Login = () => {
               </Button>
             </form>
             <p className="text-center text-sm text-muted-foreground mt-6">
-              Don&apos;t have an account?{' '}
-              <Link to="/register" className="text-primary hover:underline" data-testid="register-link">
-                Create one
+              <Link 
+                to="/forgot-password" 
+                className="text-primary hover:underline"
+                data-testid="forgot-password-link"
+              >
+                Forgot password?
               </Link>
             </p>
           </CardContent>
