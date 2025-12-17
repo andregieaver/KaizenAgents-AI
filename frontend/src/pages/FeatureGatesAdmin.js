@@ -88,31 +88,33 @@ const FeatureGatesAdmin = () => {
   };
 
   const startEditSeatPrice = (pricing) => {
-    setEditingPlan(pricing.plan_name);
+    setEditingPlan(pricing.plan_id);
     setEditForm({
-      price_per_seat: pricing.price_per_seat.toString(),
+      price_per_seat_monthly: (pricing.price_per_seat_monthly || 0).toString(),
+      price_per_seat_yearly: (pricing.price_per_seat_yearly || 0).toString(),
       is_enabled: pricing.is_enabled
     });
   };
 
   const cancelEditSeatPrice = () => {
     setEditingPlan(null);
-    setEditForm({ price_per_seat: '', is_enabled: true });
+    setEditForm({ price_per_seat_monthly: '', price_per_seat_yearly: '', is_enabled: true });
   };
 
-  const saveSeatPrice = async (planName) => {
+  const saveSeatPrice = async (planId) => {
     setSavingSeatPrice(true);
     try {
       const payload = {
-        price_per_seat: parseFloat(editForm.price_per_seat) || 0,
+        price_per_seat_monthly: parseFloat(editForm.price_per_seat_monthly) || 0,
+        price_per_seat_yearly: parseFloat(editForm.price_per_seat_yearly) || 0,
         is_enabled: editForm.is_enabled
       };
       
-      await axios.patch(`${API}/quotas/seat-pricing/${planName}`, payload, {
+      await axios.patch(`${API}/quotas/seat-pricing/${planId}`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
-      toast.success(`Seat pricing updated for ${planName} plan`);
+      toast.success('Seat pricing updated successfully');
       setEditingPlan(null);
       loadSeatPricing();
     } catch (error) {
