@@ -195,7 +195,8 @@ const Team = () => {
             extraSeats: quotaRes.data.extra_seats || 0,
             percentage: seatQuota.percentage || 0,
             planName: quotaRes.data.plan_name || 'free',
-            pricePerSeat: seatPricingRes.data?.price_per_seat || 5
+            pricePerSeatMonthly: seatPricingRes.data?.price_per_seat_monthly || 5,
+            pricePerSeatYearly: seatPricingRes.data?.price_per_seat_yearly || 50
           });
         }
       }
