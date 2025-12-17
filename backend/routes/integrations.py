@@ -469,3 +469,184 @@ async def sync_plans_from_stripe(admin_user: dict = Depends(get_super_admin_user
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to sync from Stripe: {str(e)}")
+
+
+# ============== SENDGRID INTEGRATION ==============
+
+@router.get("/sendgrid")
+async def get_sendgrid_settings(admin_user: dict = Depends(get_super_admin_user)):
+    """Get SendGrid integration settings (Super Admin only)"""
+    
+    sendgrid_settings = await db.platform_settings.find_one(
+        {"key": "sendgrid_integration"},
+        {"_id": 0}
+    )
+    
+    sendgrid_data = {
+        "api_key_set": False,
+        "sender_email": "",
+        "sender_name": "",
+        "is_enabled": False
+    }
+    
+    if sendgrid_settings and sendgrid_settings.get("value"):
+        value = sendgrid_settings["value"]
+        sendgrid_data = {
+            "api_key_set": bool(value.get("api_key")),
+            "sender_email": value.get("sender_email", ""),
+            "sender_name": value.get("sender_name", ""),
+            "is_enabled": value.get("is_enabled", False)
+        }
+    
+    return sendgrid_data
+
+
+@router.put("/sendgrid")
+async def update_sendgrid_settings(
+    settings: SendGridSettingsUpdate,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Update SendGrid integration settings (Super Admin only)"""
+    
+    # Get existing settings
+    existing = await db.platform_settings.find_one(
+        {"key": "sendgrid_integration"},
+        {"_id": 0}
+    )
+    
+    current_value = existing.get("value", {}) if existing else {}
+    
+    # Update only provided fields
+    update_data = {}
+    
+    if settings.api_key is not None and settings.api_key:
+        update_data["api_key"] = settings.api_key
+    
+    if settings.sender_email is not None:
+        update_data["sender_email"] = settings.sender_email
+    
+    if settings.sender_name is not None:
+        update_data["sender_name"] = settings.sender_name
+    
+    if settings.is_enabled is not None:
+        update_data["is_enabled"] = settings.is_enabled
+    
+    # Merge with existing
+    merged = {**current_value, **update_data}
+    merged["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.platform_settings.update_one(
+        {"key": "sendgrid_integration"},
+        {"$set": {"key": "sendgrid_integration", "value": merged}},
+        upsert=True
+    )
+    
+    logger.info(f"SendGrid settings updated by admin: {admin_user.get('email')}")
+    
+    return {"message": "SendGrid settings saved successfully"}
+
+
+@router.post("/sendgrid/test-connection")
+async def test_sendgrid_connection(admin_user: dict = Depends(get_super_admin_user)):
+    """Test SendGrid API connection (Super Admin only)"""
+    
+    # Get SendGrid settings
+    sendgrid_settings = await db.platform_settings.find_one({"key": "sendgrid_integration"})
+    
+    if not sendgrid_settings or not sendgrid_settings.get("value"):
+        raise HTTPException(status_code=400, detail="SendGrid not configured")
+    
+    settings_value = sendgrid_settings["value"]
+    api_key = settings_value.get("api_key")
+    
+    if not api_key:
+        raise HTTPException(status_code=400, detail="SendGrid API key not configured")
+    
+    try:
+        from sendgrid import SendGridAPIClient
+        
+        sg = SendGridAPIClient(api_key)
+        # Test the API key by making a simple API call
+        response = sg.client.api_keys.get()
+        
+        return {
+            "message": "Successfully connected to SendGrid",
+            "details": {
+                "status": "connected",
+                "sender_email": settings_value.get("sender_email", "Not configured"),
+                "sender_name": settings_value.get("sender_name", "Not configured")
+            }
+        }
+    except Exception as e:
+        error_msg = str(e)
+        if "401" in error_msg or "403" in error_msg:
+            raise HTTPException(status_code=401, detail="Invalid SendGrid API key")
+        raise HTTPException(status_code=500, detail=f"SendGrid connection failed: {error_msg}")
+
+
+@router.post("/sendgrid/send-test-email")
+async def send_test_email(
+    test_data: SendGridTestEmail,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Send a test email via SendGrid (Super Admin only)"""
+    
+    # Get SendGrid settings
+    sendgrid_settings = await db.platform_settings.find_one({"key": "sendgrid_integration"})
+    
+    if not sendgrid_settings or not sendgrid_settings.get("value"):
+        raise HTTPException(status_code=400, detail="SendGrid not configured")
+    
+    settings_value = sendgrid_settings["value"]
+    api_key = settings_value.get("api_key")
+    sender_email = settings_value.get("sender_email")
+    sender_name = settings_value.get("sender_name", "Platform")
+    
+    if not api_key:
+        raise HTTPException(status_code=400, detail="SendGrid API key not configured")
+    
+    if not sender_email:
+        raise HTTPException(status_code=400, detail="Sender email not configured")
+    
+    try:
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail, Email, To, Content
+        
+        sg = SendGridAPIClient(api_key)
+        
+        message = Mail(
+            from_email=Email(sender_email, sender_name),
+            to_emails=To(test_data.to_email),
+            subject=test_data.subject,
+            html_content=f"""
+            <div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2 style="color: #333;">Test Email</h2>
+                <p>{test_data.content}</p>
+                <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+                <p style="color: #666; font-size: 12px;">
+                    This test email was sent from your platform's SendGrid integration.
+                </p>
+            </div>
+            """
+        )
+        
+        response = sg.send(message)
+        
+        if response.status_code == 202:
+            logger.info(f"Test email sent to {test_data.to_email} by admin: {admin_user.get('email')}")
+            return {
+                "message": f"Test email sent successfully to {test_data.to_email}",
+                "status_code": response.status_code
+            }
+        else:
+            raise HTTPException(
+                status_code=500, 
+                detail=f"SendGrid returned status code: {response.status_code}"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to send test email: {error_msg}")
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {error_msg}")
