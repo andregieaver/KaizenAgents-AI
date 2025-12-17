@@ -401,38 +401,71 @@ const Team = () => {
     );
   }
 
+  // Calculate remaining seats
+  const totalSeats = seatInfo.limit;
+  const usedSeats = seatInfo.current;
+  const remainingSeats = Math.max(0, totalSeats - usedSeats);
+  const baseSeats = seatInfo.limit - seatInfo.extraSeats;
+
   return (
     <div className="p-6 lg:p-8 page-transition" data-testid="team-page">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-heading text-2xl lg:text-3xl font-bold tracking-tight mb-2">Team</h1>
+          <h1 className="font-heading text-2xl lg:text-3xl font-bold tracking-tight mb-2">Users</h1>
           <p className="text-muted-foreground">Manage your team members, groups, and AI agents</p>
         </div>
+        
+        {/* Seat Usage Card */}
+        <Card className="sm:min-w-[280px]">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Seats</span>
+              <span className="text-sm text-muted-foreground">
+                {usedSeats} / {totalSeats} used
+              </span>
+            </div>
+            <Progress value={seatInfo.percentage} className="h-2 mb-2" />
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>
+                {seatInfo.extraSeats > 0 
+                  ? `${baseSeats} base + ${seatInfo.extraSeats} purchased`
+                  : `${remainingSeats} available`
+                }
+              </span>
+              <Link 
+                to="/dashboard/pricing" 
+                className="text-primary hover:underline flex items-center gap-1"
+              >
+                Add seats
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs defaultValue="members" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="members" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Members
-          </TabsTrigger>
-          <TabsTrigger value="teams" className="flex items-center gap-2">
-            <FolderPlus className="h-4 w-4" />
-            Teams
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Members Tab */}
-        <TabsContent value="members">
-          <div className="flex justify-end mb-4">
-            {canManageUsers && (
-              <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-                <DialogTrigger asChild>
-                  <Button className="btn-hover" data-testid="invite-user-btn">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Invite User
-                  </Button>
-                </DialogTrigger>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <TabsList>
+            <TabsTrigger value="members" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Members
+            </TabsTrigger>
+            <TabsTrigger value="teams" className="flex items-center gap-2">
+              <FolderPlus className="h-4 w-4" />
+              Teams
+            </TabsTrigger>
+          </TabsList>
+          
+          {/* Invite User Button - inline with tabs */}
+          {canManageUsers && (
+            <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+              <DialogTrigger asChild>
+                <Button className="btn-hover" data-testid="invite-user-btn">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Invite User
+                </Button>
+              </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                   {!tempPassword ? (
                     <>
