@@ -3451,6 +3451,9 @@ def main():
         
         # 13. Page Template Export/Import Feature Tests (Review Request)
         ("Page Template Export/Import Feature", tester.test_page_template_export_import_feature),
+        
+        # 14. Seat Pricing Subscription System Tests (Review Request)
+        ("Seat Pricing Subscription System", tester.test_seat_pricing_subscription_system),
     ]
     
     print(f"\n📋 Running {len(tests)} comprehensive test scenarios...")
