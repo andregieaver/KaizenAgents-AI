@@ -98,6 +98,14 @@ const Integrations = () => {
       if (response.data.code_injection) {
         setCodeInjection(response.data.code_injection);
       }
+      
+      if (response.data.sendgrid) {
+        setSendgridSettings(prev => ({
+          ...prev,
+          ...response.data.sendgrid,
+          api_key: response.data.sendgrid.api_key_set ? '••••••••••••••••' : ''
+        }));
+      }
     } catch (error) {
       console.error('Error fetching integration settings:', error);
       toast.error('Failed to load integration settings');
