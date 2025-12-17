@@ -128,3 +128,187 @@ async def get_me(current_user: dict = Depends(get_current_user)):
         "created_at": current_user["created_at"],
         "is_super_admin": is_super_admin(current_user)
     }
+
+
+# ============== PASSWORD RESET ==============
+
+@router.post("/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    """Request a password reset email"""
+    email = request.email.lower().strip()
+    
+    # Check if user exists
+    user = await db.users.find_one({"email": email}, {"_id": 0})
+    
+    # Always return success to prevent email enumeration
+    if not user:
+        logger.info(f"Password reset requested for non-existent email: {email}")
+        return {"message": "If an account exists with this email, you will receive a password reset link."}
+    
+    # Generate reset token
+    reset_token = secrets.token_urlsafe(32)
+    expiry = datetime.now(timezone.utc) + timedelta(hours=1)  # Token valid for 1 hour
+    
+    # Store reset token in database
+    await db.password_resets.delete_many({"email": email})  # Remove any existing tokens
+    await db.password_resets.insert_one({
+        "id": str(uuid.uuid4()),
+        "email": email,
+        "token": reset_token,
+        "expires_at": expiry.isoformat(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "used": False
+    })
+    
+    # Try to send email via SendGrid
+    email_sent = await send_password_reset_email(email, user.get("name", "User"), reset_token)
+    
+    if email_sent:
+        logger.info(f"Password reset email sent to: {email}")
+    else:
+        logger.warning(f"Failed to send password reset email to: {email}")
+    
+    return {"message": "If an account exists with this email, you will receive a password reset link."}
+
+
+@router.post("/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    """Reset password using token"""
+    # Find the reset token
+    reset_record = await db.password_resets.find_one({
+        "token": request.token,
+        "used": False
+    }, {"_id": 0})
+    
+    if not reset_record:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    # Check if token has expired
+    expiry = datetime.fromisoformat(reset_record["expires_at"].replace("Z", "+00:00"))
+    if datetime.now(timezone.utc) > expiry:
+        raise HTTPException(status_code=400, detail="Reset token has expired")
+    
+    # Validate password
+    if len(request.new_password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    # Update user password
+    email = reset_record["email"]
+    new_hash = hash_password(request.new_password)
+    
+    result = await db.users.update_one(
+        {"email": email},
+        {"$set": {"password_hash": new_hash, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    if result.modified_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Mark token as used
+    await db.password_resets.update_one(
+        {"token": request.token},
+        {"$set": {"used": True}}
+    )
+    
+    logger.info(f"Password reset successful for: {email}")
+    
+    return {"message": "Password has been reset successfully. You can now log in with your new password."}
+
+
+@router.get("/verify-reset-token/{token}")
+async def verify_reset_token(token: str):
+    """Verify if a password reset token is valid"""
+    reset_record = await db.password_resets.find_one({
+        "token": token,
+        "used": False
+    }, {"_id": 0})
+    
+    if not reset_record:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token")
+    
+    # Check if token has expired
+    expiry = datetime.fromisoformat(reset_record["expires_at"].replace("Z", "+00:00"))
+    if datetime.now(timezone.utc) > expiry:
+        raise HTTPException(status_code=400, detail="Reset token has expired")
+    
+    return {"valid": True, "email": reset_record["email"]}
+
+
+async def send_password_reset_email(email: str, name: str, token: str) -> bool:
+    """Send password reset email via SendGrid"""
+    try:
+        # Get SendGrid settings
+        sendgrid_settings = await db.platform_settings.find_one({"key": "sendgrid_integration"})
+        
+        if not sendgrid_settings or not sendgrid_settings.get("value"):
+            logger.warning("SendGrid not configured - cannot send password reset email")
+            return False
+        
+        settings_value = sendgrid_settings["value"]
+        api_key = settings_value.get("api_key")
+        sender_email = settings_value.get("sender_email")
+        sender_name = settings_value.get("sender_name", "Platform")
+        is_enabled = settings_value.get("is_enabled", False)
+        
+        if not api_key or not sender_email or not is_enabled:
+            logger.warning("SendGrid not properly configured or disabled")
+            return False
+        
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail, Email, To
+        import os
+        
+        # Build reset URL - use frontend URL
+        frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+        reset_url = f"{frontend_url}/reset-password?token={token}"
+        
+        sg = SendGridAPIClient(api_key)
+        
+        message = Mail(
+            from_email=Email(sender_email, sender_name),
+            to_emails=To(email),
+            subject="Reset Your Password",
+            html_content=f"""
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #333; margin: 0;">Password Reset</h1>
+                </div>
+                
+                <p style="color: #555; font-size: 16px;">Hi {name},</p>
+                
+                <p style="color: #555; font-size: 16px;">
+                    We received a request to reset your password. Click the button below to create a new password:
+                </p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{reset_url}" 
+                       style="display: inline-block; background-color: #0047AB; color: white; 
+                              padding: 14px 32px; text-decoration: none; border-radius: 6px; 
+                              font-weight: bold; font-size: 16px;">
+                        Reset Password
+                    </a>
+                </div>
+                
+                <p style="color: #555; font-size: 14px;">
+                    Or copy and paste this link into your browser:
+                </p>
+                <p style="color: #0047AB; font-size: 14px; word-break: break-all;">
+                    {reset_url}
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                
+                <p style="color: #888; font-size: 12px;">
+                    This link will expire in 1 hour. If you didn't request a password reset, 
+                    you can safely ignore this email.
+                </p>
+            </div>
+            """
+        )
+        
+        response = sg.send(message)
+        return response.status_code == 202
+        
+    except Exception as e:
+        logger.error(f"Failed to send password reset email: {str(e)}")
+        return False
