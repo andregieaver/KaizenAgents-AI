@@ -45,11 +45,13 @@ import {
   Edit,
   UserMinus,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  Plus,
+  ShoppingCart
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
