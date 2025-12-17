@@ -652,7 +652,7 @@ const Team = () => {
                     <DialogHeader>
                       <DialogTitle className="font-heading">Invite Team Member</DialogTitle>
                       <DialogDescription>
-                        Add a new member to your team. They'll receive a temporary password.
+                        Add a new member to your team. They&apos;ll receive a temporary password.
                       </DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleInvite} className="space-y-4">
