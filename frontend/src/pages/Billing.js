@@ -49,7 +49,11 @@ const Billing = () => {
             }
           } catch (error) {
             console.error('Error verifying checkout:', error);
-            toast.warning('Payment successful, but subscription activation is pending. Please refresh in a moment.');
+            const errorDetail = error.response?.data?.detail || error.message;
+            console.error('Error detail:', errorDetail);
+            toast.error(`Subscription activation failed: ${errorDetail}`, {
+              description: 'Please contact support if the issue persists.'
+            });
           }
         } else {
           toast.success('Payment successful! Your subscription is now active.');
