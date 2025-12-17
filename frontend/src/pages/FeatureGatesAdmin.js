@@ -30,7 +30,7 @@ const FeatureGatesAdmin = () => {
   const [seatPricing, setSeatPricing] = useState([]);
   const [loadingSeatPricing, setLoadingSeatPricing] = useState(false);
   const [editingPlan, setEditingPlan] = useState(null);
-  const [editForm, setEditForm] = useState({ price_per_seat: '', is_enabled: true });
+  const [editForm, setEditForm] = useState({ price_per_seat_monthly: '', price_per_seat_yearly: '', is_enabled: true });
   const [savingSeatPrice, setSavingSeatPrice] = useState(false);
 
   useEffect(() => {
