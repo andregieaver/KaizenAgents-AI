@@ -661,16 +661,16 @@ async def create_seat_subscription_checkout(
 
 
 @router.post("/extra-seats/verify")
-async def verify_seat_purchase(
+async def verify_seat_subscription(
     session_id: str = Query(..., description="Stripe checkout session ID"),
     current_user: dict = Depends(get_current_user)
 ):
-    """Verify and complete seat purchase from Stripe checkout session"""
+    """Verify and activate seat subscription from Stripe checkout session"""
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
     
-    logger.info(f"Verifying seat purchase session: {session_id} for tenant: {tenant_id}")
+    logger.info(f"Verifying seat subscription session: {session_id} for tenant: {tenant_id}")
     
     # Initialize Stripe
     await StripeService.initialize_from_db()
@@ -678,89 +678,115 @@ async def verify_seat_purchase(
     if not StripeService.is_configured():
         raise HTTPException(status_code=503, detail="Payment system not configured")
     
-    # Get checkout session
-    session = await StripeService.get_checkout_session(session_id)
-    
-    if not session:
-        raise HTTPException(status_code=404, detail="Checkout session not found")
-    
-    # Verify tenant
-    if session["metadata"].get("tenant_id") != tenant_id:
-        raise HTTPException(status_code=403, detail="Unauthorized")
-    
-    # Check if this is a seat purchase
-    if session["metadata"].get("type") != "seat_purchase":
-        raise HTTPException(status_code=400, detail="Invalid session type")
-    
-    # Check payment status
-    if session["payment_status"] != "paid":
-        return {"status": "pending", "message": "Payment not completed"}
-    
-    # Get quantity from metadata
-    quantity = int(session["metadata"].get("quantity", 0))
-    
-    if quantity <= 0:
-        raise HTTPException(status_code=400, detail="Invalid quantity")
-    
-    now = datetime.now(timezone.utc).isoformat()
-    
-    # Check if already processed
-    existing_transaction = await db.seat_transactions.find_one({
-        "stripe_session_id": session_id,
-        "status": "completed"
-    })
-    
-    if existing_transaction:
-        return {
-            "status": "already_processed",
-            "message": "This purchase was already processed",
-            "quantity": quantity
-        }
-    
-    # Update extra seats
-    await db.extra_seats.update_one(
-        {"tenant_id": tenant_id},
-        {
-            "$inc": {"quantity": quantity},
-            "$set": {
-                "updated_at": now,
-                "last_purchase": {
+    import stripe
+    try:
+        # Get checkout session from Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        # Verify tenant
+        if session.metadata.get("tenant_id") != tenant_id:
+            raise HTTPException(status_code=403, detail="Unauthorized")
+        
+        # Check if this is a seat subscription
+        session_type = session.metadata.get("type")
+        if session_type not in ["seat_subscription", "seat_purchase"]:
+            raise HTTPException(status_code=400, detail="Invalid session type")
+        
+        # Check payment status
+        if session.payment_status != "paid":
+            return {"status": "pending", "message": "Payment not completed"}
+        
+        # Get quantity and billing info from metadata
+        quantity = int(session.metadata.get("quantity", 0))
+        billing_cycle = session.metadata.get("billing_cycle", "monthly")
+        subscription_id = session.subscription
+        
+        if quantity <= 0:
+            raise HTTPException(status_code=400, detail="Invalid quantity")
+        
+        now = datetime.now(timezone.utc).isoformat()
+        
+        # Check if already processed
+        existing_subscription = await db.seat_subscriptions.find_one({
+            "stripe_session_id": session_id,
+            "status": "active"
+        })
+        
+        if existing_subscription:
+            return {
+                "status": "already_processed",
+                "message": "This subscription was already activated",
+                "quantity": quantity
+            }
+        
+        # Record seat subscription
+        await db.seat_subscriptions.update_one(
+            {"tenant_id": tenant_id},
+            {
+                "$set": {
                     "quantity": quantity,
+                    "billing_cycle": billing_cycle,
+                    "stripe_subscription_id": subscription_id,
                     "stripe_session_id": session_id,
-                    "date": now
+                    "status": "active",
+                    "updated_at": now
+                },
+                "$setOnInsert": {
+                    "id": str(uuid.uuid4()),
+                    "created_at": now
                 }
             },
-            "$setOnInsert": {
-                "created_at": now
-            }
-        },
-        upsert=True
-    )
-    
-    # Record transaction
-    await db.seat_transactions.insert_one({
-        "id": str(uuid.uuid4()),
-        "tenant_id": tenant_id,
-        "type": "purchase",
-        "quantity": quantity,
-        "amount_total": session.get("amount_total", 0) / 100,  # Convert from cents
-        "stripe_session_id": session_id,
-        "status": "completed",
-        "created_at": now
-    })
-    
-    logger.info(f"Seat purchase completed: {quantity} seats for tenant {tenant_id}")
-    
-    # Get updated seat count
-    extra_seats_doc = await db.extra_seats.find_one({"tenant_id": tenant_id}, {"_id": 0})
-    total_extra_seats = extra_seats_doc.get("quantity", 0) if extra_seats_doc else 0
-    
-    return {
-        "status": "completed",
-        "message": f"Successfully purchased {quantity} seat(s)",
-        "quantity": quantity,
-        "total_extra_seats": total_extra_seats
-    }
+            upsert=True
+        )
+        
+        # Update extra_seats collection for quota tracking
+        await db.extra_seats.update_one(
+            {"tenant_id": tenant_id},
+            {
+                "$set": {
+                    "quantity": quantity,
+                    "subscription_based": True,
+                    "stripe_subscription_id": subscription_id,
+                    "billing_cycle": billing_cycle,
+                    "updated_at": now
+                },
+                "$setOnInsert": {
+                    "created_at": now
+                }
+            },
+            upsert=True
+        )
+        
+        # Record transaction
+        await db.seat_transactions.insert_one({
+            "id": str(uuid.uuid4()),
+            "tenant_id": tenant_id,
+            "type": "subscription",
+            "quantity": quantity,
+            "billing_cycle": billing_cycle,
+            "amount_total": (session.amount_total or 0) / 100,
+            "stripe_session_id": session_id,
+            "stripe_subscription_id": subscription_id,
+            "status": "completed",
+            "created_at": now
+        })
+        
+        logger.info(f"Seat subscription activated: {quantity} seats for tenant {tenant_id}")
+        
+        return {
+            "status": "completed",
+            "message": f"Successfully subscribed to {quantity} seat(s)",
+            "quantity": quantity,
+            "billing_cycle": billing_cycle,
+            "subscription_id": subscription_id
+        }
+        
+    except stripe.error.StripeError as e:
+        logger.error(f"Stripe error verifying seat subscription: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Stripe error: {str(e)}")
+    except Exception as e:
+        logger.error(f"Error verifying seat subscription: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to verify subscription: {str(e)}")
 
 
 # ============== HELPER FUNCTIONS ==============
