@@ -9,6 +9,8 @@ import HomePage from "./pages/HomePage";
 import PricingPage from "./pages/PricingPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import DashboardLayout from "./pages/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Conversations from "./pages/Conversations";
