@@ -574,7 +574,9 @@ async def verify_checkout_session(
             raise HTTPException(status_code=404, detail="Plan not found")
         
         # Get subscription details from Stripe
+        log_info(f"Retrieving Stripe subscription", subscription_id=subscription_id)
         stripe_sub = stripe.Subscription.retrieve(subscription_id)
+        log_info(f"Stripe subscription retrieved", status=stripe_sub.status)
         
         now = datetime.now(timezone.utc)
         period_start = datetime.fromtimestamp(stripe_sub.current_period_start, tz=timezone.utc)
