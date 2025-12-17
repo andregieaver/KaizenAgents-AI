@@ -408,130 +408,13 @@ const PlanManagement = () => {
               </div>
             </div>
 
-            {/* Limits */}
-            <div className="space-y-4">
-              <h3 className="font-semibold">Limits</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="max_conversations">Max Conversations</Label>
-                  <Input
-                    id="max_conversations"
-                    type="number"
-                    value={formData.features.max_conversations || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      features: {
-                        ...formData.features,
-                        max_conversations: e.target.value ? parseInt(e.target.value) : null
-                      }
-                    })}
-                    placeholder="Unlimited if empty"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="max_agents">Max Agents</Label>
-                  <Input
-                    id="max_agents"
-                    type="number"
-                    value={formData.features.max_agents || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      features: {
-                        ...formData.features,
-                        max_agents: e.target.value ? parseInt(e.target.value) : null
-                      }
-                    })}
-                    placeholder="Unlimited if empty"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="history_days">Conversation History (days)</Label>
-                  <Input
-                    id="history_days"
-                    type="number"
-                    value={formData.features.conversation_history_days || ''}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      features: {
-                        ...formData.features,
-                        conversation_history_days: e.target.value ? parseInt(e.target.value) : null
-                      }
-                    })}
-                    placeholder="Unlimited if empty"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="support_level">Support Level</Label>
-                  <select
-                    id="support_level"
-                    value={formData.features.support_level}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      features: { ...formData.features, support_level: e.target.value }
-                    })}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="email">Email Support</option>
-                    <option value="priority">Priority Support</option>
-                    <option value="premium">Premium Support</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* Toggle Features */}
-            <div className="space-y-4">
-              <h3 className="font-semibold">Toggle Features</h3>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={formData.features.analytics_enabled}
-                    onCheckedChange={(checked) => setFormData({
-                      ...formData,
-                      features: { ...formData.features, analytics_enabled: checked }
-                    })}
-                  />
-                  <Label>Analytics Enabled</Label>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={formData.features.api_access}
-                    onCheckedChange={(checked) => setFormData({
-                      ...formData,
-                      features: { ...formData.features, api_access: checked }
-                    })}
-                  />
-                  <Label>API Access</Label>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={formData.features.remove_branding}
-                    onCheckedChange={(checked) => setFormData({
-                      ...formData,
-                      features: { ...formData.features, remove_branding: checked }
-                    })}
-                  />
-                  <Label>Remove Branding</Label>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={formData.features.custom_integrations}
-                    onCheckedChange={(checked) => setFormData({
-                      ...formData,
-                      features: { ...formData.features, custom_integrations: checked }
-                    })}
-                  />
-                  <Label>Custom Integrations</Label>
-                </div>
-              </div>
+            {/* Note about Feature Gates */}
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm text-blue-700">
+                <strong>Note:</strong> Resource limits and feature toggles are now managed in the 
+                <a href="/dashboard/feature-gates" className="underline ml-1 font-semibold">Feature Gates</a> page 
+                for centralized quota management across all plans.
+              </p>
             </div>
 
             {/* Custom Feature Items */}
