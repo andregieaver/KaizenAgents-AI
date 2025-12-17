@@ -218,99 +218,113 @@ const FeatureGatesAdmin = () => {
           <h1 className="text-3xl font-bold font-heading">Feature Gate Management</h1>
         </div>
         <p className="text-muted-foreground">
-          Configure subscription plan limits and quotas for company-level resources
+          Configure subscription plan limits, quotas, and seat pricing
         </p>
       </div>
 
-      <Card className="border border-border">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle className="font-heading">Plan Limits & Quotas</CardTitle>
-              <CardDescription>
-                Set limits for agents, seats, usage, and features per plan
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={loadData}
-                disabled={loading}
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleSave}
-                disabled={!hasChanges || saving}
-              >
-                {saving ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
+      <Tabs defaultValue="quotas" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="quotas" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Plan Limits & Quotas
+          </TabsTrigger>
+          <TabsTrigger value="seat-pricing" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            Seat Pricing
+          </TabsTrigger>
+        </TabsList>
 
-        <CardContent className="space-y-4">
-          {hasChanges && (
-            <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-start gap-3">
-              <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
-              <div className="text-sm">
-                <p className="font-medium text-amber-500">Unsaved Changes</p>
-                <p className="text-muted-foreground">
-                  You have unsaved changes. Click &quot;Save Changes&quot; to apply them.
-                </p>
+        {/* Quotas Tab */}
+        <TabsContent value="quotas">
+          <Card className="border border-border">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="font-heading">Plan Limits & Quotas</CardTitle>
+                  <CardDescription>
+                    Set limits for agents, seats, usage, and features per plan
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={loadData}
+                    disabled={loading}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSave}
+                    disabled={!hasChanges || saving}
+                  >
+                    {saving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            </CardHeader>
 
-          {/* Category Filter */}
-          <div className="flex flex-wrap gap-2">
-            <span className="text-sm font-medium text-muted-foreground">Filter by category:</span>
-            {categories.map((cat) => (
-              <Badge
-                key={cat}
-                variant={selectedCategory === cat ? 'default' : 'outline'}
-                className="cursor-pointer"
-                onClick={() => setSelectedCategory(cat)}
-              >
-                {cat}
-              </Badge>
-            ))}
-          </div>
+            <CardContent className="space-y-4">
+              {hasChanges && (
+                <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-sm">
+                    <p className="font-medium text-amber-500">Unsaved Changes</p>
+                    <p className="text-muted-foreground">
+                      You have unsaved changes. Click &quot;Save Changes&quot; to apply them.
+                    </p>
+                  </div>
+                </div>
+              )}
 
-          {/* Feature Gate Matrix */}
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-4 font-semibold bg-muted/50 min-w-[300px]">
-                    Feature / Resource
-                  </th>
-                  {plans.map((plan) => (
-                    <th
-                      key={plan.name}
-                      className="text-center p-4 font-semibold bg-muted/50 min-w-[180px]"
-                    >
-                      <div className="font-bold text-lg">{plan.display_name}</div>
-                      <div className="text-xs font-normal text-muted-foreground mt-1">
-                        {plan.description}
-                      </div>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
+              {/* Category Filter */}
+              <div className="flex flex-wrap gap-2">
+                <span className="text-sm font-medium text-muted-foreground">Filter by category:</span>
+                {categories.map((cat) => (
+                  <Badge
+                    key={cat}
+                    variant={selectedCategory === cat ? 'default' : 'outline'}
+                    className="cursor-pointer"
+                    onClick={() => setSelectedCategory(cat)}
+                  >
+                    {cat}
+                  </Badge>
+                ))}
+              </div>
+
+              {/* Feature Gate Matrix */}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-4 font-semibold bg-muted/50 min-w-[300px]">
+                        Feature / Resource
+                      </th>
+                      {plans.map((plan) => (
+                        <th
+                          key={plan.name}
+                          className="text-center p-4 font-semibold bg-muted/50 min-w-[180px]"
+                        >
+                          <div className="font-bold text-lg">{plan.display_name}</div>
+                          <div className="text-xs font-normal text-muted-foreground mt-1">
+                            {plan.description}
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
               <tbody>
                 {filteredFeatures.map((feature, featureIndex) => {
                   const actualIndex = config.features.findIndex(f => f.feature_key === feature.feature_key);
