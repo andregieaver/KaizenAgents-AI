@@ -613,16 +613,19 @@ async def verify_checkout_session(
         # Determine billing cycle
         billing_cycle = "monthly"
         try:
-            if (hasattr(stripe_sub, 'items') and 
-                stripe_sub.items and 
-                len(stripe_sub.items.data) > 0 and
-                hasattr(stripe_sub.items.data[0], 'price') and
-                hasattr(stripe_sub.items.data[0].price, 'recurring') and
-                stripe_sub.items.data[0].price.recurring.interval == "year"):
-                billing_cycle = "yearly"
-        except (AttributeError, IndexError) as e:
+            items = get_stripe_value(stripe_sub, 'items')
+            if items:
+                items_data = get_stripe_value(items, 'data', [])
+                if len(items_data) > 0:
+                    price = get_stripe_value(items_data[0], 'price')
+                    if price:
+                        recurring = get_stripe_value(price, 'recurring')
+                        if recurring:
+                            interval = get_stripe_value(recurring, 'interval')
+                            if interval == "year":
+                                billing_cycle = "yearly"
+        except Exception as e:
             log_error("Could not determine billing cycle", error=str(e), subscription_id=subscription_id)
-            # Default to monthly
         
         # Update or create subscription in database
         subscription_doc = {
