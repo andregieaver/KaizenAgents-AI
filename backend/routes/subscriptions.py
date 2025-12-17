@@ -576,7 +576,13 @@ async def verify_checkout_session(
         # Get subscription details from Stripe
         log_info(f"Retrieving Stripe subscription", subscription_id=subscription_id)
         stripe_sub = stripe.Subscription.retrieve(subscription_id)
-        log_info(f"Stripe subscription retrieved", status=stripe_sub.status, has_current_period_start=hasattr(stripe_sub, 'current_period_start'))
+        
+        # Log what we received for debugging
+        log_info(f"Stripe subscription retrieved", 
+                subscription_id=subscription_id,
+                status=stripe_sub.get('status') if isinstance(stripe_sub, dict) else getattr(stripe_sub, 'status', 'unknown'),
+                object_type=type(stripe_sub).__name__,
+                has_items=hasattr(stripe_sub, 'items') or 'items' in stripe_sub if isinstance(stripe_sub, dict) else False)
         
         now = datetime.now(timezone.utc)
         
