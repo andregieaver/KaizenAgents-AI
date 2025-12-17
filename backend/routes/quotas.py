@@ -514,20 +514,21 @@ async def sync_seat_pricing_endpoint(current_user: dict = Depends(get_super_admi
     return {"message": "Seat pricing synced with subscription plans", "pricing": pricing}
 
 
-# ============== SEAT PURCHASE FLOW ==============
+# ============== SEAT SUBSCRIPTION FLOW ==============
 
-class SeatPurchaseRequest(BaseModel):
-    """Request to purchase additional seats"""
+class SeatSubscriptionRequest(BaseModel):
+    """Request to subscribe to additional seats"""
     quantity: int
-    
+    billing_cycle: str = "monthly"  # "monthly" or "yearly"
+
 
 @router.post("/extra-seats/checkout")
-async def create_seat_checkout(
-    purchase: SeatPurchaseRequest,
+async def create_seat_subscription_checkout(
+    purchase: SeatSubscriptionRequest,
     request: Request,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create Stripe checkout session for seat purchase"""
+    """Create Stripe checkout session for seat subscription"""
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
@@ -538,31 +539,31 @@ async def create_seat_checkout(
     # Get current subscription to determine plan
     subscription = await quota_service._get_subscription(tenant_id)
     plan_name = subscription.get("plan_name", "free")
+    plan_id = subscription.get("plan_id", "")
     
     # Check if on free plan
-    if plan_name == "free":
+    if plan_name.lower() == "free":
         raise HTTPException(
             status_code=403,
             detail="Extra seats are only available for paid subscription plans. Please upgrade first."
         )
     
     # Get seat pricing for this plan
-    seat_pricing = await db.seat_pricing.find_one({"plan_name": plan_name}, {"_id": 0})
+    seat_pricing = await db.seat_pricing.find_one(
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_name}$", "$options": "i"}}]},
+        {"_id": 0}
+    )
     
     if not seat_pricing:
-        # Try to get default pricing or create it
-        seat_pricing = await db.seat_pricing.find_one({"plan_name": "default"}, {"_id": 0})
-        
-        if not seat_pricing:
-            raise HTTPException(
-                status_code=404,
-                detail="Seat pricing not configured for this plan. Please contact support."
-            )
+        raise HTTPException(
+            status_code=404,
+            detail="Seat pricing not configured for this plan. Please contact support."
+        )
     
     if not seat_pricing.get("is_enabled"):
         raise HTTPException(
             status_code=403,
-            detail="Seat purchases are not available for your current plan."
+            detail="Seat subscriptions are not available for your current plan."
         )
     
     # Initialize Stripe
@@ -595,13 +596,18 @@ async def create_seat_checkout(
                 {"$set": {"stripe_customer_id": stripe_customer_id}}
             )
     
-    # Get Stripe price ID
-    stripe_price_id = seat_pricing.get("stripe_price_id")
+    # Get Stripe price ID based on billing cycle
+    if purchase.billing_cycle == "yearly":
+        stripe_price_id = seat_pricing.get("stripe_price_yearly_id")
+        price_per_seat = seat_pricing.get("price_per_seat_yearly", 0)
+    else:
+        stripe_price_id = seat_pricing.get("stripe_price_monthly_id")
+        price_per_seat = seat_pricing.get("price_per_seat_monthly", 0)
     
     if not stripe_price_id:
         raise HTTPException(
             status_code=500,
-            detail="Stripe pricing not configured for seats. Please contact support."
+            detail=f"Stripe pricing not configured for {purchase.billing_cycle} seat subscriptions. Please contact support."
         )
     
     # Determine frontend URL
@@ -613,31 +619,45 @@ async def create_seat_checkout(
     else:
         frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
     
-    # Create checkout session
-    checkout = await StripeService.create_seat_checkout_session(
-        stripe_customer_id,
-        stripe_price_id,
-        purchase.quantity,
-        f"{frontend_url}/dashboard/team?seats_success=true",
-        f"{frontend_url}/dashboard/team?seats_canceled=true",
-        tenant_id,
-        plan_name
-    )
-    
-    if not checkout:
-        raise HTTPException(status_code=500, detail="Failed to create checkout session")
-    
-    # Calculate total
-    total_amount = seat_pricing["price_per_seat"] * purchase.quantity
-    
-    return {
-        "checkout_url": checkout["url"],
-        "session_id": checkout["session_id"],
-        "quantity": purchase.quantity,
-        "price_per_seat": seat_pricing["price_per_seat"],
-        "total_amount": total_amount,
-        "currency": seat_pricing["currency"]
-    }
+    # Create subscription checkout session (not one-time)
+    import stripe
+    try:
+        session = stripe.checkout.Session.create(
+            customer=stripe_customer_id,
+            payment_method_types=["card"],
+            line_items=[{
+                "price": stripe_price_id,
+                "quantity": purchase.quantity
+            }],
+            mode="subscription",  # Subscription mode for recurring billing
+            success_url=f"{frontend_url}/dashboard/team?seats_success=true&session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{frontend_url}/dashboard/team?seats_canceled=true",
+            metadata={
+                "tenant_id": tenant_id,
+                "type": "seat_subscription",
+                "quantity": str(purchase.quantity),
+                "plan_name": plan_name,
+                "billing_cycle": purchase.billing_cycle
+            }
+        )
+        
+        logger.info(f"Created seat subscription checkout: {session.id} for {purchase.quantity} seats")
+        
+        # Calculate total
+        total_amount = price_per_seat * purchase.quantity
+        
+        return {
+            "checkout_url": session.url,
+            "session_id": session.id,
+            "quantity": purchase.quantity,
+            "price_per_seat": price_per_seat,
+            "total_amount": total_amount,
+            "currency": seat_pricing["currency"],
+            "billing_cycle": purchase.billing_cycle
+        }
+    except Exception as e:
+        logger.error(f"Failed to create seat subscription checkout: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create checkout session: {str(e)}")
 
 
 @router.post("/extra-seats/verify")
