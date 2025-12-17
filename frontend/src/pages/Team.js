@@ -113,7 +113,7 @@ const Team = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [membersRes, teamsRes, agentsRes] = await Promise.all([
+      const [membersRes, teamsRes, agentsRes, quotaRes] = await Promise.all([
         axios.get(`${API}/users`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
@@ -122,11 +122,27 @@ const Team = () => {
         }),
         axios.get(`${API}/agents`, {
           headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: [] }))
+        }).catch(() => ({ data: [] })),
+        axios.get(`${API}/quotas/usage`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: null }))
       ]);
       setMembers(membersRes.data);
       setTeams(teamsRes.data);
       setAgents(agentsRes.data);
+      
+      // Extract seat info from quota response
+      if (quotaRes.data) {
+        const seatQuota = quotaRes.data.quotas?.find(q => q.feature_key === 'max_seats');
+        if (seatQuota) {
+          setSeatInfo({
+            current: seatQuota.current || 0,
+            limit: seatQuota.limit || 0,
+            extraSeats: quotaRes.data.extra_seats || 0,
+            percentage: seatQuota.percentage || 0
+          });
+        }
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load team data');
