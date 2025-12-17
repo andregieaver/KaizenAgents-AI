@@ -410,13 +410,184 @@ const FeatureGatesAdmin = () => {
             </table>
           </div>
 
-          {filteredFeatures.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              No features found for the selected category
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              {filteredFeatures.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  No features found for the selected category
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Seat Pricing Tab */}
+        <TabsContent value="seat-pricing">
+          <Card className="border border-border">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <CardTitle className="font-heading flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Seat Pricing by Plan
+                  </CardTitle>
+                  <CardDescription>
+                    Configure price per additional seat for each subscription tier. 
+                    Users on paid plans can purchase extra seats at these prices.
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadSeatPricing}
+                  disabled={loadingSeatPricing}
+                >
+                  <RefreshCw className={cn("h-4 w-4 mr-2", loadingSeatPricing && "animate-spin")} />
+                  Refresh
+                </Button>
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              {loadingSeatPricing ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {seatPricing.filter(p => p.plan_name !== 'default').map((pricing) => (
+                      <Card 
+                        key={pricing.id} 
+                        className={cn(
+                          "border",
+                          !pricing.is_enabled && "opacity-60"
+                        )}
+                      >
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg capitalize">
+                              {pricing.plan_name} Plan
+                            </CardTitle>
+                            <Badge variant={pricing.is_enabled ? "default" : "secondary"}>
+                              {pricing.is_enabled ? "Active" : "Disabled"}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {editingPlan === pricing.plan_name ? (
+                            <div className="space-y-4">
+                              <div className="space-y-2">
+                                <Label htmlFor={`price-${pricing.plan_name}`}>
+                                  Price per Seat ({pricing.currency.toUpperCase()})
+                                </Label>
+                                <Input
+                                  id={`price-${pricing.plan_name}`}
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={editForm.price_per_seat}
+                                  onChange={(e) => setEditForm({ 
+                                    ...editForm, 
+                                    price_per_seat: e.target.value 
+                                  })}
+                                  placeholder="5.00"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  id={`enabled-${pricing.plan_name}`}
+                                  checked={editForm.is_enabled}
+                                  onCheckedChange={(checked) => setEditForm({ 
+                                    ...editForm, 
+                                    is_enabled: checked 
+                                  })}
+                                />
+                                <Label htmlFor={`enabled-${pricing.plan_name}`}>
+                                  Enable seat purchases
+                                </Label>
+                              </div>
+                              <div className="flex gap-2 pt-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => saveSeatPrice(pricing.plan_name)}
+                                  disabled={savingSeatPrice}
+                                >
+                                  {savingSeatPrice ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Check className="h-4 w-4" />
+                                  )}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={cancelEditSeatPrice}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-3xl font-bold">
+                                  ${pricing.price_per_seat.toFixed(2)}
+                                </span>
+                                <span className="text-muted-foreground">
+                                  / seat
+                                </span>
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {pricing.billing_type === 'one_time' 
+                                  ? 'One-time purchase' 
+                                  : 'Recurring'
+                                }
+                              </div>
+                              {pricing.stripe_price_id && (
+                                <div className="text-xs text-muted-foreground">
+                                  Stripe: Connected ✓
+                                </div>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full mt-2"
+                                onClick={() => startEditSeatPrice(pricing)}
+                              >
+                                <Edit2 className="h-4 w-4 mr-2" />
+                                Edit Pricing
+                              </Button>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+
+                  {seatPricing.length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No seat pricing configured yet.</p>
+                      <p className="text-sm mt-2">
+                        Pricing will be automatically created when you first load this page.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+                    <h4 className="font-semibold mb-2">How Seat Pricing Works</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Users on <strong>Free</strong> plans cannot purchase extra seats</li>
+                      <li>• Users on paid plans can buy additional seats at the configured price</li>
+                      <li>• Seats are one-time purchases added to the subscription quota</li>
+                      <li>• Stripe integration is required for payment processing</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
