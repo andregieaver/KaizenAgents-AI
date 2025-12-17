@@ -1,67 +1,62 @@
 <analysis>**original_problem_statement:**
-The user initially requested full CRUD (Create, Read, Update, Delete) functionality for agents within the Settings > Agents tab. This included adding, editing, deactivating, and deleting agents, tracking date fields, and allowing agents to be published to a public marketplace.
+The user initially requested full CRUD (Create, Read, Update, Delete) functionality for agents. This evolved into a multi-phase implementation of a comprehensive Feature Gating and Quota Management system.
 
-This evolved into a multi-phase implementation of a comprehensive Feature Gating and Quota Management system. The requirements were:
-1.  **Phase 1: Agent CRUD:** Implement the core agent management features.
-2.  **Phase 2: Feature Gate Admin:** Build a super-admin page to define company-level resource quotas (e.g., number of agents, monthly messages, team seats) for different subscription plans. The system must dynamically fetch plans from the database.
-3.  **Phase 3: Quota Enforcement:** Implement backend middleware and service logic to enforce the configured quotas across the application.
-4.  **Phase 4: User-Facing Quota Visibility & Enhancements:**
-    *   Create a dashboard for users to see their current resource usage against their plan limits.
-    *   Add email alerts for approaching limits.
-    *   Implement soft limits.
-    *   Track token usage.
-    *   Allow paid users to purchase extra seats.
+The core requirements were:
+1.  **Phase 1: Agent CRUD:** Implement core agent management features.
+2.  **Phase 2: Feature Gate Admin:** Build a super-admin page to define company-level resource quotas for different subscription plans.
+3.  **Phase 3: Quota Enforcement:** Implement backend middleware to enforce the configured quotas.
+4.  **Phase 4: User-Facing Quota Visibility & Enhancements:** Create a dashboard for users to see their usage against plan limits.
+
+Subsequent requests focused on hardening the Stripe integration (fixing production bugs related to redirects, key management, and subscription activation) and refining the UI/UX for quota management, including centralizing all limits into the Feature Gates page and redesigning the upgrade flow. The latest request is to overhaul the Team page.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application now has a complete agent management (CRUD) system. A standalone super-admin page for Feature Gates has been created, allowing administrators to set resource quotas (e.g., , ) for each subscription plan dynamically fetched from the database. A backend  and associated middleware have been implemented to enforce these limits on key actions like creating agents, adding team members, creating pages, and sending messages. Token and message usage are now being tracked.
+The application has a complete Agent CRUD and a centralized Feature Gating system for quota management. A user-facing Quota Usage Dashboard is implemented on the Settings page. When a user hits a quota limit (e.g., adding a team member), they are shown a toast notification with a button that redirects them to the  page. The pricing page includes a section for purchasing additional seats (this section shows an upgrade prompt for users on the free plan).
+
+The Stripe integration has been significantly improved. It now includes tools for testing the connection and performing a two-way sync of subscription plans. Critical production bugs related to checkout redirects, API key initialization (now dynamically loaded from the database), and subscription activation have been resolved. The subscription activation process is now robust, using a client-side verification call as a fallback for the Stripe webhook.
 
 **Last working item**:
-The agent began implementing the user-facing enhancements for the quota system.
-    - Last item agent was working: The agent was actively building the components for Phase 4 of the Feature Gates project. This involved:
-        1.  Creating a new backend route file () to expose company usage data.
-        2.  Creating a new frontend component file () to display this usage data to the user.
-        3.  Starting to implement token usage tracking in the backend.
-    - Status: IN PROGRESS
+The agent was about to begin implementing UI/UX improvements for the Team page as requested by the user.
+    - Last item agent was working: A complete redesign of the Team page. The request includes:
+        1. Renaming the page/tab from Team to Users in the UI.
+        2. Moving the Invite User functionality to be inline with the Members / Teams tabs.
+        3. Displaying the number of available seats (subscription + purchased).
+        4. Adding a link to the pricing page to purchase more seats.
+    - Status: NOT STARTED
     - Agent Testing Done: N
-    - Which testing method agent to use? both
+    - Which testing method agent to use? Frontend testing agent
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-There are no outstanding bugs or issues. The current focus is on completing the in-progress feature.
+There are no outstanding bugs or issues. The current focus is on the new feature request for the Users/Team page.
 
 **In progress Task List**:
-  - Task 1: Complete Quota System Enhancements (P0)
-
- Task Detail:
-  - Task 1: 
-     - Where to resume: 
-        1.  **Backend:** Flesh out the  endpoint in . This endpoint should retrieve the current user's company, its subscription plan, the feature gate configuration, and the company's current usage counts for all tracked quotas.
-        2.  **Frontend:** Implement the  component. It should call the new  endpoint and render the usage data with clear visuals (e.g., progress bars) showing consumption against limits (e.g., Agents: 5 / 10 used).
-        3.  **Integration:** Add the completed  component to a suitable user-facing location, such as the main Dashboard or the Settings page.
-     - What will be achieved with this?: Users will have clear visibility into their resource consumption and plan limits, improving their experience and understanding of the subscription tiers.
-     - Status:  IN PROGRESS
-     - Should Test frontend/backend/both after fix?: both
-     - Blocked on something: No.
+There are no tasks currently in progress. The agent was about to start a new one.
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   (P0) Implement email alerts for quota limits (approaching/exceeded).
-    *   (P1) Add the ability for paid plans to purchase extra seats beyond their quota.
-    *   (P1) Implement AI moderation review for agents submitted to the marketplace (currently a ).
-    *   (P2) Comprehensive E2E Testing of all new features (Agent CRUD, Quotas, Enforcement).
+    *   (P0) Redesign the Team page to Users page with layout and functionality improvements as per the latest user request.
+    *   (P1) Implement email alerts for when quota limits are approached or exceeded.
+    *   (P1) Implement the backend logic and Stripe integration for purchasing extra seats (the frontend UI is mostly complete).
+    *   (P2) Implement AI moderation review for agents submitted to the marketplace (currently a ).
+    *   (P2) Comprehensive E2E Testing of all new features (Agent CRUD, Quotas, Stripe Flow).
 *   **Future Tasks:**
     *   (P3) Reset Homepage Content to a clean slate.
-    -   Allow users to create and publish their own agents to the Marketplace (partially done).
-    -   Implement a feature to export conversation history.
-    -   Add a predefined set of icons for agent categories.
+    *   Allow users to create and publish their own agents to the Marketplace (partially done).
+    *   Implement a feature to export conversation history.
+    *   Add a predefined set of icons for agent categories.
 
 **Completed work in this session**
-- **Agent CRUD (DONE)**: Implemented full Create, Read, Update, and Delete functionality for agents, including activation/deactivation and image uploads, via new backend endpoints and a frontend modal form.
-- **Feature Gates Admin Page (DONE)**: Created a standalone super-admin page to manage resource quotas for subscription plans. This system dynamically loads plans and features, and saves the configuration to the database.
-- **Quota Enforcement Middleware (DONE)**: Developed a backend service and middleware that enforce the configured limits for creating agents, adding team members, creating pages, enabling orchestration, and tracking message/token usage.
-- **Dynamic Plan Synchronization (DONE)**: Refactored the Feature Gates system to fetch subscription plans directly from the database, ensuring the admin UI always reflects the actual available plans.
+- **User-Facing Quota Dashboard (DONE)**: Implemented a dashboard on the Settings page () showing users their resource usage against plan limits.
+- **Simplified Upgrade Flow (DONE)**: Replaced the upgrade/purchase modal with a simpler flow that redirects users to the pricing page when a quota is exceeded.
+- **Stripe Integration Tools (DONE)**: Added Test Connection and bidirectional Plan Synchronization features to the Stripe section on the Integrations page.
+- **Stripe Production Bug Fixes (DONE)**:
+    - Fixed checkout redirect URL to be dynamic based on request headers, not hardcoded.
+    - Fixed API key handling to load keys from the database at request time, not from environment variables at module load time.
+    - Hardened the subscription activation process by adding a client-side verification endpoint as a fallback to the Stripe webhook, resolving multiple 500 errors in the process.
+- **Centralized Quota Management (DONE)**: Removed limit-related fields from the Plan Management modal and added the corresponding quota types (, , etc.) to the Feature Gates system, making it the single source of truth.
+- **WebSocket Error Fix (DONE)**: Resolved console errors by commenting out  in  for local development.
 
 **Earlier issues found/mentioned but not fixed**
    - **Issue 1: Incorrect Homepage Content (P3)**
@@ -79,60 +74,85 @@ There are no outstanding bugs or issues. The current focus is on completing the 
 
 
 **Key Technical Concepts**
-- **Quota-Based Feature Gating**: A system where super-admins define resource limits (e.g., number of agents, monthly messages) for different subscription plans. This replaced an initial, incorrect implementation of route-based gating.
-- **Dynamic Plan Integration**: The system dynamically fetches subscription plans from the database to build the admin configuration UI, avoiding hardcoded values and ensuring sync with the Plan Management feature.
-- **Middleware-based Enforcement**: FastAPI dependencies () are used in API route definitions to call a  that checks usage against configured limits before allowing an action to proceed.
-- **Usage Tracking**: Key actions (e.g., sending a message) now increment counters stored on the  collection in the database.
+- **Quota-Based Feature Gating**: A centralized system where admins define resource limits (e.g., number of agents) for different subscription plans via the Feature Gates page.
+- **Middleware-based Enforcement**: FastAPI dependencies are used to call a  that checks usage against limits before allowing an action to proceed.
+- **Dynamic Configuration Loading**: The application now dynamically loads critical configurations like Stripe API keys from the database ( collection) at request time, making the system environment-agnostic.
+- **Robust Subscription Activation**: A dual-mechanism approach for activating subscriptions. The primary path is the Stripe webhook. A fallback path was implemented where the frontend calls a  endpoint upon returning from a successful payment, ensuring activation even if the webhook is delayed or fails.
+- **Dynamic Redirect URLs**: The Stripe checkout flow now determines the success/cancel URLs dynamically from the request headers, preventing hardcoded  URLs in production.
 
 **key DB schema**
-  - ** (New Collection)**: Stores the master quota configuration. Schema: 
-  - ****: Added , , , , , .
-  - ****: Modified to include usage counters like  and .
+- No new collections were added.
+- ****: The schema definition in  was extended to include new quota types like , , and .
+- ****: Modified previously to include usage counters.
+- ****: Modified previously with additional tracking fields.
 
 **changes in tech stack**
   - None.
 
 **All files of reference**
-- **Backend (New)**:
-  - : Pydantic models for the feature gate structure.
-  - : Admin API for managing feature gate configs.
-  - : API to expose usage data to the frontend.
-  - : Core logic for checking and tracking quotas.
 - **Backend (Modified)**:
-  - : Added CRUD endpoints and quota checks.
-  - : Registered new routers and applied quota checks.
-  - , : Added quota checks.
-- **Frontend (New)**:
-  - : Modal for creating/editing agents.
-  - : Standalone page for quota admin.
-  - : Placeholder for user usage view.
+  - : Implemented the  endpoint.
+  - : Registered the quotas router.
+  - : Major overhaul to fix redirect URLs, add the  endpoint, and correctly initialize the Stripe service.
+  - : Refactored to allow initializing the Stripe API key from the database instead of only environment variables.
+  - : Added endpoints for Stripe connection testing and plan syncing.
+  - : Added new default quota definitions.
+  - : Added DB initialization for the Stripe service.
 - **Frontend (Modified)**:
-  - : Overhauled to support full CRUD.
-  - : Added nav link to the new admin page.
-  - : Removed the incorrect feature gate tab.
+  - : Added the  to a new Usage tab.
+  - : Implemented the full UI and API call.
+  - : Updated to redirect to the pricing page on quota errors.
+  - : Added the extra seats purchase section and logic to handle checkout session IDs.
+  - : Added logic to call the  endpoint upon returning from Stripe.
+  - : Added UI for the new Stripe tools.
+  - : Removed the Limits and Toggle Features sections from the UI.
+  - : Commented out  to fix local dev server errors.
+- **Frontend (New/Needs Refactoring)**:
+  - : This component was created and iterated on but is now mostly obsolete after the flow was changed to a redirect. It should be considered for removal.
+
+**Areas that need refactoring**:
+- : This component is no longer used in the main user flow and should be removed to clean up the codebase. Its functionality was replaced by redirecting the user to the main pricing page.
+
+**key api endpoints**
+- ****: Retrieves current company usage data for the user-facing dashboard.
+- ****: Tests the configured Stripe API key.
+- ****: Syncs plans from the app's database to Stripe.
+- ****: Imports plans from Stripe into the app's database.
+- ****: Creates a Stripe checkout session. Now uses a dynamic redirect URL.
+- ****: Verifies a Stripe checkout session ID to activate a subscription, serving as a fallback for webhooks.
 
 **Critical Info for New Agent**
-- The project underwent a major pivot from route-based gating to resource-quota gating based on user feedback. The current architecture reflects this.
-- A critical bug was resolved where the backend was using a stale, incorrect database configuration ( was correct, agent was initially checking another). Deleting the stale document in the correct database fixed the issue.
-- The immediate next step is to complete the In progress Task by building out the backend endpoint and frontend component for the user-facing quota dashboard. After that, proceed with the Upcoming Tasks, starting with email alerts.
+- The immediate priority is the UI/UX overhaul of the Team page (renaming to Users and redesigning the layout).
+- The Stripe integration is now significantly more robust but complex. Subscription activation relies on both webhooks and a client-side verification call. API keys are loaded dynamically from the database using .
+- All resource quotas are now managed exclusively through the Feature Gates admin page. Do not add limit logic to other parts of the application like Plan Management.
+
+**documents created in this job**
+- 
+- 
+- 
 
 **Last 10 User Messages and any pending user messages**
-1.  **User**: Requested a Feature Gating admin page to manage API routes per plan. **Status: ADDRESSED & REFACTORED**
-2.  **User**: Corrected the agent: gating should be for company resources (quotas), not API routes, and the page should be a standalone admin page. **Status: ADDRESSED**
-3.  **User**: Pointed out that the Feature Gates page used hardcoded plans, not the real ones from Plan Management. **Status: COMPLETED**
-4.  **User**: Requested the implementation of the middleware to enforce the configured quotas. **Status: COMPLETED**
-5.  **User**: Requested enhancements: a user-facing quota dashboard, email alerts, soft limits, and the ability to pay for extra seats. **Status: IN PROGRESS**
+1.  **User**: Fix WebSocket errors seen in the console. **Status: COMPLETED**
+2.  **User**: When seat quota is exceeded, prompt the user to upgrade or add seats. **Status: COMPLETED** (Implemented as a redirect to the pricing page after several iterations starting with a modal).
+3.  **User**: The upgrade modal is not mobile-friendly. **Status: COMPLETED** (Fixed before the modal was deprecated).
+4.  **User**: The tabs in the upgrade modal are not displaying correctly. **Status: COMPLETED** (Fixed before the modal was deprecated).
+5.  **User**: Simplify the upgrade flow by redirecting to the pricing page instead of using a modal. **Status: COMPLETED**
+6.  **User**: Add the ability to purchase extra seats on the pricing page. **Status: COMPLETED** (UI implemented, backend logic for purchase is pending).
+7.  **User**: Add test connection and plan sync features to the Stripe integration settings. **Status: COMPLETED**
+8.  **User**: Reported and helped debug a series of critical Stripe production bugs related to checkout redirects, API key loading, and subscription activation. **Status: COMPLETED**
+9.  **User**: Suggested moving all plan limits from Plan Management to Feature Gates to centralize quota control. **Status: COMPLETED**
+10. **User**: Lets make some changes to the Team page. Lets start by renaming it in the UI to Users... **Status: PENDING** (This is the current task).
 
 **Project Health Check:**
-- **Broken**: None.
+- **Broken**: None
 - **Mocked**:
-    - **Stripe**: Still uses placeholder API keys.
+    - **Stripe**: The integration is fully functional, but the local development environment uses placeholder/test keys. Production keys are stored in the database.
     - **WooCommerce**: Still relies on user-provided credentials.
-    - **AI Moderation**: The agent review step for marketplace publishing is a  comment.
+    - **AI Moderation**: The agent review step for marketplace publishing is still a  comment.
 
 **3rd Party Integrations**
 - **WooCommerce**: For e-commerce actions. Requires User API Key.
-- **Stripe**: For subscription management. Requires User API Key.
+- **Stripe**: For subscription management. Keys are stored in the database for production.
 - **OpenAI (via )**: Used by the orchestrator Mother agent.
 - **@dnd-kit**: For CMS drag-and-drop.
 - **Tiptap**: For rich-text editing.
@@ -149,4 +169,5 @@ There are no outstanding bugs or issues. The current focus is on completing the 
 
 **What agent forgot to execute**
 - The AI review/moderation step for publishing an agent to the marketplace was noted with a  but not implemented.
-- The user's request for a predefined icon set for agent categories was not implemented; the agent implemented image uploads instead.</analysis>
+- The user's request for a predefined icon set for agent categories was not implemented.
+- The task to reset the homepage content has not been addressed.</analysis>

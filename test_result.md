@@ -180,7 +180,7 @@ The Enhanced Pages Management feature has been successfully implemented with all
 - ✅ Authentication and authorization working properly
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing
 - **API Integration:** All subscription endpoints responding correctly
@@ -298,7 +298,7 @@ The system correctly handles:
 - ✅ Breadcrumb navigation shows "Dashboard > Integrations"
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All integration endpoints responding correctly
@@ -405,7 +405,7 @@ The Integrations page is **FULLY FUNCTIONAL** and working as designed. All core 
 - ✅ Pricing page API correctly retrieves and displays custom features
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All custom feature endpoints responding correctly
@@ -542,7 +542,7 @@ The Custom Feature Items functionality is **SUBSTANTIALLY WORKING** with core fe
 - ✅ Error handling for invalid codes functional
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All discount endpoints responding correctly
@@ -686,7 +686,7 @@ The Discount Codes System is **FULLY FUNCTIONAL** and working as designed. All c
 - ✅ No console errors or API failures detected
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All affiliate endpoints responding correctly
@@ -846,7 +846,7 @@ The Affiliate Program Dashboard is **FULLY FUNCTIONAL** and working as designed.
 - ✅ Data persistence across operations
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during individual operations
 - **API Integration:** All team management endpoints responding correctly
@@ -1013,7 +1013,7 @@ The Team Management feature is **SUBSTANTIALLY FUNCTIONAL** and working as desig
 - ✅ **FILES MODIFIED**: `/app/backend/routes/feature_gates.py` - Updated authentication dependencies
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All feature gates endpoints responding correctly after fix
@@ -1167,7 +1167,7 @@ The Feature Gate Admin functionality is **FULLY FUNCTIONAL** and working as desi
 - ❌ Public header API (/api/global-components/public/header) may not returning updated blocks
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **Component Editor:** Fully functional with proper UI and controls
@@ -1293,7 +1293,7 @@ The Header Block Components System is **PARTIALLY FUNCTIONAL** with a critical r
 - ✅ Viewport-specific layouts adapting correctly
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing operations
 - **Cross-device Testing:** Desktop, tablet, and mobile viewports tested
@@ -1399,7 +1399,7 @@ All UI fixes have been **SUCCESSFULLY IMPLEMENTED** and are working as designed:
 - ✅ Response structure consistent and complete
 
 ### Test Environment Details
-- **Backend URL:** https://featuregate.preview.emergentagent.com/api
+- **Backend URL:** https://quota-manager-4.preview.emergentagent.com/api
 - **Authentication:** Working correctly with super admin credentials
 - **Test Framework:** Custom Python test suite (discount_test.py)
 - **Test Execution:** All 8 tests passed (100% success rate)
@@ -1515,7 +1515,7 @@ The Discount Code functionality is **FULLY FUNCTIONAL** at the backend API level
 - ❌ Issue persists after restart - API still returns old structure
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Backend API:** Failing with ResponseValidationError on /api/feature-gates/config
 
@@ -1615,7 +1615,7 @@ The Discount Code functionality is **FULLY FUNCTIONAL** at the backend API level
 - Plan switching affects quota enforcement immediately
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All quota enforcement endpoints responding correctly
@@ -1803,7 +1803,7 @@ The refactored Feature Gates standalone page has **CRITICAL BACKEND ISSUES** pre
 - ✅ Data persistence working correctly
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All feature gates endpoints responding correctly
@@ -1966,7 +1966,7 @@ The Feature Gates page is **FULLY FUNCTIONAL** and correctly displays the update
 - ✅ SEO data structure properly maintained
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All pages management endpoints responding correctly
@@ -2143,7 +2143,7 @@ The Pages Management feature is **FULLY FUNCTIONAL** and working as designed. Al
 - ✅ Real-time updates and data persistence working
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All pages management endpoints responding correctly
@@ -2250,7 +2250,7 @@ The Enhanced Pages Management system with full-page editor is **FULLY FUNCTIONAL
 - ❌ PricingWidget component still not rendering content
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com/pricing
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com/pricing
 - **Backend Status:** All APIs responding correctly (200 OK)
 - **Frontend Status:** Compiling successfully but PricingWidget not rendering
 - **Browser Testing:** Automated testing with Playwright (multiple attempts)
@@ -2458,7 +2458,7 @@ The Responsive Visibility Feature for Global Components is **FULLY FUNCTIONAL** 
 - No issues affecting core functionality
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **API Integration:** All global component endpoints responding correctly
 - **Responsive Testing:** Verified across mobile (375px), tablet (768px), desktop (1920px)
@@ -2646,7 +2646,7 @@ The Global Components CMS feature with block rendering on public pages is **FULL
 **❌ NO CRITICAL ISSUES FOUND**
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **API Integration:** All global component endpoints responding correctly
 - **Browser Testing:** Automated testing with Playwright successful
@@ -2760,7 +2760,7 @@ The Global Components CMS feature with block rendering on public pages is **FULL
 - ✅ GET /api/global-components/public/header - Public header rendering
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All global component endpoints responding correctly
@@ -2944,7 +2944,7 @@ class PageTemplateImport(BaseModel):
 ```
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All page template endpoints responding correctly
@@ -3117,7 +3117,7 @@ The Page Template Export/Import feature is **FULLY FUNCTIONAL** and working exac
 - ✅ JSON response structures consistent and complete
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials (andre@humanweb.no)
 - **Session Management:** Stable during testing operations
 - **API Integration:** All orchestration endpoints responding correctly
@@ -3278,7 +3278,7 @@ The Orchestrator Agent Architecture backend APIs are **FULLY FUNCTIONAL** and wo
 - ✅ All endpoints handle authentication and authorization correctly
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All orchestration endpoints responding correctly
@@ -3430,7 +3430,7 @@ The Orchestrator Runtime Integration is **SUBSTANTIALLY FUNCTIONAL** with proper
 - ✅ Proper error handling and validation
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All orchestration endpoints responding correctly
@@ -3600,7 +3600,7 @@ The Orchestration Settings UI is **FULLY FUNCTIONAL** and working as designed. A
 - ✅ POST /api/agents/{id}/upload-image - Upload profile image
 
 ### Test Environment Details
-- **Frontend URL:** https://featuregate.preview.emergentagent.com
+- **Frontend URL:** https://quota-manager-4.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All agent management endpoints responding correctly
