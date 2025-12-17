@@ -3683,6 +3683,9 @@ def main():
         
         # 14. Seat Pricing Subscription System Tests (Review Request)
         ("Seat Pricing Subscription System", tester.test_seat_pricing_subscription_system),
+        
+        # 15. SendGrid Integration Tests (Review Request)
+        ("SendGrid Integration API Endpoints", tester.test_sendgrid_integration_endpoints),
     ]
     
     print(f"\n📋 Running {len(tests)} comprehensive test scenarios...")
