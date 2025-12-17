@@ -70,7 +70,8 @@ const Team = () => {
     extraSeats: 0,
     percentage: 0,
     planName: 'free',
-    pricePerSeat: 0
+    pricePerSeatMonthly: 0,
+    pricePerSeatYearly: 0
   });
   
   // Seat subscription state
