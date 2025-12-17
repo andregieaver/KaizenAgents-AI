@@ -466,97 +466,99 @@ const Team = () => {
                   Invite User
                 </Button>
               </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  {!tempPassword ? (
-                    <>
-                      <DialogHeader>
-                        <DialogTitle className="font-heading">Invite Team Member</DialogTitle>
-                        <DialogDescription>
-                          Add a new member to your team. They'll receive a temporary password.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <form onSubmit={handleInvite} className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="name">Name</Label>
-                          <Input
-                            id="name"
-                            value={inviteForm.name}
-                            onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
-                            placeholder="John Doe"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={inviteForm.email}
-                            onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                            placeholder="john@company.com"
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="role">Role</Label>
-                          <Select
-                            value={inviteForm.role}
-                            onValueChange={(value) => setInviteForm({ ...inviteForm, role: value })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="admin">Admin</SelectItem>
-                              <SelectItem value="agent">Agent</SelectItem>
-                              <SelectItem value="viewer">Viewer</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <DialogFooter>
-                          <Button type="button" variant="outline" onClick={closeInviteDialog}>
-                            Cancel
-                          </Button>
-                          <Button type="submit" disabled={inviteLoading}>
-                            {inviteLoading ? 'Inviting...' : 'Send Invite'}
-                          </Button>
-                        </DialogFooter>
-                      </form>
-                    </>
-                  ) : (
-                    <>
-                      <DialogHeader>
-                        <DialogTitle className="font-heading">User Invited!</DialogTitle>
-                        <DialogDescription>
-                          Share these credentials with the new team member.
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div className="p-4 bg-muted rounded-sm space-y-2">
-                          <p className="text-sm">
-                            <span className="text-muted-foreground">Email:</span>{' '}
-                            <span className="font-mono">{members[members.length - 1]?.email}</span>
-                          </p>
-                          <p className="text-sm">
-                            <span className="text-muted-foreground">Temporary Password:</span>{' '}
-                            <span className="font-mono font-medium">{tempPassword}</span>
-                          </p>
-                        </div>
-                        <Button variant="outline" className="w-full" onClick={copyTempPassword}>
-                          {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
-                          {copied ? 'Copied!' : 'Copy Password'}
-                        </Button>
+              <DialogContent className="sm:max-w-md">
+                {!tempPassword ? (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle className="font-heading">Invite Team Member</DialogTitle>
+                      <DialogDescription>
+                        Add a new member to your team. They'll receive a temporary password.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleInvite} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Name</Label>
+                        <Input
+                          id="name"
+                          value={inviteForm.name}
+                          onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
+                          placeholder="John Doe"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={inviteForm.email}
+                          onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                          placeholder="john@company.com"
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="role">Role</Label>
+                        <Select
+                          value={inviteForm.role}
+                          onValueChange={(value) => setInviteForm({ ...inviteForm, role: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="admin">Admin</SelectItem>
+                            <SelectItem value="agent">Agent</SelectItem>
+                            <SelectItem value="viewer">Viewer</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <DialogFooter>
-                        <Button onClick={closeInviteDialog}>Done</Button>
+                        <Button type="button" variant="outline" onClick={closeInviteDialog}>
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={inviteLoading}>
+                          {inviteLoading ? 'Inviting...' : 'Send Invite'}
+                        </Button>
                       </DialogFooter>
-                    </>
-                  )}
-                </DialogContent>
-              </Dialog>
-            )}
-          </div>
+                    </form>
+                  </>
+                ) : (
+                  <>
+                    <DialogHeader>
+                      <DialogTitle className="font-heading">User Invited!</DialogTitle>
+                      <DialogDescription>
+                        Share these credentials with the new team member.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="p-4 bg-muted rounded-sm space-y-2">
+                        <p className="text-sm">
+                          <span className="text-muted-foreground">Email:</span>{' '}
+                          <span className="font-mono">{members[members.length - 1]?.email}</span>
+                        </p>
+                        <p className="text-sm">
+                          <span className="text-muted-foreground">Temporary Password:</span>{' '}
+                          <span className="font-mono font-medium">{tempPassword}</span>
+                        </p>
+                      </div>
+                      <Button variant="outline" className="w-full" onClick={copyTempPassword}>
+                        {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+                        {copied ? 'Copied!' : 'Copy Password'}
+                      </Button>
+                    </div>
+                    <DialogFooter>
+                      <Button onClick={closeInviteDialog}>Done</Button>
+                    </DialogFooter>
+                  </>
+                )}
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
 
+        {/* Members Tab */}
+        <TabsContent value="members">
           <Card className="border border-border">
             <CardHeader>
               <CardTitle className="font-heading flex items-center gap-2">
