@@ -320,6 +320,10 @@ const Integrations = () => {
             <CreditCard className="h-4 w-4" />
             Stripe
           </TabsTrigger>
+          <TabsTrigger value="sendgrid" className="flex items-center gap-2">
+            <Mail className="h-4 w-4" />
+            SendGrid
+          </TabsTrigger>
           <TabsTrigger value="code" className="flex items-center gap-2">
             <Code className="h-4 w-4" />
             Code Injection
