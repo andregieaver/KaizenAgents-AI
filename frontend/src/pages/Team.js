@@ -57,6 +57,7 @@ const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 const Team = () => {
   const { user, token } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [members, setMembers] = useState([]);
   const [teams, setTeams] = useState([]);
   const [agents, setAgents] = useState([]);
@@ -67,8 +68,15 @@ const Team = () => {
     current: 0,
     limit: 0,
     extraSeats: 0,
-    percentage: 0
+    percentage: 0,
+    planName: 'free',
+    pricePerSeat: 0
   });
+  
+  // Seat purchase state
+  const [purchaseModalOpen, setPurchaseModalOpen] = useState(false);
+  const [seatQuantity, setSeatQuantity] = useState(1);
+  const [purchaseLoading, setPurchaseLoading] = useState(false);
   
   // Invite user state
   const [inviteOpen, setInviteOpen] = useState(false);
