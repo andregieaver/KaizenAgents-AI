@@ -543,20 +543,45 @@ const Team = () => {
         </Card>
       </div>
 
-      {/* Purchase Seats Modal */}
+      {/* Seat Subscription Modal */}
       <Dialog open={purchaseModalOpen} onOpenChange={setPurchaseModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-heading flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
-              Purchase Additional Seats
+              Subscribe to Additional Seats
             </DialogTitle>
             <DialogDescription>
-              Add more seats to your team. You currently have {usedSeats} users 
+              Add more seats to your team subscription. You currently have {usedSeats} users 
               and {totalSeats} total seats.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* Billing Cycle Selection */}
+            <div className="space-y-2">
+              <Label>Billing Cycle</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant={billingCycle === 'monthly' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setBillingCycle('monthly')}
+                  className="w-full"
+                >
+                  Monthly
+                </Button>
+                <Button
+                  variant={billingCycle === 'yearly' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setBillingCycle('yearly')}
+                  className="w-full"
+                >
+                  Yearly
+                  <Badge variant="secondary" className="ml-2 text-xs">Save 20%</Badge>
+                </Button>
+              </div>
+            </div>
+            
+            {/* Quantity Selection */}
             <div className="space-y-2">
               <Label htmlFor="seat-quantity">Number of Seats</Label>
               <div className="flex items-center gap-3">
@@ -587,10 +612,16 @@ const Team = () => {
               </div>
             </div>
             
+            {/* Price Summary */}
             <div className="p-4 bg-muted rounded-lg space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Price per seat</span>
-                <span>${seatInfo.pricePerSeat?.toFixed(2) || '5.00'}</span>
+                <span>
+                  ${billingCycle === 'monthly' 
+                    ? (seatInfo.pricePerSeatMonthly || 5).toFixed(2) + '/mo'
+                    : (seatInfo.pricePerSeatYearly || 50).toFixed(2) + '/yr'
+                  }
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Quantity</span>
@@ -598,19 +629,24 @@ const Team = () => {
               </div>
               <div className="border-t pt-2 mt-2 flex justify-between font-semibold">
                 <span>Total</span>
-                <span>${((seatInfo.pricePerSeat || 5) * seatQuantity).toFixed(2)}</span>
+                <span>
+                  ${billingCycle === 'monthly'
+                    ? ((seatInfo.pricePerSeatMonthly || 5) * seatQuantity).toFixed(2) + '/mo'
+                    : ((seatInfo.pricePerSeatYearly || 50) * seatQuantity).toFixed(2) + '/yr'
+                  }
+                </span>
               </div>
             </div>
             
             <p className="text-xs text-muted-foreground">
-              Seats are a one-time purchase and will be added to your current quota.
+              This is a recurring subscription. You can upgrade, downgrade, or cancel anytime through your billing portal.
             </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPurchaseModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handlePurchaseSeats} disabled={purchaseLoading}>
+            <Button onClick={handleSubscribeSeats} disabled={purchaseLoading}>
               {purchaseLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -619,7 +655,7 @@ const Team = () => {
               ) : (
                 <>
                   <ShoppingCart className="h-4 w-4 mr-2" />
-                  Purchase Seats
+                  Subscribe to Seats
                 </>
               )}
             </Button>
