@@ -317,33 +317,33 @@ class SeatPricingResponse(BaseModel):
 
 @router.get("/seat-pricing", response_model=List[SeatPricingResponse])
 async def get_all_seat_pricing(current_user: dict = Depends(get_super_admin_user)):
-    """Get all seat pricing configurations (Super Admin only)"""
-    pricing = await db.seat_pricing.find({}, {"_id": 0}).to_list(100)
+    """Get all seat pricing configurations synced with subscription plans (Super Admin only)"""
+    # First, sync seat pricing with subscription plans
+    await sync_seat_pricing_with_plans()
     
-    # If no pricing exists, create defaults
-    if not pricing:
-        await initialize_default_seat_pricing()
-        pricing = await db.seat_pricing.find({}, {"_id": 0}).to_list(100)
-    
+    pricing = await db.seat_pricing.find({}, {"_id": 0}).sort("plan_name", 1).to_list(100)
     return pricing
 
 
-@router.get("/seat-pricing/{plan_name}")
-async def get_seat_pricing_for_plan(plan_name: str):
-    """Get seat pricing for a specific plan (public endpoint)"""
+@router.get("/seat-pricing/{plan_id}")
+async def get_seat_pricing_for_plan(plan_id: str):
+    """Get seat pricing for a specific plan by ID or name (public endpoint)"""
+    # Try to find by plan_id first, then by plan_name
     pricing = await db.seat_pricing.find_one(
-        {"plan_name": plan_name.lower()}, 
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_id}$", "$options": "i"}}]}, 
         {"_id": 0}
     )
     
     if not pricing:
         # Return default pricing
         return {
-            "plan_name": plan_name.lower(),
-            "price_per_seat": 5.0,
+            "plan_id": plan_id,
+            "plan_name": plan_id,
+            "price_per_seat_monthly": 5.0,
+            "price_per_seat_yearly": 50.0,
             "currency": "usd",
-            "billing_type": "one_time",
-            "is_enabled": plan_name.lower() != "free"  # Disable for free plans
+            "billing_type": "subscription",
+            "is_enabled": plan_id.lower() != "free"
         }
     
     return pricing
@@ -356,44 +356,63 @@ async def create_seat_pricing(
 ):
     """Create seat pricing configuration for a plan tier (Super Admin only)"""
     # Check if pricing already exists for this plan
-    existing = await db.seat_pricing.find_one({"plan_name": config.plan_name.lower()})
+    existing = await db.seat_pricing.find_one({"plan_id": config.plan_id})
     if existing:
         raise HTTPException(status_code=400, detail=f"Seat pricing for plan '{config.plan_name}' already exists")
     
     now = datetime.now(timezone.utc).isoformat()
     pricing_id = str(uuid.uuid4())
     
-    # Create Stripe product and price for seats
+    # Calculate yearly price if not provided (20% discount)
+    yearly_price = config.price_per_seat_yearly
+    if yearly_price is None and config.price_per_seat_monthly > 0:
+        yearly_price = config.price_per_seat_monthly * 12 * 0.8  # 20% yearly discount
+    
+    # Create Stripe product and recurring prices for seats
     stripe_product_id = None
-    stripe_price_id = None
+    stripe_price_monthly_id = None
+    stripe_price_yearly_id = None
     
     await StripeService.initialize_from_db()
     
-    if StripeService.is_configured() and config.price_per_seat > 0:
-        # Create seat product in Stripe
+    if StripeService.is_configured() and config.price_per_seat_monthly > 0:
+        # Create seat subscription product in Stripe
         stripe_product_id = await StripeService.create_product(
             pricing_id,
-            f"Additional Seat - {config.plan_name.capitalize()} Plan",
-            f"Additional user seat for {config.plan_name.capitalize()} subscription"
+            f"Additional Seats - {config.plan_name} Plan",
+            f"Additional user seats subscription for {config.plan_name} plan"
         )
         
         if stripe_product_id:
-            # Create price for seats
-            stripe_price_id = await StripeService.create_one_time_price(
+            # Create monthly recurring price
+            stripe_price_monthly_id = await StripeService.create_price(
                 stripe_product_id,
-                config.price_per_seat,
+                config.price_per_seat_monthly,
+                "month",
                 config.currency
             )
+            
+            # Create yearly recurring price
+            if yearly_price and yearly_price > 0:
+                stripe_price_yearly_id = await StripeService.create_price(
+                    stripe_product_id,
+                    yearly_price,
+                    "year",
+                    config.currency
+                )
     
     pricing_doc = {
         "id": pricing_id,
-        "plan_name": config.plan_name.lower(),
-        "price_per_seat": config.price_per_seat,
+        "plan_id": config.plan_id,
+        "plan_name": config.plan_name,
+        "price_per_seat_monthly": config.price_per_seat_monthly,
+        "price_per_seat_yearly": yearly_price,
         "currency": config.currency,
-        "billing_type": config.billing_type,
+        "billing_type": "subscription",
         "is_enabled": config.is_enabled,
         "stripe_product_id": stripe_product_id,
-        "stripe_price_id": stripe_price_id,
+        "stripe_price_monthly_id": stripe_price_monthly_id,
+        "stripe_price_yearly_id": stripe_price_yearly_id,
         "created_at": now,
         "updated_at": now
     }
@@ -405,54 +424,74 @@ async def create_seat_pricing(
     return pricing_doc
 
 
-@router.patch("/seat-pricing/{plan_name}", response_model=SeatPricingResponse)
+@router.patch("/seat-pricing/{plan_id}", response_model=SeatPricingResponse)
 async def update_seat_pricing(
-    plan_name: str,
+    plan_id: str,
     update: SeatPricingUpdate,
     current_user: dict = Depends(get_super_admin_user)
 ):
     """Update seat pricing for a plan tier (Super Admin only)"""
-    pricing = await db.seat_pricing.find_one({"plan_name": plan_name.lower()}, {"_id": 0})
+    # Find by plan_id or plan_name
+    pricing = await db.seat_pricing.find_one(
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_id}$", "$options": "i"}}]},
+        {"_id": 0}
+    )
     if not pricing:
-        raise HTTPException(status_code=404, detail=f"Seat pricing for plan '{plan_name}' not found")
+        raise HTTPException(status_code=404, detail=f"Seat pricing for plan '{plan_id}' not found")
     
     update_fields = {k: v for k, v in update.model_dump().items() if v is not None}
     update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
     
-    # If price changed, create new Stripe price
-    if update.price_per_seat is not None and update.price_per_seat != pricing["price_per_seat"]:
-        await StripeService.initialize_from_db()
-        
-        if StripeService.is_configured() and pricing.get("stripe_product_id") and update.price_per_seat > 0:
-            new_price_id = await StripeService.create_one_time_price(
+    await StripeService.initialize_from_db()
+    
+    # If monthly price changed, create new Stripe price
+    if update.price_per_seat_monthly is not None and update.price_per_seat_monthly != pricing.get("price_per_seat_monthly"):
+        if StripeService.is_configured() and pricing.get("stripe_product_id") and update.price_per_seat_monthly > 0:
+            new_price_id = await StripeService.create_price(
                 pricing["stripe_product_id"],
-                update.price_per_seat,
+                update.price_per_seat_monthly,
+                "month",
                 update.currency or pricing["currency"]
             )
             if new_price_id:
-                update_fields["stripe_price_id"] = new_price_id
+                update_fields["stripe_price_monthly_id"] = new_price_id
+    
+    # If yearly price changed, create new Stripe price
+    if update.price_per_seat_yearly is not None and update.price_per_seat_yearly != pricing.get("price_per_seat_yearly"):
+        if StripeService.is_configured() and pricing.get("stripe_product_id") and update.price_per_seat_yearly > 0:
+            new_price_id = await StripeService.create_price(
+                pricing["stripe_product_id"],
+                update.price_per_seat_yearly,
+                "year",
+                update.currency or pricing["currency"]
+            )
+            if new_price_id:
+                update_fields["stripe_price_yearly_id"] = new_price_id
     
     await db.seat_pricing.update_one(
-        {"plan_name": plan_name.lower()},
+        {"id": pricing["id"]},
         {"$set": update_fields}
     )
     
-    updated_pricing = await db.seat_pricing.find_one({"plan_name": plan_name.lower()}, {"_id": 0})
+    updated_pricing = await db.seat_pricing.find_one({"id": pricing["id"]}, {"_id": 0})
     
-    logger.info(f"Updated seat pricing for plan: {plan_name}")
+    logger.info(f"Updated seat pricing for plan: {plan_id}")
     
     return updated_pricing
 
 
-@router.delete("/seat-pricing/{plan_name}")
+@router.delete("/seat-pricing/{plan_id}")
 async def delete_seat_pricing(
-    plan_name: str,
+    plan_id: str,
     current_user: dict = Depends(get_super_admin_user)
 ):
     """Delete seat pricing for a plan tier (Super Admin only)"""
-    pricing = await db.seat_pricing.find_one({"plan_name": plan_name.lower()}, {"_id": 0})
+    pricing = await db.seat_pricing.find_one(
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_id}$", "$options": "i"}}]},
+        {"_id": 0}
+    )
     if not pricing:
-        raise HTTPException(status_code=404, detail=f"Seat pricing for plan '{plan_name}' not found")
+        raise HTTPException(status_code=404, detail=f"Seat pricing for plan '{plan_id}' not found")
     
     # Archive Stripe product if exists
     if pricing.get("stripe_product_id"):
@@ -460,11 +499,19 @@ async def delete_seat_pricing(
         if StripeService.is_configured():
             await StripeService.delete_product(pricing["stripe_product_id"])
     
-    await db.seat_pricing.delete_one({"plan_name": plan_name.lower()})
+    await db.seat_pricing.delete_one({"id": pricing["id"]})
     
-    logger.info(f"Deleted seat pricing for plan: {plan_name}")
+    logger.info(f"Deleted seat pricing for plan: {plan_id}")
     
-    return {"message": f"Seat pricing for plan '{plan_name}' deleted successfully"}
+    return {"message": f"Seat pricing for plan '{pricing['plan_name']}' deleted successfully"}
+
+
+@router.post("/seat-pricing/sync")
+async def sync_seat_pricing_endpoint(current_user: dict = Depends(get_super_admin_user)):
+    """Manually sync seat pricing with subscription plans (Super Admin only)"""
+    await sync_seat_pricing_with_plans()
+    pricing = await db.seat_pricing.find({}, {"_id": 0}).to_list(100)
+    return {"message": "Seat pricing synced with subscription plans", "pricing": pricing}
 
 
 # ============== SEAT PURCHASE FLOW ==============
