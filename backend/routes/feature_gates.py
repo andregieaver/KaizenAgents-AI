@@ -111,8 +111,86 @@ DEFAULT_QUOTA_FEATURES = [
         "unit": "feature",
         "plans": {
             "free": {"enabled": False, "limit_value": 0, "limit_type": "quota", "unit": "feature"},
-            "starter": {"enabled": False, "limit_value": 0, "limit_type": "quota", "unit": "feature"},
+            "starter": {"enabled": True, "limit_value": 1, "limit_type": "quota", "unit": "feature"},
             "professional": {"enabled": True, "limit_value": 1, "limit_type": "quota", "unit": "feature"}
+        }
+    },
+    {
+        "feature_key": "max_conversations",
+        "feature_name": "Maximum Conversations",
+        "feature_description": "Maximum number of simultaneous conversations",
+        "category": "conversations",
+        "limit_type": "quota",
+        "unit": "conversations",
+        "plans": {
+            "free": {"enabled": True, "limit_value": 10, "limit_type": "quota", "unit": "conversations"},
+            "starter": {"enabled": True, "limit_value": 100, "limit_type": "quota", "unit": "conversations"},
+            "professional": {"enabled": True, "limit_value": 1000, "limit_type": "quota", "unit": "conversations"}
+        }
+    },
+    {
+        "feature_key": "conversation_history_days",
+        "feature_name": "Conversation History Retention",
+        "feature_description": "Number of days conversation history is retained",
+        "category": "conversations",
+        "limit_type": "quota",
+        "unit": "days",
+        "plans": {
+            "free": {"enabled": True, "limit_value": 30, "limit_type": "quota", "unit": "days"},
+            "starter": {"enabled": True, "limit_value": 90, "limit_type": "quota", "unit": "days"},
+            "professional": {"enabled": True, "limit_value": 365, "limit_type": "quota", "unit": "days"}
+        }
+    },
+    {
+        "feature_key": "analytics_enabled",
+        "feature_name": "Analytics & Reporting",
+        "feature_description": "Access to analytics dashboards and reports",
+        "category": "features",
+        "limit_type": "feature",
+        "unit": "feature",
+        "plans": {
+            "free": {"enabled": False, "limit_value": 0, "limit_type": "feature", "unit": "feature"},
+            "starter": {"enabled": True, "limit_value": 1, "limit_type": "feature", "unit": "feature"},
+            "professional": {"enabled": True, "limit_value": 1, "limit_type": "feature", "unit": "feature"}
+        }
+    },
+    {
+        "feature_key": "api_access",
+        "feature_name": "API Access",
+        "feature_description": "Programmatic API access to platform features",
+        "category": "features",
+        "limit_type": "feature",
+        "unit": "feature",
+        "plans": {
+            "free": {"enabled": False, "limit_value": 0, "limit_type": "feature", "unit": "feature"},
+            "starter": {"enabled": False, "limit_value": 0, "limit_type": "feature", "unit": "feature"},
+            "professional": {"enabled": True, "limit_value": 1, "limit_type": "feature", "unit": "feature"}
+        }
+    },
+    {
+        "feature_key": "custom_branding",
+        "feature_name": "Custom Branding",
+        "feature_description": "Remove platform branding and add custom branding",
+        "category": "features",
+        "limit_type": "feature",
+        "unit": "feature",
+        "plans": {
+            "free": {"enabled": False, "limit_value": 0, "limit_type": "feature", "unit": "feature"},
+            "starter": {"enabled": False, "limit_value": 0, "limit_type": "feature", "unit": "feature"},
+            "professional": {"enabled": True, "limit_value": 1, "limit_type": "feature", "unit": "feature"}
+        }
+    },
+    {
+        "feature_key": "support_level",
+        "feature_name": "Support Level",
+        "feature_description": "Level of customer support provided",
+        "category": "support",
+        "limit_type": "text",
+        "unit": "level",
+        "plans": {
+            "free": {"enabled": True, "limit_value": 0, "limit_type": "text", "unit": "email", "text_value": "email"},
+            "starter": {"enabled": True, "limit_value": 0, "limit_type": "text", "unit": "priority", "text_value": "priority"},
+            "professional": {"enabled": True, "limit_value": 0, "limit_type": "text", "unit": "premium", "text_value": "premium"}
         }
     },
     {
