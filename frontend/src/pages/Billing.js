@@ -746,7 +746,7 @@ const Billing = () => {
                 {sliderValue !== seatAllocation.committed_seats && sliderValue < seatAllocation.committed_seats && !seatAllocation.is_in_grace_period && (
                   <p className="text-xs text-amber-600 mt-2">
                     <AlertTriangle className="h-3 w-3 inline mr-1" />
-                    Note: You'll still be billed for {seatAllocation.committed_seats} seats (your committed amount) at renewal.
+                    Note: You&apos;ll still be billed for {seatAllocation.committed_seats} seats (your committed amount) at renewal.
                   </p>
                 )}
               </div>
