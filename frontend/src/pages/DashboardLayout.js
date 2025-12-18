@@ -32,7 +32,8 @@ import {
   Tag,
   Gift,
   FileText,
-  Layout
+  Layout,
+  Mail
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
