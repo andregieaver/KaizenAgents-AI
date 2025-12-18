@@ -153,6 +153,7 @@ function AppRoutes() {
         <Route path="admin/menus" element={<MenusList />} />
         <Route path="admin/menus/create" element={<MenuEditor />} />
         <Route path="admin/menus/edit/:menuId" element={<MenuEditor />} />
+        <Route path="admin/emails" element={<EmailTemplates />} />
         <Route path="affiliates" element={<Affiliates />} />
       </Route>
 
