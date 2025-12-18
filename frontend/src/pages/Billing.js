@@ -386,6 +386,109 @@ const Billing = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Invoice History */}
+      <Card className="border border-border">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Receipt className="h-5 w-5" />
+                Invoice History
+              </CardTitle>
+              <CardDescription>
+                Your recent payment history and invoices
+              </CardDescription>
+            </div>
+            {invoices.length > 0 && (
+              <Button variant="outline" size="sm" onClick={fetchInvoices} disabled={loadingInvoices}>
+                {loadingInvoices ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  'Refresh'
+                )}
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loadingInvoices && invoices.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : invoices.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <Receipt className="h-12 w-12 mx-auto mb-3 opacity-50" />
+              <p>No invoices yet</p>
+              <p className="text-sm mt-1">Your payment history will appear here</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {/* Table Header */}
+              <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border">
+                <div className="col-span-3">Invoice</div>
+                <div className="col-span-2">Date</div>
+                <div className="col-span-2">Amount</div>
+                <div className="col-span-2">Status</div>
+                <div className="col-span-3 text-right">Actions</div>
+              </div>
+              
+              {/* Invoice Rows */}
+              {invoices.map((invoice) => (
+                <div
+                  key={invoice.id}
+                  className="grid grid-cols-12 gap-4 px-4 py-3 items-center rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="col-span-3">
+                    <p className="font-medium text-sm">{invoice.number || 'Draft'}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {invoice.description || 'Subscription'}
+                    </p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-sm">{formatDate(invoice.created_at)}</p>
+                    {invoice.paid_at && invoice.status === 'paid' && (
+                      <p className="text-xs text-muted-foreground">
+                        Paid: {formatDate(invoice.paid_at)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="col-span-2">
+                    <p className="font-medium text-sm">
+                      {formatCurrency(invoice.amount, invoice.currency)}
+                    </p>
+                  </div>
+                  <div className="col-span-2">
+                    {getInvoiceStatusBadge(invoice.status)}
+                  </div>
+                  <div className="col-span-3 flex items-center justify-end gap-2">
+                    {invoice.invoice_url && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => window.open(invoice.invoice_url, '_blank')}
+                        title="View Invoice"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </Button>
+                    )}
+                    {invoice.pdf_url && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => window.open(invoice.pdf_url, '_blank')}
+                        title="Download PDF"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
