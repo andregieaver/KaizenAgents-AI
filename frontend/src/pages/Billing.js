@@ -420,7 +420,7 @@ const Billing = () => {
             <div className="text-center py-8 text-muted-foreground">
               <Receipt className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No invoices yet</p>
-              <p className="text-sm mt-1">Your payment history will appear here</p>
+              <p className="text-sm mt-1">Your payment history will appear here.</p>
             </div>
           ) : (
             <div className="space-y-3">

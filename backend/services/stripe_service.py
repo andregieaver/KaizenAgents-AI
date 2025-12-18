@@ -3,7 +3,7 @@ Stripe integration service for subscription management
 """
 import stripe
 import os
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from utils.logger import log_info, log_error
 from middleware.database import db
 
