@@ -37,7 +37,9 @@ const Pricing = () => {
   // Extra seats state
   const [seatQuantity, setSeatQuantity] = useState(1);
   const [purchasingSeats, setPurchasingSeats] = useState(false);
-  const pricePerSeat = 5.0;
+  const [seatPricingConfig, setSeatPricingConfig] = useState(null);
+  const [loadingSeatConfig, setLoadingSeatConfig] = useState(false);
+  const pricePerSeat = seatPricingConfig?.price_per_seat_monthly || 5.0;
 
   useEffect(() => {
     fetchData();
