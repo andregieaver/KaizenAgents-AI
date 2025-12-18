@@ -32,6 +32,7 @@ const FeatureGatesAdmin = () => {
   const [editingPlan, setEditingPlan] = useState(null);
   const [editForm, setEditForm] = useState({ price_per_seat_monthly: '', price_per_seat_yearly: '', is_enabled: true });
   const [savingSeatPrice, setSavingSeatPrice] = useState(false);
+  const [syncingSeatPricing, setSyncingSeatPricing] = useState(null);
 
   useEffect(() => {
     // Check if user is super admin
