@@ -350,3 +350,46 @@ class StripeService:
         except Exception as e:
             log_error(f"Failed to get checkout session", error=e, session_id=session_id)
             return None
+    
+    @staticmethod
+    async def get_customer_invoices(customer_id: str, limit: int = 10) -> Optional[List[Dict[str, Any]]]:
+        """
+        Get invoices for a Stripe customer
+        Returns: list of invoice dictionaries or None
+        """
+        if not StripeService.is_configured():
+            return None
+        
+        if not customer_id:
+            return []
+        
+        try:
+            invoices = stripe.Invoice.list(
+                customer=customer_id,
+                limit=limit
+            )
+            
+            invoice_list = []
+            for invoice in invoices.data:
+                invoice_list.append({
+                    "id": invoice.id,
+                    "number": invoice.number,
+                    "amount_due": invoice.amount_due,
+                    "amount_paid": invoice.amount_paid,
+                    "currency": invoice.currency,
+                    "status": invoice.status,  # draft, open, paid, uncollectible, void
+                    "created": invoice.created,
+                    "due_date": invoice.due_date,
+                    "paid_at": invoice.status_transitions.paid_at if invoice.status_transitions else None,
+                    "hosted_invoice_url": invoice.hosted_invoice_url,
+                    "invoice_pdf": invoice.invoice_pdf,
+                    "description": invoice.description or (
+                        invoice.lines.data[0].description if invoice.lines and invoice.lines.data else None
+                    )
+                })
+            
+            log_info(f"Retrieved {len(invoice_list)} invoices for customer", customer_id=customer_id)
+            return invoice_list
+        except Exception as e:
+            log_error(f"Failed to get customer invoices", error=e, customer_id=customer_id)
+            return None
