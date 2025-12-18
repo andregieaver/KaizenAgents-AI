@@ -45,6 +45,8 @@ class QuotaService:
         # Get user's subscription plan
         subscription = await self._get_subscription(tenant_id)
         plan_name = subscription.get("plan_name", "free")
+        # Normalize plan name to lowercase for feature gate lookup
+        plan_name_lower = plan_name.lower() if plan_name else "free"
         
         # Get feature gate config
         config = await self._get_config()
@@ -58,8 +60,8 @@ class QuotaService:
             # Feature not gated
             return {"allowed": True, "current": 0, "limit": None, "remaining": None, "message": "Feature not gated"}
         
-        # Get limits for this plan
-        plan_limits = feature.get("plans", {}).get(plan_name)
+        # Get limits for this plan (use lowercase plan name)
+        plan_limits = feature.get("plans", {}).get(plan_name_lower)
         if not plan_limits or not plan_limits.get("enabled"):
             return {
                 "allowed": False,
