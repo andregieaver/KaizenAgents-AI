@@ -257,6 +257,77 @@ class QuotaService:
         return 0
 
 
+    async def _send_quota_email(
+        self,
+        tenant_id: str,
+        feature_name: str,
+        plan_name: str,
+        current_usage: str,
+        usage_limit: str,
+        usage_percentage: str,
+        is_exceeded: bool
+    ):
+        """Send quota warning or exceeded email to tenant owner"""
+        try:
+            from services.email_service import EmailService
+            
+            # Check if we've already sent an email for this quota threshold today
+            today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            alert_key = f"{tenant_id}_{feature_name}_{usage_percentage}_{today}"
+            
+            existing_alert = await db.quota_alerts.find_one({"alert_key": alert_key})
+            if existing_alert:
+                # Already sent this alert today
+                return
+            
+            # Record that we're sending this alert
+            await db.quota_alerts.insert_one({
+                "alert_key": alert_key,
+                "tenant_id": tenant_id,
+                "feature_name": feature_name,
+                "is_exceeded": is_exceeded,
+                "sent_at": datetime.now(timezone.utc).isoformat()
+            })
+            
+            # Get tenant owner email
+            company = await db.companies.find_one({"id": tenant_id}, {"_id": 0, "owner_id": 1})
+            if not company:
+                return
+            
+            owner = await db.users.find_one({"id": company.get("owner_id")}, {"_id": 0, "email": 1, "name": 1})
+            if not owner:
+                return
+            
+            frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+            upgrade_url = f"{frontend_url}/dashboard/pricing"
+            
+            if is_exceeded:
+                await EmailService.send_quota_exceeded_email(
+                    to_email=owner["email"],
+                    user_name=owner.get("name", "User"),
+                    resource_name=feature_name,
+                    plan_name=plan_name.capitalize(),
+                    usage_percentage=usage_percentage,
+                    upgrade_url=upgrade_url
+                )
+            else:
+                await EmailService.send_quota_warning_email(
+                    to_email=owner["email"],
+                    user_name=owner.get("name", "User"),
+                    resource_name=feature_name,
+                    plan_name=plan_name.capitalize(),
+                    current_usage=current_usage,
+                    usage_limit=usage_limit,
+                    usage_percentage=usage_percentage,
+                    upgrade_url=upgrade_url
+                )
+            
+            logger.info(f"Quota {'exceeded' if is_exceeded else 'warning'} email sent to {owner['email']} for {feature_name}")
+            
+        except Exception as e:
+            logger.error(f"Failed to send quota email: {str(e)}")
+
+
 # Global instance
 quota_service = QuotaService()
 
