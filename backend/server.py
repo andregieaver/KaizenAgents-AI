@@ -3909,6 +3909,7 @@ api_router.include_router(global_components_router_mod)
 api_router.include_router(menus_router_mod)
 api_router.include_router(feature_gates_router_mod)
 api_router.include_router(quotas_router_mod)
+api_router.include_router(email_templates_router_mod)
 
 # Include the admin router with providers and agents endpoints
 api_router.include_router(admin_router)
