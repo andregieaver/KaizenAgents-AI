@@ -78,17 +78,33 @@ const Billing = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [subRes, usageRes] = await Promise.all([
+      const [subRes, usageRes, quotaRes] = await Promise.all([
         axios.get(`${API}/subscriptions/current`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
         axios.get(`${API}/subscriptions/usage`, {
           headers: { Authorization: `Bearer ${token}` }
-        })
+        }),
+        axios.get(`${API}/quotas/usage`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: null }))
       ]);
       
       setSubscription(subRes.data);
       setUsage(usageRes.data);
+      
+      // Extract seat usage from quota response
+      if (quotaRes.data) {
+        const seatQuota = quotaRes.data.quotas?.find(q => q.feature_key === 'max_seats');
+        if (seatQuota) {
+          setSeatUsage({
+            current: seatQuota.current || 0,
+            limit: seatQuota.limit || 0,
+            extraSeats: quotaRes.data.extra_seats || 0,
+            percentage: seatQuota.percentage || 0
+          });
+        }
+      }
       
       // Fetch invoices separately (non-blocking)
       fetchInvoices();
