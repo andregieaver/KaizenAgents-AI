@@ -235,79 +235,21 @@ async def verify_reset_token(token: str):
 
 
 async def send_password_reset_email(email: str, name: str, token: str) -> bool:
-    """Send password reset email via SendGrid"""
+    """Send password reset email using email service"""
     try:
-        # Get SendGrid settings
-        sendgrid_settings = await db.platform_settings.find_one({"key": "sendgrid_integration"})
-        
-        if not sendgrid_settings or not sendgrid_settings.get("value"):
-            logger.warning("SendGrid not configured - cannot send password reset email")
-            return False
-        
-        settings_value = sendgrid_settings["value"]
-        api_key = settings_value.get("api_key")
-        sender_email = settings_value.get("sender_email")
-        sender_name = settings_value.get("sender_name", "Platform")
-        is_enabled = settings_value.get("is_enabled", False)
-        
-        if not api_key or not sender_email or not is_enabled:
-            logger.warning("SendGrid not properly configured or disabled")
-            return False
-        
-        from sendgrid import SendGridAPIClient
-        from sendgrid.helpers.mail import Mail, Email, To
+        from services.email_service import EmailService
         import os
         
         # Build reset URL - use frontend URL
         frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
         reset_url = f"{frontend_url}/reset-password?token={token}"
         
-        sg = SendGridAPIClient(api_key)
-        
-        message = Mail(
-            from_email=Email(sender_email, sender_name),
-            to_emails=To(email),
-            subject="Reset Your Password",
-            html_content=f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <h1 style="color: #333; margin: 0;">Password Reset</h1>
-                </div>
-                
-                <p style="color: #555; font-size: 16px;">Hi {name},</p>
-                
-                <p style="color: #555; font-size: 16px;">
-                    We received a request to reset your password. Click the button below to create a new password:
-                </p>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="{reset_url}" 
-                       style="display: inline-block; background-color: #0047AB; color: white; 
-                              padding: 14px 32px; text-decoration: none; border-radius: 6px; 
-                              font-weight: bold; font-size: 16px;">
-                        Reset Password
-                    </a>
-                </div>
-                
-                <p style="color: #555; font-size: 14px;">
-                    Or copy and paste this link into your browser:
-                </p>
-                <p style="color: #0047AB; font-size: 14px; word-break: break-all;">
-                    {reset_url}
-                </p>
-                
-                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-                
-                <p style="color: #888; font-size: 12px;">
-                    This link will expire in 1 hour. If you didn't request a password reset, 
-                    you can safely ignore this email.
-                </p>
-            </div>
-            """
+        return await EmailService.send_password_reset_email(
+            to_email=email,
+            user_name=name,
+            reset_url=reset_url,
+            expiry_hours=1
         )
-        
-        response = sg.send(message)
-        return response.status_code == 202
         
     except Exception as e:
         logger.error(f"Failed to send password reset email: {str(e)}")
