@@ -565,20 +565,45 @@ const FeatureGatesAdmin = () => {
                               <div className="text-sm text-muted-foreground">
                                 Subscription billing
                               </div>
-                              {(pricing.stripe_price_monthly_id || pricing.stripe_price_yearly_id) && (
-                                <div className="text-xs text-muted-foreground">
-                                  Stripe: Connected ✓
+                              {(pricing.stripe_price_monthly_id || pricing.stripe_price_yearly_id) ? (
+                                <div className="text-xs text-green-600 flex items-center gap-1">
+                                  <Check className="h-3 w-3" />
+                                  Stripe: Connected
+                                </div>
+                              ) : pricing.price_per_seat_monthly > 0 && (
+                                <div className="text-xs text-amber-600 flex items-center gap-1">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  Not synced to Stripe
                                 </div>
                               )}
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="w-full mt-2"
-                                onClick={() => startEditSeatPrice(pricing)}
-                              >
-                                <Edit2 className="h-4 w-4 mr-2" />
-                                Edit Pricing
-                              </Button>
+                              <div className="flex gap-2 mt-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="flex-1"
+                                  onClick={() => startEditSeatPrice(pricing)}
+                                >
+                                  <Edit2 className="h-4 w-4 mr-2" />
+                                  Edit
+                                </Button>
+                                {!pricing.stripe_price_monthly_id && pricing.price_per_seat_monthly > 0 && (
+                                  <Button
+                                    size="sm"
+                                    className="flex-1"
+                                    onClick={() => syncSeatPricingToStripe(pricing.plan_id)}
+                                    disabled={syncingSeatPricing === pricing.plan_id}
+                                  >
+                                    {syncingSeatPricing === pricing.plan_id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <RefreshCw className="h-4 w-4 mr-2" />
+                                        Sync to Stripe
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           )}
                         </CardContent>
