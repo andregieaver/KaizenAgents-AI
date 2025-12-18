@@ -363,6 +363,33 @@ const Billing = () => {
               />
             </div>
 
+            {/* Seats */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <p className="font-medium flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Active Seats
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {seatUsage.current} / {seatUsage.limit || '∞'}
+                    {seatUsage.extraSeats > 0 && (
+                      <span className="ml-1 text-primary">
+                        (+{seatUsage.extraSeats} purchased)
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <span className={cn("font-semibold", getUsageTextColor(seatUsagePercent))}>
+                  {seatUsagePercent.toFixed(0)}%
+                </span>
+              </div>
+              <Progress
+                value={seatUsagePercent}
+                className="h-2"
+              />
+            </div>
+
             {/* Features */}
             <div className="pt-4 border-t border-border">
               <p className="font-medium mb-3">Plan Features</p>
