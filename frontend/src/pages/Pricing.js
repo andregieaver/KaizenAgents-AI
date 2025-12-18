@@ -715,15 +715,6 @@ const Pricing = () => {
         </div>
       )}
 
-      {/* FAQ / Info Section */}
-      <div className="max-w-2xl mx-auto text-center text-sm text-muted-foreground space-y-2 pt-8 border-t border-border">
-        <p>
-          All plans include a free trial period. Cancel anytime.
-        </p>
-        <p>
-          Need a custom plan? <Button variant="link" className="p-0 h-auto">Contact us</Button>
-        </p>
-      </div>
     </div>
   );
 
