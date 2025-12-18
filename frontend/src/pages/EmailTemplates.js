@@ -9,7 +9,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import { Switch } from '../components/ui/switch';
-import { ScrollArea } from '../components/ui/scroll-area';
+// ScrollArea removed - using native overflow for better modal scrolling
 import {
   Dialog,
   DialogContent,
