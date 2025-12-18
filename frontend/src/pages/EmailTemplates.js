@@ -446,6 +446,63 @@ const EmailTemplates = () => {
                   </p>
                 </div>
               )}
+              
+              {/* Send Test Email Section */}
+              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <Label className="text-sm font-medium text-blue-700">Send Test Email</Label>
+                    <p className="text-xs text-blue-600">
+                      Send this template with sample data to test it
+                    </p>
+                  </div>
+                  {!showTestEmailInput && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowTestEmailInput(true)}
+                      className="border-blue-500 text-blue-600 hover:bg-blue-500/10"
+                    >
+                      <Mail className="h-4 w-4 mr-2" />
+                      Send Test
+                    </Button>
+                  )}
+                </div>
+                
+                {showTestEmailInput && (
+                  <div className="flex gap-2 mt-3">
+                    <Input
+                      type="email"
+                      value={testEmailAddress}
+                      onChange={(e) => setTestEmailAddress(e.target.value)}
+                      placeholder="recipient@example.com"
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleSendTestEmail}
+                      disabled={sendingTest || !testEmailAddress}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {sendingTest ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        'Send'
+                      )}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setShowTestEmailInput(false);
+                        setTestEmailAddress('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </ScrollArea>
           
