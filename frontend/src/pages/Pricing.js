@@ -104,6 +104,11 @@ const Pricing = () => {
             headers: { Authorization: `Bearer ${token}` }
           });
           setCurrentSubscription(subRes.data);
+          
+          // Fetch seat pricing config for current plan
+          if (subRes.data?.plan_id) {
+            fetchSeatPricingConfig(subRes.data.plan_id);
+          }
         } catch (err) {
           setCurrentSubscription(null);
         }
@@ -113,6 +118,27 @@ const Pricing = () => {
       toast.error('Failed to load pricing information');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSeatPricingConfig = async (planId) => {
+    if (!token || !planId) return;
+    
+    setLoadingSeatConfig(true);
+    try {
+      const response = await axios.get(`${API}/quotas/seat-pricing`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Find pricing config for the current plan
+      const allPricing = response.data || [];
+      const currentPlanPricing = allPricing.find(p => p.plan_id === planId);
+      setSeatPricingConfig(currentPlanPricing || null);
+    } catch (error) {
+      console.error('Error fetching seat pricing config:', error);
+      setSeatPricingConfig(null);
+    } finally {
+      setLoadingSeatConfig(false);
     }
   };
 
