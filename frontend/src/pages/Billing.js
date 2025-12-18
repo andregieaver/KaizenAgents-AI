@@ -642,6 +642,145 @@ const Billing = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Seat Management - Only for paid plans */}
+      {seatAllocation && subscription?.plan_name?.toLowerCase() !== 'free' && (
+        <Card className="border border-border">
+          <CardHeader className="pb-3 sm:pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Seat Management
+                </CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Adjust the number of seats for your team
+                </CardDescription>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-xs">
+                    <p className="text-sm">
+                      <strong>Billing Rules:</strong><br />
+                      • Increases are locked in after 24 hours<br />
+                      • Decreases apply but you're billed for the highest committed amount<br />
+                      • Within 24hr grace period, you can undo increases
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Current Status */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="text-center">
+                <p className="text-2xl font-bold">{seatAllocation.base_plan_seats}</p>
+                <p className="text-xs text-muted-foreground">Base Plan</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-primary">{seatAllocation.current_seats}</p>
+                <p className="text-xs text-muted-foreground">Current</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-amber-500">{seatAllocation.committed_seats}</p>
+                <p className="text-xs text-muted-foreground">Committed</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-green-500">
+                  ${seatAllocation.additional_seats_cost.toFixed(2)}
+                </p>
+                <p className="text-xs text-muted-foreground">Extra/Month</p>
+              </div>
+            </div>
+
+            {/* Grace Period Alert */}
+            {seatAllocation.is_in_grace_period && (
+              <Alert className="bg-blue-500/10 border-blue-500/30">
+                <Clock className="h-4 w-4 text-blue-500" />
+                <AlertDescription className="text-blue-700 dark:text-blue-300">
+                  <strong>Grace Period Active:</strong> You can undo your recent increase without penalty.{' '}
+                  <span className="font-medium">{formatTimeRemaining(seatAllocation.grace_period_ends_at)}</span>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Slider */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Total Seats</span>
+                <span className="text-lg font-bold">{sliderValue}</span>
+              </div>
+              
+              <Slider
+                value={[sliderValue]}
+                onValueChange={handleSliderChange}
+                min={seatAllocation.base_plan_seats}
+                max={seatAllocation.max_seats}
+                step={1}
+                className="w-full"
+              />
+              
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{seatAllocation.base_plan_seats} (Base)</span>
+                <span>{seatAllocation.max_seats} (Max)</span>
+              </div>
+            </div>
+
+            {/* Cost Breakdown */}
+            {sliderValue > seatAllocation.base_plan_seats && (
+              <div className="p-4 border border-border rounded-lg space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Additional seats</span>
+                  <span>{sliderValue - seatAllocation.base_plan_seats} × ${seatAllocation.price_per_seat.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-semibold">
+                  <span>Extra monthly cost</span>
+                  <span>${((sliderValue - seatAllocation.base_plan_seats) * seatAllocation.price_per_seat).toFixed(2)}</span>
+                </div>
+                {sliderValue !== seatAllocation.committed_seats && sliderValue < seatAllocation.committed_seats && !seatAllocation.is_in_grace_period && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    <AlertTriangle className="h-3 w-3 inline mr-1" />
+                    Note: You'll still be billed for {seatAllocation.committed_seats} seats (your committed amount) at renewal.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Save Button */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                onClick={saveSeatAllocation}
+                disabled={!hasUnsavedChanges || savingSeats}
+                className="flex-1"
+              >
+                {savingSeats ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                )}
+                {hasUnsavedChanges ? 'Save Changes' : 'No Changes'}
+              </Button>
+              {hasUnsavedChanges && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSliderValue(seatAllocation.current_seats);
+                    setHasUnsavedChanges(false);
+                  }}
+                >
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
