@@ -53,7 +53,8 @@ async def list_team_members(current_user: dict = Depends(get_current_user)):
 @router.post("/invite", response_model=TeamMemberResponse)
 async def invite_user(
     user_data: UserInvite,
-    admin_user: dict = Depends(get_admin_or_owner_user)
+    admin_user: dict = Depends(get_admin_or_owner_user),
+    background_tasks: BackgroundTasks = None
 ):
     """Invite a new user to the tenant (admin only)"""
     tenant_id = admin_user.get("tenant_id")
@@ -89,6 +90,31 @@ async def invite_user(
         "requires_password_reset": True
     }
     await db.users.insert_one(user_doc)
+    
+    # Get company/team name for email
+    company = await db.companies.find_one({"id": tenant_id}, {"_id": 0, "name": 1})
+    team_name = company.get("name", "the team") if company else "the team"
+    
+    # Send invitation email (non-blocking)
+    import os
+    import asyncio
+    from services.email_service import EmailService
+    
+    frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+    login_url = f"{frontend_url}/login"
+    
+    # Send email asynchronously
+    asyncio.create_task(
+        EmailService.send_team_invite_email(
+            to_email=user_data.email,
+            user_name=user_data.name,
+            inviter_name=admin_user.get("name", "Admin"),
+            team_name=team_name,
+            user_role=user_data.role.capitalize(),
+            invite_url=login_url,
+            temp_password=temp_password
+        )
+    )
     
     # Return user without sensitive data
     return {
