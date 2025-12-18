@@ -83,8 +83,25 @@ class QuotaService:
         else:  # usage type (monthly consumption)
             current = await self._get_monthly_usage(tenant_id, feature_key)
         
+        # Calculate usage percentage
+        usage_after = current + increment
+        usage_percentage = (usage_after / limit_value * 100) if limit_value > 0 else 0
+        
         # Check if within limit
         if current + increment > limit_value:
+            # Quota exceeded - trigger email asynchronously
+            asyncio.create_task(
+                self._send_quota_email(
+                    tenant_id=tenant_id,
+                    feature_name=feature["feature_name"],
+                    plan_name=plan_name,
+                    current_usage=str(current),
+                    usage_limit=str(limit_value),
+                    usage_percentage=str(int(usage_percentage)),
+                    is_exceeded=True
+                )
+            )
+            
             return {
                 "allowed": False,
                 "current": current,
@@ -94,6 +111,21 @@ class QuotaService:
                 "feature_name": feature["feature_name"],
                 "upgrade_required": True
             }
+        
+        # Check if approaching limit (warning threshold)
+        if usage_percentage >= QUOTA_WARNING_THRESHOLD and usage_percentage < QUOTA_CRITICAL_THRESHOLD:
+            # Send warning email asynchronously
+            asyncio.create_task(
+                self._send_quota_email(
+                    tenant_id=tenant_id,
+                    feature_name=feature["feature_name"],
+                    plan_name=plan_name,
+                    current_usage=str(usage_after),
+                    usage_limit=str(limit_value),
+                    usage_percentage=str(int(usage_percentage)),
+                    is_exceeded=False
+                )
+            )
         
         return {
             "allowed": True,
