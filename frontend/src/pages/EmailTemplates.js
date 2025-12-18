@@ -65,6 +65,9 @@ const EmailTemplates = () => {
   const [previewing, setPreviewing] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [previewContent, setPreviewContent] = useState({ subject: '', html_content: '' });
+  const [sendingTest, setSendingTest] = useState(false);
+  const [testEmailAddress, setTestEmailAddress] = useState('');
+  const [showTestEmailInput, setShowTestEmailInput] = useState(false);
   
   // Edit form state
   const [editForm, setEditForm] = useState({
