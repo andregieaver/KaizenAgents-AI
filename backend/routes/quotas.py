@@ -58,6 +58,8 @@ async def get_quota_usage(current_user: dict = Depends(get_current_user)):
     # Get subscription
     subscription = await quota_service._get_subscription(tenant_id)
     plan_name = subscription.get("plan_name", "free")
+    # Normalize plan name to lowercase for feature gate lookup
+    plan_name_lower = plan_name.lower() if plan_name else "free"
     
     # Get feature gate config
     config = await quota_service._get_config()
@@ -69,7 +71,7 @@ async def get_quota_usage(current_user: dict = Depends(get_current_user)):
     
     for feature in config.get("features", []):
         feature_key = feature["feature_key"]
-        plan_limits = feature.get("plans", {}).get(plan_name)
+        plan_limits = feature.get("plans", {}).get(plan_name_lower)
         
         if not plan_limits or not plan_limits.get("enabled"):
             continue
