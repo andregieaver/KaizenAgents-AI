@@ -318,13 +318,13 @@ const Billing = () => {
       {/* Usage */}
       {usage && (
         <Card className="border border-border">
-          <CardHeader>
-            <CardTitle>Usage This Period</CardTitle>
-            <CardDescription>
-              Period: {new Date(usage.period_start).toLocaleDateString()} - {new Date(usage.period_end).toLocaleDateString()}
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="text-lg sm:text-xl">Usage This Period</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              {new Date(usage.period_start).toLocaleDateString()} - {new Date(usage.period_end).toLocaleDateString()}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6">
             {/* Conversations */}
             <div>
               <div className="flex items-center justify-between mb-2">
