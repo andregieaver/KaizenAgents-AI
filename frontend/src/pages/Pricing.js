@@ -586,8 +586,8 @@ const Pricing = () => {
         })}
       </div>
 
-      {/* Extra Seats Section - For all authenticated users */}
-      {isAuthenticated && (
+      {/* Extra Seats Section - Only show if seat purchasing is enabled for current plan */}
+      {isAuthenticated && (isFreePlan() || isSeatPurchaseEnabled()) && (
         <div className="max-w-2xl mx-auto pt-8">
           <Card className="border-2 border-primary/20">
             <CardHeader>
