@@ -650,6 +650,24 @@ async def verify_checkout_session(
         
         log_info(f"Subscription saved to database", tenant_id=tenant_id, matched_count=result.matched_count, modified_count=result.modified_count, upserted_id=result.upserted_id)
         
+        # Send subscription activation email (non-blocking)
+        import asyncio
+        from services.email_service import EmailService
+        
+        frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
+        next_billing = subscription_doc.get("current_period_end", "")[:10] if subscription_doc.get("current_period_end") else "N/A"
+        
+        asyncio.create_task(
+            EmailService.send_subscription_activated_email(
+                to_email=current_user.get("email"),
+                user_name=current_user.get("name", "User"),
+                plan_name=subscription_doc.get("plan_name", "Subscription"),
+                billing_cycle=subscription_doc.get("billing_cycle", "monthly").capitalize(),
+                next_billing_date=next_billing,
+                dashboard_url=f"{frontend_url}/dashboard"
+            )
+        )
+        
         return {
             "status": "active",
             "message": "Subscription activated successfully",
