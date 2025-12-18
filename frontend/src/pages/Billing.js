@@ -88,11 +88,30 @@ const Billing = () => {
       
       setSubscription(subRes.data);
       setUsage(usageRes.data);
+      
+      // Fetch invoices separately (non-blocking)
+      fetchInvoices();
     } catch (error) {
       console.error('Error fetching billing data:', error);
       toast.error('Failed to load billing information');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInvoices = async () => {
+    setLoadingInvoices(true);
+    try {
+      const response = await axios.get(`${API}/subscriptions/invoices`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { limit: 10 }
+      });
+      setInvoices(response.data.invoices || []);
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      // Don't show error toast for invoices - just silently fail
+    } finally {
+      setLoadingInvoices(false);
     }
   };
 
