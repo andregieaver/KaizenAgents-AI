@@ -469,8 +469,8 @@ const Billing = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border">
+              {/* Desktop Table Header - Hidden on mobile */}
+              <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-border">
                 <div className="col-span-3">Invoice</div>
                 <div className="col-span-2">Date</div>
                 <div className="col-span-2">Amount</div>
@@ -478,55 +478,96 @@ const Billing = () => {
                 <div className="col-span-3 text-right">Actions</div>
               </div>
               
-              {/* Invoice Rows */}
+              {/* Invoice Items */}
               {invoices.map((invoice) => (
-                <div
-                  key={invoice.id}
-                  className="grid grid-cols-12 gap-4 px-4 py-3 items-center rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="col-span-3">
-                    <p className="font-medium text-sm">{invoice.number || 'Draft'}</p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {invoice.description || 'Subscription'}
-                    </p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="text-sm">{formatDate(invoice.created_at)}</p>
-                    {invoice.paid_at && invoice.status === 'paid' && (
-                      <p className="text-xs text-muted-foreground">
-                        Paid: {formatDate(invoice.paid_at)}
+                <div key={invoice.id}>
+                  {/* Desktop Row - Hidden on mobile */}
+                  <div className="hidden md:grid grid-cols-12 gap-4 px-4 py-3 items-center rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className="col-span-3">
+                      <p className="font-medium text-sm">{invoice.number || 'Draft'}</p>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {invoice.description || 'Subscription'}
                       </p>
-                    )}
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-sm">{formatDate(invoice.created_at)}</p>
+                      {invoice.paid_at && invoice.status === 'paid' && (
+                        <p className="text-xs text-muted-foreground">
+                          Paid: {formatDate(invoice.paid_at)}
+                        </p>
+                      )}
+                    </div>
+                    <div className="col-span-2">
+                      <p className="font-medium text-sm">
+                        {formatCurrency(invoice.amount, invoice.currency)}
+                      </p>
+                    </div>
+                    <div className="col-span-2">
+                      {getInvoiceStatusBadge(invoice.status)}
+                    </div>
+                    <div className="col-span-3 flex items-center justify-end gap-2">
+                      {invoice.invoice_url && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(invoice.invoice_url, '_blank')}
+                          title="View Invoice"
+                        >
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {invoice.pdf_url && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(invoice.pdf_url, '_blank')}
+                          title="Download PDF"
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                   </div>
-                  <div className="col-span-2">
-                    <p className="font-medium text-sm">
-                      {formatCurrency(invoice.amount, invoice.currency)}
-                    </p>
-                  </div>
-                  <div className="col-span-2">
-                    {getInvoiceStatusBadge(invoice.status)}
-                  </div>
-                  <div className="col-span-3 flex items-center justify-end gap-2">
-                    {invoice.invoice_url && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => window.open(invoice.invoice_url, '_blank')}
-                        title="View Invoice"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {invoice.pdf_url && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => window.open(invoice.pdf_url, '_blank')}
-                        title="Download PDF"
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                    )}
+
+                  {/* Mobile Card - Visible only on mobile */}
+                  <div className="md:hidden p-4 rounded-lg border border-border space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-medium">{invoice.number || 'Draft'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {invoice.description || 'Subscription'}
+                        </p>
+                      </div>
+                      {getInvoiceStatusBadge(invoice.status)}
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{formatDate(invoice.created_at)}</span>
+                      <span className="font-semibold">{formatCurrency(invoice.amount, invoice.currency)}</span>
+                    </div>
+                    <div className="flex gap-2 pt-2 border-t border-border">
+                      {invoice.invoice_url && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => window.open(invoice.invoice_url, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View
+                        </Button>
+                      )}
+                      {invoice.pdf_url && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => window.open(invoice.pdf_url, '_blank')}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
