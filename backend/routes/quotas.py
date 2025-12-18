@@ -506,6 +506,86 @@ async def delete_seat_pricing(
     return {"message": f"Seat pricing for plan '{pricing['plan_name']}' deleted successfully"}
 
 
+@router.post("/seat-pricing/{plan_id}/sync-stripe")
+async def sync_seat_pricing_to_stripe(
+    plan_id: str,
+    current_user: dict = Depends(get_super_admin_user)
+):
+    """Sync seat pricing to Stripe - creates products and prices (Super Admin only)"""
+    pricing = await db.seat_pricing.find_one(
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_id}$", "$options": "i"}}]},
+        {"_id": 0}
+    )
+    if not pricing:
+        raise HTTPException(status_code=404, detail=f"Seat pricing for plan '{plan_id}' not found")
+    
+    if pricing.get("price_per_seat_monthly", 0) <= 0:
+        raise HTTPException(status_code=400, detail="Cannot sync free seat pricing to Stripe")
+    
+    # Initialize Stripe
+    await StripeService.initialize_from_db()
+    
+    if not StripeService.is_configured():
+        raise HTTPException(status_code=503, detail="Stripe is not configured. Please configure Stripe integration first.")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    update_fields = {"updated_at": now}
+    
+    # Create or get Stripe product
+    stripe_product_id = pricing.get("stripe_product_id")
+    if not stripe_product_id:
+        stripe_product_id = await StripeService.create_product(
+            pricing["id"],
+            f"Additional Seats - {pricing['plan_name']} Plan",
+            f"Additional user seats subscription for {pricing['plan_name']} plan"
+        )
+        if stripe_product_id:
+            update_fields["stripe_product_id"] = stripe_product_id
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create Stripe product")
+    
+    # Create monthly recurring price if not exists
+    if not pricing.get("stripe_price_monthly_id") and pricing.get("price_per_seat_monthly", 0) > 0:
+        monthly_price_id = await StripeService.create_price(
+            stripe_product_id,
+            pricing["price_per_seat_monthly"],
+            "month",
+            pricing.get("currency", "usd")
+        )
+        if monthly_price_id:
+            update_fields["stripe_price_monthly_id"] = monthly_price_id
+            logger.info(f"Created monthly Stripe price for seat pricing: {monthly_price_id}")
+    
+    # Create yearly recurring price if not exists
+    if not pricing.get("stripe_price_yearly_id") and pricing.get("price_per_seat_yearly", 0) > 0:
+        yearly_price_id = await StripeService.create_price(
+            stripe_product_id,
+            pricing["price_per_seat_yearly"],
+            "year",
+            pricing.get("currency", "usd")
+        )
+        if yearly_price_id:
+            update_fields["stripe_price_yearly_id"] = yearly_price_id
+            logger.info(f"Created yearly Stripe price for seat pricing: {yearly_price_id}")
+    
+    # Update database
+    await db.seat_pricing.update_one(
+        {"id": pricing["id"]},
+        {"$set": update_fields}
+    )
+    
+    updated_pricing = await db.seat_pricing.find_one({"id": pricing["id"]}, {"_id": 0})
+    
+    logger.info(f"Synced seat pricing to Stripe for plan: {pricing['plan_name']}")
+    
+    return {
+        "message": f"Seat pricing for '{pricing['plan_name']}' synced to Stripe successfully",
+        "stripe_product_id": updated_pricing.get("stripe_product_id"),
+        "stripe_price_monthly_id": updated_pricing.get("stripe_price_monthly_id"),
+        "stripe_price_yearly_id": updated_pricing.get("stripe_price_yearly_id")
+    }
+
+
 @router.post("/seat-pricing/sync")
 async def sync_seat_pricing_endpoint(current_user: dict = Depends(get_super_admin_user)):
     """Manually sync seat pricing with subscription plans (Super Admin only)"""
