@@ -8,8 +8,10 @@ import { Badge } from '../components/ui/badge';
 import { Progress } from '../components/ui/progress';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { toast } from 'sonner';
-import { CreditCard, AlertTriangle, CheckCircle, Loader2, TrendingUp, Receipt, ExternalLink, Download, Clock, XCircle, Users } from 'lucide-react';
+import { CreditCard, AlertTriangle, CheckCircle, Loader2, TrendingUp, Receipt, ExternalLink, Download, Clock, XCircle, Users, Info } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { Slider } from '../components/ui/slider';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -23,6 +25,12 @@ const Billing = () => {
   const [invoices, setInvoices] = useState([]);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [seatUsage, setSeatUsage] = useState({ current: 0, limit: 0, extraSeats: 0 });
+  
+  // Seat allocation state
+  const [seatAllocation, setSeatAllocation] = useState(null);
+  const [sliderValue, setSliderValue] = useState(0);
+  const [savingSeats, setSavingSeats] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     const handleStripeReturn = async () => {
