@@ -232,7 +232,8 @@ const Billing = () => {
 
   const conversationUsagePercent = usage?.usage_percentage?.conversations || 0;
   const agentUsagePercent = usage?.usage_percentage?.agents || 0;
-  const maxUsagePercent = Math.max(conversationUsagePercent, agentUsagePercent);
+  const seatUsagePercent = seatUsage.percentage || 0;
+  const maxUsagePercent = Math.max(conversationUsagePercent, agentUsagePercent, seatUsagePercent);
 
   return (
     <div className="p-6 space-y-6">
