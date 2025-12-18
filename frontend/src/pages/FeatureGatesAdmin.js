@@ -9,7 +9,7 @@ import { Input } from '../components/ui/input';
 import { Badge } from '../components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Label } from '../components/ui/label';
-import { Loader2, Save, RefreshCw, Shield, AlertCircle, ArrowLeft, Users, DollarSign, Edit2, X, Check } from 'lucide-react';
+import { Loader2, Save, RefreshCw, Shield, AlertCircle, ArrowLeft, Users, DollarSign, Edit2, X, Check, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
 
