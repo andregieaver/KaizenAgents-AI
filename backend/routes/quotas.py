@@ -166,6 +166,228 @@ async def get_quota_usage(current_user: dict = Depends(get_current_user)):
     }
 
 
+# ============== SEAT ALLOCATION MANAGEMENT ==============
+
+@router.get("/seats/allocation", response_model=SeatAllocationResponse)
+async def get_seat_allocation(current_user: dict = Depends(get_current_user)):
+    """Get current seat allocation details including grace period status"""
+    from datetime import timedelta
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get subscription
+    subscription = await quota_service._get_subscription(tenant_id)
+    plan_name = subscription.get("plan_name", "free")
+    plan_name_lower = plan_name.lower() if plan_name else "free"
+    
+    # Get base plan seats from feature gate config
+    config = await quota_service._get_config()
+    base_plan_seats = 1  # Default
+    
+    if config:
+        for feature in config.get("features", []):
+            if feature.get("feature_key") == "max_seats":
+                plan_limits = feature.get("plans", {}).get(plan_name_lower)
+                if plan_limits:
+                    base_plan_seats = plan_limits.get("limit", 1) or 1
+                break
+    
+    # Get seat allocation document
+    seat_alloc = await db.seat_allocations.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    
+    now = datetime.now(timezone.utc)
+    
+    if not seat_alloc:
+        # Initialize with base plan seats
+        seat_alloc = {
+            "tenant_id": tenant_id,
+            "current_seats": base_plan_seats,
+            "committed_seats": base_plan_seats,
+            "last_increase_at": None,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        }
+        await db.seat_allocations.insert_one(seat_alloc)
+    
+    current_seats = seat_alloc.get("current_seats", base_plan_seats)
+    committed_seats = seat_alloc.get("committed_seats", base_plan_seats)
+    last_increase_at = seat_alloc.get("last_increase_at")
+    
+    # Calculate grace period
+    is_in_grace_period = False
+    grace_period_ends_at = None
+    
+    if last_increase_at:
+        last_increase_dt = datetime.fromisoformat(last_increase_at.replace('Z', '+00:00'))
+        grace_end = last_increase_dt + timedelta(hours=24)
+        
+        if now < grace_end:
+            is_in_grace_period = True
+            grace_period_ends_at = grace_end.isoformat()
+    
+    # Get price per seat for this plan
+    seat_pricing = await db.seat_pricing.find_one(
+        {"plan_name": {"$regex": f"^{plan_name}$", "$options": "i"}},
+        {"_id": 0}
+    )
+    price_per_seat = seat_pricing.get("price_per_seat_monthly", 5.0) if seat_pricing else 5.0
+    
+    # Calculate additional seats cost (committed - base)
+    additional_seats = max(0, committed_seats - base_plan_seats)
+    additional_seats_cost = additional_seats * price_per_seat
+    
+    return {
+        "base_plan_seats": base_plan_seats,
+        "current_seats": current_seats,
+        "committed_seats": committed_seats,
+        "max_seats": 100,
+        "last_increase_at": last_increase_at,
+        "grace_period_ends_at": grace_period_ends_at,
+        "is_in_grace_period": is_in_grace_period,
+        "price_per_seat": price_per_seat,
+        "additional_seats_cost": additional_seats_cost
+    }
+
+
+@router.put("/seats/allocation")
+async def update_seat_allocation(
+    adjustment: SeatAdjustment,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Adjust total seat count.
+    
+    Rules:
+    - Increase: Sets new committed value, starts 24hr grace period
+    - Decrease: Updates current seats, but committed stays at high-water mark
+    - During grace period: Can decrease back without affecting committed
+    - Multiple increases reset the grace period
+    """
+    from datetime import timedelta
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Validate range
+    if adjustment.total_seats < 1 or adjustment.total_seats > 100:
+        raise HTTPException(status_code=400, detail="Total seats must be between 1 and 100")
+    
+    # Get subscription
+    subscription = await quota_service._get_subscription(tenant_id)
+    plan_name = subscription.get("plan_name", "free")
+    plan_name_lower = plan_name.lower() if plan_name else "free"
+    
+    if plan_name_lower == "free":
+        raise HTTPException(status_code=403, detail="Seat adjustment is only available for paid plans")
+    
+    # Get base plan seats
+    config = await quota_service._get_config()
+    base_plan_seats = 1
+    
+    if config:
+        for feature in config.get("features", []):
+            if feature.get("feature_key") == "max_seats":
+                plan_limits = feature.get("plans", {}).get(plan_name_lower)
+                if plan_limits:
+                    base_plan_seats = plan_limits.get("limit", 1) or 1
+                break
+    
+    if adjustment.total_seats < base_plan_seats:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Cannot reduce below base plan seats ({base_plan_seats})"
+        )
+    
+    # Get current allocation
+    seat_alloc = await db.seat_allocations.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    
+    now = datetime.now(timezone.utc)
+    
+    if not seat_alloc:
+        seat_alloc = {
+            "tenant_id": tenant_id,
+            "current_seats": base_plan_seats,
+            "committed_seats": base_plan_seats,
+            "last_increase_at": None,
+            "created_at": now.isoformat()
+        }
+    
+    current_seats = seat_alloc.get("current_seats", base_plan_seats)
+    committed_seats = seat_alloc.get("committed_seats", base_plan_seats)
+    last_increase_at = seat_alloc.get("last_increase_at")
+    
+    # Check if in grace period
+    is_in_grace_period = False
+    if last_increase_at:
+        last_increase_dt = datetime.fromisoformat(last_increase_at.replace('Z', '+00:00'))
+        grace_end = last_increase_dt + timedelta(hours=24)
+        is_in_grace_period = now < grace_end
+    
+    new_total = adjustment.total_seats
+    update_fields = {"updated_at": now.isoformat()}
+    
+    if new_total > current_seats:
+        # INCREASE: Update both current and committed, reset grace period
+        update_fields["current_seats"] = new_total
+        update_fields["committed_seats"] = max(committed_seats, new_total)
+        update_fields["last_increase_at"] = now.isoformat()
+        action = "increased"
+        
+    elif new_total < current_seats:
+        # DECREASE
+        update_fields["current_seats"] = new_total
+        
+        if is_in_grace_period:
+            # Within grace period: can also reduce committed
+            update_fields["committed_seats"] = max(new_total, base_plan_seats)
+            update_fields["last_increase_at"] = None  # Clear grace period
+            action = "decreased_within_grace"
+        else:
+            # Outside grace period: committed stays at high-water mark
+            # But if they decrease, the committed becomes the new baseline for next period
+            # committed_seats stays as is (high-water mark)
+            action = "decreased"
+    else:
+        # No change
+        return {"message": "No change in seat allocation", "current_seats": current_seats, "committed_seats": committed_seats}
+    
+    # Update database
+    await db.seat_allocations.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": update_fields},
+        upsert=True
+    )
+    
+    # Get updated allocation
+    updated_alloc = await db.seat_allocations.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    
+    # Get price per seat
+    seat_pricing = await db.seat_pricing.find_one(
+        {"plan_name": {"$regex": f"^{plan_name}$", "$options": "i"}},
+        {"_id": 0}
+    )
+    price_per_seat = seat_pricing.get("price_per_seat_monthly", 5.0) if seat_pricing else 5.0
+    
+    additional_seats = max(0, updated_alloc.get("committed_seats", base_plan_seats) - base_plan_seats)
+    additional_seats_cost = additional_seats * price_per_seat
+    
+    logger.info(f"Seat allocation updated for tenant {tenant_id}: {action}, current={updated_alloc.get('current_seats')}, committed={updated_alloc.get('committed_seats')}")
+    
+    return {
+        "message": f"Seat allocation {action.replace('_', ' ')}",
+        "action": action,
+        "current_seats": updated_alloc.get("current_seats"),
+        "committed_seats": updated_alloc.get("committed_seats"),
+        "base_plan_seats": base_plan_seats,
+        "additional_seats_cost": additional_seats_cost,
+        "is_in_grace_period": action == "increased",
+        "grace_period_ends_at": (now + timedelta(hours=24)).isoformat() if action == "increased" else None
+    }
+
+
 @router.post("/extra-seats/purchase")
 async def purchase_extra_seats(
     purchase: ExtraSeatPurchase,
