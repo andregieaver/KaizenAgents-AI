@@ -248,6 +248,10 @@ const DashboardLayout = () => {
     ? { path: '/dashboard/admin/menus', icon: Menu, label: 'Menus', isAdmin: true }
     : null;
 
+  const emailsNavItem = user?.is_super_admin
+    ? { path: '/dashboard/admin/emails', icon: Mail, label: 'Emails', isAdmin: true }
+    : null;
+
   const isActive = (path) => {
     if (path === '/dashboard') {
       return location.pathname === '/dashboard';
