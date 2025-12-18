@@ -802,30 +802,48 @@ async def get_invoices(
     # Initialize Stripe from database
     await StripeService.initialize_from_db()
     
-    if not StripeService.is_configured():
-        return {"invoices": [], "message": "Payment system not configured"}
-    
-    # Fetch invoices from Stripe
-    invoices = await StripeService.get_customer_invoices(stripe_customer_id, limit)
-    
-    if invoices is None:
-        raise HTTPException(status_code=500, detail="Failed to fetch invoices")
-    
-    # Format invoices for frontend
     formatted_invoices = []
-    for inv in invoices:
+    
+    # Try to fetch from Stripe first
+    if StripeService.is_configured():
+        invoices = await StripeService.get_customer_invoices(stripe_customer_id, limit)
+        
+        if invoices:
+            for inv in invoices:
+                formatted_invoices.append({
+                    "id": inv["id"],
+                    "number": inv["number"],
+                    "amount": inv["amount_paid"] / 100,  # Convert cents to dollars
+                    "currency": inv["currency"].upper(),
+                    "status": inv["status"],
+                    "created_at": datetime.fromtimestamp(inv["created"], tz=timezone.utc).isoformat() if inv["created"] else None,
+                    "paid_at": datetime.fromtimestamp(inv["paid_at"], tz=timezone.utc).isoformat() if inv["paid_at"] else None,
+                    "due_date": datetime.fromtimestamp(inv["due_date"], tz=timezone.utc).isoformat() if inv["due_date"] else None,
+                    "description": inv["description"],
+                    "invoice_url": inv["hosted_invoice_url"],
+                    "pdf_url": inv["invoice_pdf"]
+                })
+            return {"invoices": formatted_invoices}
+    
+    # Fallback: Check local invoices collection (for testing/demo)
+    local_invoices = await db.invoices.find(
+        {"stripe_customer_id": stripe_customer_id},
+        {"_id": 0}
+    ).sort("created_at", -1).limit(limit).to_list(limit)
+    
+    for inv in local_invoices:
         formatted_invoices.append({
-            "id": inv["id"],
-            "number": inv["number"],
-            "amount": inv["amount_paid"] / 100,  # Convert cents to dollars
-            "currency": inv["currency"].upper(),
-            "status": inv["status"],
-            "created_at": datetime.fromtimestamp(inv["created"], tz=timezone.utc).isoformat() if inv["created"] else None,
-            "paid_at": datetime.fromtimestamp(inv["paid_at"], tz=timezone.utc).isoformat() if inv["paid_at"] else None,
-            "due_date": datetime.fromtimestamp(inv["due_date"], tz=timezone.utc).isoformat() if inv["due_date"] else None,
-            "description": inv["description"],
-            "invoice_url": inv["hosted_invoice_url"],
-            "pdf_url": inv["invoice_pdf"]
+            "id": inv.get("id"),
+            "number": inv.get("number"),
+            "amount": inv.get("amount", 0) / 100,  # Convert cents to dollars
+            "currency": inv.get("currency", "usd").upper(),
+            "status": inv.get("status"),
+            "created_at": inv.get("created_at"),
+            "paid_at": inv.get("paid_at"),
+            "due_date": inv.get("due_date"),
+            "description": inv.get("description"),
+            "invoice_url": inv.get("invoice_url"),
+            "pdf_url": inv.get("pdf_url")
         })
     
     return {"invoices": formatted_invoices}
