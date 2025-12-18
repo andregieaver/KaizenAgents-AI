@@ -274,11 +274,11 @@ const Billing = () => {
             )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex items-start justify-between">
+        <CardContent className="space-y-4 sm:space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0">
             <div>
-              <h3 className="text-2xl font-bold">{subscription?.plan_name || 'Free'}</h3>
-              <p className="text-muted-foreground mt-1">
+              <h3 className="text-xl sm:text-2xl font-bold">{subscription?.plan_name || 'Free'}</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 {subscription?.billing_cycle === 'yearly' ? 'Annual billing' : 'Monthly billing'}
               </p>
               {subscription?.trial_end && new Date(subscription.trial_end) > new Date() && (
@@ -287,9 +287,9 @@ const Billing = () => {
                 </Badge>
               )}
             </div>
-            <div className="text-right">
-              <p className="text-sm text-muted-foreground">Next billing date</p>
-              <p className="font-semibold">
+            <div className="sm:text-right">
+              <p className="text-xs sm:text-sm text-muted-foreground">Next billing date</p>
+              <p className="font-semibold text-sm sm:text-base">
                 {subscription?.current_period_end 
                   ? new Date(subscription.current_period_end).toLocaleDateString()
                   : 'N/A'}
@@ -297,7 +297,7 @@ const Billing = () => {
             </div>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <Button onClick={handleUpgrade} className="flex-1">
               <TrendingUp className="h-4 w-4 mr-2" />
               Upgrade Plan
