@@ -140,6 +140,64 @@ const Billing = () => {
     }
   };
 
+  const fetchSeatAllocation = async () => {
+    try {
+      const response = await axios.get(`${API}/quotas/seats/allocation`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSeatAllocation(response.data);
+      setSliderValue(response.data.current_seats);
+    } catch (error) {
+      console.error('Error fetching seat allocation:', error);
+    }
+  };
+
+  const handleSliderChange = (value) => {
+    setSliderValue(value[0]);
+    setHasUnsavedChanges(value[0] !== seatAllocation?.current_seats);
+  };
+
+  const saveSeatAllocation = async () => {
+    if (!hasUnsavedChanges) return;
+    
+    setSavingSeats(true);
+    try {
+      const response = await axios.put(
+        `${API}/quotas/seats/allocation`,
+        { total_seats: sliderValue },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(response.data.message);
+      setHasUnsavedChanges(false);
+      
+      // Refresh seat allocation
+      fetchSeatAllocation();
+    } catch (error) {
+      console.error('Error saving seat allocation:', error);
+      toast.error(error.response?.data?.detail || 'Failed to update seats');
+    } finally {
+      setSavingSeats(false);
+    }
+  };
+
+  const formatTimeRemaining = (isoString) => {
+    if (!isoString) return '';
+    const end = new Date(isoString);
+    const now = new Date();
+    const diff = end - now;
+    
+    if (diff <= 0) return 'Expired';
+    
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m remaining`;
+    }
+    return `${minutes}m remaining`;
+  };
+
   const handleUpgrade = () => {
     navigate('/dashboard/pricing');
   };
