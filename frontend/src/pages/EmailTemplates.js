@@ -348,7 +348,7 @@ const EmailTemplates = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <ScrollArea className="flex-1 min-h-0 pr-4" style={{ maxHeight: 'calc(90vh - 200px)' }}>
+          <div className="flex-1 overflow-y-auto pr-4" style={{ maxHeight: 'calc(90vh - 180px)' }}>
             <div className="space-y-4 py-4">
               {/* Enable/Disable Toggle */}
               <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
