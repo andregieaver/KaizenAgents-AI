@@ -20,6 +20,8 @@ const Billing = () => {
   const [loading, setLoading] = useState(true);
   const [subscription, setSubscription] = useState(null);
   const [usage, setUsage] = useState(null);
+  const [invoices, setInvoices] = useState([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
 
   useEffect(() => {
     const handleStripeReturn = async () => {
