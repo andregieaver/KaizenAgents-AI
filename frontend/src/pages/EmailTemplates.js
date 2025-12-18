@@ -451,8 +451,8 @@ const EmailTemplates = () => {
               <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <Label className="text-sm font-medium text-blue-700">Send Test Email</Label>
-                    <p className="text-xs text-blue-600">
+                    <Label className="text-sm font-medium text-blue-700 dark:text-blue-400">Send Test Email</Label>
+                    <p className="text-xs text-blue-600 dark:text-blue-300">
                       Send this template with sample data to test it
                     </p>
                   </div>
@@ -504,7 +504,7 @@ const EmailTemplates = () => {
                 )}
               </div>
             </div>
-          </ScrollArea>
+          </div>
           
           <DialogFooter className="flex-shrink-0 border-t pt-4">
             <div className="flex items-center justify-between w-full">
