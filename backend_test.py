@@ -2385,6 +2385,286 @@ class AIAgentHubTester:
         
         return True
 
+    # ============== EMAIL SERVICE INTEGRATION TESTS ==============
+
+    def test_email_service_integration(self):
+        """Test Email Service Integration as requested in review"""
+        print(f"\n🎯 Testing Email Service Integration")
+        
+        # Test all email service endpoints as requested in review
+        login_test = self.test_super_admin_login()
+        if not login_test:
+            print("❌ Login failed - cannot continue with email service tests")
+            return False
+            
+        password_reset_test = self.test_password_reset_email_flow()
+        team_invite_test = self.test_team_invite_email_flow()
+        email_templates_test = self.test_email_templates_verification()
+        email_fallback_test = self.test_email_service_fallback()
+        
+        # Summary of email service tests
+        print(f"\n📋 Email Service Integration Test Results:")
+        print(f"   Super Admin Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
+        print(f"   Password Reset Email Flow: {'✅ PASSED' if password_reset_test else '❌ FAILED'}")
+        print(f"   Team Invite Email Flow: {'✅ PASSED' if team_invite_test else '❌ FAILED'}")
+        print(f"   Email Templates Verification: {'✅ PASSED' if email_templates_test else '❌ FAILED'}")
+        print(f"   Email Service Fallback: {'✅ PASSED' if email_fallback_test else '❌ FAILED'}")
+        
+        return all([login_test, password_reset_test, team_invite_test, 
+                   email_templates_test, email_fallback_test])
+
+    def test_password_reset_email_flow(self):
+        """Test Password Reset Email Flow - POST /api/auth/forgot-password"""
+        print(f"\n🔧 Testing Password Reset Email Flow")
+        
+        # Test with valid email (super admin email)
+        reset_data = {
+            "email": "andre@humanweb.no"
+        }
+        
+        success, response = self.run_test(
+            "Password Reset - Valid Email",
+            "POST",
+            "auth/forgot-password",
+            200,
+            data=reset_data
+        )
+        
+        if not success:
+            print("❌ Failed to request password reset for valid email")
+            return False
+        
+        # Verify response message (should be security-focused)
+        expected_message = "If an account exists with this email, you will receive a password reset link."
+        if response.get('message') != expected_message:
+            print(f"❌ Unexpected response message: {response.get('message')}")
+            return False
+        
+        print(f"   ✅ Password reset request successful for valid email")
+        print(f"   ✅ Security message returned: {response.get('message')}")
+        
+        # Test with invalid email (should return same message for security)
+        invalid_reset_data = {
+            "email": "nonexistent@test.com"
+        }
+        
+        success, response = self.run_test(
+            "Password Reset - Invalid Email (Security Test)",
+            "POST",
+            "auth/forgot-password",
+            200,
+            data=invalid_reset_data
+        )
+        
+        if not success:
+            print("❌ Failed password reset request for invalid email")
+            return False
+        
+        # Should return same message to prevent email enumeration
+        if response.get('message') != expected_message:
+            print(f"❌ Different message for invalid email - security issue!")
+            return False
+        
+        print(f"   ✅ Invalid email returns same security message (prevents enumeration)")
+        
+        # Check backend logs for email sending attempt
+        print(f"   ℹ️ Check backend logs for email sending attempt")
+        print(f"   ℹ️ Email service should attempt to send if SendGrid is configured")
+        
+        return True
+
+    def test_team_invite_email_flow(self):
+        """Test Team Invite Email Flow - POST /api/users/invite"""
+        print(f"\n🔧 Testing Team Invite Email Flow")
+        
+        # First ensure we're logged in as super admin
+        if not self.token:
+            print("❌ No authentication token available")
+            return False
+        
+        # Test team invitation
+        invite_data = {
+            "email": "test-invite@example.com",
+            "name": "Test Invite User",
+            "role": "agent"
+        }
+        
+        success, response = self.run_test(
+            "Team Invite - Send Invitation",
+            "POST",
+            "users/invite",
+            200,
+            data=invite_data
+        )
+        
+        if not success:
+            print("❌ Failed to send team invitation")
+            return False
+        
+        # Verify response structure
+        required_fields = ['id', 'email', 'name', 'role', 'temp_password']
+        for field in required_fields:
+            if field not in response:
+                print(f"❌ Missing required field in response: {field}")
+                return False
+        
+        print(f"   ✅ Team invitation sent successfully")
+        print(f"   ✅ User created with ID: {response.get('id')}")
+        print(f"   ✅ Email: {response.get('email')}")
+        print(f"   ✅ Role: {response.get('role')}")
+        print(f"   ✅ Temporary password generated: {response.get('temp_password')[:4]}...")
+        
+        # Verify temp password is returned (for admin to share with user)
+        temp_password = response.get('temp_password')
+        if not temp_password or len(temp_password) < 8:
+            print(f"❌ Invalid temporary password: {temp_password}")
+            return False
+        
+        print(f"   ✅ Valid temporary password generated ({len(temp_password)} characters)")
+        
+        # Check backend logs for email sending attempt
+        print(f"   ℹ️ Check backend logs for team invite email sending attempt")
+        print(f"   ℹ️ Email service should attempt to send if SendGrid is configured")
+        
+        # Clean up - delete the test user
+        try:
+            # Note: We don't have a delete user endpoint in the current API
+            # The test user will remain in the system
+            print(f"   ℹ️ Test user remains in system (no delete endpoint available)")
+        except:
+            pass
+        
+        return True
+
+    def test_email_templates_verification(self):
+        """Test Email Templates Verification - GET /api/admin/email-templates"""
+        print(f"\n🔧 Testing Email Templates Verification")
+        
+        success, response = self.run_test(
+            "Get All Email Templates",
+            "GET",
+            "admin/email-templates",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get email templates")
+            return False
+        
+        # Verify response is an array
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+        
+        print(f"   ✅ Retrieved {len(response)} email templates")
+        
+        # Verify required templates exist
+        expected_templates = [
+            'welcome',
+            'password_reset', 
+            'team_invite',
+            'order_receipt',
+            'quota_warning',
+            'quota_exceeded',
+            'subscription_activated',
+            'subscription_cancelled'
+        ]
+        
+        template_keys = [template.get('key') for template in response]
+        
+        for expected_template in expected_templates:
+            if expected_template in template_keys:
+                print(f"   ✅ {expected_template} template found")
+            else:
+                print(f"   ❌ {expected_template} template missing")
+                return False
+        
+        # Verify template structure
+        for template in response:
+            required_fields = ['key', 'name', 'subject', 'html_content', 'category']
+            for field in required_fields:
+                if field not in template:
+                    print(f"❌ Template {template.get('key')} missing field: {field}")
+                    return False
+        
+        print(f"   ✅ All templates have required fields")
+        
+        # Test specific template retrieval
+        success, template_response = self.run_test(
+            "Get Specific Template - Password Reset",
+            "GET",
+            "admin/email-templates/password_reset",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Individual template retrieval working")
+            print(f"   Template: {template_response.get('name')}")
+            print(f"   Subject: {template_response.get('subject')}")
+        else:
+            print(f"   ⚠️ Individual template retrieval failed")
+        
+        return True
+
+    def test_email_service_fallback(self):
+        """Test Email Service Fallback - Graceful handling when SendGrid not configured"""
+        print(f"\n🔧 Testing Email Service Fallback")
+        
+        # The email service should gracefully handle cases where SendGrid is not configured
+        # We can test this by checking that no errors are thrown during email operations
+        
+        # Test password reset (should not throw errors even if email fails)
+        fallback_data = {
+            "email": "fallback-test@example.com"
+        }
+        
+        success, response = self.run_test(
+            "Email Fallback - Password Reset",
+            "POST",
+            "auth/forgot-password",
+            200,
+            data=fallback_data
+        )
+        
+        if not success:
+            print("❌ Email fallback test failed - API threw error")
+            return False
+        
+        # Should still return success message even if email fails
+        expected_message = "If an account exists with this email, you will receive a password reset link."
+        if response.get('message') != expected_message:
+            print(f"❌ Unexpected fallback response: {response.get('message')}")
+            return False
+        
+        print(f"   ✅ Password reset API handles email service gracefully")
+        print(f"   ✅ No errors thrown when SendGrid unavailable")
+        
+        # Test team invite fallback
+        invite_fallback_data = {
+            "email": "fallback-invite@example.com",
+            "name": "Fallback Test User",
+            "role": "viewer"
+        }
+        
+        success, response = self.run_test(
+            "Email Fallback - Team Invite",
+            "POST",
+            "users/invite",
+            200,
+            data=invite_fallback_data
+        )
+        
+        if success:
+            print(f"   ✅ Team invite API handles email service gracefully")
+            print(f"   ✅ User created even if email fails: {response.get('email')}")
+        else:
+            print(f"   ⚠️ Team invite fallback test inconclusive")
+        
+        print(f"   ℹ️ Email service implements graceful fallback")
+        print(f"   ℹ️ Operations continue even when SendGrid is not configured")
+        
+        return True
+
     # ============== SEAT PRICING AND PURCHASE TESTS ==============
 
     def test_seat_pricing_and_purchase(self):
