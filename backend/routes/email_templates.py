@@ -554,6 +554,145 @@ async def reset_email_template(
     return {"message": f"Template '{template_key}' has been reset to default", "template": updated_template}
 
 
+class SendTestEmailRequest(BaseModel):
+    to_email: str
+    template_key: str
+
+
+@router.post("/send-test")
+async def send_test_email(
+    request: SendTestEmailRequest,
+    admin_user: dict = Depends(get_super_admin_user)
+):
+    """Send a test email using a specific template (Super Admin only)"""
+    
+    # Get the template
+    template = await db.email_templates.find_one({"key": request.template_key}, {"_id": 0})
+    
+    if not template:
+        raise HTTPException(status_code=404, detail=f"Template '{request.template_key}' not found")
+    
+    # Get SendGrid settings
+    sendgrid_settings = await db.platform_settings.find_one({"key": "sendgrid_integration"})
+    
+    if not sendgrid_settings or not sendgrid_settings.get("value"):
+        raise HTTPException(status_code=400, detail="SendGrid not configured. Please configure SendGrid in Integrations first.")
+    
+    settings_value = sendgrid_settings["value"]
+    api_key = settings_value.get("api_key")
+    sender_email = settings_value.get("sender_email")
+    sender_name = settings_value.get("sender_name", "Platform")
+    is_enabled = settings_value.get("is_enabled", False)
+    
+    if not api_key or not sender_email:
+        raise HTTPException(status_code=400, detail="SendGrid API key or sender email not configured")
+    
+    if not is_enabled:
+        raise HTTPException(status_code=400, detail="SendGrid integration is disabled. Please enable it in Integrations.")
+    
+    # Sample data for test email
+    sample_data = {
+        "platform_name": sender_name,
+        "user_name": admin_user.get("name", "Test User"),
+        "user_email": request.to_email,
+        "login_url": "https://example.com/login",
+        "reset_url": "https://example.com/reset-password?token=sample_token",
+        "expiry_hours": "1",
+        "order_id": "TEST-12345",
+        "order_date": datetime.now().strftime("%B %d, %Y"),
+        "item_name": "Professional Plan (Monthly)",
+        "total_amount": "$99.00",
+        "billing_url": "https://example.com/billing",
+        "resource_name": "Agents",
+        "plan_name": "Professional",
+        "current_usage": "8",
+        "usage_limit": "10",
+        "usage_percentage": "80",
+        "upgrade_url": "https://example.com/pricing",
+        "team_name": "Acme Inc",
+        "inviter_name": admin_user.get("name", "Admin"),
+        "user_role": "Agent",
+        "invite_url": "https://example.com/login",
+        "temp_password": "TempPass123!",
+        "billing_cycle": "Monthly",
+        "next_billing_date": "January 15, 2025",
+        "dashboard_url": "https://example.com/dashboard",
+        "end_date": "February 1, 2025",
+        "reactivate_url": "https://example.com/pricing",
+        "year": str(datetime.now().year)
+    }
+    
+    # Replace variables in template
+    subject = template["subject"]
+    html_content = template["html_content"]
+    
+    for key, value in sample_data.items():
+        subject = subject.replace(f"{{{{{key}}}}}", value)
+        html_content = html_content.replace(f"{{{{{key}}}}}", value)
+    
+    # Add test email banner
+    test_banner = """
+    <div style="background-color: #fef3c7; border: 2px solid #f59e0b; padding: 12px; margin-bottom: 20px; border-radius: 6px; text-align: center;">
+        <strong style="color: #92400e;">🧪 TEST EMAIL</strong>
+        <p style="color: #92400e; margin: 5px 0 0 0; font-size: 14px;">
+            This is a test email for the "{template['name']}" template.<br>
+            Variables have been replaced with sample data.
+        </p>
+    </div>
+    """
+    
+    # Insert banner after opening body/div tag
+    if "<body" in html_content.lower():
+        html_content = html_content.replace("<body>", f"<body>{test_banner}", 1)
+    elif "<div" in html_content:
+        # Find the first div and insert after it
+        first_div_end = html_content.find(">", html_content.find("<div"))
+        if first_div_end > 0:
+            html_content = html_content[:first_div_end+1] + test_banner + html_content[first_div_end+1:]
+    else:
+        html_content = test_banner + html_content
+    
+    # Send via SendGrid
+    try:
+        from sendgrid import SendGridAPIClient
+        from sendgrid.helpers.mail import Mail, Email, To
+        
+        sg = SendGridAPIClient(api_key)
+        
+        message = Mail(
+            from_email=Email(sender_email, sender_name),
+            to_emails=To(request.to_email),
+            subject=f"[TEST] {subject}",
+            html_content=html_content
+        )
+        
+        response = sg.send(message)
+        
+        if response.status_code == 202:
+            logger.info(f"Test email sent for template '{request.template_key}' to {request.to_email} by admin: {admin_user.get('email')}")
+            return {
+                "message": f"Test email sent successfully to {request.to_email}",
+                "template": request.template_key,
+                "status_code": response.status_code
+            }
+        else:
+            raise HTTPException(
+                status_code=500,
+                detail=f"SendGrid returned status code: {response.status_code}"
+            )
+            
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Failed to send test email for template '{request.template_key}': {error_msg}")
+        
+        if "401" in error_msg or "Unauthorized" in error_msg:
+            raise HTTPException(status_code=401, detail="Invalid SendGrid API key")
+        
+        raise HTTPException(status_code=500, detail=f"Failed to send email: {error_msg}")
+
+
 @router.post("/preview")
 async def preview_email_template(
     data: dict,
