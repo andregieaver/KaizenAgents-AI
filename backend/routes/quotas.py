@@ -48,6 +48,24 @@ class ExtraSeatPurchase(BaseModel):
     payment_method: Optional[str] = None
 
 
+class SeatAdjustment(BaseModel):
+    """Request to adjust total seat count"""
+    total_seats: int  # Total seats including base plan seats
+
+
+class SeatAllocationResponse(BaseModel):
+    """Response with current seat allocation details"""
+    base_plan_seats: int
+    current_seats: int
+    committed_seats: int
+    max_seats: int = 100
+    last_increase_at: Optional[str] = None
+    grace_period_ends_at: Optional[str] = None
+    is_in_grace_period: bool = False
+    price_per_seat: float = 0
+    additional_seats_cost: float = 0  # What will be charged at renewal
+
+
 @router.get("/usage", response_model=QuotaUsageResponse)
 async def get_quota_usage(current_user: dict = Depends(get_current_user)):
     """Get current quota usage for the user's tenant"""
