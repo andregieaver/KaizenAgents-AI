@@ -777,6 +777,59 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
     
     return {"message": "Subscription canceled successfully"}
 
+
+@router.get("/invoices")
+async def get_invoices(
+    limit: int = Query(10, ge=1, le=100),
+    current_user: dict = Depends(get_current_user)
+):
+    """Get invoices for the current company/tenant"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get subscription to find Stripe customer ID
+    subscription = await db.subscriptions.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    
+    if not subscription:
+        return {"invoices": [], "message": "No subscription found"}
+    
+    stripe_customer_id = subscription.get("stripe_customer_id")
+    
+    if not stripe_customer_id:
+        return {"invoices": [], "message": "No payment history available"}
+    
+    # Initialize Stripe from database
+    await StripeService.initialize_from_db()
+    
+    if not StripeService.is_configured():
+        return {"invoices": [], "message": "Payment system not configured"}
+    
+    # Fetch invoices from Stripe
+    invoices = await StripeService.get_customer_invoices(stripe_customer_id, limit)
+    
+    if invoices is None:
+        raise HTTPException(status_code=500, detail="Failed to fetch invoices")
+    
+    # Format invoices for frontend
+    formatted_invoices = []
+    for inv in invoices:
+        formatted_invoices.append({
+            "id": inv["id"],
+            "number": inv["number"],
+            "amount": inv["amount_paid"] / 100,  # Convert cents to dollars
+            "currency": inv["currency"].upper(),
+            "status": inv["status"],
+            "created_at": datetime.fromtimestamp(inv["created"], tz=timezone.utc).isoformat() if inv["created"] else None,
+            "paid_at": datetime.fromtimestamp(inv["paid_at"], tz=timezone.utc).isoformat() if inv["paid_at"] else None,
+            "due_date": datetime.fromtimestamp(inv["due_date"], tz=timezone.utc).isoformat() if inv["due_date"] else None,
+            "description": inv["description"],
+            "invoice_url": inv["hosted_invoice_url"],
+            "pdf_url": inv["invoice_pdf"]
+        })
+    
+    return {"invoices": formatted_invoices}
+
 # ============== PLATFORM SETTINGS (Super Admin) ==============
 
 @router.get("/settings/platform")
