@@ -3961,7 +3961,10 @@ def main():
         # 14. Seat Pricing Subscription System Tests (Review Request)
         ("Seat Pricing Subscription System", tester.test_seat_pricing_subscription_system),
         
-        # 15. SendGrid Integration Tests (Review Request)
+        # 15. Email Service Integration Tests (Review Request)
+        ("Email Service Integration", tester.test_email_service_integration),
+        
+        # 16. SendGrid Integration Tests (Review Request)
         ("SendGrid Integration API Endpoints", tester.test_sendgrid_integration_endpoints),
     ]
     
