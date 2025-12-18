@@ -3,11 +3,17 @@ Quota Checking Service - Enforces subscription plan limits
 """
 from typing import Optional, Dict, Any
 import logging
+import asyncio
+import os
 from datetime import datetime, timezone
 
 from middleware.database import db
 
 logger = logging.getLogger(__name__)
+
+# Thresholds for sending quota warning emails
+QUOTA_WARNING_THRESHOLD = 80  # Send warning at 80% usage
+QUOTA_CRITICAL_THRESHOLD = 100  # Send critical alert at 100%
 
 
 class QuotaService:
