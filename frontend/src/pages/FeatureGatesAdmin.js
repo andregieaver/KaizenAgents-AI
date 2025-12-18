@@ -126,6 +126,23 @@ const FeatureGatesAdmin = () => {
     }
   };
 
+  const syncSeatPricingToStripe = async (planId) => {
+    setSyncingSeatPricing(planId);
+    try {
+      await axios.post(`${API}/quotas/seat-pricing/${planId}/sync-stripe`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success('Seat pricing synced to Stripe successfully!');
+      loadSeatPricing();
+    } catch (error) {
+      console.error('Error syncing seat pricing to Stripe:', error);
+      toast.error(error.response?.data?.detail || 'Failed to sync to Stripe. Make sure Stripe is configured.');
+    } finally {
+      setSyncingSeatPricing(null);
+    }
+  };
+
   const handleLimitChange = (featureIndex, planName, field, value) => {
     const newConfig = JSON.parse(JSON.stringify(config)); // Deep copy
     const feature = newConfig.features[featureIndex];
