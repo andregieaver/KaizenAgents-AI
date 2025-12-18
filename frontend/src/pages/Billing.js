@@ -147,6 +147,64 @@ const Billing = () => {
     return 'text-green-500';
   };
 
+  const getInvoiceStatusBadge = (status) => {
+    switch (status) {
+      case 'paid':
+        return (
+          <Badge className="bg-green-500/10 text-green-600 border-green-500/20">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Paid
+          </Badge>
+        );
+      case 'open':
+        return (
+          <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+            <Clock className="h-3 w-3 mr-1" />
+            Open
+          </Badge>
+        );
+      case 'draft':
+        return (
+          <Badge className="bg-gray-500/10 text-gray-600 border-gray-500/20">
+            Draft
+          </Badge>
+        );
+      case 'uncollectible':
+        return (
+          <Badge className="bg-red-500/10 text-red-600 border-red-500/20">
+            <XCircle className="h-3 w-3 mr-1" />
+            Uncollectible
+          </Badge>
+        );
+      case 'void':
+        return (
+          <Badge className="bg-gray-500/10 text-gray-600 border-gray-500/20">
+            Void
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="outline">{status}</Badge>
+        );
+    }
+  };
+
+  const formatCurrency = (amount, currency = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency
+    }).format(amount);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[400px]">
