@@ -355,6 +355,18 @@ const Pricing = () => {
     return currentPlan?.price_monthly === 0;
   };
 
+  // Check if seat purchasing is enabled for the current plan
+  const isSeatPurchaseEnabled = () => {
+    // If on free plan, seats are not available
+    if (isFreePlan()) return false;
+    
+    // If no seat pricing config found, default to showing the section
+    if (!seatPricingConfig) return true;
+    
+    // Check if seat purchasing is enabled for this plan
+    return seatPricingConfig.is_enabled === true;
+  };
+
   const getButtonText = (plan, isCurrent) => {
     if (checkoutLoading === plan.id) {
       return (
