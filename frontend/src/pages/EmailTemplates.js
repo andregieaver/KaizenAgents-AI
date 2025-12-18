@@ -194,6 +194,34 @@ const EmailTemplates = () => {
     }
   };
 
+  const handleSendTestEmail = async () => {
+    if (!selectedTemplate || !testEmailAddress) {
+      toast.error('Please enter an email address');
+      return;
+    }
+    
+    setSendingTest(true);
+    try {
+      const response = await axios.post(
+        `${API}/admin/email-templates/send-test`,
+        {
+          template_key: selectedTemplate.key,
+          to_email: testEmailAddress
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success(response.data.message || 'Test email sent successfully!');
+      setShowTestEmailInput(false);
+      setTestEmailAddress('');
+    } catch (error) {
+      console.error('Error sending test email:', error);
+      toast.error(error.response?.data?.detail || 'Failed to send test email');
+    } finally {
+      setSendingTest(false);
+    }
+  };
+
   // Group templates by category
   const groupedTemplates = templates.reduce((acc, template) => {
     const category = template.category || 'other';
