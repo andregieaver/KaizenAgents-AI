@@ -338,7 +338,7 @@ const EmailTemplates = () => {
       {/* Edit Modal */}
       <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
               Edit Email Template
@@ -348,7 +348,7 @@ const EmailTemplates = () => {
             </DialogDescription>
           </DialogHeader>
           
-          <ScrollArea className="flex-1 pr-4">
+          <ScrollArea className="flex-1 min-h-0 pr-4" style={{ maxHeight: 'calc(90vh - 200px)' }}>
             <div className="space-y-4 py-4">
               {/* Enable/Disable Toggle */}
               <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
