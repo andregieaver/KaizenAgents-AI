@@ -434,14 +434,14 @@ const Billing = () => {
 
       {/* Invoice History */}
       <Card className="border border-border">
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardHeader className="pb-3 sm:pb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Receipt className="h-5 w-5" />
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                <Receipt className="h-4 w-4 sm:h-5 sm:w-5" />
                 Invoice History
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 Your recent payment history and invoices
               </CardDescription>
             </div>
