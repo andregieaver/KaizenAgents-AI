@@ -114,8 +114,9 @@ const Billing = () => {
         }
       }
       
-      // Fetch invoices separately (non-blocking)
+      // Fetch invoices and seat allocation separately (non-blocking)
       fetchInvoices();
+      fetchSeatAllocation();
     } catch (error) {
       console.error('Error fetching billing data:', error);
       toast.error('Failed to load billing information');
