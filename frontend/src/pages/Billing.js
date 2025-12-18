@@ -236,14 +236,14 @@ const Billing = () => {
   const maxUsagePercent = Math.max(conversationUsagePercent, agentUsagePercent, seatUsagePercent);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold flex items-center gap-3">
-          <CreditCard className="h-8 w-8" />
+        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2 sm:gap-3">
+          <CreditCard className="h-6 w-6 sm:h-8 sm:w-8" />
           Billing & Subscription
         </h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-sm sm:text-base text-muted-foreground mt-1 sm:mt-2">
           Manage your subscription and monitor usage
         </p>
       </div>
