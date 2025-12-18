@@ -668,7 +668,7 @@ const Billing = () => {
                     <p className="text-sm">
                       <strong>Billing Rules:</strong><br />
                       • Increases are locked in after 24 hours<br />
-                      • Decreases apply but you're billed for the highest committed amount<br />
+                      • Decreases apply but you&apos;re billed for the highest committed amount<br />
                       • Within 24hr grace period, you can undo increases
                     </p>
                   </TooltipContent>
