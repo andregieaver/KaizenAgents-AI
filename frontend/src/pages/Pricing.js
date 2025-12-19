@@ -214,8 +214,8 @@ const Pricing = () => {
     if (!seatAllocation || !seatUnsavedChanges) return;
     setSavingSeats(true);
     try {
-      await axios.post(`${API}/quotas/seat-allocation`, 
-        { seats: seatSliderValue },
+      await axios.put(`${API}/quotas/seats/allocation`, 
+        { total_seats: seatSliderValue },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success('Seat allocation updated successfully');
@@ -232,8 +232,8 @@ const Pricing = () => {
     if (!agentAllocation || !agentUnsavedChanges) return;
     setSavingAgents(true);
     try {
-      await axios.post(`${API}/quotas/agent-allocation`, 
-        { agents: agentSliderValue },
+      await axios.put(`${API}/quotas/agents/allocation`, 
+        { total_agents: agentSliderValue },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success('Agent allocation updated successfully');
@@ -250,8 +250,8 @@ const Pricing = () => {
     if (!conversationAllocation || !conversationUnsavedChanges) return;
     setSavingConversations(true);
     try {
-      await axios.post(`${API}/quotas/conversation-allocation`, 
-        { conversations: conversationSliderValue },
+      await axios.put(`${API}/quotas/conversations/allocation`, 
+        { total_conversations: conversationSliderValue },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success('Conversation allocation updated successfully');
