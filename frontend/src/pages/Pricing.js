@@ -984,8 +984,8 @@ const Pricing = () => {
                   {conversationSliderValue > conversationAllocation.base_plan_conversations && (
                     <div className="p-3 border border-border rounded-lg text-sm">
                       <div className="flex justify-between">
-                        <span>Extra: {Math.ceil((conversationSliderValue - conversationAllocation.base_plan_conversations) / (conversationAllocation.block_size || 100))} blocks × ${conversationAllocation.price_per_block?.toFixed(2)}</span>
-                        <span className="font-semibold">${(Math.ceil((conversationSliderValue - conversationAllocation.base_plan_conversations) / (conversationAllocation.block_size || 100)) * conversationAllocation.price_per_block).toFixed(2)}/mo</span>
+                        <span>Extra: {Math.ceil((conversationSliderValue - conversationAllocation.base_plan_conversations) / (conversationAllocation.block_size || 100))} blocks × ${(conversationAllocation.price_per_block || 5).toFixed(2)}</span>
+                        <span className="font-semibold">${(Math.ceil((conversationSliderValue - conversationAllocation.base_plan_conversations) / (conversationAllocation.block_size || 100)) * (conversationAllocation.price_per_block || 5)).toFixed(2)}/mo</span>
                       </div>
                     </div>
                   )}
