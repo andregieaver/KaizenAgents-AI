@@ -800,16 +800,19 @@ async def preview_email_template(
 
 
 async def initialize_default_templates():
-    """Initialize default email templates if none exist"""
-    
-    count = await db.email_templates.count_documents({})
-    
-    if count > 0:
-        return
+    """Initialize default email templates - adds any missing templates"""
     
     now = datetime.now(timezone.utc).isoformat()
+    added_count = 0
     
     for template in DEFAULT_TEMPLATES:
+        # Check if this template already exists
+        existing = await db.email_templates.find_one({"key": template["key"]})
+        
+        if existing:
+            continue  # Template already exists, skip
+        
+        # Add the missing template
         template_doc = {
             "id": str(uuid.uuid4()),
             **template,
@@ -817,8 +820,11 @@ async def initialize_default_templates():
             "updated_at": now
         }
         await db.email_templates.insert_one(template_doc)
+        added_count += 1
+        logger.info(f"Added missing email template: {template['key']}")
     
-    logger.info(f"Initialized {len(DEFAULT_TEMPLATES)} default email templates")
+    if added_count > 0:
+        logger.info(f"Initialized {added_count} missing email templates")
 
 
 async def get_template(template_key: str) -> Optional[Dict[str, Any]]:
