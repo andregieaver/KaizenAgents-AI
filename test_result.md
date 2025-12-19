@@ -5820,3 +5820,24 @@ The Seat Management feature is **FULLY IMPLEMENTED AND FUNCTIONAL** based on:
 3. Test Stripe sync (expected to fail with invalid API key)
 4. Verify pricing updates persist
 
+
+## UI Layout Changes - Billing & Pricing Pages
+
+### Changes Made:
+1. **Billing Page**: Current Plan and Usage sections are now side by side on desktop (lg:grid-cols-2)
+2. **Billing Page**: Removed Seat, Agent, and Conversation management sections
+3. **Pricing Page**: Added 3-column resource management grid (Seats, Agents, Conversations)
+4. **Free Plan Prompt**: Added upgrade prompt for free plan users on Pricing page
+
+### Expected Behavior:
+- Billing page shows Current Plan (left) and Usage (right) side by side on desktop
+- Pricing page shows subscription plans at top
+- Pricing page shows "Manage Your Resources" section below plans for paid users
+- Resource management has sliders for Seats, Agents, Conversations
+- Each card shows Base, Current, Committed values
+- Grace period alerts displayed when active
+- Cost breakdown shown when exceeding base allocation
+
+### Test Credentials:
+- Super Admin: andre@humanweb.no / Pernilla66! (Professional plan)
+
