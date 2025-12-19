@@ -4322,6 +4322,9 @@ def main():
         
         # 16. SendGrid Integration Tests (Review Request)
         ("SendGrid Integration API Endpoints", tester.test_sendgrid_integration_endpoints),
+        
+        # 17. Agent Pricing and Conversation Pricing Tests (Review Request)
+        ("Agent Pricing and Conversation Pricing Management", tester.test_agent_pricing_and_conversation_pricing),
     ]
     
     print(f"\n📋 Running {len(tests)} comprehensive test scenarios...")
