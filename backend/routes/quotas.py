@@ -63,7 +63,9 @@ class SeatAllocationResponse(BaseModel):
     grace_period_ends_at: Optional[str] = None
     is_in_grace_period: bool = False
     price_per_seat: float = 0
-    additional_seats_cost: float = 0  # What will be charged at renewal
+    additional_seats_cost: float = 0  # Cost for extra seats at renewal
+    plan_monthly_price: float = 0  # Base plan monthly price
+    total_monthly_cost: float = 0  # Plan price + additional seats cost
 
 
 @router.get("/usage", response_model=QuotaUsageResponse)
