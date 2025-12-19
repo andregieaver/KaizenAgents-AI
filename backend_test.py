@@ -4265,10 +4265,14 @@ class AIAgentHubTester:
         self.token = None
         
         try:
+            # Generate unique email for this test run
+            import time
+            unique_email = f"john.doe.test.{int(time.time())}@example.com"
+            
             # Test valid waitlist submission
             waitlist_data = {
                 "name": "John Doe",
-                "email": "john.doe.test@example.com",
+                "email": unique_email,
                 "estimated_users": 25,
                 "privacy_accepted": True
             }
