@@ -68,6 +68,47 @@ class SeatAllocationResponse(BaseModel):
     total_monthly_cost: float = 0  # Plan price + additional seats cost
 
 
+class AgentAdjustment(BaseModel):
+    """Request to adjust total agent count"""
+    total_agents: int
+
+
+class AgentAllocationResponse(BaseModel):
+    """Response with current agent allocation details"""
+    base_plan_agents: int
+    current_agents: int
+    committed_agents: int
+    max_agents: int = 100
+    last_increase_at: Optional[str] = None
+    grace_period_ends_at: Optional[str] = None
+    is_in_grace_period: bool = False
+    price_per_agent: float = 0
+    additional_agents_cost: float = 0
+    plan_monthly_price: float = 0
+    total_monthly_cost: float = 0
+
+
+class ConversationAdjustment(BaseModel):
+    """Request to adjust total conversation count"""
+    total_conversations: int
+
+
+class ConversationAllocationResponse(BaseModel):
+    """Response with current conversation allocation details"""
+    base_plan_conversations: int
+    current_conversations: int
+    committed_conversations: int
+    max_conversations: int = 10000
+    last_increase_at: Optional[str] = None
+    grace_period_ends_at: Optional[str] = None
+    is_in_grace_period: bool = False
+    price_per_conversation_block: float = 0  # Price per 100 conversations
+    conversation_block_size: int = 100
+    additional_conversations_cost: float = 0
+    plan_monthly_price: float = 0
+    total_monthly_cost: float = 0
+
+
 @router.get("/usage", response_model=QuotaUsageResponse)
 async def get_quota_usage(current_user: dict = Depends(get_current_user)):
     """Get current quota usage for the user's tenant"""
