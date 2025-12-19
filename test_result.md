@@ -5634,3 +5634,38 @@ The Seat Management feature is **FULLY IMPLEMENTED AND FUNCTIONAL** based on:
 6. Free plans should show "Disabled" badge
 7. Paid plans should show "Active" badge
 
+
+## Updated: Agent & Conversation Pricing Full CRUD + Stripe Sync
+
+### New Backend Endpoints Added
+
+**Agent Pricing (Full CRUD):**
+- GET /api/quotas/agent-pricing - List all agent pricing configs
+- GET /api/quotas/agent-pricing/{plan_id} - Get specific plan pricing
+- POST /api/quotas/agent-pricing - Create new agent pricing
+- PATCH /api/quotas/agent-pricing/{plan_id} - Update agent pricing
+- DELETE /api/quotas/agent-pricing/{plan_id} - Delete agent pricing
+- POST /api/quotas/agent-pricing/{plan_id}/sync-stripe - Sync to Stripe
+- POST /api/quotas/agent-pricing/sync - Sync all agent pricing with plans
+
+**Conversation Pricing (Full CRUD):**
+- GET /api/quotas/conversation-pricing - List all conversation pricing configs
+- GET /api/quotas/conversation-pricing/{plan_id} - Get specific plan pricing
+- POST /api/quotas/conversation-pricing - Create new conversation pricing
+- PATCH /api/quotas/conversation-pricing/{plan_id} - Update conversation pricing
+- DELETE /api/quotas/conversation-pricing/{plan_id} - Delete conversation pricing
+- POST /api/quotas/conversation-pricing/{plan_id}/sync-stripe - Sync to Stripe
+- POST /api/quotas/conversation-pricing/sync - Sync all conversation pricing with plans
+
+### Frontend Features Verified
+1. Agent Pricing tab with edit form (price per agent, enable toggle)
+2. Conversation Pricing tab with edit form (price per block, block size, enable toggle)
+3. Sync to Stripe button on each pricing card
+4. Save and Cancel buttons in edit mode
+
+### Test Scenarios
+1. View all pricing for each resource type
+2. Edit pricing for Professional plan
+3. Test Stripe sync (expected to fail with invalid API key)
+4. Verify pricing updates persist
+
