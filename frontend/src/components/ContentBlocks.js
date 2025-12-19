@@ -347,6 +347,8 @@ const SortableBlockItem = ({ block, children, onDelete, onVisibilityChange }) =>
         return <UserCircle className="h-4 w-4" />;
       case 'menu':
         return <MenuIcon className="h-4 w-4" />;
+      case 'waitlist':
+        return <Icons.ClipboardList className="h-4 w-4" />;
       default:
         return <Type className="h-4 w-4" />;
     }
