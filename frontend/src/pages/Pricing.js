@@ -10,7 +10,10 @@ import { Switch } from '../components/ui/switch';
 import { Label } from '../components/ui/label';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
-import { Check, Loader2, Sparkles, Zap, Crown, ArrowRight, MessageSquare, Moon, Sun, Tag, X, Users, CreditCard } from 'lucide-react';
+import { Check, Loader2, Sparkles, Zap, Crown, ArrowRight, MessageSquare, Moon, Sun, Tag, X, Users, CreditCard, Bot, Info, Clock, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+import { Slider } from '../components/ui/slider';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import { cn } from '../lib/utils';
 import { useTheme } from '../context/ThemeContext';
 
