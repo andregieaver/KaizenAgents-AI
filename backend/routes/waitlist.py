@@ -98,14 +98,7 @@ async def send_waitlist_confirmation(name: str, email: str):
     platform_info = await db.platform_info.find_one({}, {"_id": 0})
     platform_name = platform_info.get("name", "AI Support Hub") if platform_info else "AI Support Hub"
     
-    # Get waitlist email template
-    template = await db.email_templates.find_one({"key": "waitlist_confirmation"}, {"_id": 0})
-    
-    if not template or not template.get("is_enabled", True):
-        logger.info("Waitlist confirmation email template not found or disabled")
-        return
-    
-    # Replace variables
+    # Build variables for template
     variables = {
         "platform_name": platform_name,
         "user_name": name,
@@ -113,22 +106,19 @@ async def send_waitlist_confirmation(name: str, email: str):
         "year": str(datetime.now().year)
     }
     
-    subject = template.get("subject", f"You're on the waitlist - {platform_name}")
-    html_content = template.get("html_content", "")
-    
-    for key, value in variables.items():
-        subject = subject.replace(f"{{{{{key}}}}}", value)
-        html_content = html_content.replace(f"{{{{{key}}}}}", value)
-    
-    # Send email
-    email_service = EmailService()
-    await email_service.send_email(
+    # Send email using EmailService with template
+    success = await EmailService.send_email(
         to_email=email,
-        subject=subject,
-        html_content=html_content
+        template_key="waitlist_confirmation",
+        variables=variables,
+        fallback_subject=f"You're on the waitlist - {platform_name}",
+        fallback_content=f"<p>Hi {name},</p><p>Thank you for joining our waitlist!</p>"
     )
     
-    logger.info(f"Waitlist confirmation email sent to {email}")
+    if success:
+        logger.info(f"Waitlist confirmation email sent to {email}")
+    else:
+        logger.warning(f"Failed to send waitlist confirmation email to {email}")
 
 
 # ============== ADMIN ENDPOINTS ==============
