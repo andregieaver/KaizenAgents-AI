@@ -19,7 +19,8 @@ import {
   renderFeaturesBlock,
   renderCTABlock,
   renderButtonBlock,
-  renderAgentGridBlock
+  renderAgentGridBlock,
+  renderWaitlistBlock
 } from '../components/PublicBlockRenderers';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
