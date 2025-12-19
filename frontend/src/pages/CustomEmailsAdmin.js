@@ -482,7 +482,7 @@ ${content}
                 <Label>Email Content</Label>
                 <RichTextEditor
                   content={emailForm.html_content}
-                  onChange={(html) => setEmailForm({...emailForm, html_content: wrapEmailContent(html)})}
+                  onChange={(html) => setEmailForm({...emailForm, html_content: html})}
                   placeholder="Start typing your email content..."
                 />
                 <p className="text-xs text-muted-foreground">
