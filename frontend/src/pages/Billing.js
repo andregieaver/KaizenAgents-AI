@@ -739,27 +739,47 @@ const Billing = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Current Status */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-muted/50 rounded-lg">
-              <div className="text-center">
-                <p className="text-2xl font-bold">{seatAllocation.base_plan_seats}</p>
-                <p className="text-xs text-muted-foreground">Base Plan</p>
+            {/* Current Status - Inline layout */}
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-6 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Base:</span>
+                  <span className="text-lg font-bold">{seatAllocation.base_plan_seats}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Current:</span>
+                  <span className="text-lg font-bold text-green-500">{seatAllocation.current_seats}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Committed:</span>
+                  <span className="text-lg font-bold text-blue-500">{seatAllocation.committed_seats}</span>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-primary">{seatAllocation.current_seats}</p>
-                <p className="text-xs text-muted-foreground">Current</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-amber-500">{seatAllocation.committed_seats}</p>
-                <p className="text-xs text-muted-foreground">Committed</p>
-              </div>
-              <div className="text-center">
-                <p className="text-2xl font-bold text-green-500">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Extra/Month:</span>
+                <span className="text-lg font-bold">
                   ${seatAllocation.additional_seats_cost.toFixed(2)}
-                </p>
-                <p className="text-xs text-muted-foreground">Extra/Month</p>
+                </span>
               </div>
             </div>
+
+            {/* Upgrade Recommendation */}
+            {upgradeRecommendation && (
+              <Alert className="bg-green-500/10 border-green-500/30">
+                <TrendingUp className="h-4 w-4 text-green-500" />
+                <AlertDescription className="text-green-700 dark:text-green-300">
+                  <strong>Save money!</strong> Upgrade to <strong>{upgradeRecommendation.planName}</strong> for ${upgradeRecommendation.planPrice}/month 
+                  and get {upgradeRecommendation.baseSeats} seats included. You&apos;d save <strong>${upgradeRecommendation.savings.toFixed(2)}/month</strong> compared to your current total of ${upgradeRecommendation.currentTotal.toFixed(2)}/month.
+                  <Button 
+                    variant="link" 
+                    className="p-0 h-auto ml-2 text-green-600 underline"
+                    onClick={handleUpgrade}
+                  >
+                    View Plans
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Grace Period Alert */}
             {seatAllocation.is_in_grace_period && (
