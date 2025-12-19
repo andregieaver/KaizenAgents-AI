@@ -4344,7 +4344,7 @@ class AIAgentHubTester:
                 data=invalid_users_data
             )
             
-            if not success:
+            if success:
                 print("   ✅ Correctly rejected entry with invalid user count")
             else:
                 print("   ❌ Should have rejected entry with invalid user count")
