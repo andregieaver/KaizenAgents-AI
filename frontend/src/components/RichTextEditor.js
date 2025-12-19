@@ -172,6 +172,17 @@ const RichTextEditor = ({ content, onChange, placeholder = 'Start typing...' }) 
     },
   });
 
+  // Update editor content when prop changes (for editing existing content)
+  React.useEffect(() => {
+    if (editor && content !== undefined) {
+      const currentContent = editor.getHTML();
+      // Only update if content actually changed to avoid cursor jump
+      if (content !== currentContent && content !== '<p></p>') {
+        editor.commands.setContent(content || '');
+      }
+    }
+  }, [content, editor]);
+
   return (
     <div className="border rounded-lg overflow-hidden bg-background">
       <MenuBar editor={editor} />
