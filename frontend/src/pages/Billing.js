@@ -883,12 +883,12 @@ const Billing = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Total Seats</span>
-                <span className="text-lg font-bold">{sliderValue}</span>
+                <span className="text-lg font-bold">{seatSliderValue}</span>
               </div>
               
               <Slider
-                value={[sliderValue]}
-                onValueChange={handleSliderChange}
+                value={[seatSliderValue]}
+                onValueChange={handleSeatSliderChange}
                 min={seatAllocation.base_plan_seats}
                 max={seatAllocation.max_seats}
                 step={1}
@@ -902,17 +902,17 @@ const Billing = () => {
             </div>
 
             {/* Cost Breakdown */}
-            {sliderValue > seatAllocation.base_plan_seats && (
+            {seatSliderValue > seatAllocation.base_plan_seats && (
               <div className="p-4 border border-border rounded-lg space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Additional seats</span>
-                  <span>{sliderValue - seatAllocation.base_plan_seats} × ${seatAllocation.price_per_seat.toFixed(2)}</span>
+                  <span>{seatSliderValue - seatAllocation.base_plan_seats} × ${seatAllocation.price_per_seat.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-semibold">
                   <span>Extra monthly cost</span>
-                  <span>${((sliderValue - seatAllocation.base_plan_seats) * seatAllocation.price_per_seat).toFixed(2)}</span>
+                  <span>${((seatSliderValue - seatAllocation.base_plan_seats) * seatAllocation.price_per_seat).toFixed(2)}</span>
                 </div>
-                {sliderValue !== seatAllocation.committed_seats && sliderValue < seatAllocation.committed_seats && !seatAllocation.is_in_grace_period && (
+                {seatSliderValue !== seatAllocation.committed_seats && seatSliderValue < seatAllocation.committed_seats && !seatAllocation.is_in_grace_period && (
                   <p className="text-xs text-amber-600 mt-2">
                     <AlertTriangle className="h-3 w-3 inline mr-1" />
                     Note: You&apos;ll still be billed for {seatAllocation.committed_seats} seats (your committed amount) at renewal.
@@ -925,7 +925,7 @@ const Billing = () => {
             <div className="flex flex-col sm:flex-row gap-2">
               <Button
                 onClick={saveSeatAllocation}
-                disabled={!hasUnsavedChanges || savingSeats}
+                disabled={!seatUnsavedChanges || savingSeats}
                 className="flex-1"
               >
                 {savingSeats ? (
@@ -933,14 +933,14 @@ const Billing = () => {
                 ) : (
                   <CheckCircle className="h-4 w-4 mr-2" />
                 )}
-                {hasUnsavedChanges ? 'Save Changes' : 'No Changes'}
+                {seatUnsavedChanges ? 'Save Changes' : 'No Changes'}
               </Button>
-              {hasUnsavedChanges && (
+              {seatUnsavedChanges && (
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setSliderValue(seatAllocation.current_seats);
-                    setHasUnsavedChanges(false);
+                    setSeatSliderValue(seatAllocation.current_seats);
+                    setSeatUnsavedChanges(false);
                   }}
                 >
                   Cancel
