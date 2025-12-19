@@ -4224,6 +4224,402 @@ class AIAgentHubTester:
         
         return True
 
+    # ============== WAITLIST FUNCTIONALITY TESTS ==============
+
+    def test_waitlist_functionality(self):
+        """Test Waitlist functionality as requested in review"""
+        print(f"\n🎯 Testing Waitlist Functionality")
+        
+        # Test all waitlist endpoints as requested in review
+        login_test = self.test_super_admin_login()
+        if not login_test:
+            print("❌ Login failed - cannot continue with waitlist tests")
+            return False
+            
+        public_submission_test = self.test_public_waitlist_submission()
+        duplicate_email_test = self.test_duplicate_email_submission()
+        get_stats_test = self.test_get_waitlist_stats()
+        get_entries_test = self.test_get_all_waitlist_entries()
+        update_entry_test = self.test_update_waitlist_entry()
+        delete_entry_test = self.test_delete_waitlist_entry()
+        
+        # Summary of waitlist tests
+        print(f"\n📋 Waitlist Functionality Test Results:")
+        print(f"   Super Admin Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
+        print(f"   Public Waitlist Submission: {'✅ PASSED' if public_submission_test else '❌ FAILED'}")
+        print(f"   Duplicate Email Test: {'✅ PASSED' if duplicate_email_test else '❌ FAILED'}")
+        print(f"   Get Waitlist Stats: {'✅ PASSED' if get_stats_test else '❌ FAILED'}")
+        print(f"   Get All Waitlist Entries: {'✅ PASSED' if get_entries_test else '❌ FAILED'}")
+        print(f"   Update Waitlist Entry: {'✅ PASSED' if update_entry_test else '❌ FAILED'}")
+        print(f"   Delete Waitlist Entry: {'✅ PASSED' if delete_entry_test else '❌ FAILED'}")
+        
+        return all([login_test, public_submission_test, duplicate_email_test, 
+                   get_stats_test, get_entries_test, update_entry_test, delete_entry_test])
+
+    def test_public_waitlist_submission(self):
+        """Test POST /api/waitlist/submit - Public waitlist submission"""
+        print(f"\n🔧 Testing Public Waitlist Submission")
+        
+        # Store original token and remove it for public endpoint
+        original_token = self.token
+        self.token = None
+        
+        try:
+            # Test valid waitlist submission
+            waitlist_data = {
+                "name": "John Doe",
+                "email": "john.doe.test@example.com",
+                "estimated_users": 25,
+                "privacy_accepted": True
+            }
+            
+            success, response = self.run_test(
+                "Submit Waitlist Entry - Valid Data",
+                "POST",
+                "waitlist/submit",
+                200,
+                data=waitlist_data
+            )
+            
+            if not success:
+                print("❌ Failed to submit valid waitlist entry")
+                return False
+            
+            # Verify response structure
+            required_fields = ['message', 'id']
+            for field in required_fields:
+                if field not in response:
+                    print(f"❌ Missing required field '{field}' in response")
+                    return False
+            
+            print(f"   ✅ Waitlist entry submitted successfully")
+            print(f"   ✅ Entry ID: {response.get('id')}")
+            print(f"   ✅ Message: {response.get('message')}")
+            
+            # Store the entry ID for later tests
+            self.waitlist_entry_id = response.get('id')
+            
+            # Test validation - privacy not accepted
+            invalid_data = {
+                "name": "Jane Doe",
+                "email": "jane.doe@example.com",
+                "estimated_users": 10,
+                "privacy_accepted": False
+            }
+            
+            success, response = self.run_test(
+                "Submit Waitlist Entry - Privacy Not Accepted",
+                "POST",
+                "waitlist/submit",
+                400,
+                data=invalid_data
+            )
+            
+            if not success:
+                print("   ✅ Correctly rejected entry without privacy acceptance")
+            else:
+                print("   ❌ Should have rejected entry without privacy acceptance")
+                return False
+            
+            # Test validation - estimated users < 1
+            invalid_users_data = {
+                "name": "Bob Smith",
+                "email": "bob.smith@example.com",
+                "estimated_users": 0,
+                "privacy_accepted": True
+            }
+            
+            success, response = self.run_test(
+                "Submit Waitlist Entry - Invalid User Count",
+                "POST",
+                "waitlist/submit",
+                400,
+                data=invalid_users_data
+            )
+            
+            if not success:
+                print("   ✅ Correctly rejected entry with invalid user count")
+            else:
+                print("   ❌ Should have rejected entry with invalid user count")
+                return False
+            
+            return True
+            
+        finally:
+            # Restore original token
+            self.token = original_token
+
+    def test_duplicate_email_submission(self):
+        """Test duplicate email submission should be rejected"""
+        print(f"\n🔧 Testing Duplicate Email Submission")
+        
+        # Store original token and remove it for public endpoint
+        original_token = self.token
+        self.token = None
+        
+        try:
+            # Try to submit with the same email as before
+            duplicate_data = {
+                "name": "John Duplicate",
+                "email": "john.doe.test@example.com",  # Same email as previous test
+                "estimated_users": 50,
+                "privacy_accepted": True
+            }
+            
+            success, response = self.run_test(
+                "Submit Duplicate Email - Should Be Rejected",
+                "POST",
+                "waitlist/submit",
+                400,
+                data=duplicate_data
+            )
+            
+            if not success:
+                print("   ✅ Correctly rejected duplicate email submission")
+                
+                # Check error message
+                if hasattr(self, 'test_results') and self.test_results:
+                    last_result = self.test_results[-1]
+                    error = last_result.get('error', {})
+                    if isinstance(error, dict) and 'already on the waitlist' in str(error.get('detail', '')):
+                        print("   ✅ Correct error message for duplicate email")
+                    else:
+                        print(f"   ⚠️ Unexpected error message: {error}")
+                
+                return True
+            else:
+                print("   ❌ Should have rejected duplicate email submission")
+                return False
+                
+        finally:
+            # Restore original token
+            self.token = original_token
+
+    def test_get_waitlist_stats(self):
+        """Test GET /api/waitlist/stats - Super Admin only"""
+        print(f"\n🔧 Testing Get Waitlist Stats")
+        
+        success, response = self.run_test(
+            "Get Waitlist Statistics",
+            "GET",
+            "waitlist/stats",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get waitlist statistics")
+            return False
+        
+        # Verify response structure
+        required_fields = ['total', 'pending', 'approved', 'rejected', 'total_estimated_users']
+        for field in required_fields:
+            if field not in response:
+                print(f"❌ Missing required field '{field}' in stats response")
+                return False
+        
+        print(f"   ✅ Waitlist statistics retrieved successfully")
+        print(f"   ✅ Total entries: {response.get('total')}")
+        print(f"   ✅ Pending: {response.get('pending')}")
+        print(f"   ✅ Approved: {response.get('approved')}")
+        print(f"   ✅ Rejected: {response.get('rejected')}")
+        print(f"   ✅ Total estimated users: {response.get('total_estimated_users')}")
+        
+        # Verify we have at least one entry from our test
+        if response.get('total', 0) < 1:
+            print("   ⚠️ Expected at least 1 entry from our test submission")
+        
+        return True
+
+    def test_get_all_waitlist_entries(self):
+        """Test GET /api/waitlist/entries - Super Admin only"""
+        print(f"\n🔧 Testing Get All Waitlist Entries")
+        
+        success, response = self.run_test(
+            "Get All Waitlist Entries",
+            "GET",
+            "waitlist/entries",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get waitlist entries")
+            return False
+        
+        # Verify response is an array
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+        
+        print(f"   ✅ Retrieved {len(response)} waitlist entries")
+        
+        if len(response) > 0:
+            # Verify entry structure
+            entry = response[0]
+            required_fields = ['id', 'name', 'email', 'estimated_users', 'privacy_accepted', 'status', 'created_at']
+            
+            for field in required_fields:
+                if field not in entry:
+                    print(f"❌ Missing required field '{field}' in entry")
+                    return False
+            
+            print(f"   ✅ Entry structure is correct")
+            print(f"   Sample entry: {entry.get('name')} ({entry.get('email')}) - {entry.get('status')}")
+            
+            # Look for our test entry
+            test_entry = None
+            for entry in response:
+                if entry.get('email') == 'john.doe.test@example.com':
+                    test_entry = entry
+                    self.waitlist_entry_id = entry.get('id')  # Store for update/delete tests
+                    break
+            
+            if test_entry:
+                print(f"   ✅ Found our test entry: {test_entry.get('name')}")
+            else:
+                print(f"   ⚠️ Our test entry not found in results")
+        
+        # Test filtering by status
+        success, pending_response = self.run_test(
+            "Get Pending Waitlist Entries",
+            "GET",
+            "waitlist/entries?status=pending",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Status filtering works: {len(pending_response)} pending entries")
+        
+        return True
+
+    def test_update_waitlist_entry(self):
+        """Test PATCH /api/waitlist/entries/{entry_id} - Super Admin only"""
+        print(f"\n🔧 Testing Update Waitlist Entry")
+        
+        if not hasattr(self, 'waitlist_entry_id') or not self.waitlist_entry_id:
+            print("❌ No waitlist entry ID available for update test")
+            return False
+        
+        # Update entry status to approved and add notes
+        update_data = {
+            "status": "approved",
+            "notes": "Approved for testing purposes"
+        }
+        
+        success, response = self.run_test(
+            "Update Waitlist Entry Status",
+            "PATCH",
+            f"waitlist/entries/{self.waitlist_entry_id}",
+            200,
+            data=update_data
+        )
+        
+        if not success:
+            print("❌ Failed to update waitlist entry")
+            return False
+        
+        # Verify the update
+        if response.get('status') != 'approved':
+            print(f"❌ Status not updated correctly: expected 'approved', got '{response.get('status')}'")
+            return False
+        
+        if response.get('notes') != 'Approved for testing purposes':
+            print(f"❌ Notes not updated correctly: expected 'Approved for testing purposes', got '{response.get('notes')}'")
+            return False
+        
+        print(f"   ✅ Waitlist entry updated successfully")
+        print(f"   ✅ Status: {response.get('status')}")
+        print(f"   ✅ Notes: {response.get('notes')}")
+        print(f"   ✅ Updated at: {response.get('updated_at')}")
+        
+        # Test invalid entry ID
+        success, response = self.run_test(
+            "Update Non-existent Entry",
+            "PATCH",
+            "waitlist/entries/invalid-id",
+            404,
+            data={"status": "rejected"}
+        )
+        
+        if not success:
+            print("   ✅ Correctly returned 404 for non-existent entry")
+        else:
+            print("   ❌ Should have returned 404 for non-existent entry")
+            return False
+        
+        return True
+
+    def test_delete_waitlist_entry(self):
+        """Test DELETE /api/waitlist/entries/{entry_id} - Super Admin only"""
+        print(f"\n🔧 Testing Delete Waitlist Entry")
+        
+        if not hasattr(self, 'waitlist_entry_id') or not self.waitlist_entry_id:
+            print("❌ No waitlist entry ID available for delete test")
+            return False
+        
+        # First verify the entry exists
+        success, response = self.run_test(
+            "Get Entry Before Delete",
+            "GET",
+            f"waitlist/entries/{self.waitlist_entry_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Entry doesn't exist before delete test")
+            return False
+        
+        print(f"   ✅ Entry exists: {response.get('name')} ({response.get('email')})")
+        
+        # Delete the entry
+        success, response = self.run_test(
+            "Delete Waitlist Entry",
+            "DELETE",
+            f"waitlist/entries/{self.waitlist_entry_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to delete waitlist entry")
+            return False
+        
+        # Verify response message
+        if 'message' not in response:
+            print("❌ Missing success message in delete response")
+            return False
+        
+        print(f"   ✅ Entry deleted successfully")
+        print(f"   ✅ Message: {response.get('message')}")
+        
+        # Verify entry is actually deleted
+        success, response = self.run_test(
+            "Verify Entry Deleted",
+            "GET",
+            f"waitlist/entries/{self.waitlist_entry_id}",
+            404
+        )
+        
+        if not success:
+            print("   ✅ Entry correctly not found after deletion")
+        else:
+            print("   ❌ Entry still exists after deletion")
+            return False
+        
+        # Test deleting non-existent entry
+        success, response = self.run_test(
+            "Delete Non-existent Entry",
+            "DELETE",
+            "waitlist/entries/invalid-id",
+            404
+        )
+        
+        if not success:
+            print("   ✅ Correctly returned 404 for non-existent entry")
+        else:
+            print("   ❌ Should have returned 404 for non-existent entry")
+            return False
+        
+        return True
+
 def main_quota_tests():
     """Main function to run only quota enforcement tests as requested in review"""
     print("🎯 Starting Quota Enforcement Middleware Testing")
