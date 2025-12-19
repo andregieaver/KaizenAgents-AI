@@ -4322,7 +4322,7 @@ class AIAgentHubTester:
                 data=invalid_data
             )
             
-            if not success:
+            if success:
                 print("   ✅ Correctly rejected entry without privacy acceptance")
             else:
                 print("   ❌ Should have rejected entry without privacy acceptance")
