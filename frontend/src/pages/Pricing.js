@@ -721,130 +721,332 @@ const Pricing = () => {
         })}
       </div>
 
-      {/* Extra Seats Section - Only show if seat purchasing is enabled for current plan */}
-      {isAuthenticated && (isFreePlan() || isSeatPurchaseEnabled()) && (
+      {/* Resource Management Section - 3 Column Layout for Paid Plans */}
+      {isAuthenticated && !isFreePlan() && (seatAllocation || agentAllocation || conversationAllocation) && (
+        <div className="pt-8">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold">Manage Your Resources</h2>
+            <p className="text-muted-foreground">Adjust seats, agents, and conversations for your team</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Seat Management */}
+            {seatAllocation && (
+              <Card className="border border-border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg">Seats</CardTitle>
+                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Info className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="left" className="max-w-xs">
+                          <p className="text-sm">
+                            <strong>Billing Rules:</strong><br />
+                            • Increases locked in after 24 hours<br />
+                            • Billed for highest committed amount<br />
+                            • 24hr grace period for undo
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Status */}
+                  <div className="flex flex-wrap items-center gap-3 p-3 bg-muted/50 rounded-lg text-sm">
+                    <div><span className="text-muted-foreground">Base:</span> <span className="font-bold">{seatAllocation.base_plan_seats}</span></div>
+                    <div><span className="text-muted-foreground">Current:</span> <span className="font-bold text-green-500">{seatAllocation.current_seats}</span></div>
+                    <div><span className="text-muted-foreground">Committed:</span> <span className="font-bold text-blue-500">{seatAllocation.committed_seats}</span></div>
+                  </div>
+
+                  {/* Grace Period */}
+                  {seatAllocation.is_in_grace_period && (
+                    <Alert className="bg-blue-500/10 border-blue-500/30 py-2">
+                      <Clock className="h-4 w-4 text-blue-500" />
+                      <AlertDescription className="text-blue-700 dark:text-blue-300 text-xs">
+                        Grace: {formatTimeRemaining(seatAllocation.grace_period_ends_at)}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Slider */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Total Seats</span>
+                      <span className="text-lg font-bold">{seatSliderValue}</span>
+                    </div>
+                    <Slider
+                      value={[seatSliderValue]}
+                      onValueChange={handleSeatSliderChange}
+                      min={seatAllocation.base_plan_seats}
+                      max={seatAllocation.max_seats}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{seatAllocation.base_plan_seats} (Base)</span>
+                      <span>{seatAllocation.max_seats} (Max)</span>
+                    </div>
+                  </div>
+
+                  {/* Cost */}
+                  {seatSliderValue > seatAllocation.base_plan_seats && (
+                    <div className="p-3 border border-border rounded-lg text-sm">
+                      <div className="flex justify-between">
+                        <span>Extra: {seatSliderValue - seatAllocation.base_plan_seats} × ${seatAllocation.price_per_seat?.toFixed(2)}</span>
+                        <span className="font-semibold">${((seatSliderValue - seatAllocation.base_plan_seats) * seatAllocation.price_per_seat).toFixed(2)}/mo</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Save Button */}
+                  <div className="flex gap-2">
+                    <Button onClick={saveSeatAllocation} disabled={!seatUnsavedChanges || savingSeats} className="flex-1" size="sm">
+                      {savingSeats ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                      {seatUnsavedChanges ? 'Save' : 'No Changes'}
+                    </Button>
+                    {seatUnsavedChanges && (
+                      <Button variant="outline" size="sm" onClick={() => { setSeatSliderValue(seatAllocation.current_seats); setSeatUnsavedChanges(false); }}>
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Agent Management */}
+            {agentAllocation && (
+              <Card className="border border-border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Bot className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg">Agents</CardTitle>
+                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Info className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="left" className="max-w-xs">
+                          <p className="text-sm">
+                            <strong>Billing Rules:</strong><br />
+                            • Increases locked in after 24 hours<br />
+                            • Billed for highest committed amount<br />
+                            • 24hr grace period for undo
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Status */}
+                  <div className="flex flex-wrap items-center gap-3 p-3 bg-muted/50 rounded-lg text-sm">
+                    <div><span className="text-muted-foreground">Base:</span> <span className="font-bold">{agentAllocation.base_plan_agents}</span></div>
+                    <div><span className="text-muted-foreground">Current:</span> <span className="font-bold text-green-500">{agentAllocation.current_agents}</span></div>
+                    <div><span className="text-muted-foreground">Committed:</span> <span className="font-bold text-blue-500">{agentAllocation.committed_agents}</span></div>
+                  </div>
+
+                  {/* Grace Period */}
+                  {agentAllocation.is_in_grace_period && (
+                    <Alert className="bg-blue-500/10 border-blue-500/30 py-2">
+                      <Clock className="h-4 w-4 text-blue-500" />
+                      <AlertDescription className="text-blue-700 dark:text-blue-300 text-xs">
+                        Grace: {formatTimeRemaining(agentAllocation.grace_period_ends_at)}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Slider */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Total Agents</span>
+                      <span className="text-lg font-bold">{agentSliderValue}</span>
+                    </div>
+                    <Slider
+                      value={[agentSliderValue]}
+                      onValueChange={handleAgentSliderChange}
+                      min={agentAllocation.base_plan_agents}
+                      max={agentAllocation.max_agents}
+                      step={1}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{agentAllocation.base_plan_agents} (Base)</span>
+                      <span>{agentAllocation.max_agents} (Max)</span>
+                    </div>
+                  </div>
+
+                  {/* Cost */}
+                  {agentSliderValue > agentAllocation.base_plan_agents && (
+                    <div className="p-3 border border-border rounded-lg text-sm">
+                      <div className="flex justify-between">
+                        <span>Extra: {agentSliderValue - agentAllocation.base_plan_agents} × ${agentAllocation.price_per_agent?.toFixed(2)}</span>
+                        <span className="font-semibold">${((agentSliderValue - agentAllocation.base_plan_agents) * agentAllocation.price_per_agent).toFixed(2)}/mo</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Save Button */}
+                  <div className="flex gap-2">
+                    <Button onClick={saveAgentAllocation} disabled={!agentUnsavedChanges || savingAgents} className="flex-1" size="sm">
+                      {savingAgents ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                      {agentUnsavedChanges ? 'Save' : 'No Changes'}
+                    </Button>
+                    {agentUnsavedChanges && (
+                      <Button variant="outline" size="sm" onClick={() => { setAgentSliderValue(agentAllocation.current_agents); setAgentUnsavedChanges(false); }}>
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Conversation Management */}
+            {conversationAllocation && (
+              <Card className="border border-border">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-5 w-5 text-primary" />
+                      <CardTitle className="text-lg">Conversations</CardTitle>
+                    </div>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <Info className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="left" className="max-w-xs">
+                          <p className="text-sm">
+                            <strong>Billing Rules:</strong><br />
+                            • Billed in blocks of {conversationAllocation.block_size || 100}<br />
+                            • Increases locked in after 24 hours<br />
+                            • 24hr grace period for undo
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Status */}
+                  <div className="flex flex-wrap items-center gap-3 p-3 bg-muted/50 rounded-lg text-sm">
+                    <div><span className="text-muted-foreground">Base:</span> <span className="font-bold">{conversationAllocation.base_plan_conversations}</span></div>
+                    <div><span className="text-muted-foreground">Current:</span> <span className="font-bold text-green-500">{conversationAllocation.current_conversations}</span></div>
+                    <div><span className="text-muted-foreground">Committed:</span> <span className="font-bold text-blue-500">{conversationAllocation.committed_conversations}</span></div>
+                  </div>
+
+                  {/* Grace Period */}
+                  {conversationAllocation.is_in_grace_period && (
+                    <Alert className="bg-blue-500/10 border-blue-500/30 py-2">
+                      <Clock className="h-4 w-4 text-blue-500" />
+                      <AlertDescription className="text-blue-700 dark:text-blue-300 text-xs">
+                        Grace: {formatTimeRemaining(conversationAllocation.grace_period_ends_at)}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {/* Slider */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Total Conversations</span>
+                      <span className="text-lg font-bold">{conversationSliderValue}</span>
+                    </div>
+                    <Slider
+                      value={[conversationSliderValue]}
+                      onValueChange={handleConversationSliderChange}
+                      min={conversationAllocation.base_plan_conversations}
+                      max={conversationAllocation.max_conversations}
+                      step={conversationAllocation.block_size || 100}
+                      className="w-full"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>{conversationAllocation.base_plan_conversations} (Base)</span>
+                      <span>{conversationAllocation.max_conversations} (Max)</span>
+                    </div>
+                  </div>
+
+                  {/* Cost */}
+                  {conversationSliderValue > conversationAllocation.base_plan_conversations && (
+                    <div className="p-3 border border-border rounded-lg text-sm">
+                      <div className="flex justify-between">
+                        <span>Extra: {Math.ceil((conversationSliderValue - conversationAllocation.base_plan_conversations) / (conversationAllocation.block_size || 100))} blocks × ${conversationAllocation.price_per_block?.toFixed(2)}</span>
+                        <span className="font-semibold">${(Math.ceil((conversationSliderValue - conversationAllocation.base_plan_conversations) / (conversationAllocation.block_size || 100)) * conversationAllocation.price_per_block).toFixed(2)}/mo</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Save Button */}
+                  <div className="flex gap-2">
+                    <Button onClick={saveConversationAllocation} disabled={!conversationUnsavedChanges || savingConversations} className="flex-1" size="sm">
+                      {savingConversations ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                      {conversationUnsavedChanges ? 'Save' : 'No Changes'}
+                    </Button>
+                    {conversationUnsavedChanges && (
+                      <Button variant="outline" size="sm" onClick={() => { setConversationSliderValue(conversationAllocation.current_conversations); setConversationUnsavedChanges(false); }}>
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Free Plan Upgrade Prompt */}
+      {isAuthenticated && isFreePlan() && (
         <div className="max-w-2xl mx-auto pt-8">
           <Card className="border-2 border-primary/20">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-3 bg-primary/10 rounded-lg">
-                  <Users className="h-6 w-6 text-primary" />
+                  <Crown className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-xl">
-                    {isFreePlan() ? 'Need More Team Members?' : 'Purchase Additional Seats'}
-                  </CardTitle>
-                  <CardDescription>
-                    {isFreePlan() 
-                      ? 'Upgrade to a paid plan to add more team members'
-                      : 'Add more team members to your current plan'
-                    }
-                  </CardDescription>
+                  <CardTitle className="text-xl">Unlock More Resources</CardTitle>
+                  <CardDescription>Upgrade to a paid plan to manage seats, agents, and conversations</CardDescription>
                 </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <Separator />
-              
-              {isFreePlan() ? (
-                // Free plan message
-                <div className="space-y-4 text-center py-6">
-                  <p className="text-muted-foreground">
-                    Additional seats are only available for paid plans. Upgrade to Starter or Professional to expand your team.
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                    <div className="bg-muted/50 rounded-lg p-4 text-left">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Check className="h-4 w-4 text-green-500" />
-                        <span className="font-semibold">Starter Plan</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">5 seats included + option to purchase more</p>
-                    </div>
-                    <div className="bg-muted/50 rounded-lg p-4 text-left">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Check className="h-4 w-4 text-green-500" />
-                        <span className="font-semibold">Professional Plan</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">25 seats included + option to purchase more</p>
-                    </div>
-                  </div>
-                  <Button
-                    className="mt-4"
-                    size="lg"
-                    onClick={() => {
-                      // Scroll to top to see plans
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                  >
-                    <Crown className="h-5 w-5 mr-2" />
-                    View Plans Above
-                  </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-muted/50 rounded-lg p-4 text-center">
+                  <Users className="h-6 w-6 text-primary mx-auto mb-2" />
+                  <span className="font-semibold block">More Seats</span>
+                  <p className="text-xs text-muted-foreground">Add team members</p>
                 </div>
-              ) : (
-                // Paid plan - seat purchase form
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="seat-quantity" className="text-sm font-medium">
-                        Number of Seats
-                      </Label>
-                      <Input
-                        id="seat-quantity"
-                        type="number"
-                        min="1"
-                        max="100"
-                        value={seatQuantity}
-                        onChange={(e) => setSeatQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                        className="mt-1.5"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium">Price per Seat</Label>
-                      <div className="mt-1.5 h-10 flex items-center">
-                        <span className="text-2xl font-bold">${pricePerSeat}</span>
-                        <span className="text-muted-foreground ml-2">/month</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Subtotal ({seatQuantity} seat{seatQuantity > 1 ? 's' : ''})</span>
-                      <span className="font-semibold">${(seatQuantity * pricePerSeat).toFixed(2)}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex items-center justify-between">
-                      <span className="font-semibold">Total per Month</span>
-                      <span className="text-2xl font-bold text-primary">
-                        ${(seatQuantity * pricePerSeat).toFixed(2)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <Button
-                    className="w-full"
-                    size="lg"
-                    onClick={handlePurchaseSeats}
-                    disabled={purchasingSeats || seatQuantity < 1}
-                  >
-                    {purchasingSeats ? (
-                      <>
-                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : (
-                      <>
-                        <CreditCard className="h-5 w-5 mr-2" />
-                        Purchase {seatQuantity} Seat{seatQuantity > 1 ? 's' : ''}
-                      </>
-                    )}
-                  </Button>
-
-                  <p className="text-xs text-center text-muted-foreground">
-                    Extra seats will be added to your current plan immediately. Billed monthly at ${pricePerSeat}/seat.
-                  </p>
-                </>
-              )}
+                <div className="bg-muted/50 rounded-lg p-4 text-center">
+                  <Bot className="h-6 w-6 text-primary mx-auto mb-2" />
+                  <span className="font-semibold block">More Agents</span>
+                  <p className="text-xs text-muted-foreground">Deploy AI agents</p>
+                </div>
+                <div className="bg-muted/50 rounded-lg p-4 text-center">
+                  <MessageSquare className="h-6 w-6 text-primary mx-auto mb-2" />
+                  <span className="font-semibold block">More Conversations</span>
+                  <p className="text-xs text-muted-foreground">Handle more chats</p>
+                </div>
+              </div>
+              <Button className="w-full mt-4" size="lg" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                <TrendingUp className="h-5 w-5 mr-2" />
+                View Plans Above
+              </Button>
             </CardContent>
           </Card>
         </div>
