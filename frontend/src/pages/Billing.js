@@ -610,7 +610,8 @@ const Billing = () => {
 
           </CardContent>
         </Card>
-      )}
+        )}
+      </div>
 
       {/* Invoice History */}
       <Card className="border border-border">
