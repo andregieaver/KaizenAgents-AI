@@ -236,9 +236,19 @@ async def get_seat_allocation(current_user: dict = Depends(get_current_user)):
     )
     price_per_seat = seat_pricing.get("price_per_seat_monthly", 5.0) if seat_pricing else 5.0
     
+    # Get current plan's monthly price
+    plan_doc = await db.subscription_plans.find_one(
+        {"name": {"$regex": f"^{plan_name}$", "$options": "i"}},
+        {"_id": 0}
+    )
+    plan_monthly_price = plan_doc.get("price_monthly", 0) if plan_doc else 0
+    
     # Calculate additional seats cost (committed - base)
     additional_seats = max(0, committed_seats - base_plan_seats)
     additional_seats_cost = additional_seats * price_per_seat
+    
+    # Total monthly cost = plan price + additional seats
+    total_monthly_cost = plan_monthly_price + additional_seats_cost
     
     return {
         "base_plan_seats": base_plan_seats,
@@ -249,7 +259,9 @@ async def get_seat_allocation(current_user: dict = Depends(get_current_user)):
         "grace_period_ends_at": grace_period_ends_at,
         "is_in_grace_period": is_in_grace_period,
         "price_per_seat": price_per_seat,
-        "additional_seats_cost": additional_seats_cost
+        "additional_seats_cost": additional_seats_cost,
+        "plan_monthly_price": plan_monthly_price,
+        "total_monthly_cost": total_monthly_cost
     }
 
 
