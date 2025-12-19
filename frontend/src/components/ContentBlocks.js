@@ -1414,6 +1414,10 @@ const ContentBlocks = ({ blocks, onChange }) => {
               <MenuIcon className="h-4 w-4 mr-2" />
               Navigation Menu
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => addBlock('waitlist')}>
+              <Icons.ClipboardList className="h-4 w-4 mr-2" />
+              Waitlist Form
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )}
