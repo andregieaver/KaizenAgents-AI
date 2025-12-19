@@ -741,24 +741,24 @@ const Billing = () => {
           <CardContent className="space-y-6">
             {/* Current Status - Inline layout */}
             <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-6 flex-wrap">
+              <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Base:</span>
-                  <span className="text-lg font-bold">{seatAllocation.base_plan_seats}</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">Base:</span>
+                  <span className="text-base sm:text-lg font-bold">{seatAllocation.base_plan_seats}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Current:</span>
-                  <span className="text-lg font-bold text-green-500">{seatAllocation.current_seats}</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">Current:</span>
+                  <span className="text-base sm:text-lg font-bold text-green-500">{seatAllocation.current_seats}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Committed:</span>
-                  <span className="text-lg font-bold text-blue-500">{seatAllocation.committed_seats}</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground">Committed:</span>
+                  <span className="text-base sm:text-lg font-bold text-blue-500">{seatAllocation.committed_seats}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Extra/Month:</span>
-                <span className="text-lg font-bold">
-                  ${seatAllocation.additional_seats_cost.toFixed(2)}
+                <span className="text-xs sm:text-sm text-muted-foreground">Total/Month:</span>
+                <span className="text-base sm:text-lg font-bold">
+                  ${(seatAllocation.total_monthly_cost || (seatAllocation.plan_monthly_price || 0) + seatAllocation.additional_seats_cost).toFixed(2)}
                 </span>
               </div>
             </div>
