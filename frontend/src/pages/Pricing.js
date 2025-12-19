@@ -37,12 +37,28 @@ const Pricing = () => {
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [discountPlanId, setDiscountPlanId] = useState(null);
   
-  // Extra seats state
+  // Extra seats state (legacy)
   const [seatQuantity, setSeatQuantity] = useState(1);
   const [purchasingSeats, setPurchasingSeats] = useState(false);
   const [seatPricingConfig, setSeatPricingConfig] = useState(null);
   const [loadingSeatConfig, setLoadingSeatConfig] = useState(false);
   const pricePerSeat = seatPricingConfig?.price_per_seat_monthly || 5.0;
+
+  // Allocation Management State
+  const [seatAllocation, setSeatAllocation] = useState(null);
+  const [seatSliderValue, setSeatSliderValue] = useState(0);
+  const [seatUnsavedChanges, setSeatUnsavedChanges] = useState(false);
+  const [savingSeats, setSavingSeats] = useState(false);
+
+  const [agentAllocation, setAgentAllocation] = useState(null);
+  const [agentSliderValue, setAgentSliderValue] = useState(0);
+  const [agentUnsavedChanges, setAgentUnsavedChanges] = useState(false);
+  const [savingAgents, setSavingAgents] = useState(false);
+
+  const [conversationAllocation, setConversationAllocation] = useState(null);
+  const [conversationSliderValue, setConversationSliderValue] = useState(0);
+  const [conversationUnsavedChanges, setConversationUnsavedChanges] = useState(false);
+  const [savingConversations, setSavingConversations] = useState(false);
 
   useEffect(() => {
     fetchData();
