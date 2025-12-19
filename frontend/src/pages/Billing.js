@@ -474,70 +474,72 @@ const Billing = () => {
         </Alert>
       )}
 
-      {/* Current Plan */}
-      <Card className="border border-border">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Current Plan</CardTitle>
-              <CardDescription>Your active subscription</CardDescription>
-            </div>
-            {subscription?.status === 'active' && (
-              <Badge className="bg-green-500">
-                <CheckCircle className="h-3 w-3 mr-1" />
-                Active
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4 sm:space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0">
-            <div>
-              <h3 className="text-xl sm:text-2xl font-bold">{subscription?.plan_name || 'Free'}</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                {subscription?.billing_cycle === 'yearly' ? 'Annual billing' : 'Monthly billing'}
-              </p>
-              {subscription?.trial_end && new Date(subscription.trial_end) > new Date() && (
-                <Badge variant="outline" className="mt-2 border-blue-500 text-blue-500">
-                  Trial until {new Date(subscription.trial_end).toLocaleDateString()}
+      {/* Current Plan and Usage - Side by side on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        {/* Current Plan */}
+        <Card className="border border-border">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Current Plan</CardTitle>
+                <CardDescription>Your active subscription</CardDescription>
+              </div>
+              {subscription?.status === 'active' && (
+                <Badge className="bg-green-500">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Active
                 </Badge>
               )}
             </div>
-            <div className="sm:text-right">
-              <p className="text-xs sm:text-sm text-muted-foreground">Next billing date</p>
-              <p className="font-semibold text-sm sm:text-base">
-                {subscription?.current_period_end 
-                  ? new Date(subscription.current_period_end).toLocaleDateString()
-                  : 'N/A'}
-              </p>
+          </CardHeader>
+          <CardContent className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-0">
+              <div>
+                <h3 className="text-xl sm:text-2xl font-bold">{subscription?.plan_name || 'Free'}</h3>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {subscription?.billing_cycle === 'yearly' ? 'Annual billing' : 'Monthly billing'}
+                </p>
+                {subscription?.trial_end && new Date(subscription.trial_end) > new Date() && (
+                  <Badge variant="outline" className="mt-2 border-blue-500 text-blue-500">
+                    Trial until {new Date(subscription.trial_end).toLocaleDateString()}
+                  </Badge>
+                )}
+              </div>
+              <div className="sm:text-right">
+                <p className="text-xs sm:text-sm text-muted-foreground">Next billing date</p>
+                <p className="font-semibold text-sm sm:text-base">
+                  {subscription?.current_period_end 
+                    ? new Date(subscription.current_period_end).toLocaleDateString()
+                    : 'N/A'}
+                </p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <Button onClick={handleUpgrade} className="flex-1">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Upgrade Plan
-            </Button>
-            {subscription?.plan_name !== 'Free' && subscription?.stripe_subscription_id && (
-              <Button
-                variant="outline"
-                onClick={handleCancel}
-                className="flex-1"
-              >
-                Cancel Subscription
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <Button onClick={handleUpgrade} className="flex-1">
+                <TrendingUp className="h-4 w-4 mr-2" />
+                Upgrade Plan
               </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              {subscription?.plan_name !== 'Free' && subscription?.stripe_subscription_id && (
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  className="flex-1"
+                >
+                  Cancel Subscription
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Usage */}
-      {usage && (
-        <Card className="border border-border">
-          <CardHeader className="pb-3 sm:pb-6">
-            <CardTitle className="text-lg sm:text-xl">Usage This Period</CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              {new Date(usage.period_start).toLocaleDateString()} - {new Date(usage.period_end).toLocaleDateString()}
+        {/* Usage */}
+        {usage && (
+          <Card className="border border-border">
+            <CardHeader className="pb-3 sm:pb-6">
+              <CardTitle className="text-lg sm:text-xl">Usage This Period</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                {new Date(usage.period_start).toLocaleDateString()} - {new Date(usage.period_end).toLocaleDateString()}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 sm:space-y-6">
