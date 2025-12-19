@@ -256,6 +256,9 @@ const CustomPage = () => {
                     case 'agent_grid':
                       return renderAgentGridBlock(block);
 
+                    case 'waitlist':
+                      return renderWaitlistBlock(block);
+
                     case 'pricing_widget':
                       const { renderPricingWidgetBlock } = require('../components/PublicBlockRenderers');
                       return renderPricingWidgetBlock(block);
