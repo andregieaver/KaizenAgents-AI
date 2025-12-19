@@ -42,6 +42,7 @@ import ComponentEditor from "./pages/ComponentEditor";
 import MenusList from "./pages/MenusList";
 import MenuEditor from "./pages/MenuEditor";
 import FeatureGatesAdmin from "./pages/FeatureGatesAdmin";
+import WaitlistAdmin from "./pages/WaitlistAdmin";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
