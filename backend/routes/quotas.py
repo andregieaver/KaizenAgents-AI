@@ -1982,6 +1982,92 @@ async def sync_conversation_pricing_to_stripe(
     }
 
 
+@router.post("/conversation-pricing", response_model=ConversationPricingResponse)
+async def create_conversation_pricing(
+    config: ConversationPricingConfig,
+    current_user: dict = Depends(get_super_admin_user)
+):
+    """Create conversation pricing configuration for a plan tier (Super Admin only)"""
+    existing = await db.conversation_pricing.find_one({"plan_id": config.plan_id})
+    if existing:
+        raise HTTPException(status_code=400, detail=f"Conversation pricing for plan '{config.plan_name}' already exists")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    pricing_id = str(uuid.uuid4())
+    
+    stripe_product_id = None
+    stripe_price_monthly_id = None
+    
+    await StripeService.initialize_from_db()
+    
+    if StripeService.is_configured() and config.price_per_block > 0:
+        stripe_product_id = await StripeService.create_product(
+            pricing_id,
+            f"Additional Conversations ({config.block_size}/block) - {config.plan_name} Plan",
+            f"Additional conversation blocks subscription for {config.plan_name} plan"
+        )
+        
+        if stripe_product_id:
+            stripe_price_monthly_id = await StripeService.create_price(
+                stripe_product_id,
+                config.price_per_block,
+                "month",
+                config.currency
+            )
+    
+    pricing_doc = {
+        "id": pricing_id,
+        "plan_id": config.plan_id,
+        "plan_name": config.plan_name,
+        "price_per_block": config.price_per_block,
+        "block_size": config.block_size,
+        "currency": config.currency,
+        "billing_type": "subscription",
+        "is_enabled": config.is_enabled,
+        "stripe_product_id": stripe_product_id,
+        "stripe_price_monthly_id": stripe_price_monthly_id,
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    await db.conversation_pricing.insert_one(pricing_doc)
+    logger.info(f"Created conversation pricing for plan: {config.plan_name}")
+    
+    return pricing_doc
+
+
+@router.delete("/conversation-pricing/{plan_id}")
+async def delete_conversation_pricing(
+    plan_id: str,
+    current_user: dict = Depends(get_super_admin_user)
+):
+    """Delete conversation pricing for a plan tier (Super Admin only)"""
+    pricing = await db.conversation_pricing.find_one(
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_id}$", "$options": "i"}}]},
+        {"_id": 0}
+    )
+    if not pricing:
+        raise HTTPException(status_code=404, detail=f"Conversation pricing for plan '{plan_id}' not found")
+    
+    if pricing.get("stripe_product_id"):
+        await StripeService.initialize_from_db()
+        if StripeService.is_configured():
+            await StripeService.delete_product(pricing["stripe_product_id"])
+    
+    await db.conversation_pricing.delete_one({"id": pricing["id"]})
+    logger.info(f"Deleted conversation pricing for plan: {plan_id}")
+    
+    return {"message": f"Conversation pricing for plan '{pricing['plan_name']}' deleted successfully"}
+
+
+@router.post("/conversation-pricing/sync")
+async def sync_conversation_pricing_endpoint(current_user: dict = Depends(get_super_admin_user)):
+    """Manually sync conversation pricing with subscription plans (Super Admin only)"""
+    await sync_conversation_pricing_with_plans()
+    pricing = await db.conversation_pricing.find({}, {"_id": 0}).to_list(100)
+    return {"message": "Conversation pricing synced with subscription plans", "pricing": pricing}
+
+
 # ============== HELPER FUNCTIONS ==============
 
 async def sync_agent_pricing_with_plans():
