@@ -221,25 +221,27 @@ const Billing = () => {
     
     if (!currentPlan) return null;
     
-    // Calculate current total cost (plan + committed seats)
-    const additionalSeats = Math.max(0, seatAllocation.committed_seats - seatAllocation.base_plan_seats);
-    const seatsCost = additionalSeats * seatAllocation.price_per_seat;
-    const currentTotalCost = (currentPlan.price_monthly || 0) + seatsCost;
+    // Get current total cost from backend
+    const currentTotalCost = seatAllocation.total_monthly_cost || 
+      ((seatAllocation.plan_monthly_price || 0) + seatAllocation.additional_seats_cost);
+    
+    // Only show recommendation if there are extra seat costs
+    if (seatAllocation.additional_seats_cost <= 0) return null;
     
     // Find higher plans that would be cheaper
     const higherPlans = plans.filter(p => {
       const planPrice = p.price_monthly || 0;
       // Must be a paid plan with higher base price
       return planPrice > (currentPlan.price_monthly || 0);
-    });
+    }).sort((a, b) => (a.price_monthly || 0) - (b.price_monthly || 0)); // Sort by price ascending
     
     for (const plan of higherPlans) {
-      // Get the base seats for this plan from feature gates (rough estimate)
-      // Higher plans typically have more seats included
+      // Estimate base seats for higher plans
       const estimatedBaseSeats = plan.name?.toLowerCase() === 'professional' ? 25 : 
+                                  plan.name?.toLowerCase() === 'enterprise' ? 100 :
                                   plan.name?.toLowerCase() === 'starter' ? 5 : 1;
       
-      // If the higher plan includes enough seats, upgrading might be cheaper
+      // If the higher plan includes enough seats for committed count
       if (estimatedBaseSeats >= seatAllocation.committed_seats) {
         const upgradeCost = plan.price_monthly || 0;
         const savings = currentTotalCost - upgradeCost;
