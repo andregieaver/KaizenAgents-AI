@@ -5943,3 +5943,37 @@ The Seat Management feature is **FULLY IMPLEMENTED AND FUNCTIONAL** based on:
 ### Test Credentials:
 - Super Admin: andre@humanweb.no / Pernilla66! (Professional plan)
 
+
+## Waitlist Feature Implementation
+
+### New Backend Routes (/app/backend/routes/waitlist.py):
+- POST /api/waitlist/submit - Public endpoint to submit waitlist entry
+- GET /api/waitlist/entries - Get all waitlist entries (Super Admin)
+- GET /api/waitlist/entries/{entry_id} - Get specific entry (Super Admin)
+- PATCH /api/waitlist/entries/{entry_id} - Update entry status/notes (Super Admin)
+- DELETE /api/waitlist/entries/{entry_id} - Delete entry (Super Admin)
+- GET /api/waitlist/stats - Get waitlist statistics (Super Admin)
+
+### New Frontend Pages:
+- WaitlistAdmin.js - Super admin page to manage waitlist entries
+
+### New Page Editor Block:
+- Waitlist Form block in HomepageBlocks.js and PublicBlockRenderers.js
+- Can be added via page editor to any custom page
+
+### Waitlist Email Template:
+- Added "Waitlist Confirmation" auto-responder email template
+- Category: waitlist
+- Variables: platform_name, user_name, user_email, year
+
+### Test Credentials:
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### Expected Test Scenarios:
+1. Submit waitlist entry (public endpoint)
+2. View waitlist entries in admin page
+3. Edit entry status (pending/approved/rejected)
+4. Delete entry
+5. View waitlist statistics
+6. Edit waitlist email template
+
