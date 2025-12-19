@@ -439,6 +439,56 @@ DEFAULT_TEMPLATES = [
         "variables": ["platform_name", "user_name", "plan_name", "end_date", "reactivate_url", "year"],
         "category": "billing",
         "is_enabled": True
+    },
+    {
+        "key": "waitlist_confirmation",
+        "name": "Waitlist Confirmation",
+        "description": "Auto-responder sent when someone joins the waitlist",
+        "subject": "You're on the waitlist! - {{platform_name}}",
+        "html_content": """
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #333; margin: 0;">You're on the List! 🎉</h1>
+    </div>
+    
+    <p style="color: #555; font-size: 16px;">Hi {{user_name}},</p>
+    
+    <p style="color: #555; font-size: 16px;">
+        Thank you for joining the {{platform_name}} waitlist! We're thrilled to have you interested in what we're building.
+    </p>
+    
+    <div style="background-color: #f0f7ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #0047AB;">
+        <p style="color: #555; margin: 0; font-size: 15px;">
+            <strong>What happens next?</strong><br><br>
+            We're carefully reviewing all waitlist applications and will reach out when it's your turn to get access. 
+            You'll be among the first to know when we have exciting updates to share!
+        </p>
+    </div>
+    
+    <p style="color: #555; font-size: 16px;">
+        In the meantime, keep an eye on your inbox. We'll send you updates about our progress and let you know as soon as we're ready to welcome you aboard.
+    </p>
+    
+    <p style="color: #555; font-size: 16px;">
+        Thanks for your patience and support!
+    </p>
+    
+    <p style="color: #555; font-size: 16px;">
+        Best regards,<br>
+        The {{platform_name}} Team
+    </p>
+    
+    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+    
+    <p style="color: #888; font-size: 12px; text-align: center;">
+        © {{year}} {{platform_name}}. All rights reserved.<br>
+        You received this email because you signed up for our waitlist.
+    </p>
+</div>
+""",
+        "variables": ["platform_name", "user_name", "user_email", "year"],
+        "category": "waitlist",
+        "is_enabled": True
     }
 ]
 
