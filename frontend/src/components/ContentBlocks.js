@@ -559,6 +559,15 @@ const ContentBlocks = ({ blocks, onChange }) => {
           mobile: 'hamburger'
         }
       };
+    } else if (type === 'waitlist') {
+      content = {
+        heading: 'Join Our Waitlist',
+        description: 'Be the first to know when we launch. Get early access and exclusive updates.',
+        buttonText: 'Join Waitlist',
+        successMessage: 'Thank you! You\'re on the list. We\'ll be in touch soon.',
+        privacyUrl: '/privacy',
+        privacyText: 'I agree to the Privacy Policy'
+      };
     }
     
     const newBlock = {
