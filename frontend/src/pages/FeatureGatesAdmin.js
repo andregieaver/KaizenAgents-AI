@@ -33,6 +33,22 @@ const FeatureGatesAdmin = () => {
   const [editForm, setEditForm] = useState({ price_per_seat_monthly: '', price_per_seat_yearly: '', is_enabled: true });
   const [savingSeatPrice, setSavingSeatPrice] = useState(false);
   const [syncingSeatPricing, setSyncingSeatPricing] = useState(null);
+  
+  // Agent pricing state
+  const [agentPricing, setAgentPricing] = useState([]);
+  const [loadingAgentPricing, setLoadingAgentPricing] = useState(false);
+  const [editingAgentPlan, setEditingAgentPlan] = useState(null);
+  const [agentEditForm, setAgentEditForm] = useState({ price_per_agent_monthly: '', is_enabled: true });
+  const [savingAgentPrice, setSavingAgentPrice] = useState(false);
+  const [syncingAgentPricing, setSyncingAgentPricing] = useState(null);
+  
+  // Conversation pricing state
+  const [conversationPricing, setConversationPricing] = useState([]);
+  const [loadingConversationPricing, setLoadingConversationPricing] = useState(false);
+  const [editingConversationPlan, setEditingConversationPlan] = useState(null);
+  const [conversationEditForm, setConversationEditForm] = useState({ price_per_block: '', block_size: 100, is_enabled: true });
+  const [savingConversationPrice, setSavingConversationPrice] = useState(false);
+  const [syncingConversationPricing, setSyncingConversationPricing] = useState(null);
 
   useEffect(() => {
     // Check if user is super admin
