@@ -763,3 +763,171 @@ export const renderAgentGridBlock = (block) => {
   return <AgentGridBlockComponent key={block.id} block={block} />;
 };
 
+// Waitlist Block Component
+const WaitlistBlockComponent = ({ block }) => {
+  const content = block.content || {};
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    estimated_users: 1,
+    privacy_accepted: false
+  });
+  const [loading, setLoading] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!formData.name.trim()) {
+      setError('Please enter your name');
+      return;
+    }
+    if (!formData.email.trim()) {
+      setError('Please enter your email');
+      return;
+    }
+    if (!formData.privacy_accepted) {
+      setError('Please accept the privacy policy');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await axios.post(`${API}/waitlist/submit`, formData);
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const visibilityClass = getVisibilityClasses(block.visibility);
+
+  if (submitted) {
+    return (
+      <section key={block.id} className={`py-16 ${visibilityClass}`}>
+        <div className="max-w-xl mx-auto text-center">
+          <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-8">
+            <Icons.CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold mb-2">You&apos;re on the list!</h3>
+            <p className="text-muted-foreground">
+              {content.successMessage || "Thank you! You're on the list. We'll be in touch soon."}
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section key={block.id} className={`py-16 ${visibilityClass}`}>
+      <div className="max-w-xl mx-auto">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold mb-3">
+            {content.heading || 'Join Our Waitlist'}
+          </h2>
+          <p className="text-muted-foreground">
+            {content.description || 'Be the first to know when we launch.'}
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 text-red-600 dark:text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <label htmlFor="waitlist-name" className="block text-sm font-medium">
+              Name
+            </label>
+            <input
+              id="waitlist-name"
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Your name"
+              className="w-full px-4 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="waitlist-email" className="block text-sm font-medium">
+              Email
+            </label>
+            <input
+              id="waitlist-email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              placeholder="you@example.com"
+              className="w-full px-4 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="waitlist-users" className="block text-sm font-medium">
+              Estimated User Accounts
+            </label>
+            <input
+              id="waitlist-users"
+              type="number"
+              min="1"
+              value={formData.estimated_users}
+              onChange={(e) => setFormData({ ...formData, estimated_users: parseInt(e.target.value) || 1 })}
+              placeholder="How many will use the service?"
+              className="w-full px-4 py-2 rounded-lg border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+          </div>
+
+          <div className="flex items-start gap-3 pt-2">
+            <input
+              id="waitlist-privacy"
+              type="checkbox"
+              checked={formData.privacy_accepted}
+              onChange={(e) => setFormData({ ...formData, privacy_accepted: e.target.checked })}
+              className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
+            <label htmlFor="waitlist-privacy" className="text-sm text-muted-foreground">
+              {content.privacyText || 'I agree to the Privacy Policy'}{' '}
+              {content.privacyUrl && (
+                <a href={content.privacyUrl} className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
+                  Read policy
+                </a>
+              )}
+            </label>
+          </div>
+
+          <Button
+            type="submit"
+            className="w-full"
+            size="lg"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Icons.Loader2 className="h-4 w-4 animate-spin mr-2" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                {content.buttonText || 'Join Waitlist'}
+              </>
+            )}
+          </Button>
+        </form>
+      </div>
+    </section>
+  );
+};
+
+// Waitlist Block Renderer (wrapper function)
+export const renderWaitlistBlock = (block) => {
+  return <WaitlistBlockComponent key={block.id} block={block} />;
+};
+
