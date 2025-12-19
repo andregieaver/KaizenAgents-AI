@@ -3882,6 +3882,7 @@ from routes.menus import router as menus_router_mod
 from routes.feature_gates import router as feature_gates_router_mod
 from routes.quotas import router as quotas_router_mod
 from routes.email_templates import router as email_templates_router_mod
+from routes.waitlist import router as waitlist_router_mod
 
 # Register all modularized routers under /api
 api_router.include_router(auth_router_mod)
