@@ -387,14 +387,22 @@ const FeatureGatesAdmin = () => {
       </div>
 
       <Tabs defaultValue="quotas" className="space-y-6">
-        <TabsList>
+        <TabsList className="flex-wrap h-auto gap-1">
           <TabsTrigger value="quotas" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
-            Plan Limits & Quotas
+            Plan Limits
           </TabsTrigger>
           <TabsTrigger value="seat-pricing" className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
+            <Users className="h-4 w-4" />
             Seat Pricing
+          </TabsTrigger>
+          <TabsTrigger value="agent-pricing" className="flex items-center gap-2">
+            <Bot className="h-4 w-4" />
+            Agent Pricing
+          </TabsTrigger>
+          <TabsTrigger value="conversation-pricing" className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4" />
+            Conversation Pricing
           </TabsTrigger>
         </TabsList>
 
