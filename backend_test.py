@@ -4300,8 +4300,9 @@ class AIAgentHubTester:
             print(f"   ✅ Entry ID: {response.get('id')}")
             print(f"   ✅ Message: {response.get('message')}")
             
-            # Store the entry ID for later tests
+            # Store the entry ID and email for later tests
             self.waitlist_entry_id = response.get('id')
+            self.waitlist_test_email = unique_email
             
             # Test validation - privacy not accepted
             invalid_data = {
