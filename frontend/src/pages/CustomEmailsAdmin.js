@@ -143,7 +143,12 @@ const CustomEmailsAdmin = () => {
     setSaving(true);
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      const data = { ...emailForm, status };
+      // Wrap content with email-safe HTML before saving
+      const data = { 
+        ...emailForm, 
+        html_content: wrapEmailContent(emailForm.html_content),
+        status 
+      };
 
       if (editingEmail) {
         await axios.patch(`${API}/custom-emails/${editingEmail.id}`, data, { headers });
