@@ -161,6 +161,121 @@ const Pricing = () => {
     }
   };
 
+  // Fetch allocation data for management sections
+  const fetchAllocations = async () => {
+    if (!token) return;
+    
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      // Fetch all allocations in parallel
+      const [seatRes, agentRes, convRes] = await Promise.all([
+        axios.get(`${API}/quotas/seat-allocation`, { headers }).catch(() => null),
+        axios.get(`${API}/quotas/agent-allocation`, { headers }).catch(() => null),
+        axios.get(`${API}/quotas/conversation-allocation`, { headers }).catch(() => null)
+      ]);
+
+      if (seatRes?.data) {
+        setSeatAllocation(seatRes.data);
+        setSeatSliderValue(seatRes.data.current_seats);
+      }
+      if (agentRes?.data) {
+        setAgentAllocation(agentRes.data);
+        setAgentSliderValue(agentRes.data.current_agents);
+      }
+      if (convRes?.data) {
+        setConversationAllocation(convRes.data);
+        setConversationSliderValue(convRes.data.current_conversations);
+      }
+    } catch (error) {
+      console.error('Error fetching allocations:', error);
+    }
+  };
+
+  // Slider change handlers
+  const handleSeatSliderChange = (value) => {
+    setSeatSliderValue(value[0]);
+    setSeatUnsavedChanges(value[0] !== seatAllocation?.current_seats);
+  };
+
+  const handleAgentSliderChange = (value) => {
+    setAgentSliderValue(value[0]);
+    setAgentUnsavedChanges(value[0] !== agentAllocation?.current_agents);
+  };
+
+  const handleConversationSliderChange = (value) => {
+    setConversationSliderValue(value[0]);
+    setConversationUnsavedChanges(value[0] !== conversationAllocation?.current_conversations);
+  };
+
+  // Save allocation functions
+  const saveSeatAllocation = async () => {
+    if (!seatAllocation || !seatUnsavedChanges) return;
+    setSavingSeats(true);
+    try {
+      await axios.post(`${API}/quotas/seat-allocation`, 
+        { seats: seatSliderValue },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Seat allocation updated successfully');
+      await fetchAllocations();
+      setSeatUnsavedChanges(false);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update seat allocation');
+    } finally {
+      setSavingSeats(false);
+    }
+  };
+
+  const saveAgentAllocation = async () => {
+    if (!agentAllocation || !agentUnsavedChanges) return;
+    setSavingAgents(true);
+    try {
+      await axios.post(`${API}/quotas/agent-allocation`, 
+        { agents: agentSliderValue },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Agent allocation updated successfully');
+      await fetchAllocations();
+      setAgentUnsavedChanges(false);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update agent allocation');
+    } finally {
+      setSavingAgents(false);
+    }
+  };
+
+  const saveConversationAllocation = async () => {
+    if (!conversationAllocation || !conversationUnsavedChanges) return;
+    setSavingConversations(true);
+    try {
+      await axios.post(`${API}/quotas/conversation-allocation`, 
+        { conversations: conversationSliderValue },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Conversation allocation updated successfully');
+      await fetchAllocations();
+      setConversationUnsavedChanges(false);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update conversation allocation');
+    } finally {
+      setSavingConversations(false);
+    }
+  };
+
+  // Format time remaining for grace period
+  const formatTimeRemaining = (isoString) => {
+    if (!isoString) return '';
+    const endTime = new Date(isoString);
+    const now = new Date();
+    const diff = endTime - now;
+    if (diff <= 0) return 'Expired';
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    if (hours > 0) return `${hours}h ${minutes}m remaining`;
+    return `${minutes}m remaining`;
+  };
+
   // Helper to apply discount from localStorage (called on page load)
   const handleApplyDiscountFromStorage = async (code, planId) => {
     if (!code || !planId || !token) return;
