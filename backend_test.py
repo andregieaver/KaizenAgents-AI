@@ -4621,7 +4621,7 @@ class AIAgentHubTester:
             404
         )
         
-        if not success:
+        if success:
             print("   ✅ Correctly returned 404 for non-existent entry")
         else:
             print("   ❌ Should have returned 404 for non-existent entry")
