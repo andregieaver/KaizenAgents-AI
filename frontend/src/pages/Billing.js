@@ -128,9 +128,11 @@ const Billing = () => {
         }
       }
       
-      // Fetch invoices, seat allocation, and plans separately (non-blocking)
+      // Fetch invoices, allocations, and plans separately (non-blocking)
       fetchInvoices();
       fetchSeatAllocation();
+      fetchAgentAllocation();
+      fetchConversationAllocation();
       fetchPlans();
     } catch (error) {
       console.error('Error fetching billing data:', error);
