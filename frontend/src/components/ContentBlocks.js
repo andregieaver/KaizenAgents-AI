@@ -1016,6 +1016,9 @@ const ContentBlocks = ({ blocks, onChange }) => {
       case 'agent_grid':
         return <AgentGridBlockEditor block={block} updateBlock={updateBlock} />;
 
+      case 'waitlist':
+        return <WaitlistBlockEditor block={block} updateBlock={updateBlock} />;
+
       case 'button':
         return <ButtonBlockEditor block={block} updateBlock={updateBlock} />;
 
