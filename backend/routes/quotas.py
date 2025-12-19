@@ -1558,7 +1558,469 @@ async def verify_seat_subscription(
         raise HTTPException(status_code=500, detail=f"Failed to verify subscription: {str(e)}")
 
 
+# ============== AGENT PRICING MANAGEMENT (Super Admin) ==============
+
+class AgentPricingConfig(BaseModel):
+    """Agent pricing configuration for a plan tier"""
+    plan_id: str
+    plan_name: str
+    price_per_agent_monthly: float
+    currency: str = "usd"
+    billing_type: str = "subscription"
+    is_enabled: bool = True
+
+
+class AgentPricingUpdate(BaseModel):
+    """Update agent pricing for a plan"""
+    price_per_agent_monthly: Optional[float] = None
+    currency: Optional[str] = None
+    is_enabled: Optional[bool] = None
+
+
+class AgentPricingResponse(BaseModel):
+    """Agent pricing response"""
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    plan_id: str
+    plan_name: str
+    price_per_agent_monthly: float
+    currency: str
+    billing_type: str
+    is_enabled: bool
+    stripe_product_id: Optional[str] = None
+    stripe_price_monthly_id: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+
+@router.get("/agent-pricing", response_model=List[AgentPricingResponse])
+async def get_all_agent_pricing(current_user: dict = Depends(get_super_admin_user)):
+    """Get all agent pricing configurations synced with subscription plans (Super Admin only)"""
+    await sync_agent_pricing_with_plans()
+    pricing = await db.agent_pricing.find({}, {"_id": 0}).sort("plan_name", 1).to_list(100)
+    return pricing
+
+
+@router.get("/agent-pricing/{plan_id}")
+async def get_agent_pricing_for_plan(plan_id: str):
+    """Get agent pricing for a specific plan by ID or name (public endpoint)"""
+    pricing = await db.agent_pricing.find_one(
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_id}$", "$options": "i"}}]}, 
+        {"_id": 0}
+    )
+    
+    if not pricing:
+        return {
+            "plan_id": plan_id,
+            "plan_name": plan_id,
+            "price_per_agent_monthly": 10.0,
+            "currency": "usd",
+            "billing_type": "subscription",
+            "is_enabled": plan_id.lower() != "free"
+        }
+    
+    return pricing
+
+
+@router.patch("/agent-pricing/{plan_id}", response_model=AgentPricingResponse)
+async def update_agent_pricing(
+    plan_id: str,
+    update: AgentPricingUpdate,
+    current_user: dict = Depends(get_super_admin_user)
+):
+    """Update agent pricing for a plan tier (Super Admin only)"""
+    pricing = await db.agent_pricing.find_one(
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_id}$", "$options": "i"}}]},
+        {"_id": 0}
+    )
+    if not pricing:
+        raise HTTPException(status_code=404, detail=f"Agent pricing for plan '{plan_id}' not found")
+    
+    update_fields = {k: v for k, v in update.model_dump().items() if v is not None}
+    update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await StripeService.initialize_from_db()
+    
+    if update.price_per_agent_monthly is not None and update.price_per_agent_monthly != pricing.get("price_per_agent_monthly"):
+        if StripeService.is_configured() and pricing.get("stripe_product_id") and update.price_per_agent_monthly > 0:
+            new_price_id = await StripeService.create_price(
+                pricing["stripe_product_id"],
+                update.price_per_agent_monthly,
+                "month",
+                update.currency or pricing["currency"]
+            )
+            if new_price_id:
+                update_fields["stripe_price_monthly_id"] = new_price_id
+    
+    await db.agent_pricing.update_one(
+        {"id": pricing["id"]},
+        {"$set": update_fields}
+    )
+    
+    updated_pricing = await db.agent_pricing.find_one({"id": pricing["id"]}, {"_id": 0})
+    logger.info(f"Updated agent pricing for plan: {plan_id}")
+    
+    return updated_pricing
+
+
+@router.post("/agent-pricing/{plan_id}/sync-stripe")
+async def sync_agent_pricing_to_stripe(
+    plan_id: str,
+    current_user: dict = Depends(get_super_admin_user)
+):
+    """Sync agent pricing to Stripe - creates products and prices (Super Admin only)"""
+    pricing = await db.agent_pricing.find_one(
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_id}$", "$options": "i"}}]},
+        {"_id": 0}
+    )
+    if not pricing:
+        raise HTTPException(status_code=404, detail=f"Agent pricing for plan '{plan_id}' not found")
+    
+    if pricing.get("price_per_agent_monthly", 0) <= 0:
+        raise HTTPException(status_code=400, detail="Cannot sync free agent pricing to Stripe")
+    
+    await StripeService.initialize_from_db()
+    
+    if not StripeService.is_configured():
+        raise HTTPException(status_code=503, detail="Stripe is not configured. Please configure Stripe integration first.")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    update_fields = {"updated_at": now}
+    
+    stripe_product_id = pricing.get("stripe_product_id")
+    if not stripe_product_id:
+        stripe_product_id = await StripeService.create_product(
+            pricing["id"],
+            f"Additional Agents - {pricing['plan_name']} Plan",
+            f"Additional AI agents subscription for {pricing['plan_name']} plan"
+        )
+        if stripe_product_id:
+            update_fields["stripe_product_id"] = stripe_product_id
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create Stripe product")
+    
+    if not pricing.get("stripe_price_monthly_id") and pricing.get("price_per_agent_monthly", 0) > 0:
+        monthly_price_id = await StripeService.create_price(
+            stripe_product_id,
+            pricing["price_per_agent_monthly"],
+            "month",
+            pricing.get("currency", "usd")
+        )
+        if monthly_price_id:
+            update_fields["stripe_price_monthly_id"] = monthly_price_id
+            logger.info(f"Created monthly Stripe price for agent pricing: {monthly_price_id}")
+    
+    await db.agent_pricing.update_one(
+        {"id": pricing["id"]},
+        {"$set": update_fields}
+    )
+    
+    updated_pricing = await db.agent_pricing.find_one({"id": pricing["id"]}, {"_id": 0})
+    logger.info(f"Synced agent pricing to Stripe for plan: {pricing['plan_name']}")
+    
+    return {
+        "message": f"Agent pricing for '{pricing['plan_name']}' synced to Stripe successfully",
+        "stripe_product_id": updated_pricing.get("stripe_product_id"),
+        "stripe_price_monthly_id": updated_pricing.get("stripe_price_monthly_id")
+    }
+
+
+# ============== CONVERSATION PRICING MANAGEMENT (Super Admin) ==============
+
+class ConversationPricingConfig(BaseModel):
+    """Conversation pricing configuration for a plan tier"""
+    plan_id: str
+    plan_name: str
+    price_per_block: float  # Price per block of conversations
+    block_size: int = 100   # Number of conversations per block
+    currency: str = "usd"
+    billing_type: str = "subscription"
+    is_enabled: bool = True
+
+
+class ConversationPricingUpdate(BaseModel):
+    """Update conversation pricing for a plan"""
+    price_per_block: Optional[float] = None
+    block_size: Optional[int] = None
+    currency: Optional[str] = None
+    is_enabled: Optional[bool] = None
+
+
+class ConversationPricingResponse(BaseModel):
+    """Conversation pricing response"""
+    model_config = ConfigDict(extra="ignore")
+    id: str
+    plan_id: str
+    plan_name: str
+    price_per_block: float
+    block_size: int
+    currency: str
+    billing_type: str
+    is_enabled: bool
+    stripe_product_id: Optional[str] = None
+    stripe_price_monthly_id: Optional[str] = None
+    created_at: str
+    updated_at: str
+
+
+@router.get("/conversation-pricing", response_model=List[ConversationPricingResponse])
+async def get_all_conversation_pricing(current_user: dict = Depends(get_super_admin_user)):
+    """Get all conversation pricing configurations synced with subscription plans (Super Admin only)"""
+    await sync_conversation_pricing_with_plans()
+    pricing = await db.conversation_pricing.find({}, {"_id": 0}).sort("plan_name", 1).to_list(100)
+    return pricing
+
+
+@router.get("/conversation-pricing/{plan_id}")
+async def get_conversation_pricing_for_plan(plan_id: str):
+    """Get conversation pricing for a specific plan by ID or name (public endpoint)"""
+    pricing = await db.conversation_pricing.find_one(
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_id}$", "$options": "i"}}]}, 
+        {"_id": 0}
+    )
+    
+    if not pricing:
+        return {
+            "plan_id": plan_id,
+            "plan_name": plan_id,
+            "price_per_block": 5.0,
+            "block_size": 100,
+            "currency": "usd",
+            "billing_type": "subscription",
+            "is_enabled": plan_id.lower() != "free"
+        }
+    
+    return pricing
+
+
+@router.patch("/conversation-pricing/{plan_id}", response_model=ConversationPricingResponse)
+async def update_conversation_pricing(
+    plan_id: str,
+    update: ConversationPricingUpdate,
+    current_user: dict = Depends(get_super_admin_user)
+):
+    """Update conversation pricing for a plan tier (Super Admin only)"""
+    pricing = await db.conversation_pricing.find_one(
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_id}$", "$options": "i"}}]},
+        {"_id": 0}
+    )
+    if not pricing:
+        raise HTTPException(status_code=404, detail=f"Conversation pricing for plan '{plan_id}' not found")
+    
+    update_fields = {k: v for k, v in update.model_dump().items() if v is not None}
+    update_fields["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await StripeService.initialize_from_db()
+    
+    if update.price_per_block is not None and update.price_per_block != pricing.get("price_per_block"):
+        if StripeService.is_configured() and pricing.get("stripe_product_id") and update.price_per_block > 0:
+            new_price_id = await StripeService.create_price(
+                pricing["stripe_product_id"],
+                update.price_per_block,
+                "month",
+                update.currency or pricing["currency"]
+            )
+            if new_price_id:
+                update_fields["stripe_price_monthly_id"] = new_price_id
+    
+    await db.conversation_pricing.update_one(
+        {"id": pricing["id"]},
+        {"$set": update_fields}
+    )
+    
+    updated_pricing = await db.conversation_pricing.find_one({"id": pricing["id"]}, {"_id": 0})
+    logger.info(f"Updated conversation pricing for plan: {plan_id}")
+    
+    return updated_pricing
+
+
+@router.post("/conversation-pricing/{plan_id}/sync-stripe")
+async def sync_conversation_pricing_to_stripe(
+    plan_id: str,
+    current_user: dict = Depends(get_super_admin_user)
+):
+    """Sync conversation pricing to Stripe - creates products and prices (Super Admin only)"""
+    pricing = await db.conversation_pricing.find_one(
+        {"$or": [{"plan_id": plan_id}, {"plan_name": {"$regex": f"^{plan_id}$", "$options": "i"}}]},
+        {"_id": 0}
+    )
+    if not pricing:
+        raise HTTPException(status_code=404, detail=f"Conversation pricing for plan '{plan_id}' not found")
+    
+    if pricing.get("price_per_block", 0) <= 0:
+        raise HTTPException(status_code=400, detail="Cannot sync free conversation pricing to Stripe")
+    
+    await StripeService.initialize_from_db()
+    
+    if not StripeService.is_configured():
+        raise HTTPException(status_code=503, detail="Stripe is not configured. Please configure Stripe integration first.")
+    
+    now = datetime.now(timezone.utc).isoformat()
+    update_fields = {"updated_at": now}
+    
+    stripe_product_id = pricing.get("stripe_product_id")
+    block_size = pricing.get("block_size", 100)
+    if not stripe_product_id:
+        stripe_product_id = await StripeService.create_product(
+            pricing["id"],
+            f"Additional Conversations ({block_size}/block) - {pricing['plan_name']} Plan",
+            f"Additional conversation blocks subscription for {pricing['plan_name']} plan"
+        )
+        if stripe_product_id:
+            update_fields["stripe_product_id"] = stripe_product_id
+        else:
+            raise HTTPException(status_code=500, detail="Failed to create Stripe product")
+    
+    if not pricing.get("stripe_price_monthly_id") and pricing.get("price_per_block", 0) > 0:
+        monthly_price_id = await StripeService.create_price(
+            stripe_product_id,
+            pricing["price_per_block"],
+            "month",
+            pricing.get("currency", "usd")
+        )
+        if monthly_price_id:
+            update_fields["stripe_price_monthly_id"] = monthly_price_id
+            logger.info(f"Created monthly Stripe price for conversation pricing: {monthly_price_id}")
+    
+    await db.conversation_pricing.update_one(
+        {"id": pricing["id"]},
+        {"$set": update_fields}
+    )
+    
+    updated_pricing = await db.conversation_pricing.find_one({"id": pricing["id"]}, {"_id": 0})
+    logger.info(f"Synced conversation pricing to Stripe for plan: {pricing['plan_name']}")
+    
+    return {
+        "message": f"Conversation pricing for '{pricing['plan_name']}' synced to Stripe successfully",
+        "stripe_product_id": updated_pricing.get("stripe_product_id"),
+        "stripe_price_monthly_id": updated_pricing.get("stripe_price_monthly_id")
+    }
+
+
 # ============== HELPER FUNCTIONS ==============
+
+async def sync_agent_pricing_with_plans():
+    """Sync agent pricing configurations with subscription plans"""
+    now = datetime.now(timezone.utc).isoformat()
+    plans = await db.subscription_plans.find({}, {"_id": 0}).to_list(100)
+    
+    if not plans:
+        logger.warning("No subscription plans found - skipping agent pricing sync")
+        return
+    
+    def calculate_agent_price(plan_monthly_price):
+        if plan_monthly_price == 0:
+            return 0
+        elif plan_monthly_price < 50:
+            return 10.0
+        elif plan_monthly_price < 100:
+            return 15.0
+        elif plan_monthly_price < 200:
+            return 20.0
+        else:
+            return 25.0
+    
+    for plan in plans:
+        plan_id = plan.get("id")
+        plan_name = plan.get("name", "Unknown")
+        plan_monthly_price = plan.get("price_monthly", 0)
+        
+        existing = await db.agent_pricing.find_one({"plan_id": plan_id})
+        
+        if existing:
+            if existing.get("plan_name") != plan_name:
+                await db.agent_pricing.update_one(
+                    {"plan_id": plan_id},
+                    {"$set": {"plan_name": plan_name, "updated_at": now}}
+                )
+            continue
+        
+        monthly_agent_price = calculate_agent_price(plan_monthly_price)
+        
+        pricing_doc = {
+            "id": str(uuid.uuid4()),
+            "plan_id": plan_id,
+            "plan_name": plan_name,
+            "price_per_agent_monthly": monthly_agent_price,
+            "currency": "usd",
+            "billing_type": "subscription",
+            "is_enabled": plan_monthly_price > 0,
+            "stripe_product_id": None,
+            "stripe_price_monthly_id": None,
+            "created_at": now,
+            "updated_at": now
+        }
+        
+        await db.agent_pricing.insert_one(pricing_doc)
+        logger.info(f"Created agent pricing for plan: {plan_name} (${monthly_agent_price}/month)")
+    
+    plan_ids = [p.get("id") for p in plans]
+    await db.agent_pricing.delete_many({"plan_id": {"$nin": plan_ids, "$ne": None}})
+    
+    logger.info(f"Agent pricing synced with {len(plans)} subscription plans")
+
+
+async def sync_conversation_pricing_with_plans():
+    """Sync conversation pricing configurations with subscription plans"""
+    now = datetime.now(timezone.utc).isoformat()
+    plans = await db.subscription_plans.find({}, {"_id": 0}).to_list(100)
+    
+    if not plans:
+        logger.warning("No subscription plans found - skipping conversation pricing sync")
+        return
+    
+    def calculate_conversation_price(plan_monthly_price):
+        if plan_monthly_price == 0:
+            return 0
+        elif plan_monthly_price < 50:
+            return 5.0
+        elif plan_monthly_price < 100:
+            return 4.0
+        elif plan_monthly_price < 200:
+            return 3.0
+        else:
+            return 2.0
+    
+    for plan in plans:
+        plan_id = plan.get("id")
+        plan_name = plan.get("name", "Unknown")
+        plan_monthly_price = plan.get("price_monthly", 0)
+        
+        existing = await db.conversation_pricing.find_one({"plan_id": plan_id})
+        
+        if existing:
+            if existing.get("plan_name") != plan_name:
+                await db.conversation_pricing.update_one(
+                    {"plan_id": plan_id},
+                    {"$set": {"plan_name": plan_name, "updated_at": now}}
+                )
+            continue
+        
+        price_per_block = calculate_conversation_price(plan_monthly_price)
+        
+        pricing_doc = {
+            "id": str(uuid.uuid4()),
+            "plan_id": plan_id,
+            "plan_name": plan_name,
+            "price_per_block": price_per_block,
+            "block_size": 100,
+            "currency": "usd",
+            "billing_type": "subscription",
+            "is_enabled": plan_monthly_price > 0,
+            "stripe_product_id": None,
+            "stripe_price_monthly_id": None,
+            "created_at": now,
+            "updated_at": now
+        }
+        
+        await db.conversation_pricing.insert_one(pricing_doc)
+        logger.info(f"Created conversation pricing for plan: {plan_name} (${price_per_block}/100 convos)")
+    
+    plan_ids = [p.get("id") for p in plans]
+    await db.conversation_pricing.delete_many({"plan_id": {"$nin": plan_ids, "$ne": None}})
+    
+    logger.info(f"Conversation pricing synced with {len(plans)} subscription plans")
+
 
 async def sync_seat_pricing_with_plans():
     """Sync seat pricing configurations with subscription plans from Plan Management"""
