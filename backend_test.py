@@ -4325,6 +4325,9 @@ def main():
         
         # 17. Agent Pricing and Conversation Pricing Tests (Review Request)
         ("Agent Pricing and Conversation Pricing Management", tester.test_agent_pricing_and_conversation_pricing),
+        
+        # 18. Waitlist Functionality Tests (Review Request)
+        ("Waitlist Functionality", tester.test_waitlist_functionality),
     ]
     
     print(f"\n📋 Running {len(tests)} comprehensive test scenarios...")
