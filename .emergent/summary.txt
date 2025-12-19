@@ -1,90 +1,74 @@
 <analysis>**original_problem_statement:**
-The user initially requested a full suite of features to build a comprehensive Feature Gating, Quota Management, and User Management system. This included:
-
-1.  **Agent & Team Management:** Full CRUD for agents, and a redesign of the Team page into a Users page with enhanced functionality.
-2.  **Quota & Subscription Management:**
-    *   An admin-facing Feature Gates page to define company-level resource quotas.
-    *   A system for purchasing additional seats, which evolved from a one-time purchase to a recurring subscription model, with prices managed per plan.
-    *   A user-facing dashboard to view quota usage.
-3.  **Integrations:**
-    *   Hardening the existing Stripe integration to fix production bugs and add management tools.
-    *   Integrating SendGrid for all transactional emails.
-4.  **Email & Authentication:**
-    *   A Forgot Password and password reset flow.
-    *   A comprehensive admin page to manage the content of all transactional emails (e.g., welcome, password reset, quota warnings, order receipts).
-    *   Connecting the email templates to the relevant business logic (auth, billing, invitations, etc.).
+The user initiated a series of requests to enhance the application's subscription, quota, and billing management capabilities. The key requests included:
+- Fixing UI and functionality bugs related to the Send Test Email feature and incorrect quota displays.
+- Adding a comprehensive Invoice History section to the Billing page.
+- Making the UI dynamically responsive to administrative settings (e.g., hiding purchase options if disabled).
+- Implementing a Stripe synchronization mechanism for seat pricing.
+- Making the Billing page fully mobile-responsive.
+- A major feature request to overhaul how additional resources (Seats, Agents, Conversations) are managed. The user specified a new system with adjustable sliders on the Billing page, governed by a High-Water Mark billing logic with a 24-hour grace period for increases, and UI tweaks for clarity and cost-effectiveness recommendations.
+- A follow-up request to build an admin interface in the Feature Gates page for managing the pricing of these new adjustable resources and syncing them to Stripe.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application now has a robust user, quota, and subscription management system.
-
--   **Users Page:** The Team page has been completely redesigned into a Users page, displaying seat usage and providing a flow to purchase more seats.
--   **Seat Subscriptions:** Users can purchase additional seats, which are billed as a recurring subscription through Stripe. The price per seat is configurable for each subscription plan via the Feature Gates admin page.
--   **SendGrid Integration:** A SendGrid integration has been added to the Integrations page, allowing an admin to configure the API key and sender details. It includes tools to test the connection and send a test email.
--   **Password Reset:** A full Forgot Password flow has been implemented, replacing the previous Create Account link on the login page.
--   **Transactional Email Management:** A new Emails admin page allows for full CRUD management of all transactional email templates (e.g., Welcome, Password Reset, Quota Warning, Team Invitation). These templates are connected to a centralized  that uses the configured SendGrid integration to dispatch emails during key events like user invitations, password resets, and subscription activations.
+The application now features a highly sophisticated and flexible quota and subscription management system.
+- **Adjustable Allocations**: The Billing page has been transformed with a new management system for **Seats, Agents, and Conversations**. Users can use sliders to adjust their required resources. This system is governed by a **High-Water Mark** billing model with a 24-hour grace period, real-time cost previews, and intelligent recommendations to upgrade plans if it's more economical.
+- **Invoice History**: The Billing page displays a complete history of Stripe invoices in a mobile-responsive, card-based layout. Dummy invoices are used for testing when no real data is present.
+- **Dynamic Admin Controls**: The Feature Gates page now allows admins to enable/disable and set prices for additional seats, with a Sync to Stripe button to create the corresponding products.
+- **Robust Quota Display**: A critical case-sensitivity bug in the backend has been fixed, ensuring that all quota usage (seats, agents, etc.) is displayed accurately across the application.
+- **Polished UI**: The Send Test Email modal is fixed and fully functional. The Billing page is 100% mobile-friendly, providing a seamless experience on any device.
 
 **Last working item**:
-The agent was implementing a Send Test Email feature within the Email Templates admin modal. This allows an admin to send a test version of any template to a specified email address.
-    - Last item agent was working: Adding a Send Test Email button and associated functionality to the Edit Email Template modal on the  page. The backend endpoint was created, and the frontend UI was added, but the agent was in the process of verifying the UI.
+The agent was in the middle of building the admin interface for managing the pricing of additional **Agents** and **Conversations** on the Feature Gates page, to match the functionality already created for Seats.
+    - Last item agent was working: The agent had added the frontend UI (Tabs, forms, state management) to  and was about to implement the required backend endpoints.
     - Status: IN PROGRESS
     - Agent Testing Done: N
-    - Which testing method agent to use? manual testing by curl
+    - Which testing method agent to use? backend testing agent
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Send Test Email UI section is not fully visible in the modal. (P0)
-
-  Issues Detail:
-  - Issue 1: 
-     - Attempted fixes: The agent took a screenshot of the modal but the new UI section was not visible, likely due to the modal's content length and a lack of scrolling.
-     - Next debug checklist:
-        1. In , inspect the styles for the  component. Ensure it has  and a  to allow scrolling for long content.
-        2. Take a screenshot of the modal again after applying the fix to confirm the entire content, including the Send Test Email section, is visible and accessible.
-     - Why fix this issue and what will be achieved with the fix?: This is blocking the completion and testing of the current user request. Fixing it will make the feature usable.
-     - Status: IN PROGRESS
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? frontend
-     - Blocked on other issue: None
+There are no blocking issues. The priority is to complete the current task.
 
 **In progress Task List**:
-  - Task 1: Complete and test the Send Test Email functionality. (P0)
+  - Task 1:  Complete the pricing management feature for agents and conversations. (P0)
 
- Task Detail:
+  Issues Detail:
   - Task 1: 
-     - Where to resume: Start by fixing the visibility of the Send Test Email section in the  modal (see Issue 1). Once the UI is verified, test the end-to-end functionality by entering an email, clicking the Send Test button, and checking the backend logs to confirm the API call to  is successful.
-     - What will be achieved with this?: Admins will be able to test their email templates directly from the UI before they are sent to real users.
-     - Status: IN PROGRESS
+     - Where to resume: The frontend UI in  is ready. The next step is to create the backend endpoints in  to handle fetching, updating, and syncing prices for agents and conversations.
+     - Next debug checklist: 
+        1. Create endpoints for Agent Pricing () and Conversation Pricing () in .
+        2. Implement GET, PUT (for updating price), and POST (for Stripe sync) methods for each.
+        3. Connect the frontend handler functions (, , etc.) in  to these new endpoints.
+     - What will be achieved with this fix?: Admins will have a complete interface to manage the pricing and Stripe synchronization for all adjustable resources (Seats, Agents, and Conversations), finishing the new allocation system.
+     - Status:  IN PROGRESS
+     - Is recurring issue? N
      - Should Test frontend/backend/both after fix? both
-     - Blocked on something: Issue 1
+     - Blocked on other issue: None
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   (P1) Implement email alerts for when quota limits are exceeded (the warning part is done, exceeded needs to be fully wired up).
-    *   (P2) Comprehensive E2E Testing of all new features (Seat Subscriptions, SendGrid emails, Password Reset, Email Templates).
+    *   (P0) Address SendGrid Click Tracking: The agent identified that SendGrid rewrites email links for tracking. The user needs to choose whether to disable this feature or set up a branded domain. This is pending user decision.
+    *   (P1) Implement email alerts for when quota limits are exceeded.
+    *   (P2) E2E Testing of the complete allocation and billing flow.
 *   **Future Tasks:**
-    *   (P2) Implement AI moderation review for agents submitted to the marketplace (currently a ).
-    *   (P3) Reset Homepage Content to a clean slate.
-    *   Allow users to create and publish their own agents to the Marketplace.
-    *   Implement a feature to export conversation history.
-    *   Add a predefined set of icons for agent categories.
+    *   (P2) Implement AI moderation for marketplace agent submissions.
+    *   (P3) Clean up the homepage content.
+    *   Allow users to publish their own agents.
+    *   Add a feature to export conversation history.
 
 **Completed work in this session**
-- **UI/UX Overhaul for Users Page (DONE)**: Redesigned the former Team page into a Users page, showing seat usage and linking to purchase options.
-- **Stripe Seat Subscription (DONE)**: Implemented a recurring subscription model for purchasing additional user seats, with pricing configurable per plan in the admin dashboard.
-- **SendGrid Integration (DONE)**: Added a full SendGrid integration UI on the Integrations page for API key management and testing.
-- **Password Reset Flow (DONE)**: Implemented a full Forgot Password and reset token functionality.
-- **Login Page UI Update (DONE)**: Removed the Create Account link and repositioned the Forgot Password link for a cleaner interface.
-- **Transactional Email Management System (DONE)**: Created a full admin section for creating, reading, updating, and deleting transactional email templates.
-- **Centralized Email Service (DONE)**: Connected the email templates to a central service that dispatches emails via SendGrid for key actions like password resets, team invitations, and subscription confirmations.
+- **Adjustable Allocation System (DONE)**: Implemented the new High-Water Mark billing system with sliders for Seats, Agents, and Conversations on the Billing page.
+- **Mobile-Responsive Billing Page (DONE)**: Overhauled the entire Billing page UI to be fully responsive.
+- **Quota Calculation Bug Fix (DONE)**: Fixed a backend case-sensitivity issue causing incorrect quota limits.
+- **Invoice History on Billing Page (DONE)**: Added a section to display Stripe invoices.
+- **Seat Pricing Stripe Sync (DONE)**: Added Sync to Stripe functionality for seat pricing in the admin panel.
+- **Send Test Email Bug Fix (DONE)**: Resolved a modal overflow issue.
+- **Super Admin Plan Upgrade (DONE)**: Moved the admin user to the Professional plan to facilitate testing.
 
 **Earlier issues found/mentioned but not fixed**
    - **Issue 1: Incorrect Homepage Content (P3)**
-     - **Debug checklist**:
-        1.  Confirm with the user if they want the homepage content to be cleared.
-        2.  If yes, execute a database update to set the  field to  for the document where  is homepage in the  collection.
-     - **Why to solve this issue and what will be achieved with this?**: Restores the homepage to a clean, usable state for the user.
+     - **Debug checklist**: Confirm with the user if they want the homepage cleared, then run a DB script to reset the content.
+     - **Why to solve this issue and what will be achieved with this?**: Restores the homepage to a clean state.
      - **Should Test frontend/backend/both after fix**: frontend
      - **Is recurring issue?**: N
 
@@ -95,113 +79,83 @@ The agent was implementing a Send Test Email feature within the Email Templates 
 
 
 **Key Technical Concepts**
-- **Centralized Email Service**: A dedicated service () that fetches dynamic templates from the database, populates them with variables, and uses a configured provider (SendGrid) to send all transactional emails. This decouples email logic from business logic.
-- **Dynamic Email Template Management**: A full CRUD system allowing admins to edit email content (subject, body) and settings (enabled/disabled) directly from the UI without code changes.
-- **Subscription-based Seat Purchasing**: Moving beyond one-time payments, additional seats are now handled as a recurring Stripe subscription, with quantities that can be upgraded or downgraded.
-- **API-Driven Configuration**: Features like SendGrid keys, Stripe keys, and seat prices are stored in the database and managed via API, making the system flexible and configurable through the admin UI.
+- **High-Water Mark Billing**: A new billing model for adjustable resources. The customer is billed for the highest number of resources they commit to during a cycle, even if usage later drops. A 24-hour grace period allows for penalty-free reversal of increases.
+- **Dynamic Feature Rendering**: UI components are now rendered based on administrative settings fetched from the backend (Feature Gates), making the UI adaptive.
+- **Responsive UI Design**: Extensive use of Tailwind CSS to create adaptive layouts that work seamlessly on both mobile and desktop.
 
 **key DB schema**
-  - ****: {id, template_id, name, description, subject, html_content, variables, category, is_enabled, is_default, created_at, updated_at} - Stores all transactional email templates.
-  - ****: A key  was added to store the API key, sender details, and enabled status.
-  - ****: {id, plan_id, plan_name, price_per_seat_monthly, price_per_seat_yearly, stripe_price_monthly_id, stripe_price_yearly_id, is_active, created_at, updated_at} - Manages the recurring price of seats for each subscription plan.
+  - ****: Extended to include nested allocation objects:
+    - 
+  - ** (new table concept)**: To store pricing for additional agents per plan.
+  - ** (new table concept)**: To store pricing for additional conversation blocks per plan.
 
 **changes in tech stack**
-  - ****: Python package added for sending emails.
-
-**All files of reference**
-- **Backend (New)**:
-    - : Manages CRUD for email templates.
-    - : Central service for sending templated emails.
-- **Backend (Modified)**:
-    - : Integrated email service for password resets.
-    - : Integrated email service for team invitations.
-    - : Integrated email service for activation confirmations.
-    - : Added endpoints for SendGrid configuration.
-    - : Overhauled to support subscription-based seat purchases.
-    - : Integrated email service for quota warnings.
-    - : Updated to handle recurring subscription prices for seats.
-    - : Registered the new email templates router.
-- **Frontend (New)**:
-    - : Admin page for managing email templates.
-    - : Page to request a password reset link.
-    - : Page to set a new password using a token.
-- **Frontend (Modified)**:
-    - : UI updated for the new password reset flow.
-    - : UI and logic updated for subscription-based seat purchasing modal.
-    - : UI updated to manage recurring seat prices.
-    - : UI updated with a new tab for SendGrid integration.
-    - : Added routes for new pages.
-    - : Added navigation link for the new Emails admin page.
-
-**Areas that need refactoring**:
-- : This component is now obsolete and should be considered for removal to clean up the codebase.
-
-**key api endpoints**
-- **Seat Management**:
-    - : Fetches seat pricing for all plans.
-    - : Updates the price for a seat.
-    - : Creates a Stripe checkout session for a seat subscription.
-    - : Verifies the purchase and updates the company's seat quantity.
-- **Password Reset**:
-    - : Sends a password reset email.
-    - : Resets the password using a valid token.
-- **SendGrid Integration**:
-    - : Saves SendGrid settings.
-    - : Tests the SendGrid API key.
-    - : Sends a test email via SendGrid.
-- **Email Templates**:
-    - : Fetches all email templates.
-    - : Updates an email template.
-    - : Resets a template to its default content.
-    - : Sends a test email for a specific template.
-
-**Critical Info for New Agent**
-- All transactional emails are now sent via a centralized  which depends on the SendGrid integration being correctly configured on the Integrations page. If SendGrid is not set up, emails will fail silently in the background.
-- The purchasing of additional seats has been changed from a one-time charge to a recurring subscription. The logic now updates the quantity on an existing Stripe subscription.
-- The agent was in the middle of verifying the UI for the Send Test Email feature. The immediate next step is to fix the modal overflow issue in  and then test the feature end-to-end.
-
-**documents created in this job**
   - None.
 
-**Last 10 User Messages and any pending user messages**
-1.  **User**: Implement SendGrid integration. **Status: COMPLETED**
-2.  **User**: Replace Create Account with a full Forgot Password flow. **Status: COMPLETED**
-3.  **User**: Tweak the login page UI: remove Create Account and move Forgot Password link. **Status: COMPLETED**
-4.  **User**: Create an admin page to manage transactional email templates. **Status: COMPLETED**
-5.  **User**: Connect the email templates to the actual email sending logic. **Status: COMPLETED**
-6.  **User**: Add send test email functionality to the templates. **Status: IN PROGRESS**
-7.  **User**: Asked agent to verify changes for the Team page redesign. **Status: COMPLETED**
-8.  **User**: Requested to continue with backend logic for Stripe seat purchases. **Status: COMPLETED**
-9.  **User**: Clarified that seat purchases should be a subscription, not a one-time purchase. **Status: COMPLETED**
-10. **User**: Asked agent to verify the email templates page. **Status: COMPLETED**
+**All files of reference**
+- **Backend (Modified)**:
+    - : Heavily modified to add the adjustable allocation system endpoints. Awaiting new endpoints for agent/conversation pricing.
+    - : Fixed the case-sensitivity bug.
+    - : Modified to support invoice fetching.
+- **Frontend (Modified)**:
+    - : Major overhaul to add the Invoice History and the new slider-based management UI.
+    - : Modified to add Stripe Sync for seats and UI for agent/conversation pricing.
+    - : Fixed a CSS modal overflow issue.
+    - : Modified to conditionally render UI elements.
+
+**Areas that need refactoring**:
+- : This component is likely obsolete and can be removed.
+
+**key api endpoints**
+- **Allocation Management (New)**:
+    - 
+    - 
+    - 
+- **Pricing Management (In-Progress)**:
+    - New endpoints are needed for managing agent and conversation pricing under .
+
+**Critical Info for New Agent**
+- The most important new concept is the **High-Water Mark billing model**. Understand its three key parts: the  usage, the  billing amount, and the  that allows increases to be reversed. This logic resides in the  endpoints in .
+- Your immediate task is to complete the work in  by building the corresponding backend endpoints in . This involves creating GET, PUT, and POST (for Stripe sync) routes for both agent pricing and conversation pricing.
+
+**documents and test_reports created in this job**
+  -  was updated several times by the testing agent.
+
+**Last 10 User Messages and any pending HUMAN messages**
+1.  **User**: We need to update the price for these additional subscription products under feature gates page, sync it to stripe clone any other logic pertaining to additional seats
+2.  **User**: Perfect! Continue to implement the exact same subscription logic and increase/decrease, as for seats, to allowed active agents and conversations.
+3.  **User**: Beautiful! Just some small adjustments. Set Base plan current and committed numbers inline, in one row... also add upgrade recommendations.
+4.  **User**: Perfect interpretation 1. Multiple increases resets the grace period 2. Stay at the high-water mark forever unless decreased by the user before next renewal.
+5.  **User**: Let's reimagine how we handle additional seats. [details on slider and high-water mark billing]...Explain this back to me before implementation
+6.  **User**: Perfect! Now add some dummy stripe invoices to see the design layout of that section. Correct for mobile friendliness
+7.  **User**: Now add the super-admin user andre@humanweb.no company to the professional plan
+8.  **User**: Let's make sure that the dashboard billing page is 100% mobile friendly
+9.  **User**: The billing page shows 2 of 25 seats used, but on the dashboard users page it says 0/0 and 0/infinity.
+10. **User**: I think number of active seats should be displayed in this section on the dashboard billing page
 
 **Project Health Check:**
-- **Broken**: None
+- **Broken**: None.
 - **Mocked**:
-    - **Stripe**: The integration is functional, but relies on test keys being configured.
-    - **SendGrid**: The integration is implemented, but relies on a user-provided API key being configured.
-    - **WooCommerce**: Still relies on user-provided credentials.
-    - **AI Moderation**: The agent review step for marketplace publishing is still a  comment.
+    - **Stripe**: The integration relies on test keys. The new sync functionality requires valid keys to create real Stripe products.
+    - **SendGrid**: Relies on a user-provided API key. The click-tracking link issue is unresolved.
 
 **3rd Party Integrations**
-- **WooCommerce**: For e-commerce actions. Requires User API Key.
-- **Stripe**: For subscription management. Keys are stored in the database.
-- **SendGrid**: For sending all transactional emails. Requires User API Key.
-- **OpenAI (via )**: Used by the orchestrator Mother agent.
-- **@dnd-kit**: For CMS drag-and-drop.
-- **Tiptap**: For rich-text editing in the email template manager.
+- **WooCommerce**: Requires User API Key.
+- **Stripe**: For subscription management. Keys managed via the Integrations page.
+- **SendGrid**: For transactional emails. Requires User API Key.
+- **OpenAI (via )**
+- **@dnd-kit**, **Tiptap**
 
 **Testing status**
   - Testing agent used after significant changes: YES
   - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: The agent created and executed several ad-hoc Python test scripts for backend validation.
+  - Test files created: None.
   - Known regressions: None.
 
 **Credentials to test flow:**
--   **Super Admin**:  / 
--   **Company User (for Widget/Dashboard Testing)**:  / 
+-   **Super Admin**:  /  (On Professional Plan)
+-   **Company User**:  / 
 
 **What agent forgot to execute**
-- The AI review/moderation step for publishing an agent to the marketplace was noted with a  but not implemented.
-- The user's request for a predefined icon set for agent categories was not implemented.
-- The task to reset the homepage content has not been addressed.</analysis>
+- The agent has not yet created the backend endpoints for managing agent and conversation pricing, which is the current in-progress task.
+- The agent has not followed up on the SendGrid click-tracking issue after identifying the cause; this is pending user input.</analysis>
