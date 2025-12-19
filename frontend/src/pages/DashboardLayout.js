@@ -257,6 +257,10 @@ const DashboardLayout = () => {
     ? { path: '/dashboard/admin/waitlist', icon: ClipboardList, label: 'Waitlist', isAdmin: true }
     : null;
 
+  const campaignsNavItem = user?.is_super_admin
+    ? { path: '/dashboard/admin/campaigns', icon: Send, label: 'Campaigns', isAdmin: true }
+    : null;
+
   const isActive = (path) => {
     if (path === '/dashboard') {
       return location.pathname === '/dashboard';
