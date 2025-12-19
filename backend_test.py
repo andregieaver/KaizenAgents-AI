@@ -4473,8 +4473,9 @@ class AIAgentHubTester:
             
             # Look for our test entry
             test_entry = None
+            test_email = getattr(self, 'waitlist_test_email', 'john.doe.test@example.com')
             for entry in response:
-                if entry.get('email') == 'john.doe.test@example.com':
+                if entry.get('email') == test_email:
                     test_entry = entry
                     self.waitlist_entry_id = entry.get('id')  # Store for update/delete tests
                     break
