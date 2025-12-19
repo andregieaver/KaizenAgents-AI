@@ -28,9 +28,22 @@ const Billing = () => {
   
   // Seat allocation state
   const [seatAllocation, setSeatAllocation] = useState(null);
-  const [sliderValue, setSliderValue] = useState(0);
+  const [seatSliderValue, setSeatSliderValue] = useState(0);
   const [savingSeats, setSavingSeats] = useState(false);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [seatUnsavedChanges, setSeatUnsavedChanges] = useState(false);
+  
+  // Agent allocation state
+  const [agentAllocation, setAgentAllocation] = useState(null);
+  const [agentSliderValue, setAgentSliderValue] = useState(0);
+  const [savingAgents, setSavingAgents] = useState(false);
+  const [agentUnsavedChanges, setAgentUnsavedChanges] = useState(false);
+  
+  // Conversation allocation state
+  const [conversationAllocation, setConversationAllocation] = useState(null);
+  const [conversationSliderValue, setConversationSliderValue] = useState(0);
+  const [savingConversations, setSavingConversations] = useState(false);
+  const [conversationUnsavedChanges, setConversationUnsavedChanges] = useState(false);
+  
   const [plans, setPlans] = useState([]);
 
   useEffect(() => {
