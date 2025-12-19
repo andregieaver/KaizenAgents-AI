@@ -247,23 +247,25 @@ const CustomEmailsAdmin = () => {
   };
 
   const getDefaultTemplate = () => {
-    return `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <h1 style="color: #333;">Hello {{user_name}},</h1>
+    return `<h1>Hello {{user_name}},</h1>
+<p>Your email content goes here...</p>
+<p>Best regards,<br>The {{platform_name}} Team</p>`;
+  };
+
+  // Wrap rich text editor content with email-safe HTML wrapper
+  const wrapEmailContent = (content) => {
+    // If content already has the wrapper, extract just the body
+    if (content.includes('font-family: Arial')) {
+      return content;
+    }
     
-    <p style="color: #555; font-size: 16px; line-height: 1.6;">
-        Your email content goes here...
-    </p>
-    
-    <p style="color: #555; font-size: 16px;">
-        Best regards,<br>
-        The {{platform_name}} Team
-    </p>
-    
-    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-    
-    <p style="color: #888; font-size: 12px; text-align: center;">
-        © {{year}} {{platform_name}}. All rights reserved.
-    </p>
+    // Wrap content with email-safe styling
+    return `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+${content}
+<hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+<p style="color: #888; font-size: 12px; text-align: center;">
+© {{year}} {{platform_name}}. All rights reserved.
+</p>
 </div>`;
   };
 
