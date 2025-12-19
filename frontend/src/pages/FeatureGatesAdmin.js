@@ -794,13 +794,230 @@ const FeatureGatesAdmin = () => {
                   <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                     <h4 className="font-semibold mb-2">How Seat Subscriptions Work</h4>
                     <ul className="text-sm text-muted-foreground space-y-1">
-                      <li>• <strong>Synced with Plans:</strong> Seat pricing is automatically synced with your subscription plans</li>
-                      <li>• <strong>Subscription-based:</strong> Additional seats are billed as recurring subscriptions (monthly or yearly)</li>
-                      <li>• <strong>Free Plans:</strong> Users on Free plans cannot subscribe to additional seats</li>
-                      <li>• <strong>Upgrade/Downgrade:</strong> Users can adjust their seat count anytime through the subscription portal</li>
-                      <li>• <strong>Stripe Required:</strong> Stripe integration is required for seat subscription billing</li>
+                      <li>• <strong>Subscription-based:</strong> Additional seats are billed as recurring subscriptions</li>
+                      <li>• <strong>24hr Grace Period:</strong> Users can undo increases within 24 hours</li>
+                      <li>• <strong>High-water Mark:</strong> Users are billed for highest committed amount</li>
                     </ul>
                   </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Agent Pricing Tab */}
+        <TabsContent value="agent-pricing">
+          <Card className="border border-border">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="h-5 w-5" />
+                Agent Pricing by Plan
+              </CardTitle>
+              <CardDescription>
+                Configure pricing for additional agents per subscription plan
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingAgentPricing ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {agentPricing.map((pricing) => (
+                      <Card key={pricing.plan_id} className={`border ${pricing.is_enabled ? 'border-primary/30' : 'border-border opacity-60'}`}>
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg">{pricing.plan_name}</CardTitle>
+                            <Badge variant={pricing.is_enabled ? "default" : "secondary"}>
+                              {pricing.is_enabled ? 'Active' : 'Disabled'}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {editingAgentPlan === pricing.plan_id ? (
+                            <div className="space-y-3">
+                              <div>
+                                <Label>Price per Agent (Monthly)</Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={agentEditForm.price_per_agent_monthly}
+                                  onChange={(e) => setAgentEditForm({ ...agentEditForm, price_per_agent_monthly: e.target.value })}
+                                  placeholder="10.00"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={agentEditForm.is_enabled}
+                                  onCheckedChange={(checked) => setAgentEditForm({ ...agentEditForm, is_enabled: checked })}
+                                />
+                                <Label>Enable agent subscriptions</Label>
+                              </div>
+                              <div className="flex gap-2 pt-2">
+                                <Button size="sm" onClick={() => saveAgentPrice(pricing.plan_id)} disabled={savingAgentPrice}>
+                                  {savingAgentPrice ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={cancelEditAgentPrice}>
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-2xl font-bold">${(pricing.price_per_agent_monthly || 0).toFixed(2)}</span>
+                                <span className="text-muted-foreground text-sm">/ agent / month</span>
+                              </div>
+                              {pricing.stripe_price_id ? (
+                                <div className="text-xs text-green-600 flex items-center gap-1">
+                                  <Check className="h-3 w-3" />
+                                  Stripe: Connected
+                                </div>
+                              ) : pricing.price_per_agent_monthly > 0 && (
+                                <div className="text-xs text-amber-600 flex items-center gap-1">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  Not synced to Stripe
+                                </div>
+                              )}
+                              <div className="flex gap-2 mt-2">
+                                <Button variant="outline" size="sm" className="flex-1" onClick={() => startEditAgentPrice(pricing)}>
+                                  <Edit2 className="h-4 w-4 mr-2" />
+                                  Edit
+                                </Button>
+                                {!pricing.stripe_price_id && pricing.price_per_agent_monthly > 0 && (
+                                  <Button size="sm" className="flex-1" onClick={() => syncAgentPricingToStripe(pricing.plan_id)} disabled={syncingAgentPricing === pricing.plan_id}>
+                                    {syncingAgentPricing === pricing.plan_id ? <Loader2 className="h-4 w-4 animate-spin" /> : <><RefreshCw className="h-4 w-4 mr-2" />Sync</>}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  {agentPricing.length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No agent pricing configured yet.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Conversation Pricing Tab */}
+        <TabsContent value="conversation-pricing">
+          <Card className="border border-border">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Conversation Pricing by Plan
+              </CardTitle>
+              <CardDescription>
+                Configure pricing for additional conversations per subscription plan (billed in blocks)
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingConversationPricing ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {conversationPricing.map((pricing) => (
+                      <Card key={pricing.plan_id} className={`border ${pricing.is_enabled ? 'border-primary/30' : 'border-border opacity-60'}`}>
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg">{pricing.plan_name}</CardTitle>
+                            <Badge variant={pricing.is_enabled ? "default" : "secondary"}>
+                              {pricing.is_enabled ? 'Active' : 'Disabled'}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          {editingConversationPlan === pricing.plan_id ? (
+                            <div className="space-y-3">
+                              <div>
+                                <Label>Price per Block</Label>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={conversationEditForm.price_per_block}
+                                  onChange={(e) => setConversationEditForm({ ...conversationEditForm, price_per_block: e.target.value })}
+                                  placeholder="5.00"
+                                />
+                              </div>
+                              <div>
+                                <Label>Block Size (conversations)</Label>
+                                <Input
+                                  type="number"
+                                  value={conversationEditForm.block_size}
+                                  onChange={(e) => setConversationEditForm({ ...conversationEditForm, block_size: e.target.value })}
+                                  placeholder="100"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Switch
+                                  checked={conversationEditForm.is_enabled}
+                                  onCheckedChange={(checked) => setConversationEditForm({ ...conversationEditForm, is_enabled: checked })}
+                                />
+                                <Label>Enable conversation subscriptions</Label>
+                              </div>
+                              <div className="flex gap-2 pt-2">
+                                <Button size="sm" onClick={() => saveConversationPrice(pricing.plan_id)} disabled={savingConversationPrice}>
+                                  {savingConversationPrice ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={cancelEditConversationPrice}>
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              <div className="flex items-baseline gap-1">
+                                <span className="text-2xl font-bold">${(pricing.price_per_block || 0).toFixed(2)}</span>
+                                <span className="text-muted-foreground text-sm">/ {pricing.block_size || 100} conversations</span>
+                              </div>
+                              {pricing.stripe_price_id ? (
+                                <div className="text-xs text-green-600 flex items-center gap-1">
+                                  <Check className="h-3 w-3" />
+                                  Stripe: Connected
+                                </div>
+                              ) : pricing.price_per_block > 0 && (
+                                <div className="text-xs text-amber-600 flex items-center gap-1">
+                                  <AlertTriangle className="h-3 w-3" />
+                                  Not synced to Stripe
+                                </div>
+                              )}
+                              <div className="flex gap-2 mt-2">
+                                <Button variant="outline" size="sm" className="flex-1" onClick={() => startEditConversationPrice(pricing)}>
+                                  <Edit2 className="h-4 w-4 mr-2" />
+                                  Edit
+                                </Button>
+                                {!pricing.stripe_price_id && pricing.price_per_block > 0 && (
+                                  <Button size="sm" className="flex-1" onClick={() => syncConversationPricingToStripe(pricing.plan_id)} disabled={syncingConversationPricing === pricing.plan_id}>
+                                    {syncingConversationPricing === pricing.plan_id ? <Loader2 className="h-4 w-4 animate-spin" /> : <><RefreshCw className="h-4 w-4 mr-2" />Sync</>}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  {conversationPricing.length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>No conversation pricing configured yet.</p>
+                    </div>
+                  )}
                 </div>
               )}
             </CardContent>
