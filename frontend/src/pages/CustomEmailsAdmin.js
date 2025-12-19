@@ -254,8 +254,8 @@ const CustomEmailsAdmin = () => {
 
   // Wrap rich text editor content with email-safe HTML wrapper
   const wrapEmailContent = (content) => {
-    // If content already has the wrapper, extract just the body
-    if (content.includes('font-family: Arial')) {
+    // Don't double wrap
+    if (content.includes('max-width: 600px')) {
       return content;
     }
     
@@ -267,6 +267,18 @@ ${content}
 © {{year}} {{platform_name}}. All rights reserved.
 </p>
 </div>`;
+  };
+
+  // Extract body content from wrapped email for editing
+  const unwrapEmailContent = (html) => {
+    if (!html) return '';
+    
+    // Try to extract content between wrapper div and footer hr
+    const match = html.match(/<div[^>]*max-width: 600px[^>]*>([\s\S]*?)<hr/);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+    return html;
   };
 
   if (loading) {
