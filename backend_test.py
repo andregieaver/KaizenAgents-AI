@@ -4364,9 +4364,10 @@ class AIAgentHubTester:
         
         try:
             # Try to submit with the same email as before
+            test_email = getattr(self, 'waitlist_test_email', 'john.doe.test@example.com')
             duplicate_data = {
                 "name": "John Duplicate",
-                "email": "john.doe.test@example.com",  # Same email as previous test
+                "email": test_email,  # Same email as previous test
                 "estimated_users": 50,
                 "privacy_accepted": True
             }
