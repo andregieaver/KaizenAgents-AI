@@ -164,9 +164,33 @@ const Billing = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSeatAllocation(response.data);
-      setSliderValue(response.data.current_seats);
+      setSeatSliderValue(response.data.current_seats);
     } catch (error) {
       console.error('Error fetching seat allocation:', error);
+    }
+  };
+
+  const fetchAgentAllocation = async () => {
+    try {
+      const response = await axios.get(`${API}/quotas/agents/allocation`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAgentAllocation(response.data);
+      setAgentSliderValue(response.data.current_agents);
+    } catch (error) {
+      console.error('Error fetching agent allocation:', error);
+    }
+  };
+
+  const fetchConversationAllocation = async () => {
+    try {
+      const response = await axios.get(`${API}/quotas/conversations/allocation`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setConversationAllocation(response.data);
+      setConversationSliderValue(response.data.current_conversations);
+    } catch (error) {
+      console.error('Error fetching conversation allocation:', error);
     }
   };
 
@@ -181,32 +205,78 @@ const Billing = () => {
     }
   };
 
-  const handleSliderChange = (value) => {
-    setSliderValue(value[0]);
-    setHasUnsavedChanges(value[0] !== seatAllocation?.current_seats);
+  // Seat handlers
+  const handleSeatSliderChange = (value) => {
+    setSeatSliderValue(value[0]);
+    setSeatUnsavedChanges(value[0] !== seatAllocation?.current_seats);
   };
 
   const saveSeatAllocation = async () => {
-    if (!hasUnsavedChanges) return;
-    
+    if (!seatUnsavedChanges) return;
     setSavingSeats(true);
     try {
       const response = await axios.put(
         `${API}/quotas/seats/allocation`,
-        { total_seats: sliderValue },
+        { total_seats: seatSliderValue },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
       toast.success(response.data.message);
-      setHasUnsavedChanges(false);
-      
-      // Refresh seat allocation
+      setSeatUnsavedChanges(false);
       fetchSeatAllocation();
     } catch (error) {
-      console.error('Error saving seat allocation:', error);
       toast.error(error.response?.data?.detail || 'Failed to update seats');
     } finally {
       setSavingSeats(false);
+    }
+  };
+
+  // Agent handlers
+  const handleAgentSliderChange = (value) => {
+    setAgentSliderValue(value[0]);
+    setAgentUnsavedChanges(value[0] !== agentAllocation?.current_agents);
+  };
+
+  const saveAgentAllocation = async () => {
+    if (!agentUnsavedChanges) return;
+    setSavingAgents(true);
+    try {
+      const response = await axios.put(
+        `${API}/quotas/agents/allocation`,
+        { total_agents: agentSliderValue },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(response.data.message);
+      setAgentUnsavedChanges(false);
+      fetchAgentAllocation();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update agents');
+    } finally {
+      setSavingAgents(false);
+    }
+  };
+
+  // Conversation handlers
+  const handleConversationSliderChange = (value) => {
+    setConversationSliderValue(value[0]);
+    setConversationUnsavedChanges(value[0] !== conversationAllocation?.current_conversations);
+  };
+
+  const saveConversationAllocation = async () => {
+    if (!conversationUnsavedChanges) return;
+    setSavingConversations(true);
+    try {
+      const response = await axios.put(
+        `${API}/quotas/conversations/allocation`,
+        { total_conversations: conversationSliderValue },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(response.data.message);
+      setConversationUnsavedChanges(false);
+      fetchConversationAllocation();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update conversations');
+    } finally {
+      setSavingConversations(false);
     }
   };
 
