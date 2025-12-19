@@ -120,6 +120,8 @@ const HomePage = () => {
                 return renderPricingCardsBlock(block);
               case 'agent_grid':
                 return renderAgentGridBlock(block);
+              case 'waitlist':
+                return renderWaitlistBlock(block);
               case 'image':
                 return renderImageBlock(block);
               default:
