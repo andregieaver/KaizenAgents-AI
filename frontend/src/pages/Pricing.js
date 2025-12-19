@@ -171,9 +171,9 @@ const Pricing = () => {
       
       // Fetch all allocations in parallel
       const [seatRes, agentRes, convRes] = await Promise.all([
-        axios.get(`${API}/quotas/seat-allocation`, { headers }).catch(() => null),
-        axios.get(`${API}/quotas/agent-allocation`, { headers }).catch(() => null),
-        axios.get(`${API}/quotas/conversation-allocation`, { headers }).catch(() => null)
+        axios.get(`${API}/quotas/seats/allocation`, { headers }).catch(() => null),
+        axios.get(`${API}/quotas/agents/allocation`, { headers }).catch(() => null),
+        axios.get(`${API}/quotas/conversations/allocation`, { headers }).catch(() => null)
       ]);
 
       if (seatRes?.data) {
