@@ -610,3 +610,71 @@ export const AgentGridBlockEditor = ({ block, updateBlock }) => {
     </div>
   );
 };
+
+// Waitlist Block Editor
+export const WaitlistBlockEditor = ({ block, updateBlock }) => {
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label>Heading</Label>
+        <Input
+          value={block.content?.heading || ''}
+          onChange={(e) => updateBlock(block.id, { ...block.content, heading: e.target.value })}
+          placeholder="Join Our Waitlist"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Description</Label>
+        <Textarea
+          value={block.content?.description || ''}
+          onChange={(e) => updateBlock(block.id, { ...block.content, description: e.target.value })}
+          placeholder="Be the first to know when we launch..."
+          rows={2}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Submit Button Text</Label>
+        <Input
+          value={block.content?.buttonText || ''}
+          onChange={(e) => updateBlock(block.id, { ...block.content, buttonText: e.target.value })}
+          placeholder="Join Waitlist"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Success Message</Label>
+        <Input
+          value={block.content?.successMessage || ''}
+          onChange={(e) => updateBlock(block.id, { ...block.content, successMessage: e.target.value })}
+          placeholder="Thank you! You're on the list."
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Privacy Policy URL</Label>
+        <Input
+          value={block.content?.privacyUrl || ''}
+          onChange={(e) => updateBlock(block.id, { ...block.content, privacyUrl: e.target.value })}
+          placeholder="/privacy"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Privacy Checkbox Text</Label>
+        <Input
+          value={block.content?.privacyText || ''}
+          onChange={(e) => updateBlock(block.id, { ...block.content, privacyText: e.target.value })}
+          placeholder="I agree to the Privacy Policy"
+        />
+      </div>
+
+      <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4 text-sm">
+        <p className="text-green-900 dark:text-green-100">
+          <strong>Note:</strong> This block displays a waitlist form. Submissions are stored and an auto-responder email is sent. View submissions in Dashboard → Admin → Waitlist.
+        </p>
+      </div>
+    </div>
+  );
+};
