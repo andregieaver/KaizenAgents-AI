@@ -4607,7 +4607,7 @@ class AIAgentHubTester:
             404
         )
         
-        if not success:
+        if success:
             print("   ✅ Entry correctly not found after deletion")
         else:
             print("   ❌ Entry still exists after deletion")
