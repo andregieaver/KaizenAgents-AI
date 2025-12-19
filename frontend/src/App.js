@@ -157,6 +157,7 @@ function AppRoutes() {
         <Route path="admin/menus/edit/:menuId" element={<MenuEditor />} />
         <Route path="admin/emails" element={<EmailTemplates />} />
         <Route path="admin/waitlist" element={<WaitlistAdmin />} />
+        <Route path="admin/campaigns" element={<CustomEmailsAdmin />} />
         <Route path="affiliates" element={<Affiliates />} />
       </Route>
 
