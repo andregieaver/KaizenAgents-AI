@@ -31,6 +31,7 @@ const Billing = () => {
   const [sliderValue, setSliderValue] = useState(0);
   const [savingSeats, setSavingSeats] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [plans, setPlans] = useState([]);
 
   useEffect(() => {
     const handleStripeReturn = async () => {
