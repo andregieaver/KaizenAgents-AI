@@ -6004,3 +6004,34 @@ The Seat Management feature is **FULLY IMPLEMENTED AND FUNCTIONAL** based on:
 ### Agent Communication:
 - **Testing Agent to Main Agent:** Waitlist backend functionality fully tested and working. All 7 test scenarios passed including public submission, duplicate prevention, admin CRUD operations, and proper error handling. Backend APIs are ready for frontend integration.
 
+
+## Custom Emails/Campaigns Feature
+
+### New Backend Routes (/app/backend/routes/custom_emails.py):
+- GET /api/custom-emails/categories - Get recipient categories with counts
+- GET /api/custom-emails - List all custom emails
+- GET /api/custom-emails/{id} - Get specific email
+- POST /api/custom-emails - Create new email
+- PATCH /api/custom-emails/{id} - Update email
+- DELETE /api/custom-emails/{id} - Delete email
+- POST /api/custom-emails/{id}/send - Send email (with test mode option)
+- POST /api/custom-emails/{id}/duplicate - Duplicate email
+
+### Recipient Categories:
+- All Users
+- Waitlist - All / Pending / Approved
+- Free / Starter / Professional Plan Users
+- All Paid Users
+- Team Owners
+- Super Admins
+
+### Frontend Page:
+- CustomEmailsAdmin.js at /dashboard/admin/campaigns
+- Email List tab - view all campaigns
+- New Email tab - create/edit campaigns
+- Preview, Edit, Duplicate, Send, Delete actions
+- Test mode for sending to single email before broadcast
+
+### Test Credentials:
+- Super Admin: andre@humanweb.no / Pernilla66!
+
