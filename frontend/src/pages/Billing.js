@@ -606,44 +606,6 @@ const Billing = () => {
               />
             </div>
 
-            {/* Features */}
-            <div className="pt-4 border-t border-border">
-              <p className="font-medium mb-3 text-sm sm:text-base">Plan Features</p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 text-sm">
-                <div className="flex items-center gap-2">
-                  {usage.limits?.analytics_enabled ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <div className="h-4 w-4" />
-                  )}
-                  <span>Analytics</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {usage.limits?.api_access ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <div className="h-4 w-4" />
-                  )}
-                  <span>API Access</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {usage.limits?.remove_branding ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <div className="h-4 w-4" />
-                  )}
-                  <span>Remove Branding</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {usage.limits?.custom_integrations ? (
-                    <CheckCircle className="h-4 w-4 text-green-500" />
-                  ) : (
-                    <div className="h-4 w-4" />
-                  )}
-                  <span>Custom Integrations</span>
-                </div>
-              </div>
-            </div>
           </CardContent>
         </Card>
       )}
