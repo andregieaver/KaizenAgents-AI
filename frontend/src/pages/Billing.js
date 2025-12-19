@@ -950,6 +950,268 @@ const Billing = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Agent Management - Only for paid plans */}
+      {agentAllocation && subscription?.plan_name?.toLowerCase() !== 'free' && (
+        <Card className="border border-border">
+          <CardHeader className="pb-3 sm:pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Bot className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Agent Management
+                </CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Adjust the number of agents for your team
+                </CardDescription>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-xs">
+                    <p className="text-sm">
+                      <strong>Billing Rules:</strong><br />
+                      • Increases are locked in after 24 hours<br />
+                      • Decreases apply but you&apos;re billed for the highest committed amount<br />
+                      • Within 24hr grace period, you can undo increases
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Current Status */}
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm text-muted-foreground">Base:</span>
+                  <span className="text-base sm:text-lg font-bold">{agentAllocation.base_plan_agents}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm text-muted-foreground">Current:</span>
+                  <span className="text-base sm:text-lg font-bold text-green-500">{agentAllocation.current_agents}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm text-muted-foreground">Committed:</span>
+                  <span className="text-base sm:text-lg font-bold text-blue-500">{agentAllocation.committed_agents}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm text-muted-foreground">Extra/Month:</span>
+                <span className="text-base sm:text-lg font-bold">
+                  ${agentAllocation.additional_agents_cost?.toFixed(2) || '0.00'}
+                </span>
+              </div>
+            </div>
+
+            {/* Grace Period Alert */}
+            {agentAllocation.is_in_grace_period && (
+              <Alert className="bg-blue-500/10 border-blue-500/30">
+                <Clock className="h-4 w-4 text-blue-500" />
+                <AlertDescription className="text-blue-700 dark:text-blue-300">
+                  <strong>Grace Period Active:</strong> You can undo your recent increase without penalty.{' '}
+                  <span className="font-medium">{formatTimeRemaining(agentAllocation.grace_period_ends_at)}</span>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Slider */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Total Agents</span>
+                <span className="text-lg font-bold">{agentSliderValue}</span>
+              </div>
+              <Slider
+                value={[agentSliderValue]}
+                onValueChange={handleAgentSliderChange}
+                min={agentAllocation.base_plan_agents}
+                max={agentAllocation.max_agents}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{agentAllocation.base_plan_agents} (Base)</span>
+                <span>{agentAllocation.max_agents} (Max)</span>
+              </div>
+            </div>
+
+            {/* Cost Breakdown */}
+            {agentSliderValue > agentAllocation.base_plan_agents && (
+              <div className="p-4 border border-border rounded-lg space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Additional agents</span>
+                  <span>{agentSliderValue - agentAllocation.base_plan_agents} × ${agentAllocation.price_per_agent?.toFixed(2) || '10.00'}</span>
+                </div>
+                <div className="flex justify-between font-semibold">
+                  <span>Extra monthly cost</span>
+                  <span>${((agentSliderValue - agentAllocation.base_plan_agents) * (agentAllocation.price_per_agent || 10)).toFixed(2)}</span>
+                </div>
+                {agentSliderValue < agentAllocation.committed_agents && !agentAllocation.is_in_grace_period && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    <AlertTriangle className="h-3 w-3 inline mr-1" />
+                    Note: You&apos;ll still be billed for {agentAllocation.committed_agents} agents at renewal.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Save Button */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                onClick={saveAgentAllocation}
+                disabled={!agentUnsavedChanges || savingAgents}
+                className="flex-1"
+              >
+                {savingAgents ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                {agentUnsavedChanges ? 'Save Changes' : 'No Changes'}
+              </Button>
+              {agentUnsavedChanges && (
+                <Button variant="outline" onClick={() => { setAgentSliderValue(agentAllocation.current_agents); setAgentUnsavedChanges(false); }}>
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Conversation Management - Only for paid plans */}
+      {conversationAllocation && subscription?.plan_name?.toLowerCase() !== 'free' && (
+        <Card className="border border-border">
+          <CardHeader className="pb-3 sm:pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
+                  Conversation Management
+                </CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
+                  Adjust the number of monthly conversations
+                </CardDescription>
+              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-xs">
+                    <p className="text-sm">
+                      <strong>Billing Rules:</strong><br />
+                      • Conversations are billed in blocks of {conversationAllocation.conversation_block_size || 100}<br />
+                      • Increases are locked in after 24 hours<br />
+                      • Within 24hr grace period, you can undo increases
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Current Status */}
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm text-muted-foreground">Base:</span>
+                  <span className="text-base sm:text-lg font-bold">{conversationAllocation.base_plan_conversations}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm text-muted-foreground">Current:</span>
+                  <span className="text-base sm:text-lg font-bold text-green-500">{conversationAllocation.current_conversations}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs sm:text-sm text-muted-foreground">Committed:</span>
+                  <span className="text-base sm:text-lg font-bold text-blue-500">{conversationAllocation.committed_conversations}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs sm:text-sm text-muted-foreground">Extra/Month:</span>
+                <span className="text-base sm:text-lg font-bold">
+                  ${conversationAllocation.additional_conversations_cost?.toFixed(2) || '0.00'}
+                </span>
+              </div>
+            </div>
+
+            {/* Grace Period Alert */}
+            {conversationAllocation.is_in_grace_period && (
+              <Alert className="bg-blue-500/10 border-blue-500/30">
+                <Clock className="h-4 w-4 text-blue-500" />
+                <AlertDescription className="text-blue-700 dark:text-blue-300">
+                  <strong>Grace Period Active:</strong> You can undo your recent increase without penalty.{' '}
+                  <span className="font-medium">{formatTimeRemaining(conversationAllocation.grace_period_ends_at)}</span>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Slider */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Total Conversations</span>
+                <span className="text-lg font-bold">{conversationSliderValue}</span>
+              </div>
+              <Slider
+                value={[conversationSliderValue]}
+                onValueChange={handleConversationSliderChange}
+                min={conversationAllocation.base_plan_conversations}
+                max={conversationAllocation.max_conversations}
+                step={conversationAllocation.conversation_block_size || 100}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{conversationAllocation.base_plan_conversations} (Base)</span>
+                <span>{conversationAllocation.max_conversations} (Max)</span>
+              </div>
+            </div>
+
+            {/* Cost Breakdown */}
+            {conversationSliderValue > conversationAllocation.base_plan_conversations && (
+              <div className="p-4 border border-border rounded-lg space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Additional conversations</span>
+                  <span>{conversationSliderValue - conversationAllocation.base_plan_conversations}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Blocks ({conversationAllocation.conversation_block_size || 100} each)</span>
+                  <span>{Math.ceil((conversationSliderValue - conversationAllocation.base_plan_conversations) / (conversationAllocation.conversation_block_size || 100))} × ${conversationAllocation.price_per_conversation_block?.toFixed(2) || '5.00'}</span>
+                </div>
+                <div className="flex justify-between font-semibold">
+                  <span>Extra monthly cost</span>
+                  <span>${(Math.ceil((conversationSliderValue - conversationAllocation.base_plan_conversations) / (conversationAllocation.conversation_block_size || 100)) * (conversationAllocation.price_per_conversation_block || 5)).toFixed(2)}</span>
+                </div>
+                {conversationSliderValue < conversationAllocation.committed_conversations && !conversationAllocation.is_in_grace_period && (
+                  <p className="text-xs text-amber-600 mt-2">
+                    <AlertTriangle className="h-3 w-3 inline mr-1" />
+                    Note: You&apos;ll still be billed for {conversationAllocation.committed_conversations} conversations at renewal.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Save Button */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                onClick={saveConversationAllocation}
+                disabled={!conversationUnsavedChanges || savingConversations}
+                className="flex-1"
+              >
+                {savingConversations ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                {conversationUnsavedChanges ? 'Save Changes' : 'No Changes'}
+              </Button>
+              {conversationUnsavedChanges && (
+                <Button variant="outline" onClick={() => { setConversationSliderValue(conversationAllocation.current_conversations); setConversationUnsavedChanges(false); }}>
+                  Cancel
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
