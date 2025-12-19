@@ -376,6 +376,8 @@ const SortableBlockItem = ({ block, children, onDelete, onVisibilityChange }) =>
         return 'Pricing Cards';
       case 'agent_grid':
         return 'Agent Grid';
+      case 'waitlist':
+        return 'Waitlist Form';
       case 'button':
         return 'Button';
       case 'logo_text':
