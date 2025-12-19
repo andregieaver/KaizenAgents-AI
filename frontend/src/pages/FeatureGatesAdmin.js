@@ -60,6 +60,8 @@ const FeatureGatesAdmin = () => {
     
     loadData();
     loadSeatPricing();
+    loadAgentPricing();
+    loadConversationPricing();
   }, [token, user, navigate]);
 
   const loadData = async () => {
