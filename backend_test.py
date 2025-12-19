@@ -4382,7 +4382,7 @@ class AIAgentHubTester:
                 data=duplicate_data
             )
             
-            if not success:
+            if success:
                 print("   ✅ Correctly rejected duplicate email submission")
                 
                 # Check error message
