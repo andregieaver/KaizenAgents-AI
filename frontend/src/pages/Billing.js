@@ -469,7 +469,7 @@ const Billing = () => {
         <Alert className="border-amber-500 bg-amber-500/10">
           <AlertTriangle className="h-4 w-4 text-amber-500" />
           <AlertDescription className="text-amber-500">
-            <strong>Usage Warning:</strong> You're approaching your plan limits. Consider upgrading to avoid interruptions.
+            <strong>Usage Warning:</strong> You&apos;re approaching your plan limits. Consider upgrading to avoid interruptions.
           </AlertDescription>
         </Alert>
       )}
