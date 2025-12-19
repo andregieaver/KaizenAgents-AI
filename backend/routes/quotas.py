@@ -443,6 +443,398 @@ async def update_seat_allocation(
     }
 
 
+# ============== AGENT ALLOCATION MANAGEMENT ==============
+
+@router.get("/agents/allocation", response_model=AgentAllocationResponse)
+async def get_agent_allocation(current_user: dict = Depends(get_current_user)):
+    """Get current agent allocation details including grace period status"""
+    from datetime import timedelta
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    subscription = await quota_service._get_subscription(tenant_id)
+    plan_name = subscription.get("plan_name", "free")
+    plan_name_lower = plan_name.lower() if plan_name else "free"
+    
+    # Get base plan agents from feature gate config
+    config = await quota_service._get_config()
+    base_plan_agents = 1
+    
+    if config:
+        for feature in config.get("features", []):
+            if feature.get("feature_key") == "max_agents":
+                plan_limits = feature.get("plans", {}).get(plan_name_lower)
+                if plan_limits:
+                    base_plan_agents = plan_limits.get("limit", 1) or 1
+                break
+    
+    # Get agent allocation document
+    agent_alloc = await db.agent_allocations.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    
+    now = datetime.now(timezone.utc)
+    
+    if not agent_alloc:
+        agent_alloc = {
+            "tenant_id": tenant_id,
+            "current_agents": base_plan_agents,
+            "committed_agents": base_plan_agents,
+            "last_increase_at": None,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        }
+        await db.agent_allocations.insert_one(agent_alloc)
+    
+    current_agents = agent_alloc.get("current_agents", base_plan_agents)
+    committed_agents = agent_alloc.get("committed_agents", base_plan_agents)
+    last_increase_at = agent_alloc.get("last_increase_at")
+    
+    is_in_grace_period = False
+    grace_period_ends_at = None
+    
+    if last_increase_at:
+        last_increase_dt = datetime.fromisoformat(last_increase_at.replace('Z', '+00:00'))
+        grace_end = last_increase_dt + timedelta(hours=24)
+        if now < grace_end:
+            is_in_grace_period = True
+            grace_period_ends_at = grace_end.isoformat()
+    
+    # Get price per agent (default $10/agent/month)
+    agent_pricing = await db.resource_pricing.find_one(
+        {"resource_type": "agents", "plan_name": {"$regex": f"^{plan_name}$", "$options": "i"}},
+        {"_id": 0}
+    )
+    price_per_agent = agent_pricing.get("price_per_unit", 10.0) if agent_pricing else 10.0
+    
+    plan_doc = await db.subscription_plans.find_one(
+        {"name": {"$regex": f"^{plan_name}$", "$options": "i"}},
+        {"_id": 0}
+    )
+    plan_monthly_price = plan_doc.get("price_monthly", 0) if plan_doc else 0
+    
+    additional_agents = max(0, committed_agents - base_plan_agents)
+    additional_agents_cost = additional_agents * price_per_agent
+    total_monthly_cost = plan_monthly_price + additional_agents_cost
+    
+    return {
+        "base_plan_agents": base_plan_agents,
+        "current_agents": current_agents,
+        "committed_agents": committed_agents,
+        "max_agents": 100,
+        "last_increase_at": last_increase_at,
+        "grace_period_ends_at": grace_period_ends_at,
+        "is_in_grace_period": is_in_grace_period,
+        "price_per_agent": price_per_agent,
+        "additional_agents_cost": additional_agents_cost,
+        "plan_monthly_price": plan_monthly_price,
+        "total_monthly_cost": total_monthly_cost
+    }
+
+
+@router.put("/agents/allocation")
+async def update_agent_allocation(
+    adjustment: AgentAdjustment,
+    current_user: dict = Depends(get_current_user)
+):
+    """Adjust total agent count with same rules as seats"""
+    from datetime import timedelta
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    if adjustment.total_agents < 1 or adjustment.total_agents > 100:
+        raise HTTPException(status_code=400, detail="Total agents must be between 1 and 100")
+    
+    subscription = await quota_service._get_subscription(tenant_id)
+    plan_name = subscription.get("plan_name", "free")
+    plan_name_lower = plan_name.lower() if plan_name else "free"
+    
+    if plan_name_lower == "free":
+        raise HTTPException(status_code=403, detail="Agent adjustment is only available for paid plans")
+    
+    config = await quota_service._get_config()
+    base_plan_agents = 1
+    
+    if config:
+        for feature in config.get("features", []):
+            if feature.get("feature_key") == "max_agents":
+                plan_limits = feature.get("plans", {}).get(plan_name_lower)
+                if plan_limits:
+                    base_plan_agents = plan_limits.get("limit", 1) or 1
+                break
+    
+    if adjustment.total_agents < base_plan_agents:
+        raise HTTPException(status_code=400, detail=f"Cannot reduce below base plan agents ({base_plan_agents})")
+    
+    agent_alloc = await db.agent_allocations.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    now = datetime.now(timezone.utc)
+    
+    if not agent_alloc:
+        agent_alloc = {
+            "tenant_id": tenant_id,
+            "current_agents": base_plan_agents,
+            "committed_agents": base_plan_agents,
+            "last_increase_at": None,
+            "created_at": now.isoformat()
+        }
+    
+    current_agents = agent_alloc.get("current_agents", base_plan_agents)
+    committed_agents = agent_alloc.get("committed_agents", base_plan_agents)
+    last_increase_at = agent_alloc.get("last_increase_at")
+    
+    is_in_grace_period = False
+    if last_increase_at:
+        last_increase_dt = datetime.fromisoformat(last_increase_at.replace('Z', '+00:00'))
+        grace_end = last_increase_dt + timedelta(hours=24)
+        is_in_grace_period = now < grace_end
+    
+    new_total = adjustment.total_agents
+    update_fields = {"updated_at": now.isoformat()}
+    
+    if new_total > current_agents:
+        update_fields["current_agents"] = new_total
+        update_fields["committed_agents"] = max(committed_agents, new_total)
+        update_fields["last_increase_at"] = now.isoformat()
+        action = "increased"
+    elif new_total < current_agents:
+        update_fields["current_agents"] = new_total
+        if is_in_grace_period:
+            update_fields["committed_agents"] = max(new_total, base_plan_agents)
+            update_fields["last_increase_at"] = None
+            action = "decreased_within_grace"
+        else:
+            action = "decreased"
+    else:
+        return {"message": "No change in agent allocation", "current_agents": current_agents, "committed_agents": committed_agents}
+    
+    await db.agent_allocations.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": update_fields},
+        upsert=True
+    )
+    
+    updated_alloc = await db.agent_allocations.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    
+    agent_pricing = await db.resource_pricing.find_one(
+        {"resource_type": "agents", "plan_name": {"$regex": f"^{plan_name}$", "$options": "i"}},
+        {"_id": 0}
+    )
+    price_per_agent = agent_pricing.get("price_per_unit", 10.0) if agent_pricing else 10.0
+    
+    additional_agents = max(0, updated_alloc.get("committed_agents", base_plan_agents) - base_plan_agents)
+    additional_agents_cost = additional_agents * price_per_agent
+    
+    return {
+        "message": f"Agent allocation {action.replace('_', ' ')}",
+        "action": action,
+        "current_agents": updated_alloc.get("current_agents"),
+        "committed_agents": updated_alloc.get("committed_agents"),
+        "base_plan_agents": base_plan_agents,
+        "additional_agents_cost": additional_agents_cost,
+        "is_in_grace_period": action == "increased",
+        "grace_period_ends_at": (now + timedelta(hours=24)).isoformat() if action == "increased" else None
+    }
+
+
+# ============== CONVERSATION ALLOCATION MANAGEMENT ==============
+
+@router.get("/conversations/allocation", response_model=ConversationAllocationResponse)
+async def get_conversation_allocation(current_user: dict = Depends(get_current_user)):
+    """Get current conversation allocation details including grace period status"""
+    from datetime import timedelta
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    subscription = await quota_service._get_subscription(tenant_id)
+    plan_name = subscription.get("plan_name", "free")
+    plan_name_lower = plan_name.lower() if plan_name else "free"
+    
+    config = await quota_service._get_config()
+    base_plan_conversations = 50
+    
+    if config:
+        for feature in config.get("features", []):
+            if feature.get("feature_key") == "max_conversations":
+                plan_limits = feature.get("plans", {}).get(plan_name_lower)
+                if plan_limits:
+                    base_plan_conversations = plan_limits.get("limit", 50) or 50
+                break
+    
+    conv_alloc = await db.conversation_allocations.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    now = datetime.now(timezone.utc)
+    
+    if not conv_alloc:
+        conv_alloc = {
+            "tenant_id": tenant_id,
+            "current_conversations": base_plan_conversations,
+            "committed_conversations": base_plan_conversations,
+            "last_increase_at": None,
+            "created_at": now.isoformat(),
+            "updated_at": now.isoformat()
+        }
+        await db.conversation_allocations.insert_one(conv_alloc)
+    
+    current_conversations = conv_alloc.get("current_conversations", base_plan_conversations)
+    committed_conversations = conv_alloc.get("committed_conversations", base_plan_conversations)
+    last_increase_at = conv_alloc.get("last_increase_at")
+    
+    is_in_grace_period = False
+    grace_period_ends_at = None
+    
+    if last_increase_at:
+        last_increase_dt = datetime.fromisoformat(last_increase_at.replace('Z', '+00:00'))
+        grace_end = last_increase_dt + timedelta(hours=24)
+        if now < grace_end:
+            is_in_grace_period = True
+            grace_period_ends_at = grace_end.isoformat()
+    
+    # Price per 100 conversations block (default $5/100 conversations)
+    conv_pricing = await db.resource_pricing.find_one(
+        {"resource_type": "conversations", "plan_name": {"$regex": f"^{plan_name}$", "$options": "i"}},
+        {"_id": 0}
+    )
+    price_per_block = conv_pricing.get("price_per_unit", 5.0) if conv_pricing else 5.0
+    block_size = conv_pricing.get("block_size", 100) if conv_pricing else 100
+    
+    plan_doc = await db.subscription_plans.find_one(
+        {"name": {"$regex": f"^{plan_name}$", "$options": "i"}},
+        {"_id": 0}
+    )
+    plan_monthly_price = plan_doc.get("price_monthly", 0) if plan_doc else 0
+    
+    additional_conversations = max(0, committed_conversations - base_plan_conversations)
+    additional_blocks = (additional_conversations + block_size - 1) // block_size  # Ceiling division
+    additional_conversations_cost = additional_blocks * price_per_block
+    total_monthly_cost = plan_monthly_price + additional_conversations_cost
+    
+    return {
+        "base_plan_conversations": base_plan_conversations,
+        "current_conversations": current_conversations,
+        "committed_conversations": committed_conversations,
+        "max_conversations": 10000,
+        "last_increase_at": last_increase_at,
+        "grace_period_ends_at": grace_period_ends_at,
+        "is_in_grace_period": is_in_grace_period,
+        "price_per_conversation_block": price_per_block,
+        "conversation_block_size": block_size,
+        "additional_conversations_cost": additional_conversations_cost,
+        "plan_monthly_price": plan_monthly_price,
+        "total_monthly_cost": total_monthly_cost
+    }
+
+
+@router.put("/conversations/allocation")
+async def update_conversation_allocation(
+    adjustment: ConversationAdjustment,
+    current_user: dict = Depends(get_current_user)
+):
+    """Adjust total conversation count with same rules as seats"""
+    from datetime import timedelta
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    if adjustment.total_conversations < 1 or adjustment.total_conversations > 10000:
+        raise HTTPException(status_code=400, detail="Total conversations must be between 1 and 10000")
+    
+    subscription = await quota_service._get_subscription(tenant_id)
+    plan_name = subscription.get("plan_name", "free")
+    plan_name_lower = plan_name.lower() if plan_name else "free"
+    
+    if plan_name_lower == "free":
+        raise HTTPException(status_code=403, detail="Conversation adjustment is only available for paid plans")
+    
+    config = await quota_service._get_config()
+    base_plan_conversations = 50
+    
+    if config:
+        for feature in config.get("features", []):
+            if feature.get("feature_key") == "max_conversations":
+                plan_limits = feature.get("plans", {}).get(plan_name_lower)
+                if plan_limits:
+                    base_plan_conversations = plan_limits.get("limit", 50) or 50
+                break
+    
+    if adjustment.total_conversations < base_plan_conversations:
+        raise HTTPException(status_code=400, detail=f"Cannot reduce below base plan conversations ({base_plan_conversations})")
+    
+    conv_alloc = await db.conversation_allocations.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    now = datetime.now(timezone.utc)
+    
+    if not conv_alloc:
+        conv_alloc = {
+            "tenant_id": tenant_id,
+            "current_conversations": base_plan_conversations,
+            "committed_conversations": base_plan_conversations,
+            "last_increase_at": None,
+            "created_at": now.isoformat()
+        }
+    
+    current_conversations = conv_alloc.get("current_conversations", base_plan_conversations)
+    committed_conversations = conv_alloc.get("committed_conversations", base_plan_conversations)
+    last_increase_at = conv_alloc.get("last_increase_at")
+    
+    is_in_grace_period = False
+    if last_increase_at:
+        last_increase_dt = datetime.fromisoformat(last_increase_at.replace('Z', '+00:00'))
+        grace_end = last_increase_dt + timedelta(hours=24)
+        is_in_grace_period = now < grace_end
+    
+    new_total = adjustment.total_conversations
+    update_fields = {"updated_at": now.isoformat()}
+    
+    if new_total > current_conversations:
+        update_fields["current_conversations"] = new_total
+        update_fields["committed_conversations"] = max(committed_conversations, new_total)
+        update_fields["last_increase_at"] = now.isoformat()
+        action = "increased"
+    elif new_total < current_conversations:
+        update_fields["current_conversations"] = new_total
+        if is_in_grace_period:
+            update_fields["committed_conversations"] = max(new_total, base_plan_conversations)
+            update_fields["last_increase_at"] = None
+            action = "decreased_within_grace"
+        else:
+            action = "decreased"
+    else:
+        return {"message": "No change in conversation allocation", "current_conversations": current_conversations, "committed_conversations": committed_conversations}
+    
+    await db.conversation_allocations.update_one(
+        {"tenant_id": tenant_id},
+        {"$set": update_fields},
+        upsert=True
+    )
+    
+    updated_alloc = await db.conversation_allocations.find_one({"tenant_id": tenant_id}, {"_id": 0})
+    
+    conv_pricing = await db.resource_pricing.find_one(
+        {"resource_type": "conversations", "plan_name": {"$regex": f"^{plan_name}$", "$options": "i"}},
+        {"_id": 0}
+    )
+    price_per_block = conv_pricing.get("price_per_unit", 5.0) if conv_pricing else 5.0
+    block_size = conv_pricing.get("block_size", 100) if conv_pricing else 100
+    
+    additional_conversations = max(0, updated_alloc.get("committed_conversations", base_plan_conversations) - base_plan_conversations)
+    additional_blocks = (additional_conversations + block_size - 1) // block_size
+    additional_conversations_cost = additional_blocks * price_per_block
+    
+    return {
+        "message": f"Conversation allocation {action.replace('_', ' ')}",
+        "action": action,
+        "current_conversations": updated_alloc.get("current_conversations"),
+        "committed_conversations": updated_alloc.get("committed_conversations"),
+        "base_plan_conversations": base_plan_conversations,
+        "additional_conversations_cost": additional_conversations_cost,
+        "is_in_grace_period": action == "increased",
+        "grace_period_ends_at": (now + timedelta(hours=24)).isoformat() if action == "increased" else None
+    }
+
+
 @router.post("/extra-seats/purchase")
 async def purchase_extra_seats(
     purchase: ExtraSeatPurchase,
