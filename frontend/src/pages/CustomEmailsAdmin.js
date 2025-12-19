@@ -465,17 +465,14 @@ const CustomEmailsAdmin = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="content">Email Content (HTML)</Label>
-                <Textarea
-                  id="content"
-                  value={emailForm.html_content}
-                  onChange={(e) => setEmailForm({...emailForm, html_content: e.target.value})}
-                  placeholder="Enter HTML content..."
-                  rows={15}
-                  className="font-mono text-sm"
+                <Label>Email Content</Label>
+                <RichTextEditor
+                  content={emailForm.html_content}
+                  onChange={(html) => setEmailForm({...emailForm, html_content: wrapEmailContent(html)})}
+                  placeholder="Start typing your email content..."
                 />
                 <p className="text-xs text-muted-foreground">
-                  Use HTML for styling. Variables: {"{{user_name}}"}, {"{{user_email}}"}, {"{{platform_name}}"}, {"{{year}}"}
+                  Variables: {"{{user_name}}"}, {"{{user_email}}"}, {"{{platform_name}}"}, {"{{year}}"}
                 </p>
               </div>
 
