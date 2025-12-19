@@ -212,6 +212,55 @@ const Billing = () => {
     return `${minutes}m remaining`;
   };
 
+  // Check if upgrading to a higher plan would be cheaper
+  const getUpgradeRecommendation = () => {
+    if (!seatAllocation || !subscription || !plans.length) return null;
+    
+    const currentPlanName = subscription.plan_name?.toLowerCase();
+    const currentPlan = plans.find(p => p.name?.toLowerCase() === currentPlanName);
+    
+    if (!currentPlan) return null;
+    
+    // Calculate current total cost (plan + committed seats)
+    const additionalSeats = Math.max(0, seatAllocation.committed_seats - seatAllocation.base_plan_seats);
+    const seatsCost = additionalSeats * seatAllocation.price_per_seat;
+    const currentTotalCost = (currentPlan.price_monthly || 0) + seatsCost;
+    
+    // Find higher plans that would be cheaper
+    const higherPlans = plans.filter(p => {
+      const planPrice = p.price_monthly || 0;
+      // Must be a paid plan with higher base price
+      return planPrice > (currentPlan.price_monthly || 0);
+    });
+    
+    for (const plan of higherPlans) {
+      // Get the base seats for this plan from feature gates (rough estimate)
+      // Higher plans typically have more seats included
+      const estimatedBaseSeats = plan.name?.toLowerCase() === 'professional' ? 25 : 
+                                  plan.name?.toLowerCase() === 'starter' ? 5 : 1;
+      
+      // If the higher plan includes enough seats, upgrading might be cheaper
+      if (estimatedBaseSeats >= seatAllocation.committed_seats) {
+        const upgradeCost = plan.price_monthly || 0;
+        const savings = currentTotalCost - upgradeCost;
+        
+        if (savings > 0) {
+          return {
+            planName: plan.name,
+            planPrice: upgradeCost,
+            currentTotal: currentTotalCost,
+            savings: savings,
+            baseSeats: estimatedBaseSeats
+          };
+        }
+      }
+    }
+    
+    return null;
+  };
+
+  const upgradeRecommendation = getUpgradeRecommendation();
+
   const handleUpgrade = () => {
     navigate('/dashboard/pricing');
   };
