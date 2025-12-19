@@ -155,6 +155,17 @@ const Billing = () => {
     }
   };
 
+  const fetchPlans = async () => {
+    try {
+      const response = await axios.get(`${API}/subscriptions/plans`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPlans(response.data || []);
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+    }
+  };
+
   const handleSliderChange = (value) => {
     setSliderValue(value[0]);
     setHasUnsavedChanges(value[0] !== seatAllocation?.current_seats);
