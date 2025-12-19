@@ -5412,3 +5412,37 @@ The Seat Management feature is **FULLY IMPLEMENTED AND FUNCTIONAL** based on:
 *Environment: Production Preview*
 *Status: BACKEND CONFIRMED, FRONTEND CODE VERIFIED - READY FOR PRODUCTION*
 
+
+## Agent & Conversation Pricing Admin Feature
+
+### Test Scope
+- Agent Pricing management on Feature Gates admin page
+- Conversation Pricing management on Feature Gates admin page  
+- Backend API endpoints for pricing CRUD operations
+- Stripe sync functionality for pricing
+
+### Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
+
+### New Backend Endpoints Added
+1. **Agent Pricing:**
+   - GET /api/quotas/agent-pricing - List all agent pricing configs
+   - GET /api/quotas/agent-pricing/{plan_id} - Get specific plan pricing
+   - PATCH /api/quotas/agent-pricing/{plan_id} - Update agent pricing
+   - POST /api/quotas/agent-pricing/{plan_id}/sync-stripe - Sync to Stripe
+
+2. **Conversation Pricing:**
+   - GET /api/quotas/conversation-pricing - List all conversation pricing configs
+   - GET /api/quotas/conversation-pricing/{plan_id} - Get specific plan pricing
+   - PATCH /api/quotas/conversation-pricing/{plan_id} - Update conversation pricing
+   - POST /api/quotas/conversation-pricing/{plan_id}/sync-stripe - Sync to Stripe
+
+### Expected Results
+1. Agent Pricing tab should show pricing cards for each plan
+2. Edit button should allow updating price per agent
+3. Sync button should sync pricing to Stripe
+4. Conversation Pricing tab should show pricing cards with block size info
+5. Edit button should allow updating price per block and block size
+6. Free plans should show "Disabled" badge
+7. Paid plans should show "Active" badge
+
