@@ -161,6 +161,132 @@ const FeatureGatesAdmin = () => {
     }
   };
 
+  // ============== AGENT PRICING FUNCTIONS ==============
+  
+  const loadAgentPricing = async () => {
+    setLoadingAgentPricing(true);
+    try {
+      const response = await axios.get(`${API}/quotas/agent-pricing`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAgentPricing(response.data || []);
+    } catch (error) {
+      console.error('Error loading agent pricing:', error);
+    } finally {
+      setLoadingAgentPricing(false);
+    }
+  };
+
+  const startEditAgentPrice = (pricing) => {
+    setEditingAgentPlan(pricing.plan_id);
+    setAgentEditForm({
+      price_per_agent_monthly: (pricing.price_per_agent_monthly || 0).toString(),
+      is_enabled: pricing.is_enabled
+    });
+  };
+
+  const cancelEditAgentPrice = () => {
+    setEditingAgentPlan(null);
+    setAgentEditForm({ price_per_agent_monthly: '', is_enabled: true });
+  };
+
+  const saveAgentPrice = async (planId) => {
+    setSavingAgentPrice(true);
+    try {
+      await axios.patch(`${API}/quotas/agent-pricing/${planId}`, {
+        price_per_agent_monthly: parseFloat(agentEditForm.price_per_agent_monthly) || 0,
+        is_enabled: agentEditForm.is_enabled
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      
+      toast.success('Agent pricing updated successfully');
+      setEditingAgentPlan(null);
+      loadAgentPricing();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to save agent pricing');
+    } finally {
+      setSavingAgentPrice(false);
+    }
+  };
+
+  const syncAgentPricingToStripe = async (planId) => {
+    setSyncingAgentPricing(planId);
+    try {
+      await axios.post(`${API}/quotas/agent-pricing/${planId}/sync-stripe`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Agent pricing synced to Stripe successfully!');
+      loadAgentPricing();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to sync to Stripe.');
+    } finally {
+      setSyncingAgentPricing(null);
+    }
+  };
+
+  // ============== CONVERSATION PRICING FUNCTIONS ==============
+  
+  const loadConversationPricing = async () => {
+    setLoadingConversationPricing(true);
+    try {
+      const response = await axios.get(`${API}/quotas/conversation-pricing`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setConversationPricing(response.data || []);
+    } catch (error) {
+      console.error('Error loading conversation pricing:', error);
+    } finally {
+      setLoadingConversationPricing(false);
+    }
+  };
+
+  const startEditConversationPrice = (pricing) => {
+    setEditingConversationPlan(pricing.plan_id);
+    setConversationEditForm({
+      price_per_block: (pricing.price_per_block || 0).toString(),
+      block_size: pricing.block_size || 100,
+      is_enabled: pricing.is_enabled
+    });
+  };
+
+  const cancelEditConversationPrice = () => {
+    setEditingConversationPlan(null);
+    setConversationEditForm({ price_per_block: '', block_size: 100, is_enabled: true });
+  };
+
+  const saveConversationPrice = async (planId) => {
+    setSavingConversationPrice(true);
+    try {
+      await axios.patch(`${API}/quotas/conversation-pricing/${planId}`, {
+        price_per_block: parseFloat(conversationEditForm.price_per_block) || 0,
+        block_size: parseInt(conversationEditForm.block_size) || 100,
+        is_enabled: conversationEditForm.is_enabled
+      }, { headers: { Authorization: `Bearer ${token}` } });
+      
+      toast.success('Conversation pricing updated successfully');
+      setEditingConversationPlan(null);
+      loadConversationPricing();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to save conversation pricing');
+    } finally {
+      setSavingConversationPrice(false);
+    }
+  };
+
+  const syncConversationPricingToStripe = async (planId) => {
+    setSyncingConversationPricing(planId);
+    try {
+      await axios.post(`${API}/quotas/conversation-pricing/${planId}/sync-stripe`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Conversation pricing synced to Stripe successfully!');
+      loadConversationPricing();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to sync to Stripe.');
+    } finally {
+      setSyncingConversationPricing(null);
+    }
+  };
+
   const handleLimitChange = (featureIndex, planName, field, value) => {
     const newConfig = JSON.parse(JSON.stringify(config)); // Deep copy
     const feature = newConfig.features[featureIndex];
