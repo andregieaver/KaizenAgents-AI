@@ -120,7 +120,7 @@ const CustomEmailsAdmin = () => {
     setEmailForm({
       name: email.name,
       subject: email.subject,
-      html_content: email.html_content,
+      html_content: unwrapEmailContent(email.html_content),
       recipient_category: email.recipient_category
     });
     setActiveTab('editor');
