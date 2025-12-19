@@ -63,6 +63,7 @@ const Pricing = () => {
   useEffect(() => {
     fetchData();
     fetchPlatformInfo();
+    fetchAllocations();
     
     // Check for pending discount code from public pricing page
     const pendingCode = localStorage.getItem('pendingDiscountCode');
