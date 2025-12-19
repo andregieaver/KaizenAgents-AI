@@ -8,8 +8,8 @@ from datetime import datetime, timezone
 import uuid
 import logging
 
-from db import db
-from auth import get_super_admin_user
+from middleware.database import db
+from middleware import get_super_admin_user
 from services.email_service import EmailService
 
 router = APIRouter(prefix="/waitlist", tags=["waitlist"])
