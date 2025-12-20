@@ -4965,6 +4965,9 @@ def main():
         
         # 18. Waitlist Functionality Tests (Review Request)
         ("Waitlist Functionality", tester.test_waitlist_functionality),
+        
+        # 19. Customer Onboarding Flow Tests (Review Request)
+        ("Customer Onboarding Flow APIs", tester.test_onboarding_apis),
     ]
     
     print(f"\n📋 Running {len(tests)} comprehensive test scenarios...")
