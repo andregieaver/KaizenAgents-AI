@@ -436,7 +436,7 @@ The Enhanced Pages Management feature has been successfully implemented with all
 - ✅ Authentication and authorization working properly
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing
 - **API Integration:** All subscription endpoints responding correctly
@@ -554,7 +554,7 @@ The system correctly handles:
 - ✅ Breadcrumb navigation shows "Dashboard > Integrations"
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All integration endpoints responding correctly
@@ -661,7 +661,7 @@ The Integrations page is **FULLY FUNCTIONAL** and working as designed. All core 
 - ✅ Pricing page API correctly retrieves and displays custom features
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All custom feature endpoints responding correctly
@@ -798,7 +798,7 @@ The Custom Feature Items functionality is **SUBSTANTIALLY WORKING** with core fe
 - ✅ Error handling for invalid codes functional
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All discount endpoints responding correctly
@@ -942,7 +942,7 @@ The Discount Codes System is **FULLY FUNCTIONAL** and working as designed. All c
 - ✅ No console errors or API failures detected
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing sessions
 - **API Integration:** All affiliate endpoints responding correctly
@@ -1102,7 +1102,7 @@ The Affiliate Program Dashboard is **FULLY FUNCTIONAL** and working as designed.
 - ✅ Data persistence across operations
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during individual operations
 - **API Integration:** All team management endpoints responding correctly
@@ -1627,7 +1627,7 @@ The Send Test Email feature is **FULLY FUNCTIONAL** and working as designed. All
 - ✅ **FILES MODIFIED**: `/app/backend/routes/feature_gates.py` - Updated authentication dependencies
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All feature gates endpoints responding correctly after fix
@@ -2008,7 +2008,7 @@ The Agent Pricing and Conversation Pricing Management feature is **FULLY FUNCTIO
 - ✅ **Public endpoints provide pricing information**
 
 ### Test Environment Details
-- **Backend URL:** https://billing-quota-system.preview.emergentagent.com/api
+- **Backend URL:** https://onboard-buddy-12.preview.emergentagent.com/api
 - **Authentication:** Working correctly with super admin credentials
 - **Test Framework:** Custom Python test suite (backend_test.py)
 - **Test Execution:** All 6 seat pricing tests passed (100% success rate)
@@ -2358,7 +2358,7 @@ The Billing page mobile responsiveness is **FULLY FUNCTIONAL** and meets all spe
 - ✅ Authentication and authorization functioning correctly
 
 ### Test Environment Details
-- **Backend URL:** https://billing-quota-system.preview.emergentagent.com/api
+- **Backend URL:** https://onboard-buddy-12.preview.emergentagent.com/api
 - **Authentication:** Working correctly with super admin credentials
 - **Test Framework:** Custom Python test suite (test_pricing_only.py)
 - **Test Execution:** 5/7 tests passed (71.4% success rate - 2 expected Stripe failures)
@@ -2512,7 +2512,7 @@ Core Success Rate: 100% (5/5 core tests passed)
 - ❌ Public header API (/api/global-components/public/header) may not returning updated blocks
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **Component Editor:** Fully functional with proper UI and controls
@@ -2638,7 +2638,7 @@ The Header Block Components System is **PARTIALLY FUNCTIONAL** with a critical r
 - ✅ Viewport-specific layouts adapting correctly
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing operations
 - **Cross-device Testing:** Desktop, tablet, and mobile viewports tested
@@ -2744,7 +2744,7 @@ All UI fixes have been **SUCCESSFULLY IMPLEMENTED** and are working as designed:
 - ✅ Response structure consistent and complete
 
 ### Test Environment Details
-- **Backend URL:** https://billing-quota-system.preview.emergentagent.com/api
+- **Backend URL:** https://onboard-buddy-12.preview.emergentagent.com/api
 - **Authentication:** Working correctly with super admin credentials
 - **Test Framework:** Custom Python test suite (discount_test.py)
 - **Test Execution:** All 8 tests passed (100% success rate)
@@ -2860,7 +2860,7 @@ The Discount Code functionality is **FULLY FUNCTIONAL** at the backend API level
 - ❌ Issue persists after restart - API still returns old structure
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Backend API:** Failing with ResponseValidationError on /api/feature-gates/config
 
@@ -2960,7 +2960,7 @@ The Discount Code functionality is **FULLY FUNCTIONAL** at the backend API level
 - Plan switching affects quota enforcement immediately
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All quota enforcement endpoints responding correctly
@@ -3147,7 +3147,7 @@ The refactored Feature Gates standalone page has **CRITICAL BACKEND ISSUES** pre
 - ✅ Real-time updates after operations
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing operations
 - **Cross-device Testing:** Desktop (1920x1080) and Mobile (375x844) tested
@@ -3288,7 +3288,7 @@ The redesigned Users page (previously Team page) is **FULLY FUNCTIONAL** and wor
 - ✅ Data persistence working correctly
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All feature gates endpoints responding correctly
@@ -3451,7 +3451,7 @@ The Feature Gates page is **FULLY FUNCTIONAL** and correctly displays the update
 - ✅ SEO data structure properly maintained
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All pages management endpoints responding correctly
@@ -3628,7 +3628,7 @@ The Pages Management feature is **FULLY FUNCTIONAL** and working as designed. Al
 - ✅ Real-time updates and data persistence working
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All pages management endpoints responding correctly
@@ -3735,7 +3735,7 @@ The Enhanced Pages Management system with full-page editor is **FULLY FUNCTIONAL
 - ❌ PricingWidget component still not rendering content
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com/pricing
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com/pricing
 - **Backend Status:** All APIs responding correctly (200 OK)
 - **Frontend Status:** Compiling successfully but PricingWidget not rendering
 - **Browser Testing:** Automated testing with Playwright (multiple attempts)
@@ -3943,7 +3943,7 @@ The Responsive Visibility Feature for Global Components is **FULLY FUNCTIONAL** 
 - No issues affecting core functionality
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **API Integration:** All global component endpoints responding correctly
 - **Responsive Testing:** Verified across mobile (375px), tablet (768px), desktop (1920px)
@@ -4131,7 +4131,7 @@ The Global Components CMS feature with block rendering on public pages is **FULL
 **❌ NO CRITICAL ISSUES FOUND**
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **API Integration:** All global component endpoints responding correctly
 - **Browser Testing:** Automated testing with Playwright successful
@@ -4245,7 +4245,7 @@ The Global Components CMS feature with block rendering on public pages is **FULL
 - ✅ GET /api/global-components/public/header - Public header rendering
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All global component endpoints responding correctly
@@ -4429,7 +4429,7 @@ class PageTemplateImport(BaseModel):
 ```
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All page template endpoints responding correctly
@@ -4602,7 +4602,7 @@ The Page Template Export/Import feature is **FULLY FUNCTIONAL** and working exac
 - ✅ JSON response structures consistent and complete
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials (andre@humanweb.no)
 - **Session Management:** Stable during testing operations
 - **API Integration:** All orchestration endpoints responding correctly
@@ -4763,7 +4763,7 @@ The Orchestrator Agent Architecture backend APIs are **FULLY FUNCTIONAL** and wo
 - ✅ All endpoints handle authentication and authorization correctly
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All orchestration endpoints responding correctly
@@ -4915,7 +4915,7 @@ The Orchestrator Runtime Integration is **SUBSTANTIALLY FUNCTIONAL** with proper
 - ✅ Proper error handling and validation
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with provided credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All orchestration endpoints responding correctly
@@ -5085,7 +5085,7 @@ The Orchestration Settings UI is **FULLY FUNCTIONAL** and working as designed. A
 - ✅ POST /api/agents/{id}/upload-image - Upload profile image
 
 ### Test Environment Details
-- **Frontend URL:** https://billing-quota-system.preview.emergentagent.com
+- **Frontend URL:** https://onboard-buddy-12.preview.emergentagent.com
 - **Authentication:** Working correctly with super admin credentials
 - **Session Management:** Stable during testing operations
 - **API Integration:** All agent management endpoints responding correctly
@@ -5263,7 +5263,7 @@ The Quota Usage Dashboard is **FULLY FUNCTIONAL** and provides users with clear 
 ### Test Credentials Used
 - Super Admin: andre@humanweb.no / Pernilla66!
 - Regular User: test@example.com / password123 (fallback to super admin)
-- API Base URL: https://billing-quota-system.preview.emergentagent.com/api
+- API Base URL: https://onboard-buddy-12.preview.emergentagent.com/api
 
 ### Test Results Overview
 
@@ -5342,7 +5342,7 @@ The Quota Usage Dashboard is **FULLY FUNCTIONAL** and provides users with clear 
 - ✅ Error handling appropriate for different user types
 
 ### Test Environment Details
-- **Backend URL:** https://billing-quota-system.preview.emergentagent.com/api
+- **Backend URL:** https://onboard-buddy-12.preview.emergentagent.com/api
 - **Authentication:** Working correctly with super admin credentials
 - **Test Framework:** Custom Python test suite (seat_pricing_test.py)
 - **Test Execution:** 10/12 tests passed (83% success rate)
@@ -5432,7 +5432,7 @@ The Seat Pricing and Purchase backend API system is **FULLY FUNCTIONAL** and wor
 ### Test Scope
 - SendGrid Integration API endpoints (super-admin only)
 - Test credentials: andre@humanweb.no / Pernilla66!
-- API Base URL: https://billing-quota-system.preview.emergentagent.com/api
+- API Base URL: https://onboard-buddy-12.preview.emergentagent.com/api
 
 ### Test Results Summary
 
@@ -5494,7 +5494,7 @@ The Seat Pricing and Purchase backend API system is **FULLY FUNCTIONAL** and wor
 - ✅ Super admin authorization enforced on all endpoints
 
 ### Test Environment Details
-- **Backend URL:** https://billing-quota-system.preview.emergentagent.com/api
+- **Backend URL:** https://onboard-buddy-12.preview.emergentagent.com/api
 - **Authentication:** Working correctly with super admin credentials
 - **Test Framework:** Custom Python test suite (backend_test.py)
 - **Test Execution:** 4 SendGrid integration tests (all passed)

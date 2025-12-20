@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 class PricingManagementTester:
-    def __init__(self, base_url="https://billing-quota-system.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://onboard-buddy-12.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.user_data = None
