@@ -164,16 +164,21 @@ async def calculate_onboarding_status(tenant_id: str) -> dict:
 
 async def send_welcome_email(user_email: str, user_name: str, plan_name: str):
     """Send welcome email after subscription"""
+    import os
     
     # Get platform info
     platform_info = await db.platform_info.find_one({}, {"_id": 0})
     platform_name = platform_info.get("name", "AI Support Hub") if platform_info else "AI Support Hub"
+    
+    # Get frontend URL for onboarding link
+    frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:3000")
     
     variables = {
         "platform_name": platform_name,
         "user_name": user_name,
         "user_email": user_email,
         "plan_name": plan_name,
+        "onboarding_url": f"{frontend_url}/dashboard",
         "year": str(datetime.now().year)
     }
     
