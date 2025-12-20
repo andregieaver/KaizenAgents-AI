@@ -668,6 +668,16 @@ async def verify_checkout_session(
             )
         )
         
+        # Also send welcome email to guide onboarding
+        from routes.onboarding import send_welcome_email
+        asyncio.create_task(
+            send_welcome_email(
+                user_email=current_user.get("email"),
+                user_name=current_user.get("name", "there"),
+                plan_name=subscription_doc.get("plan_name", "your plan")
+            )
+        )
+        
         return {
             "status": "active",
             "message": "Subscription activated successfully",
