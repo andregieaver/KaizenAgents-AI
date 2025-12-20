@@ -81,10 +81,9 @@ const OnboardingProgress = () => {
   }
 
   // Don't show if onboarding is complete
-  // TEMPORARILY COMMENTED FOR TESTING
-  // if (onboarding.is_complete) {
-  //   return null;
-  // }
+  if (onboarding.is_complete) {
+    return null;
+  }
 
   const completedSteps = onboarding.steps.filter(s => s.completed).length;
   const totalSteps = onboarding.steps.length;
