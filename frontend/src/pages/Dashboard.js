@@ -50,6 +50,9 @@ const Dashboard = () => {
 
   return (
     <div className="p-6 lg:p-8 page-transition" data-testid="dashboard-overview">
+      {/* Onboarding Progress Tracker */}
+      <OnboardingProgress />
+      
       <div className="mb-8">
         <h1 className="font-heading text-2xl lg:text-3xl font-bold tracking-tight mb-2">
           Welcome back, {user?.name?.split(' ')[0]}
