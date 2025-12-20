@@ -56,7 +56,7 @@ ONBOARDING_STEPS = [
         "name": "Company Information",
         "description": "Set up your company name and brand details",
         "link": "/dashboard/settings",
-        "tab": "company",
+        "tab": "general",
         "check_field": "company_setup_complete"
     },
     {
@@ -64,7 +64,7 @@ ONBOARDING_STEPS = [
         "name": "Brand Logo",
         "description": "Upload your company logo for branding",
         "link": "/dashboard/settings",
-        "tab": "branding",
+        "tab": "general",
         "check_field": "brand_logo_complete"
     },
     {
@@ -79,7 +79,7 @@ ONBOARDING_STEPS = [
         "id": "team_member",
         "name": "Invite Team Member",
         "description": "Add team members to collaborate",
-        "link": "/dashboard/users",
+        "link": "/dashboard/team",
         "tab": None,
         "check_field": "team_member_complete"
     },
@@ -87,8 +87,8 @@ ONBOARDING_STEPS = [
         "id": "widget_setup",
         "name": "Install Chat Widget",
         "description": "Add the chat widget to your website",
-        "link": "/dashboard/widget",
-        "tab": None,
+        "link": "/dashboard/settings",
+        "tab": "embed",
         "check_field": "widget_setup_complete"
     }
 ]
