@@ -119,12 +119,15 @@ async def calculate_onboarding_status(tenant_id: str) -> dict:
         
         # Check based on step type
         if step_id == "company_info":
-            is_completed = bool(tenant and tenant.get("name"))
+            # Check if brand_name is set in settings
+            settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
+            is_completed = bool(settings and settings.get("brand_name"))
         elif step_id == "brand_logo":
-            settings = await db.tenant_settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
+            settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
             is_completed = bool(settings and settings.get("brand_logo"))
         elif step_id == "first_agent":
-            agent_count = await db.agents.count_documents({"tenant_id": tenant_id})
+            # Check user_agents collection for custom agents created by this tenant
+            agent_count = await db.user_agents.count_documents({"tenant_id": tenant_id})
             is_completed = agent_count > 0
         elif step_id == "team_member":
             user_count = await db.users.count_documents({"tenant_id": tenant_id})
