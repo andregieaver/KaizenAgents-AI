@@ -1,5 +1,27 @@
 # Test Results
 
+## Onboarding Flow Feature Tests (Latest)
+
+### Test Summary
+**Feature:** Customer Onboarding Flow
+**Date:** December 20, 2025
+**Status:** IN PROGRESS
+**Tester:** Main Agent (pre-testing)
+
+### Components Implemented:
+1. Backend APIs (`/api/onboarding/*`)
+2. Frontend OnboardingProgress component
+3. Email template for subscription welcome
+4. Integration with subscription verification flow
+
+### Pre-Testing Validation:
+- ✅ GET /api/onboarding/status - Returns onboarding progress
+- ✅ GET /api/onboarding/dismissed - Returns dismiss status
+- ✅ OnboardingProgress component renders on dashboard
+- ✅ subscription_welcome email template added to DB
+
+---
+
 ## Custom Emails/Campaigns Feature Tests
 
 ### Test Summary
