@@ -441,6 +441,66 @@ DEFAULT_TEMPLATES = [
         "is_enabled": True
     },
     {
+        "key": "subscription_welcome",
+        "name": "Subscription Welcome",
+        "description": "Sent immediately after a user subscribes to a paid plan to guide them through onboarding",
+        "subject": "🚀 Welcome to {{platform_name}}! Let's get you set up",
+        "html_content": """
+<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="color: #10b981; margin: 0;">🚀 Welcome Aboard!</h1>
+    </div>
+    
+    <p style="color: #555; font-size: 16px;">Hi {{user_name}},</p>
+    
+    <p style="color: #555; font-size: 16px;">
+        Thank you for subscribing to <strong>{{plan_name}}</strong>! We're thrilled to have you as part of the {{platform_name}} community.
+    </p>
+    
+    <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+        <h3 style="color: #166534; margin: 0 0 10px 0;">🎯 Your Next Steps</h3>
+        <ol style="color: #166534; margin: 0; padding-left: 20px;">
+            <li style="margin-bottom: 8px;">Complete your company profile</li>
+            <li style="margin-bottom: 8px;">Set up your first AI agent</li>
+            <li style="margin-bottom: 8px;">Invite your team members</li>
+            <li style="margin-bottom: 8px;">Install the chat widget on your website</li>
+        </ol>
+    </div>
+    
+    <p style="color: #555; font-size: 16px;">
+        We've created a simple onboarding guide to help you get the most out of {{platform_name}}. Click the button below to get started:
+    </p>
+    
+    <div style="text-align: center; margin: 30px 0;">
+        <a href="{{onboarding_url}}" 
+           style="display: inline-block; background-color: #10b981; color: white; 
+                  padding: 14px 32px; text-decoration: none; border-radius: 6px; 
+                  font-weight: bold; font-size: 16px;">
+            Start Setup Guide
+        </a>
+    </div>
+    
+    <p style="color: #555; font-size: 16px;">
+        Need help? Our support team is here for you. Just reply to this email or check out our documentation.
+    </p>
+    
+    <p style="color: #555; font-size: 16px;">
+        Best regards,<br>
+        The {{platform_name}} Team
+    </p>
+    
+    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+    
+    <p style="color: #888; font-size: 12px; text-align: center;">
+        © {{year}} {{platform_name}}. All rights reserved.
+    </p>
+</div>
+""",
+        "variables": ["platform_name", "user_name", "user_email", "plan_name", "onboarding_url", "year"],
+        "category": "onboarding",
+        "is_enabled": True
+    },
+    {
         "key": "waitlist_confirmation",
         "name": "Waitlist Confirmation",
         "description": "Auto-responder sent when someone joins the waitlist",
