@@ -7,6 +7,7 @@ import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { MessageSquare, Bot, Clock, CheckCircle, ArrowRight, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import OnboardingProgress from '../components/OnboardingProgress';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
