@@ -344,6 +344,152 @@ async def delete_user_agent(
     return {"message": "Agent deleted successfully"}
 
 
+# Test conversation models
+class TestConversationMessage(BaseModel):
+    role: str  # 'user' or 'assistant'
+    content: str
+
+class TestConversationRequest(BaseModel):
+    message: str
+    history: List[TestConversationMessage] = []
+
+class TestConversationResponse(BaseModel):
+    agent_response: str
+    model_used: str
+    provider_used: str
+
+
+@router.post("/{agent_id}/test", response_model=TestConversationResponse)
+async def test_agent_conversation(
+    agent_id: str,
+    request: TestConversationRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Test an agent with a real AI conversation.
+    Uses the configured provider and model for the tenant.
+    """
+    import openai
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get the agent
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Get agent config
+    config = agent.get("config", {})
+    system_prompt = config.get("system_prompt") or config.get("ai_persona", "You are a helpful assistant.")
+    temperature = config.get("temperature", 0.7)
+    max_tokens = config.get("max_tokens", 2000)
+    model = config.get("model") or config.get("ai_model")
+    
+    # Get the provider
+    provider_id = agent.get("provider_id")
+    if not provider_id:
+        # Fall back to tenant's active provider
+        settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
+        provider_id = settings.get("active_provider_id") if settings else None
+    
+    if not provider_id:
+        raise HTTPException(
+            status_code=400, 
+            detail="No AI provider configured. Please configure a provider in Settings."
+        )
+    
+    provider = await db.providers.find_one({"id": provider_id, "is_active": True}, {"_id": 0})
+    if not provider:
+        raise HTTPException(status_code=400, detail="Provider not found or not active")
+    
+    api_key = provider.get("api_key")
+    if not api_key:
+        raise HTTPException(status_code=400, detail="Provider API key not configured")
+    
+    provider_type = provider.get("type", "openai")
+    provider_name = provider.get("name", "Unknown")
+    
+    # Use model from agent config or provider default
+    if not model:
+        model = provider.get("default_model", "gpt-4o-mini")
+    
+    # Build conversation messages
+    messages = [{"role": "system", "content": system_prompt}]
+    
+    # Add history
+    for msg in request.history:
+        messages.append({"role": msg.role, "content": msg.content})
+    
+    # Add new user message
+    messages.append({"role": "user", "content": request.message})
+    
+    try:
+        if provider_type == "openai":
+            client = openai.OpenAI(api_key=api_key)
+            
+            # Handle different OpenAI model parameter requirements
+            uses_new_param = any(prefix in model.lower() for prefix in ['o1', 'o3', 'o4', 'gpt-5'])
+            
+            if uses_new_param:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_completion_tokens=max_tokens
+                )
+            else:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    temperature=temperature,
+                    max_tokens=max_tokens
+                )
+            
+            agent_response = response.choices[0].message.content
+            
+        elif provider_type == "anthropic":
+            import anthropic
+            client = anthropic.Anthropic(api_key=api_key)
+            
+            # Anthropic requires system prompt separately
+            anthropic_messages = [{"role": msg.role, "content": msg.content} for msg in request.history]
+            anthropic_messages.append({"role": "user", "content": request.message})
+            
+            response = client.messages.create(
+                model=model,
+                max_tokens=max_tokens,
+                system=system_prompt,
+                messages=anthropic_messages if anthropic_messages else [{"role": "user", "content": request.message}]
+            )
+            
+            agent_response = response.content[0].text
+            
+        else:
+            raise HTTPException(status_code=400, detail=f"Unsupported provider type: {provider_type}")
+        
+        logger.info(f"Agent test successful: {agent_id}, model: {model}, provider: {provider_name}")
+        
+        return TestConversationResponse(
+            agent_response=agent_response,
+            model_used=model,
+            provider_used=provider_name
+        )
+        
+    except openai.AuthenticationError:
+        raise HTTPException(status_code=401, detail="Invalid API key for the configured provider")
+    except openai.RateLimitError:
+        raise HTTPException(status_code=429, detail="Rate limit exceeded. Please try again later.")
+    except Exception as e:
+        logger.error(f"Agent test failed: {agent_id}, error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"AI request failed: {str(e)}")
+
+
 @router.post("/{agent_id}/woocommerce-config")
 async def configure_woocommerce(
     agent_id: str,
