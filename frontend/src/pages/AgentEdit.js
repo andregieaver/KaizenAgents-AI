@@ -41,7 +41,8 @@ const AgentEdit = () => {
   const { agentId } = useParams();
   const navigate = useNavigate();
   const { token, user } = useAuth();
-  const isNew = agentId === 'new';
+  // Handle both direct /agents/new route (agentId is undefined) and fallback check
+  const isNew = !agentId || agentId === 'new';
   
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
