@@ -73,6 +73,39 @@ class WooCommerceConfigResponse(BaseModel):
     store_url: Optional[str] = None
     has_credentials: bool = False
 
+class ProviderOption(BaseModel):
+    """Provider option for selection dropdown"""
+    id: str
+    name: str
+    type: str
+    models: List[str] = []
+    default_model: Optional[str] = None
+
+@router.get("/providers/available", response_model=List[ProviderOption])
+async def get_available_providers(current_user: dict = Depends(get_current_user)):
+    """Get available AI providers for agent configuration"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get all active providers
+    providers = await db.providers.find(
+        {"is_active": True},
+        {"_id": 0, "id": 1, "name": 1, "type": 1, "models": 1, "default_model": 1}
+    ).to_list(50)
+    
+    result = []
+    for provider in providers:
+        result.append(ProviderOption(
+            id=provider.get("id", ""),
+            name=provider.get("name", provider.get("type", "Unknown")),
+            type=provider.get("type", ""),
+            models=provider.get("models", []),
+            default_model=provider.get("default_model")
+        ))
+    
+    return result
+
 @router.get("/", response_model=List[UserAgentResponse])
 async def get_user_agents(current_user: dict = Depends(get_current_user)):
     """Get all user's saved agents"""
