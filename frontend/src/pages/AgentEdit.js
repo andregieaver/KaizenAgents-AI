@@ -833,23 +833,25 @@ const AgentEdit = () => {
         {!isNew && (
           <TabsContent value="embed">
             <Card className="border border-border">
-              <CardHeader>
-                <CardTitle>Agent Embed Code</CardTitle>
-                <CardDescription>
+              <CardHeader className="p-4 sm:p-6">
+                <CardTitle className="text-base sm:text-lg">Agent Embed Code</CardTitle>
+                <CardDescription className="text-xs sm:text-sm">
                   Add this specific agent as a chat widget on your website
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-3">
-                  <Label>Agent ID</Label>
-                  <div className="flex gap-2 max-w-md">
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4 sm:space-y-6">
+                <div className="space-y-2 sm:space-y-3">
+                  <Label className="text-sm">Agent ID</Label>
+                  <div className="flex gap-2">
                     <Input
                       value={agent.id || ''}
                       readOnly
-                      className="h-10 font-mono text-sm bg-muted"
+                      className="h-10 font-mono text-xs sm:text-sm bg-muted flex-1"
                     />
                     <Button
                       variant="outline"
+                      size="icon"
+                      className="shrink-0"
                       onClick={() => {
                         navigator.clipboard.writeText(agent.id || '');
                         toast.success('Agent ID copied!');
@@ -862,15 +864,15 @@ const AgentEdit = () => {
 
                 <Separator />
 
-                <div className="space-y-3">
-                  <Label>Embed Code</Label>
-                  <p className="text-sm text-muted-foreground">
+                <div className="space-y-2 sm:space-y-3">
+                  <Label className="text-sm">Embed Code</Label>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Copy this code and paste it before the closing &lt;/body&gt; tag on your website.
                     This will show the chat widget with <strong>{agent.name}</strong> as the AI agent.
                   </p>
                   <div className="relative">
-                    <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm font-mono">
-                      <code>{getEmbedCode()}</code>
+                    <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto text-xs sm:text-sm font-mono">
+                      <code className="break-all whitespace-pre-wrap">{getEmbedCode()}</code>
                     </pre>
                     <Button
                       variant="outline"
@@ -885,13 +887,15 @@ const AgentEdit = () => {
 
                 <Separator />
 
-                <div className="space-y-3">
-                  <Label>Test Your Widget</Label>
-                  <p className="text-sm text-muted-foreground">
+                <div className="space-y-2 sm:space-y-3">
+                  <Label className="text-sm">Test Your Widget</Label>
+                  <p className="text-xs sm:text-sm text-muted-foreground">
                     Preview how the widget will look with this agent.
                   </p>
                   <Button
                     variant="outline"
+                    size="sm"
+                    className="w-full sm:w-auto"
                     onClick={() => window.open(`/widget-demo?tenant=${user?.tenant_id}&agent=${agent.id}`, '_blank')}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
@@ -899,11 +903,11 @@ const AgentEdit = () => {
                   </Button>
                 </div>
 
-                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                  <h4 className="font-medium text-sm">Key Attributes</h4>
-                  <ul className="text-sm text-muted-foreground space-y-1">
-                    <li><code className="bg-muted px-1 rounded">data-tenant-id</code> - Your company identifier</li>
-                    <li><code className="bg-muted px-1 rounded">data-agent-id</code> - Specifies this particular agent</li>
+                <div className="bg-muted/50 p-3 sm:p-4 rounded-lg space-y-2">
+                  <h4 className="font-medium text-xs sm:text-sm">Key Attributes</h4>
+                  <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
+                    <li><code className="bg-muted px-1 rounded text-xs">data-tenant-id</code> - Your company identifier</li>
+                    <li><code className="bg-muted px-1 rounded text-xs">data-agent-id</code> - Specifies this particular agent</li>
                   </ul>
                 </div>
               </CardContent>
