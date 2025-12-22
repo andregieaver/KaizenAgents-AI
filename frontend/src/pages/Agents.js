@@ -204,7 +204,7 @@ const Agents = () => {
                           )}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                          {agent.category} • {agent.config?.model || 'Default model'}
+                          {agent.category} • {agent.config?.model || agent.config?.ai_model || 'Default model'}
                         </CardDescription>
                       </div>
                     </div>
