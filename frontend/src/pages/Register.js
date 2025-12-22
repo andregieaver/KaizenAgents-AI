@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { MessageSquare, ArrowLeft } from 'lucide-react';
+import { Badge } from '../components/ui/badge';
+import { MessageSquare, ArrowLeft, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Register = () => {
@@ -15,6 +16,10 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // Get referral code from URL
+  const referralCode = searchParams.get('ref');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -24,7 +29,7 @@ const Register = () => {
     }
     setLoading(true);
     try {
-      await register(email, password, name);
+      await register(email, password, name, referralCode);
       toast.success('Account created successfully!');
       navigate('/dashboard');
     } catch (error) {
@@ -41,6 +46,22 @@ const Register = () => {
           <ArrowLeft className="h-4 w-4" />
           Back to home
         </Link>
+        
+        {/* Referral Discount Banner */}
+        {referralCode && (
+          <div className="mb-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+            <div className="flex items-center gap-2 text-green-600">
+              <Gift className="h-5 w-5" />
+              <span className="font-medium">You&apos;ve been referred!</span>
+              <Badge variant="outline" className="border-green-500 text-green-600 ml-auto">
+                20% OFF
+              </Badge>
+            </div>
+            <p className="text-sm text-green-600/80 mt-1">
+              Sign up now and get 20% off your first payment!
+            </p>
+          </div>
+        )}
         
         <Card className="border border-border">
           <CardHeader className="text-center pb-2">
@@ -100,7 +121,7 @@ const Register = () => {
                 disabled={loading}
                 data-testid="register-submit-btn"
               >
-                {loading ? 'Creating account...' : 'Create account'}
+                {loading ? 'Creating account...' : referralCode ? 'Create account & claim discount' : 'Create account'}
               </Button>
             </form>
             <p className="text-center text-sm text-muted-foreground mt-6">
