@@ -226,14 +226,14 @@ const Agents = () => {
                   {/* System Prompt Preview */}
                   <div className="bg-muted/50 p-3 rounded-sm">
                     <p className="text-xs text-muted-foreground line-clamp-2">
-                      {agent.config?.system_prompt || 'No system prompt defined'}
+                      {agent.config?.system_prompt || agent.config?.ai_persona || 'No system prompt defined'}
                     </p>
                   </div>
 
                   {/* Config */}
                   <div className="flex gap-2 text-xs flex-wrap">
-                    <Badge variant="outline">Temp: {agent.config?.temperature || 0.7}</Badge>
-                    <Badge variant="outline">Tokens: {agent.config?.max_tokens || 2000}</Badge>
+                    <Badge variant="outline">Temp: {agent.config?.temperature ?? 0.7}</Badge>
+                    <Badge variant="outline">Tokens: {agent.config?.max_tokens ?? 2000}</Badge>
                     {agent.orchestration_enabled && (
                       <Badge variant="secondary">Orchestration</Badge>
                     )}
