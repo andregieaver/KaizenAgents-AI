@@ -696,11 +696,11 @@ const AgentEdit = () => {
               {/* Orchestration */}
               {!isNew && (
                 <Card className="border border-border">
-                  <CardHeader>
-                    <CardTitle>Orchestration</CardTitle>
-                    <CardDescription>Multi-agent coordination settings</CardDescription>
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Orchestration</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Multi-agent coordination settings</CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Tag className="h-4 w-4" />
