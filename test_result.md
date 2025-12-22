@@ -7345,3 +7345,39 @@ The Seat Management feature is **FULLY IMPLEMENTED AND FUNCTIONAL** based on:
 
 ---
 
+
+
+---
+
+## Provider and Model Selection Feature
+
+### Test Summary
+**Feature:** Provider and Model Selection on Agent Edit/Create Page
+**Date:** December 22, 2025
+**Status:** PASSED
+**Tester:** Main Agent (Manual Testing)
+**Environment:** Production Preview
+
+### Implementation Summary
+1. Added new backend endpoint: `GET /api/agents/providers/available` - returns available AI providers with their models
+2. Updated `UserAgentCreate` and `UserAgentUpdate` models to include `provider_id`
+3. Added provider and model dropdown selectors to `AgentEdit.js`
+4. Updated save logic to include provider_id in create/update requests
+
+### Verification Results
+1. ✅ Provider dropdown populated with available providers (OpenAI)
+2. ✅ Model dropdown shows all available models for selected provider
+3. ✅ Model dropdown updates when provider is changed
+4. ✅ Agent creation with custom model works correctly
+5. ✅ Provider and model saved to agent config
+6. ✅ Header displays selected model (e.g., "General • gpt-4o-mini")
+7. ✅ Mobile responsive - dropdowns stack vertically on mobile
+
+### API Endpoint
+- `GET /api/agents/providers/available` - Returns list of active providers with:
+  - id, name, type, models[], default_model
+
+**Status: FEATURE COMPLETE** ✅
+
+---
+
