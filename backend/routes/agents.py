@@ -247,6 +247,14 @@ async def update_user_agent(
             # Fields that go into config
             if key in ["system_prompt", "temperature", "max_tokens", "model"]:
                 config_updates[key] = value
+            # Provider ID - update both config and validate
+            elif key == "provider_id":
+                # Validate the provider exists and is active
+                provider = await db.providers.find_one({"id": value, "is_active": True}, {"_id": 0})
+                if not provider:
+                    raise HTTPException(status_code=400, detail="Provider not found or not active")
+                config_updates["provider_id"] = value
+                config_updates["provider_name"] = provider.get("name", "")
             # Fields that are direct on agent
             elif key in ["name", "description", "category", "icon", "profile_image_url", "orchestration_enabled", "tags"]:
                 update_fields[key] = value
