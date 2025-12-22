@@ -162,11 +162,16 @@ class StripeService:
         cancel_url: str,
         tenant_id: str,
         plan_id: str,
-        trial_days: int = 0
+        trial_days: int = 0,
+        discount_percent: int = 0,
+        discount_duration: str = "once"  # "once", "forever", or "repeating"
     ) -> Optional[Dict[str, Any]]:
         """
         Create a Stripe checkout session
         Returns: {session_id, url} or None
+        
+        discount_percent: 0-100 percentage discount
+        discount_duration: "once" for first payment, "forever" for all payments
         """
         if not StripeService.is_configured():
             return None
@@ -193,6 +198,17 @@ class StripeService:
                 session_params["subscription_data"] = {
                     "trial_period_days": trial_days
                 }
+            
+            # Add discount coupon if specified
+            if discount_percent > 0:
+                # Create a one-time coupon for this checkout
+                coupon = stripe.Coupon.create(
+                    percent_off=discount_percent,
+                    duration=discount_duration,
+                    name=f"Referral Discount {discount_percent}%"
+                )
+                session_params["discounts"] = [{"coupon": coupon.id}]
+                log_info(f"Created discount coupon: {coupon.id} for {discount_percent}% off", tenant_id=tenant_id)
             
             session = stripe.checkout.Session.create(**session_params)
             
