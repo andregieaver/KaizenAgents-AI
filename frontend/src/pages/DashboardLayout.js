@@ -192,6 +192,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/marketplace', icon: Bot, label: 'Marketplace' },
     { path: '/dashboard/team', icon: Users, label: 'Users' },
+    { path: '/dashboard/agents', icon: Bot, label: 'Agents' },
     { path: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
     { path: '/dashboard/affiliates', icon: Gift, label: 'Affiliates' },
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
