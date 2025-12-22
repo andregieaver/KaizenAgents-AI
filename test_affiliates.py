@@ -129,14 +129,9 @@ class AffiliateSystemTester:
             
         print(f"\n🔧 Testing POST /api/affiliates/convert/{self.test_referral_id}")
         
-        convert_data = {
-            "plan_name": "Pro",
-            "plan_price": 29
-        }
-        
+        # plan_name and plan_price are query parameters
         response = requests.post(
-            f"{self.base_url}/affiliates/convert/{self.test_referral_id}",
-            json=convert_data,
+            f"{self.base_url}/affiliates/convert/{self.test_referral_id}?plan_name=Pro&plan_price=29",
             headers={'Content-Type': 'application/json'}
         )
         
