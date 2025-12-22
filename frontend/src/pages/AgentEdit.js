@@ -113,6 +113,54 @@ const AgentEdit = () => {
     return agent.config?.model || agent.config?.ai_model || '';
   };
 
+  // Helper to get provider ID
+  const getProviderId = () => {
+    return agent.config?.provider_id || '';
+  };
+
+  // Get available models for selected provider
+  const getAvailableModels = () => {
+    const providerId = getProviderId();
+    if (!providerId) return [];
+    const provider = providers.find(p => p.id === providerId);
+    return provider?.models || [];
+  };
+
+  // Fetch available providers
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const response = await axios.get(`${API}/agents/providers/available`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setProviders(response.data);
+        
+        // If creating new agent and no provider set, select the first one
+        if (isNew && response.data.length > 0 && !getProviderId()) {
+          const firstProvider = response.data[0];
+          setAgent(prev => ({
+            ...prev,
+            config: {
+              ...prev.config,
+              provider_id: firstProvider.id,
+              provider_name: firstProvider.name,
+              model: firstProvider.default_model || firstProvider.models?.[0] || ''
+            }
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching providers:', error);
+        // Don't show error toast - providers might not be configured yet
+      } finally {
+        setLoadingProviders(false);
+      }
+    };
+    
+    if (token) {
+      fetchProviders();
+    }
+  }, [token]);
+
   useEffect(() => {
     if (!isNew) {
       fetchAgent();
