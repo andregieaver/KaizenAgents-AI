@@ -953,15 +953,15 @@ async def get_quota_alerts(current_user: dict = Depends(get_current_user)):
     
     # Filter for quotas with warnings
     alerts = []
-    for quota in usage_response.quotas:
-        if quota.warning_level in ["warning", "critical"]:
+    for quota in usage_response.get("quotas", []):
+        if quota.get("warning_level") in ["warning", "critical"]:
             alerts.append({
-                "feature_name": quota.feature_name,
-                "current": quota.current,
-                "limit": quota.limit,
-                "percentage": quota.percentage,
-                "level": quota.warning_level,
-                "message": f"{quota.feature_name}: {quota.current}/{quota.limit} used ({quota.percentage:.0f}%)"
+                "feature_name": quota.get("feature_name"),
+                "current": quota.get("current"),
+                "limit": quota.get("limit"),
+                "percentage": quota.get("percentage"),
+                "level": quota.get("warning_level"),
+                "message": f"{quota.get('feature_name')}: {quota.get('current')}/{quota.get('limit')} used ({quota.get('percentage'):.0f}%)"
             })
     
     return {
