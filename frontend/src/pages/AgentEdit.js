@@ -133,7 +133,8 @@ const AgentEdit = () => {
       return;
     }
 
-    if (!agent.config?.system_prompt) {
+    const systemPrompt = getSystemPrompt();
+    if (!systemPrompt) {
       toast.error('Please provide a system prompt');
       return;
     }
@@ -146,10 +147,10 @@ const AgentEdit = () => {
           description: agent.description,
           category: agent.category,
           icon: agent.icon,
-          system_prompt: agent.config.system_prompt,
-          temperature: agent.config.temperature,
-          max_tokens: agent.config.max_tokens,
-          model: agent.config.model || null
+          system_prompt: systemPrompt,
+          temperature: getTemperature(),
+          max_tokens: getMaxTokens(),
+          model: getModel() || null
         };
         
         const response = await axios.post(
@@ -165,10 +166,10 @@ const AgentEdit = () => {
           description: agent.description,
           category: agent.category,
           icon: agent.icon,
-          system_prompt: agent.config?.system_prompt,
-          temperature: agent.config?.temperature,
-          max_tokens: agent.config?.max_tokens,
-          model: agent.config?.model,
+          system_prompt: systemPrompt,
+          temperature: getTemperature(),
+          max_tokens: getMaxTokens(),
+          model: getModel(),
           orchestration_enabled: agent.orchestration_enabled,
           tags: agent.tags
         };
