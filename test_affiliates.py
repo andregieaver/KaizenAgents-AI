@@ -84,11 +84,9 @@ class AffiliateSystemTester:
             
         print(f"\n🔧 Testing POST /api/affiliates/track/{self.affiliate_code}")
         
-        track_data = {"referred_email": self.test_referral_email}
-        
+        # referred_email is a query parameter, not request body
         response = requests.post(
-            f"{self.base_url}/affiliates/track/{self.affiliate_code}",
-            json=track_data,
+            f"{self.base_url}/affiliates/track/{self.affiliate_code}?referred_email={self.test_referral_email}",
             headers={'Content-Type': 'application/json'}
         )
         
