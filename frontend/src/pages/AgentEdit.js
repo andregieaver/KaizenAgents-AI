@@ -466,19 +466,19 @@ const AgentEdit = () => {
         </TabsList>
 
         {/* Configuration Tab */}
-        <TabsContent value="configuration" className="space-y-6">
-          <div className="grid lg:grid-cols-3 gap-6">
+        <TabsContent value="configuration" className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Main Configuration */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
               <Card className="border border-border">
-                <CardHeader>
-                  <CardTitle>Agent Details</CardTitle>
-                  <CardDescription>Basic information about this agent</CardDescription>
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-base sm:text-lg">Agent Details</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Basic information about this agent</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
+                <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="agent-name">Agent Name *</Label>
+                      <Label htmlFor="agent-name" className="text-sm">Agent Name *</Label>
                       <Input
                         id="agent-name"
                         placeholder="e.g., Customer Support Specialist"
@@ -488,7 +488,7 @@ const AgentEdit = () => {
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="agent-icon">Icon</Label>
+                      <Label htmlFor="agent-icon" className="text-sm">Icon</Label>
                       <Input
                         id="agent-icon"
                         placeholder="🤖"
