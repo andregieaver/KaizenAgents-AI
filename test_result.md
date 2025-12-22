@@ -1,6 +1,27 @@
 # Test Results
 
-## Agent Page Refactoring Tests (Latest)
+## Agent Menu Restructuring Tests (Latest)
+
+### Test Summary
+**Feature:** Move Agents to Company Owner Access + Remove Settings Agents Tab
+**Date:** December 22, 2025
+**Status:** IN PROGRESS
+**Tester:** Main Agent (pre-testing)
+
+### Changes Made:
+1. Moved "Agents" menu from super-admin section to regular nav (after Users)
+2. Removed "Agents" tab from Settings page
+3. Updated Agents page to use `/api/agents` (tenant-scoped) instead of `/api/admin/agents`
+4. Updated AgentEdit page with new API endpoints
+
+### Pre-Testing Validation:
+- ✅ Sidebar shows "Agents" in regular menu section (not admin)
+- ✅ Settings page no longer has "Agents" tab
+- ✅ Agents page loads with empty state for new tenants
+
+---
+
+## Agent Page Refactoring Tests
 
 ### Test Summary
 **Feature:** Agent Individual Embed Code + Dedicated Edit Page
