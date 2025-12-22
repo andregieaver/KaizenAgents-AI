@@ -139,6 +139,8 @@ function AppRoutes() {
         <Route path="admin" element={<SuperAdmin />} />
         <Route path="providers" element={<Providers />} />
         <Route path="agents" element={<Agents />} />
+        <Route path="agents/new" element={<AgentEdit />} />
+        <Route path="agents/:agentId" element={<AgentEdit />} />
         <Route path="storage" element={<StorageConfig />} />
         <Route path="rate-limits" element={<RateLimits />} />
         <Route path="observability" element={<Observability />} />
