@@ -292,22 +292,36 @@ const AgentEdit = () => {
 
     setTesting(true);
     try {
-      // For testing, we'll simulate a conversation
-      // In production, this would call an actual test endpoint
-      const systemPrompt = getSystemPrompt();
-      const temperature = getTemperature();
-      const maxTokens = getMaxTokens();
+      // Call the real AI test endpoint
+      const response = await axios.post(
+        `${API}/agents/${agentId}/test`,
+        {
+          message: testMessage,
+          history: conversationHistory.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          }))
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       
       const newHistory = [
         ...conversationHistory,
         { role: 'user', content: testMessage },
-        { role: 'assistant', content: `[Test Response] Agent "${agent.name}" would respond based on:\n\nSystem Prompt: ${systemPrompt?.substring(0, 100)}${systemPrompt?.length > 100 ? '...' : ''}\n\nTemperature: ${temperature}\nMax Tokens: ${maxTokens}` }
+        { role: 'assistant', content: response.data.agent_response }
       ];
       
       setConversationHistory(newHistory);
       setTestMessage('');
+      
+      // Show model info on first message
+      if (conversationHistory.length === 0) {
+        toast.success(`Using ${response.data.model_used} via ${response.data.provider_used}`);
+      }
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Test failed');
+      const errorMsg = error.response?.data?.detail || 'Test failed';
+      toast.error(errorMsg);
+      console.error('Agent test error:', error);
     } finally {
       setTesting(false);
     }
