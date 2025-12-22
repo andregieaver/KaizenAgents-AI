@@ -207,10 +207,6 @@ const DashboardLayout = () => {
     ? { path: '/dashboard/providers', icon: MessageSquare, label: 'AI Providers', isAdmin: true }
     : null;
   
-  const agentsNavItem = user?.is_super_admin
-    ? { path: '/dashboard/agents', icon: Bot, label: 'Agents', isAdmin: true }
-    : null;
-  
   const storageNavItem = user?.is_super_admin
     ? { path: '/dashboard/storage', icon: Database, label: 'Storage', isAdmin: true }
     : null;
