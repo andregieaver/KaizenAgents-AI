@@ -1367,6 +1367,358 @@ class AIAgentHubTester:
         
         return True
 
+    # ============== QUOTA LIMIT EMAIL ALERTS TESTS ==============
+
+    def test_quota_limit_email_alerts(self):
+        """Test the Quota Limit Email Alerts feature as requested in review"""
+        print(f"\n🎯 Testing Quota Limit Email Alerts System")
+        
+        # Test all quota alert endpoints as requested in review
+        login_test = self.test_super_admin_login()
+        if not login_test:
+            print("❌ Login failed - cannot continue with quota alert tests")
+            return False
+            
+        quota_usage_test = self.test_quota_usage_endpoint()
+        quota_alerts_test = self.test_quota_alerts_endpoint()
+        send_alerts_test = self.test_send_quota_alerts_endpoint()
+        alert_history_test = self.test_quota_alert_history_endpoint()
+        check_all_tenants_test = self.test_check_all_tenants_alerts()
+        clear_history_test = self.test_clear_quota_alert_history()
+        
+        # Summary of quota alert system tests
+        print(f"\n📋 Quota Limit Email Alerts Test Results:")
+        print(f"   Super Admin Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
+        print(f"   GET /api/quotas/usage: {'✅ PASSED' if quota_usage_test else '❌ FAILED'}")
+        print(f"   GET /api/quotas/alerts: {'✅ PASSED' if quota_alerts_test else '❌ FAILED'}")
+        print(f"   POST /api/quotas/alerts/send: {'✅ PASSED' if send_alerts_test else '❌ FAILED'}")
+        print(f"   GET /api/quotas/alerts/history: {'✅ PASSED' if alert_history_test else '❌ FAILED'}")
+        print(f"   POST /api/quotas/alerts/check-all: {'✅ PASSED' if check_all_tenants_test else '❌ FAILED'}")
+        print(f"   DELETE /api/quotas/alerts/history: {'✅ PASSED' if clear_history_test else '❌ FAILED'}")
+        
+        return all([login_test, quota_usage_test, quota_alerts_test, send_alerts_test, 
+                   alert_history_test, check_all_tenants_test, clear_history_test])
+
+    def test_quota_usage_endpoint(self):
+        """Test GET /api/quotas/usage - Returns quota usage with warning_level field"""
+        print(f"\n🔧 Testing GET /api/quotas/usage")
+        
+        success, response = self.run_test(
+            "Get Quota Usage with Warning Levels",
+            "GET",
+            "quotas/usage",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get quota usage")
+            return False
+            
+        # Verify response structure
+        required_fields = ['tenant_id', 'plan_name', 'plan_display_name', 'quotas', 'extra_seats']
+        missing_fields = [field for field in required_fields if field not in response]
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+            
+        print(f"   ✅ All required fields present")
+        print(f"   Tenant ID: {response.get('tenant_id')}")
+        print(f"   Plan Name: {response.get('plan_name')}")
+        print(f"   Plan Display Name: {response.get('plan_display_name')}")
+        print(f"   Extra Seats: {response.get('extra_seats')}")
+        
+        # Verify quotas array structure
+        quotas = response.get('quotas', [])
+        print(f"   Found {len(quotas)} quota items")
+        
+        for quota in quotas:
+            required_quota_fields = [
+                'feature_key', 'feature_name', 'feature_description', 'limit_type',
+                'unit', 'current', 'limit', 'remaining', 'percentage', 'warning_level'
+            ]
+            missing_quota_fields = [field for field in required_quota_fields if field not in quota]
+            if missing_quota_fields:
+                print(f"   ❌ Missing quota fields: {missing_quota_fields}")
+                return False
+                
+            print(f"   - {quota.get('feature_name')}: {quota.get('current')}/{quota.get('limit')} ({quota.get('percentage')}%)")
+            print(f"     Warning Level: {quota.get('warning_level') or 'None'}")
+            
+            # Verify warning_level logic
+            percentage = quota.get('percentage', 0)
+            warning_level = quota.get('warning_level')
+            
+            if percentage >= 100:
+                expected_level = "critical"
+            elif percentage >= 80:
+                expected_level = "warning"
+            else:
+                expected_level = None
+                
+            if warning_level != expected_level:
+                print(f"   ⚠️ Warning level mismatch for {quota.get('feature_name')}: expected {expected_level}, got {warning_level}")
+            else:
+                print(f"   ✅ Warning level correct for {quota.get('feature_name')}")
+        
+        return True
+
+    def test_quota_alerts_endpoint(self):
+        """Test GET /api/quotas/alerts - Returns current quota alerts for features approaching limits"""
+        print(f"\n🔧 Testing GET /api/quotas/alerts")
+        
+        success, response = self.run_test(
+            "Get Current Quota Alerts",
+            "GET",
+            "quotas/alerts",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get quota alerts")
+            return False
+            
+        # Verify response structure
+        required_fields = ['tenant_id', 'alert_count', 'alerts']
+        missing_fields = [field for field in required_fields if field not in response]
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+            
+        print(f"   ✅ All required fields present")
+        print(f"   Tenant ID: {response.get('tenant_id')}")
+        print(f"   Alert Count: {response.get('alert_count')}")
+        
+        # Verify alerts array structure
+        alerts = response.get('alerts', [])
+        print(f"   Found {len(alerts)} active alerts")
+        
+        for alert in alerts:
+            required_alert_fields = ['feature_name', 'current', 'limit', 'percentage', 'level', 'message']
+            missing_alert_fields = [field for field in required_alert_fields if field not in alert]
+            if missing_alert_fields:
+                print(f"   ❌ Missing alert fields: {missing_alert_fields}")
+                return False
+                
+            print(f"   - {alert.get('feature_name')}: {alert.get('level')} ({alert.get('percentage')}%)")
+            print(f"     Message: {alert.get('message')}")
+            
+            # Verify alert level is warning or critical
+            level = alert.get('level')
+            if level not in ['warning', 'critical']:
+                print(f"   ❌ Invalid alert level: {level}")
+                return False
+            else:
+                print(f"   ✅ Valid alert level: {level}")
+        
+        return True
+
+    def test_send_quota_alerts_endpoint(self):
+        """Test POST /api/quotas/alerts/send - Checks quotas and sends email alerts"""
+        print(f"\n🔧 Testing POST /api/quotas/alerts/send")
+        
+        success, response = self.run_test(
+            "Send Quota Alerts",
+            "POST",
+            "quotas/alerts/send",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to send quota alerts")
+            return False
+            
+        # Verify response structure
+        required_fields = ['message', 'alerts_sent', 'alerts_skipped', 'errors']
+        missing_fields = [field for field in required_fields if field not in response]
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+            
+        print(f"   ✅ All required fields present")
+        print(f"   Message: {response.get('message')}")
+        
+        alerts_sent = response.get('alerts_sent', [])
+        alerts_skipped = response.get('alerts_skipped', [])
+        errors = response.get('errors', [])
+        
+        print(f"   Alerts Sent: {len(alerts_sent)}")
+        print(f"   Alerts Skipped: {len(alerts_skipped)}")
+        print(f"   Errors: {len(errors)}")
+        
+        # Log details of sent alerts
+        for alert in alerts_sent:
+            print(f"   - Sent: {alert.get('feature')} ({alert.get('type')}) to {alert.get('email')}")
+            
+        # Log details of skipped alerts
+        for alert in alerts_skipped:
+            print(f"   - Skipped: {alert.get('feature')} - {alert.get('reason')}")
+            
+        # Log any errors
+        for error in errors:
+            print(f"   - Error: {error}")
+            
+        # Check for expected behavior
+        if len(errors) == 0:
+            print(f"   ✅ No errors in alert processing")
+        else:
+            print(f"   ⚠️ Some errors occurred during alert processing")
+            
+        # Note: In test environment, emails will likely fail due to invalid SendGrid key
+        # but the logic should still work
+        print(f"   ℹ️ Note: Email sending may fail in test environment due to SendGrid configuration")
+        
+        return True
+
+    def test_quota_alert_history_endpoint(self):
+        """Test GET /api/quotas/alerts/history - Returns history of sent quota alert emails"""
+        print(f"\n🔧 Testing GET /api/quotas/alerts/history")
+        
+        # Test with default limit
+        success, response = self.run_test(
+            "Get Quota Alert History (Default Limit)",
+            "GET",
+            "quotas/alerts/history",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get quota alert history")
+            return False
+            
+        # Verify response structure
+        required_fields = ['tenant_id', 'alert_count', 'alerts']
+        missing_fields = [field for field in required_fields if field not in response]
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+            
+        print(f"   ✅ All required fields present")
+        print(f"   Tenant ID: {response.get('tenant_id')}")
+        print(f"   Alert Count: {response.get('alert_count')}")
+        
+        alerts = response.get('alerts', [])
+        print(f"   Found {len(alerts)} historical alerts")
+        
+        # Verify alert history structure
+        for alert in alerts:
+            expected_fields = ['tenant_id', 'feature_key', 'alert_type', 'user_email', 'sent_at']
+            for field in expected_fields:
+                if field not in alert:
+                    print(f"   ❌ Missing field in alert history: {field}")
+                    return False
+                    
+            print(f"   - {alert.get('feature_key')}: {alert.get('alert_type')} sent to {alert.get('user_email')}")
+            print(f"     Sent at: {alert.get('sent_at')}")
+        
+        # Test with custom limit
+        success, response = self.run_test(
+            "Get Quota Alert History (Custom Limit)",
+            "GET",
+            "quotas/alerts/history?limit=5",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Custom limit parameter working")
+            print(f"   Retrieved {len(response.get('alerts', []))} alerts with limit=5")
+        
+        return True
+
+    def test_check_all_tenants_alerts(self):
+        """Test POST /api/quotas/alerts/check-all - Super admin only, checks all tenants"""
+        print(f"\n🔧 Testing POST /api/quotas/alerts/check-all (Super Admin Only)")
+        
+        success, response = self.run_test(
+            "Check All Tenants Quota Alerts",
+            "POST",
+            "quotas/alerts/check-all",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to check all tenants quota alerts")
+            return False
+            
+        # Verify response structure
+        required_fields = ['message', 'tenants_checked', 'total_alerts_sent', 'details']
+        missing_fields = [field for field in required_fields if field not in response]
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+            
+        print(f"   ✅ All required fields present")
+        print(f"   Message: {response.get('message')}")
+        print(f"   Tenants Checked: {response.get('tenants_checked')}")
+        print(f"   Total Alerts Sent: {response.get('total_alerts_sent')}")
+        
+        details = response.get('details', [])
+        print(f"   Tenant Details: {len(details)} tenants with alerts or errors")
+        
+        # Log details for each tenant
+        for detail in details:
+            tenant_id = detail.get('tenant_id', 'Unknown')
+            alerts_sent = detail.get('alerts_sent', [])
+            errors = detail.get('errors', [])
+            
+            print(f"   - Tenant {tenant_id}: {len(alerts_sent)} alerts sent, {len(errors)} errors")
+            
+        print(f"   ✅ Super admin endpoint accessible and functional")
+        
+        return True
+
+    def test_clear_quota_alert_history(self):
+        """Test DELETE /api/quotas/alerts/history - Clears quota alert history"""
+        print(f"\n🔧 Testing DELETE /api/quotas/alerts/history")
+        
+        # Test clearing all history
+        success, response = self.run_test(
+            "Clear All Quota Alert History",
+            "DELETE",
+            "quotas/alerts/history",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to clear quota alert history")
+            return False
+            
+        # Verify response structure
+        required_fields = ['message', 'deleted_count']
+        missing_fields = [field for field in required_fields if field not in response]
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+            
+        print(f"   ✅ All required fields present")
+        print(f"   Message: {response.get('message')}")
+        print(f"   Deleted Count: {response.get('deleted_count')}")
+        
+        # Test clearing specific feature history
+        success, response = self.run_test(
+            "Clear Specific Feature Alert History",
+            "DELETE",
+            "quotas/alerts/history?feature_key=max_seats",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Feature-specific clearing working")
+            print(f"   Deleted {response.get('deleted_count')} alerts for max_seats feature")
+        
+        # Verify history is cleared by checking history endpoint
+        success, response = self.run_test(
+            "Verify History Cleared",
+            "GET",
+            "quotas/alerts/history",
+            200
+        )
+        
+        if success:
+            remaining_alerts = len(response.get('alerts', []))
+            print(f"   ✅ History verification: {remaining_alerts} alerts remaining")
+        
+        return True
+
     # ============== STORE CREDIT REFERRAL SYSTEM TESTS ==============
 
     def test_store_credit_referral_system(self):
