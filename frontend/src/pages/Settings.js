@@ -13,7 +13,6 @@ import { Separator } from '../components/ui/separator';
 import { Switch } from '../components/ui/switch';
 import { ScrollArea, ScrollBar } from '../components/ui/scroll-area';
 import AgentConfiguration from '../components/AgentConfiguration';
-import SavedAgents from '../components/SavedAgents';
 import OrchestrationSettings from '../components/OrchestrationSettings';
 import QuotaUsageDashboard from '../components/QuotaUsageDashboard';
 import {
