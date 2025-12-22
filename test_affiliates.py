@@ -4,6 +4,7 @@ Simple test script for Store Credit Referral System
 """
 import requests
 import json
+import time
 
 class AffiliateSystemTester:
     def __init__(self):
@@ -11,7 +12,8 @@ class AffiliateSystemTester:
         self.token = None
         self.affiliate_code = None
         self.test_referral_id = None
-        self.test_referral_email = "newuser@example.com"
+        # Use timestamp to make email unique
+        self.test_referral_email = f"newuser{int(time.time())}@example.com"
 
     def login(self):
         """Login as super admin"""
