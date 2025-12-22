@@ -195,8 +195,10 @@ class AffiliateSystemTester:
             
         print(f"\n🔧 Testing POST /api/auth/register with referral_code")
         
+        # Use unique email for registration
+        register_email = f"referred.user.{int(time.time())}@example.com"
         register_data = {
-            "email": "referred.user.test@example.com",
+            "email": register_email,
             "password": "password123",
             "name": "Referred Test User",
             "referral_code": self.affiliate_code
