@@ -6,19 +6,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
+import { Switch } from '../components/ui/switch';
 import {
   Bot,
   Plus,
   Upload,
   Loader2,
-  TestTube,
-  History,
   Trash2,
   Edit,
   Code,
   Copy,
   Check,
-  ExternalLink
+  Power,
+  Globe
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { AgentCardSkeleton } from '../components/LoadingStates';
@@ -33,6 +33,7 @@ const Agents = () => {
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploadingAvatar, setUploadingAvatar] = useState(null);
+  const [togglingAgent, setTogglingAgent] = useState(null);
   const [copiedAgentId, setCopiedAgentId] = useState(null);
   const avatarInputRefs = useRef({});
 
@@ -42,7 +43,7 @@ const Agents = () => {
 
   const fetchAgents = async () => {
     try {
-      const response = await axios.get(`${API}/admin/agents`, {
+      const response = await axios.get(`${API}/agents`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAgents(response.data);
@@ -63,7 +64,7 @@ const Agents = () => {
       formData.append('file', file);
 
       await axios.post(
-        `${API}/admin/agents/${agentId}/avatar`,
+        `${API}/agents/${agentId}/upload-image`,
         formData,
         {
           headers: {
@@ -82,6 +83,31 @@ const Agents = () => {
     }
   };
 
+  const handleToggleActive = async (agentId, isCurrentlyActive, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setTogglingAgent(agentId);
+    try {
+      if (isCurrentlyActive) {
+        await axios.post(`${API}/agents/${agentId}/deactivate`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Agent deactivated');
+      } else {
+        await axios.post(`${API}/agents/${agentId}/activate`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Agent activated');
+      }
+      fetchAgents();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update agent');
+    } finally {
+      setTogglingAgent(null);
+    }
+  };
+
   const handleDeleteAgent = async (agentId, e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -89,7 +115,7 @@ const Agents = () => {
     if (!window.confirm('Are you sure you want to delete this agent?')) return;
 
     try {
-      await axios.delete(`${API}/admin/agents/${agentId}`, {
+      await axios.delete(`${API}/agents/${agentId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Agent deleted');
@@ -121,8 +147,6 @@ const Agents = () => {
     setTimeout(() => setCopiedAgentId(null), 2000);
   };
 
-  const activeAgents = agents.filter(a => a.is_active);
-
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}
@@ -130,7 +154,7 @@ const Agents = () => {
         <div>
           <h1 className="font-heading text-2xl font-bold tracking-tight">AI Agents</h1>
           <p className="text-sm text-muted-foreground">
-            Create and manage AI agent personas
+            Create and manage your AI agent personas. Each agent has its own embed code.
           </p>
         </div>
         
@@ -147,61 +171,94 @@ const Agents = () => {
             <AgentCardSkeleton key={i} />
           ))}
         </div>
-      ) : activeAgents.length === 0 ? (
+      ) : agents.length === 0 ? (
         <NoAgentsState onCreate={() => navigate('/dashboard/agents/new')} />
       ) : (
         <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
-          {activeAgents.map((agent) => (
+          {agents.map((agent) => (
             <Link key={agent.id} to={`/dashboard/agents/${agent.id}`}>
-              <Card className="border border-border hover:border-primary/50 transition-colors cursor-pointer h-full">
+              <Card className={`border transition-colors cursor-pointer h-full ${
+                agent.is_active 
+                  ? 'border-primary/50 bg-primary/5' 
+                  : 'border-border hover:border-primary/30'
+              }`}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
-                        {getAvatarSrc(agent.avatar_url) ? (
+                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-2xl">
+                        {getAvatarSrc(agent.profile_image_url) ? (
                           <img 
-                            src={getAvatarSrc(agent.avatar_url)} 
+                            src={getAvatarSrc(agent.profile_image_url)} 
                             alt={agent.name}
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <Bot className="h-6 w-6 text-primary" />
+                          agent.icon || <Bot className="h-6 w-6 text-primary" />
                         )}
                       </div>
                       <div>
-                        <CardTitle className="text-lg">{agent.name}</CardTitle>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          {agent.name}
+                          {agent.is_active && (
+                            <Badge className="bg-green-500 text-white">Active</Badge>
+                          )}
+                        </CardTitle>
                         <CardDescription className="text-xs">
-                          {agent.provider_name} • {agent.model}
+                          {agent.category} • {agent.config?.model || 'Default model'}
                         </CardDescription>
                       </div>
                     </div>
-                    {agent.is_marketplace && (
-                      <Badge variant="secondary">Marketplace</Badge>
+                    {agent.is_public && (
+                      <Badge variant="secondary">
+                        <Globe className="h-3 w-3 mr-1" />
+                        Published
+                      </Badge>
                     )}
                   </div>
                 </CardHeader>
                 
                 <CardContent className="space-y-4">
-                  {/* Version */}
-                  <div className="flex items-center gap-2 text-sm">
-                    <History className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">Version {agent.version}</span>
-                  </div>
+                  {/* Description */}
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {agent.description}
+                  </p>
 
                   {/* System Prompt Preview */}
                   <div className="bg-muted/50 p-3 rounded-sm">
-                    <p className="text-xs text-muted-foreground line-clamp-3">
-                      {agent.system_prompt}
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {agent.config?.system_prompt || 'No system prompt defined'}
                     </p>
                   </div>
 
                   {/* Config */}
-                  <div className="flex gap-2 text-xs">
-                    <Badge variant="outline">Temp: {agent.temperature}</Badge>
-                    <Badge variant="outline">Tokens: {agent.max_tokens}</Badge>
+                  <div className="flex gap-2 text-xs flex-wrap">
+                    <Badge variant="outline">Temp: {agent.config?.temperature || 0.7}</Badge>
+                    <Badge variant="outline">Tokens: {agent.config?.max_tokens || 2000}</Badge>
+                    {agent.orchestration_enabled && (
+                      <Badge variant="secondary">Orchestration</Badge>
+                    )}
                   </div>
 
                   <Separator />
+
+                  {/* Active Toggle */}
+                  <div 
+                    className="flex items-center justify-between p-2 rounded-sm bg-muted/30"
+                    onClick={(e) => e.preventDefault()}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Power className={`h-4 w-4 ${agent.is_active ? 'text-green-500' : 'text-muted-foreground'}`} />
+                      <span className="text-sm font-medium">
+                        {agent.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    <Switch
+                      checked={agent.is_active}
+                      onCheckedChange={() => {}}
+                      onClick={(e) => handleToggleActive(agent.id, agent.is_active, e)}
+                      disabled={togglingAgent === agent.id}
+                    />
+                  </div>
 
                   {/* Quick Actions */}
                   <div className="grid grid-cols-4 gap-2">
@@ -257,6 +314,7 @@ const Agents = () => {
                       className="text-destructive hover:text-destructive"
                       onClick={(e) => handleDeleteAgent(agent.id, e)}
                       title="Delete Agent"
+                      disabled={agent.is_active}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
