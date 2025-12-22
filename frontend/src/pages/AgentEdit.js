@@ -580,6 +580,95 @@ const AgentEdit = () => {
                       ))}
                     </select>
                   </div>
+
+                  {/* Provider and Model Selection */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="provider" className="text-sm">AI Provider</Label>
+                      <select
+                        id="provider"
+                        className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
+                        value={getProviderId()}
+                        onChange={(e) => {
+                          const selectedProvider = providers.find(p => p.id === e.target.value);
+                          setAgent({ 
+                            ...agent, 
+                            config: { 
+                              ...agent.config, 
+                              provider_id: e.target.value,
+                              provider_name: selectedProvider?.name || '',
+                              // Reset model to provider's default when changing provider
+                              model: selectedProvider?.default_model || selectedProvider?.models?.[0] || ''
+                            }
+                          });
+                        }}
+                        disabled={loadingProviders}
+                      >
+                        {loadingProviders ? (
+                          <option value="">Loading providers...</option>
+                        ) : providers.length === 0 ? (
+                          <option value="">No providers configured</option>
+                        ) : (
+                          <>
+                            <option value="">Select a provider</option>
+                            {providers.map((provider) => (
+                              <option key={provider.id} value={provider.id}>
+                                {provider.name} ({provider.type})
+                              </option>
+                            ))}
+                          </>
+                        )}
+                      </select>
+                      {providers.length === 0 && !loadingProviders && (
+                        <p className="text-xs text-amber-600">
+                          No AI providers configured. Ask your admin to set one up.
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="model" className="text-sm">Model</Label>
+                      <select
+                        id="model"
+                        className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
+                        value={getModel()}
+                        onChange={(e) => setAgent({ 
+                          ...agent, 
+                          config: { ...agent.config, model: e.target.value, ai_model: e.target.value }
+                        })}
+                        disabled={!getProviderId() || loadingProviders}
+                      >
+                        {!getProviderId() ? (
+                          <option value="">Select a provider first</option>
+                        ) : getAvailableModels().length === 0 ? (
+                          <>
+                            <option value="">Enter model name</option>
+                            <option value={getModel()} disabled={!getModel()}>
+                              {getModel() || 'No models available'}
+                            </option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="">Select a model</option>
+                            {getAvailableModels().map((model) => (
+                              <option key={model} value={model}>{model}</option>
+                            ))}
+                          </>
+                        )}
+                      </select>
+                      {getProviderId() && getAvailableModels().length === 0 && (
+                        <Input
+                          placeholder="Enter model name (e.g., gpt-4o-mini)"
+                          value={getModel()}
+                          onChange={(e) => setAgent({ 
+                            ...agent, 
+                            config: { ...agent.config, model: e.target.value, ai_model: e.target.value }
+                          })}
+                          className="mt-2"
+                        />
+                      )}
+                    </div>
+                  </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="system-prompt" className="text-sm">System Prompt *</Label>
