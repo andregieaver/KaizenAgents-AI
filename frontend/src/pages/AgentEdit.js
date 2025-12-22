@@ -517,7 +517,7 @@ const AgentEdit = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <Label htmlFor="temperature">Temperature</Label>
-                      <span className="text-sm font-mono text-muted-foreground">{agent.config?.temperature || 0.7}</span>
+                      <span className="text-sm font-mono text-muted-foreground">{getTemperature()}</span>
                     </div>
                     <input
                       type="range"
@@ -525,7 +525,7 @@ const AgentEdit = () => {
                       min="0"
                       max="2"
                       step="0.1"
-                      value={agent.config?.temperature || 0.7}
+                      value={getTemperature()}
                       onChange={(e) => setAgent({ 
                         ...agent, 
                         config: { ...agent.config, temperature: parseFloat(e.target.value) }
@@ -542,7 +542,7 @@ const AgentEdit = () => {
                     <Input
                       type="number"
                       id="max-tokens"
-                      value={agent.config?.max_tokens || 2000}
+                      value={getMaxTokens()}
                       onChange={(e) => setAgent({ 
                         ...agent, 
                         config: { ...agent.config, max_tokens: parseInt(e.target.value) }
