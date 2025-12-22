@@ -669,6 +669,21 @@ async def verify_checkout_session(
         
         log_info(f"Subscription saved to database", tenant_id=tenant_id, matched_count=result.matched_count, modified_count=result.modified_count, upserted_id=result.upserted_id)
         
+        # Process referral discount if user was referred
+        user_email = current_user.get("email")
+        referral_discount = await db.referral_discounts.find_one(
+            {"email": user_email, "used": False},
+            {"_id": 0}
+        )
+        if referral_discount:
+            from routes.affiliates import use_referral_discount
+            await use_referral_discount(
+                user_email,
+                subscription_doc.get("plan_name", "Subscription"),
+                plan.get("price_monthly", 0) if billing_cycle == "monthly" else plan.get("price_yearly", 0)
+            )
+            log_info(f"Referral discount used and referral converted", user_email=user_email)
+        
         # Send subscription activation email (non-blocking)
         import asyncio
         from services.email_service import EmailService
@@ -700,7 +715,8 @@ async def verify_checkout_session(
         return {
             "status": "active",
             "message": "Subscription activated successfully",
-            "subscription": subscription_doc
+            "subscription": subscription_doc,
+            "referral_discount_used": referral_discount is not None
         }
         
     except stripe.error.StripeError as e:
