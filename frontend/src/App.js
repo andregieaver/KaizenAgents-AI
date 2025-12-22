@@ -23,6 +23,7 @@ import Team from "./pages/Team";
 import Profile from "./pages/Profile";
 import Providers from "./pages/Providers";
 import Agents from "./pages/Agents";
+import AgentEdit from "./pages/AgentEdit";
 import StorageConfig from "./pages/StorageConfig";
 import Analytics from "./pages/Analytics";
 import RateLimits from "./pages/RateLimits";
