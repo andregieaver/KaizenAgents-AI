@@ -10,6 +10,7 @@ import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
 import { Separator } from '../components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Switch } from '../components/ui/switch';
 import {
   Bot,
   ArrowLeft,
@@ -20,17 +21,18 @@ import {
   Copy,
   Check,
   TestTube,
-  History,
   Trash2,
   Send,
   User,
   RotateCcw,
   Settings,
-  ExternalLink
+  ExternalLink,
+  Power,
+  Globe,
+  Tag
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScrollArea } from '../components/ui/scroll-area';
-import AgentVersionHistory from '../components/AgentVersionHistory';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -43,10 +45,9 @@ const AgentEdit = () => {
   
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
-  const [providers, setProviders] = useState([]);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const avatarInputRef = useRef(null);
   
   // Test conversation state
@@ -54,41 +55,44 @@ const AgentEdit = () => {
   const [conversationHistory, setConversationHistory] = useState([]);
   const [testing, setTesting] = useState(false);
   
+  // Categories
+  const categories = [
+    'Customer Support',
+    'Sales',
+    'Technical Support',
+    'E-commerce',
+    'General',
+    'Other'
+  ];
+
   const [agent, setAgent] = useState({
     id: null,
     name: '',
-    provider_id: '',
-    model: '',
-    system_prompt: '',
-    temperature: 0.7,
-    max_tokens: 2000,
-    is_marketplace: false,
-    avatar_url: null,
-    version: 1
+    description: '',
+    category: 'General',
+    icon: '🤖',
+    profile_image_url: null,
+    config: {
+      system_prompt: '',
+      temperature: 0.7,
+      max_tokens: 2000,
+      model: ''
+    },
+    is_active: false,
+    is_public: false,
+    orchestration_enabled: false,
+    tags: []
   });
 
   useEffect(() => {
-    fetchProviders();
     if (!isNew) {
       fetchAgent();
     }
   }, [agentId, token]);
 
-  const fetchProviders = async () => {
-    try {
-      const response = await axios.get(`${API}/admin/providers`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setProviders(response.data.filter(p => p.is_active));
-    } catch (error) {
-      console.error('Error fetching providers:', error);
-      toast.error('Failed to load providers');
-    }
-  };
-
   const fetchAgent = async () => {
     try {
-      const response = await axios.get(`${API}/admin/agents/${agentId}`, {
+      const response = await axios.get(`${API}/agents/${agentId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAgent(response.data);
@@ -102,29 +106,58 @@ const AgentEdit = () => {
   };
 
   const handleSave = async () => {
-    if (!agent.name || !agent.provider_id || !agent.model || !agent.system_prompt) {
-      toast.error('Please fill in all required fields');
+    if (!agent.name || !agent.description) {
+      toast.error('Please fill in agent name and description');
+      return;
+    }
+
+    if (!agent.config?.system_prompt) {
+      toast.error('Please provide a system prompt');
       return;
     }
 
     setSaving(true);
     try {
       if (isNew) {
+        const createData = {
+          name: agent.name,
+          description: agent.description,
+          category: agent.category,
+          icon: agent.icon,
+          system_prompt: agent.config.system_prompt,
+          temperature: agent.config.temperature,
+          max_tokens: agent.config.max_tokens,
+          model: agent.config.model || null
+        };
+        
         const response = await axios.post(
-          `${API}/admin/agents`,
-          agent,
+          `${API}/agents`,
+          createData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success('Agent created successfully');
         navigate(`/dashboard/agents/${response.data.id}`);
       } else {
-        await axios.put(
-          `${API}/admin/agents/${agentId}`,
-          agent,
+        const updateData = {
+          name: agent.name,
+          description: agent.description,
+          category: agent.category,
+          icon: agent.icon,
+          system_prompt: agent.config?.system_prompt,
+          temperature: agent.config?.temperature,
+          max_tokens: agent.config?.max_tokens,
+          model: agent.config?.model,
+          orchestration_enabled: agent.orchestration_enabled,
+          tags: agent.tags
+        };
+        
+        await axios.patch(
+          `${API}/agents/${agentId}`,
+          updateData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success('Agent updated successfully');
-        fetchAgent(); // Refresh to get new version
+        fetchAgent();
       }
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save agent');
@@ -134,16 +167,72 @@ const AgentEdit = () => {
   };
 
   const handleDelete = async () => {
+    if (agent.is_active) {
+      toast.error('Cannot delete active agent. Please deactivate it first.');
+      return;
+    }
+    
     if (!window.confirm('Are you sure you want to delete this agent?')) return;
 
     try {
-      await axios.delete(`${API}/admin/agents/${agentId}`, {
+      await axios.delete(`${API}/agents/${agentId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Agent deleted');
       navigate('/dashboard/agents');
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to delete agent');
+    }
+  };
+
+  const handleToggleActive = async () => {
+    try {
+      if (agent.is_active) {
+        await axios.post(`${API}/agents/${agentId}/deactivate`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Agent deactivated');
+      } else {
+        await axios.post(`${API}/agents/${agentId}/activate`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Agent activated');
+      }
+      fetchAgent();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update agent');
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!agent.is_active) {
+      toast.error('Please activate the agent before publishing to marketplace');
+      return;
+    }
+    
+    setPublishing(true);
+    try {
+      if (agent.is_public) {
+        await axios.post(`${API}/agents/${agentId}/unpublish`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        toast.success('Agent removed from marketplace');
+      } else {
+        const response = await axios.post(`${API}/agents/${agentId}/publish`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        if (response.data.approved) {
+          toast.success('Agent published to marketplace!');
+        } else {
+          toast.error(`Publishing failed: ${response.data.issues?.join(', ') || 'Review failed'}`);
+        }
+      }
+      fetchAgent();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to publish agent');
+    } finally {
+      setPublishing(false);
     }
   };
 
@@ -156,7 +245,7 @@ const AgentEdit = () => {
       formData.append('file', file);
 
       await axios.post(
-        `${API}/admin/agents/${agentId}/avatar`,
+        `${API}/agents/${agentId}/upload-image`,
         formData,
         {
           headers: {
@@ -180,19 +269,12 @@ const AgentEdit = () => {
 
     setTesting(true);
     try {
-      const response = await axios.post(
-        `${API}/admin/agents/${agentId}/test`,
-        {
-          message: testMessage,
-          history: conversationHistory
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
+      // For testing, we'll simulate a conversation
+      // In production, this would call an actual test endpoint
       const newHistory = [
         ...conversationHistory,
         { role: 'user', content: testMessage },
-        { role: 'assistant', content: response.data.agent_response }
+        { role: 'assistant', content: `[Test Response] Agent "${agent.name}" would respond based on:\n\nSystem Prompt: ${agent.config?.system_prompt?.substring(0, 100)}...\n\nTemperature: ${agent.config?.temperature}\nMax Tokens: ${agent.config?.max_tokens}` }
       ];
       
       setConversationHistory(newHistory);
@@ -241,24 +323,27 @@ const AgentEdit = () => {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
-              {getAvatarSrc(agent.avatar_url) ? (
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-2xl">
+              {getAvatarSrc(agent.profile_image_url) ? (
                 <img 
-                  src={getAvatarSrc(agent.avatar_url)} 
+                  src={getAvatarSrc(agent.profile_image_url)} 
                   alt={agent.name}
                   className="h-full w-full object-cover"
                 />
               ) : (
-                <Bot className="h-6 w-6 text-primary" />
+                agent.icon || <Bot className="h-6 w-6 text-primary" />
               )}
             </div>
             <div>
-              <h1 className="font-heading text-2xl font-bold tracking-tight">
+              <h1 className="font-heading text-2xl font-bold tracking-tight flex items-center gap-2">
                 {isNew ? 'Create New Agent' : agent.name || 'Edit Agent'}
+                {agent.is_active && (
+                  <Badge className="bg-green-500 text-white">Active</Badge>
+                )}
               </h1>
               {!isNew && (
                 <p className="text-sm text-muted-foreground">
-                  Version {agent.version} • {agent.provider_name} • {agent.model}
+                  {agent.category} • {agent.config?.model || 'Default model'}
                 </p>
               )}
             </div>
@@ -268,11 +353,24 @@ const AgentEdit = () => {
         <div className="flex items-center gap-2">
           {!isNew && (
             <>
-              <Button variant="outline" onClick={() => setShowVersionHistory(true)}>
-                <History className="h-4 w-4 mr-2" />
-                History
+              <Button 
+                variant="outline" 
+                onClick={handlePublish}
+                disabled={publishing}
+              >
+                {publishing ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Globe className="h-4 w-4 mr-2" />
+                )}
+                {agent.is_public ? 'Unpublish' : 'Publish to Marketplace'}
               </Button>
-              <Button variant="outline" className="text-destructive" onClick={handleDelete}>
+              <Button 
+                variant="outline" 
+                className="text-destructive" 
+                onClick={handleDelete}
+                disabled={agent.is_active}
+              >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
               </Button>
@@ -320,57 +418,53 @@ const AgentEdit = () => {
                   <CardDescription>Basic information about this agent</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="agent-name">Agent Name *</Label>
-                    <Input
-                      id="agent-name"
-                      placeholder="e.g., Customer Support Specialist"
-                      value={agent.name}
-                      onChange={(e) => setAgent({ ...agent, name: e.target.value })}
-                    />
-                  </div>
-                  
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="provider">Provider *</Label>
-                      <select
-                        id="provider"
-                        className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
-                        value={agent.provider_id}
-                        onChange={(e) => setAgent({ ...agent, provider_id: e.target.value, model: '' })}
-                        disabled={!isNew}
-                      >
-                        <option value="">Select provider</option>
-                        {providers.map((provider) => (
-                          <option key={provider.id} value={provider.id}>
-                            {provider.name}
-                          </option>
-                        ))}
-                      </select>
-                      {!isNew && (
-                        <p className="text-xs text-muted-foreground">Provider cannot be changed</p>
-                      )}
+                      <Label htmlFor="agent-name">Agent Name *</Label>
+                      <Input
+                        id="agent-name"
+                        placeholder="e.g., Customer Support Specialist"
+                        value={agent.name}
+                        onChange={(e) => setAgent({ ...agent, name: e.target.value })}
+                      />
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="model">Model *</Label>
-                      <select
-                        id="model"
-                        className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
-                        value={agent.model}
-                        onChange={(e) => setAgent({ ...agent, model: e.target.value })}
-                        disabled={!agent.provider_id}
-                      >
-                        <option value="">Select model</option>
-                        {agent.provider_id && providers
-                          .find(p => p.id === agent.provider_id)
-                          ?.models.map((model) => (
-                            <option key={model} value={model}>
-                              {model}
-                            </option>
-                          ))}
-                      </select>
+                      <Label htmlFor="agent-icon">Icon</Label>
+                      <Input
+                        id="agent-icon"
+                        placeholder="🤖"
+                        value={agent.icon}
+                        onChange={(e) => setAgent({ ...agent, icon: e.target.value })}
+                        className="text-xl"
+                        maxLength={2}
+                      />
                     </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description *</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="A brief description of what this agent does..."
+                      rows={2}
+                      value={agent.description}
+                      onChange={(e) => setAgent({ ...agent, description: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category</Label>
+                    <select
+                      id="category"
+                      className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
+                      value={agent.category}
+                      onChange={(e) => setAgent({ ...agent, category: e.target.value })}
+                    >
+                      {categories.map((cat) => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
                   </div>
                   
                   <div className="space-y-2">
@@ -379,8 +473,11 @@ const AgentEdit = () => {
                       id="system-prompt"
                       placeholder="You are a helpful customer support assistant..."
                       rows={8}
-                      value={agent.system_prompt}
-                      onChange={(e) => setAgent({ ...agent, system_prompt: e.target.value })}
+                      value={agent.config?.system_prompt || ''}
+                      onChange={(e) => setAgent({ 
+                        ...agent, 
+                        config: { ...agent.config, system_prompt: e.target.value }
+                      })}
                     />
                     <p className="text-xs text-muted-foreground">
                       Define the agent's personality, knowledge, and behavior
@@ -398,7 +495,7 @@ const AgentEdit = () => {
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <Label htmlFor="temperature">Temperature</Label>
-                      <span className="text-sm font-mono text-muted-foreground">{agent.temperature}</span>
+                      <span className="text-sm font-mono text-muted-foreground">{agent.config?.temperature || 0.7}</span>
                     </div>
                     <input
                       type="range"
@@ -406,8 +503,11 @@ const AgentEdit = () => {
                       min="0"
                       max="2"
                       step="0.1"
-                      value={agent.temperature}
-                      onChange={(e) => setAgent({ ...agent, temperature: parseFloat(e.target.value) })}
+                      value={agent.config?.temperature || 0.7}
+                      onChange={(e) => setAgent({ 
+                        ...agent, 
+                        config: { ...agent.config, temperature: parseFloat(e.target.value) }
+                      })}
                       className="w-full"
                     />
                     <p className="text-xs text-muted-foreground">
@@ -420,8 +520,11 @@ const AgentEdit = () => {
                     <Input
                       type="number"
                       id="max-tokens"
-                      value={agent.max_tokens}
-                      onChange={(e) => setAgent({ ...agent, max_tokens: parseInt(e.target.value) })}
+                      value={agent.config?.max_tokens || 2000}
+                      onChange={(e) => setAgent({ 
+                        ...agent, 
+                        config: { ...agent.config, max_tokens: parseInt(e.target.value) }
+                      })}
                     />
                     <p className="text-xs text-muted-foreground">
                       Maximum length of the agent's responses
@@ -441,15 +544,15 @@ const AgentEdit = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-center">
-                    <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
-                      {getAvatarSrc(agent.avatar_url) ? (
+                    <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-4xl">
+                      {getAvatarSrc(agent.profile_image_url) ? (
                         <img 
-                          src={getAvatarSrc(agent.avatar_url)} 
+                          src={getAvatarSrc(agent.profile_image_url)} 
                           alt={agent.name}
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <Bot className="h-12 w-12 text-primary" />
+                        agent.icon || <Bot className="h-12 w-12 text-primary" />
                       )}
                     </div>
                   </div>
@@ -486,25 +589,84 @@ const AgentEdit = () => {
                 </CardContent>
               </Card>
 
-              {/* Quick Info */}
+              {/* Status & Actions */}
               {!isNew && (
                 <Card className="border border-border">
                   <CardHeader>
-                    <CardTitle>Agent Info</CardTitle>
+                    <CardTitle>Agent Status</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Version</span>
-                      <Badge variant="secondary">v{agent.version}</Badge>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Power className={`h-4 w-4 ${agent.is_active ? 'text-green-500' : 'text-muted-foreground'}`} />
+                        <span className="text-sm font-medium">
+                          {agent.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+                      <Switch
+                        checked={agent.is_active}
+                        onCheckedChange={handleToggleActive}
+                      />
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Agent ID</span>
-                      <code className="text-xs bg-muted px-2 py-1 rounded">{agent.id?.slice(0, 8)}...</code>
+                    
+                    {agent.is_public && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <Globe className="h-4 w-4 text-primary" />
+                        <span>Published to Marketplace</span>
+                      </div>
+                    )}
+
+                    <Separator />
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Agent ID</span>
+                        <code className="text-xs bg-muted px-2 py-1 rounded">{agent.id?.slice(0, 8)}...</code>
+                      </div>
+                      {agent.created_at && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Created</span>
+                          <span>{new Date(agent.created_at).toLocaleDateString()}</span>
+                        </div>
+                      )}
                     </div>
-                    {agent.is_marketplace && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Status</span>
-                        <Badge>Marketplace</Badge>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Orchestration */}
+              {!isNew && (
+                <Card className="border border-border">
+                  <CardHeader>
+                    <CardTitle>Orchestration</CardTitle>
+                    <CardDescription>Multi-agent coordination settings</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Tag className="h-4 w-4" />
+                        <span className="text-sm">Enable Orchestration</span>
+                      </div>
+                      <Switch
+                        checked={agent.orchestration_enabled}
+                        onCheckedChange={(checked) => setAgent({ ...agent, orchestration_enabled: checked })}
+                      />
+                    </div>
+                    
+                    {agent.orchestration_enabled && (
+                      <div className="space-y-2">
+                        <Label>Tags (comma-separated)</Label>
+                        <Input
+                          placeholder="support, billing, technical"
+                          value={agent.tags?.join(', ') || ''}
+                          onChange={(e) => setAgent({ 
+                            ...agent, 
+                            tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)
+                          })}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Tags help the mother agent route requests
+                        </p>
                       </div>
                     )}
                   </CardContent>
@@ -689,20 +851,6 @@ const AgentEdit = () => {
           </TabsContent>
         )}
       </Tabs>
-
-      {/* Version History Dialog */}
-      {!isNew && (
-        <AgentVersionHistory
-          agentId={agent.id}
-          agentName={agent.name}
-          open={showVersionHistory}
-          onOpenChange={setShowVersionHistory}
-          onRollback={() => {
-            fetchAgent();
-            setShowVersionHistory(false);
-          }}
-        />
-      )}
     </div>
   );
 };
