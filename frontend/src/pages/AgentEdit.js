@@ -603,7 +603,7 @@ const AgentEdit = () => {
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
                   <div className="flex justify-center">
-                    <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-4xl">
+                    <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-3xl sm:text-4xl">
                       {getAvatarSrc(agent.profile_image_url) ? (
                         <img 
                           src={getAvatarSrc(agent.profile_image_url)} 
@@ -611,7 +611,7 @@ const AgentEdit = () => {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        agent.icon || <Bot className="h-12 w-12 text-primary" />
+                        agent.icon || <Bot className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
                       )}
                     </div>
                   </div>
