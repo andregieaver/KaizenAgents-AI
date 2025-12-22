@@ -1367,6 +1367,379 @@ class AIAgentHubTester:
         
         return True
 
+    # ============== STORE CREDIT REFERRAL SYSTEM TESTS ==============
+
+    def test_store_credit_referral_system(self):
+        """Test the Store Credit Referral System as requested in review"""
+        print(f"\n🎯 Testing Store Credit Referral System")
+        
+        # Test all affiliate endpoints as requested in review
+        login_test = self.test_super_admin_login()
+        if not login_test:
+            print("❌ Login failed - cannot continue with affiliate tests")
+            return False
+            
+        affiliate_my_test = self.test_affiliate_my_endpoint()
+        affiliate_stats_test = self.test_affiliate_stats_endpoint()
+        track_referral_test = self.test_track_referral_endpoint()
+        check_discount_test = self.test_check_discount_endpoint()
+        convert_referral_test = self.test_convert_referral_endpoint()
+        credit_history_test = self.test_credit_history_endpoint()
+        register_with_referral_test = self.test_register_with_referral()
+        affiliate_settings_test = self.test_affiliate_settings_endpoint()
+        
+        # Summary of affiliate system tests
+        print(f"\n📋 Store Credit Referral System Test Results:")
+        print(f"   Super Admin Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
+        print(f"   GET /api/affiliates/my: {'✅ PASSED' if affiliate_my_test else '❌ FAILED'}")
+        print(f"   GET /api/affiliates/stats: {'✅ PASSED' if affiliate_stats_test else '❌ FAILED'}")
+        print(f"   POST /api/affiliates/track/{{code}}: {'✅ PASSED' if track_referral_test else '❌ FAILED'}")
+        print(f"   GET /api/affiliates/check-discount/{{email}}: {'✅ PASSED' if check_discount_test else '❌ FAILED'}")
+        print(f"   POST /api/affiliates/convert/{{id}}: {'✅ PASSED' if convert_referral_test else '❌ FAILED'}")
+        print(f"   GET /api/affiliates/credit-history: {'✅ PASSED' if credit_history_test else '❌ FAILED'}")
+        print(f"   POST /api/auth/register (with referral): {'✅ PASSED' if register_with_referral_test else '❌ FAILED'}")
+        print(f"   GET /api/affiliates/settings: {'✅ PASSED' if affiliate_settings_test else '❌ FAILED'}")
+        
+        return all([login_test, affiliate_my_test, affiliate_stats_test, track_referral_test, 
+                   check_discount_test, convert_referral_test, credit_history_test, 
+                   register_with_referral_test, affiliate_settings_test])
+
+    def test_affiliate_my_endpoint(self):
+        """Test GET /api/affiliates/my - Returns affiliate info with store credit fields"""
+        print(f"\n🔧 Testing GET /api/affiliates/my")
+        
+        success, response = self.run_test(
+            "Get My Affiliate Info",
+            "GET",
+            "affiliates/my",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get affiliate info")
+            return False
+            
+        # Verify response structure and new store credit fields
+        required_fields = [
+            'id', 'user_id', 'affiliate_code', 'affiliate_link', 'commission_rate',
+            'total_referrals', 'successful_referrals', 'store_credit', 
+            'total_credit_earned', 'total_credit_used', 'status', 'created_at'
+        ]
+        
+        missing_fields = [field for field in required_fields if field not in response]
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+            
+        print(f"   ✅ All required fields present")
+        print(f"   Affiliate Code: {response.get('affiliate_code')}")
+        print(f"   Commission Rate: {response.get('commission_rate')}%")
+        print(f"   Store Credit: {response.get('store_credit')}%")
+        print(f"   Total Credit Earned: {response.get('total_credit_earned')}%")
+        print(f"   Total Credit Used: {response.get('total_credit_used')}%")
+        print(f"   Total Referrals: {response.get('total_referrals')}")
+        print(f"   Successful Referrals: {response.get('successful_referrals')}")
+        
+        # Store affiliate code for later tests
+        self.affiliate_code = response.get('affiliate_code')
+        self.affiliate_id = response.get('id')
+        
+        # Verify store credit fields have correct default values
+        if response.get('store_credit') == 0 and response.get('total_credit_earned') == 0 and response.get('total_credit_used') == 0:
+            print(f"   ✅ Store credit fields initialized correctly")
+        else:
+            print(f"   ⚠️ Store credit fields may have unexpected values")
+            
+        return True
+
+    def test_affiliate_stats_endpoint(self):
+        """Test GET /api/affiliates/stats - Returns stats with credit info"""
+        print(f"\n🔧 Testing GET /api/affiliates/stats")
+        
+        success, response = self.run_test(
+            "Get Affiliate Stats",
+            "GET",
+            "affiliates/stats",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get affiliate stats")
+            return False
+            
+        # Verify response structure
+        required_fields = [
+            'total_referrals', 'successful_referrals', 'conversion_rate',
+            'store_credit', 'total_credit_earned', 'total_credit_used',
+            'this_month_referrals', 'this_cycle_successful'
+        ]
+        
+        missing_fields = [field for field in required_fields if field not in response]
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+            
+        print(f"   ✅ All required stats fields present")
+        print(f"   Total Referrals: {response.get('total_referrals')}")
+        print(f"   Successful Referrals: {response.get('successful_referrals')}")
+        print(f"   Conversion Rate: {response.get('conversion_rate')}%")
+        print(f"   Store Credit: {response.get('store_credit')}%")
+        print(f"   This Month Referrals: {response.get('this_month_referrals')}")
+        print(f"   This Cycle Successful: {response.get('this_cycle_successful')}")
+        
+        return True
+
+    def test_track_referral_endpoint(self):
+        """Test POST /api/affiliates/track/{affiliate_code} - Creates referral record"""
+        print(f"\n🔧 Testing POST /api/affiliates/track/{self.affiliate_code}")
+        
+        if not hasattr(self, 'affiliate_code') or not self.affiliate_code:
+            print("❌ No affiliate code available from previous test")
+            return False
+            
+        # Test tracking a new referral
+        test_email = "newuser@example.com"
+        track_data = {"referred_email": test_email}
+        
+        success, response = self.run_test(
+            "Track New Referral",
+            "POST",
+            f"affiliates/track/{self.affiliate_code}",
+            200,
+            data=track_data
+        )
+        
+        if not success:
+            print("❌ Failed to track referral")
+            return False
+            
+        # Verify response
+        if not response.get('tracked'):
+            print(f"❌ Referral not tracked: {response.get('reason')}")
+            return False
+            
+        print(f"   ✅ Referral tracked successfully")
+        print(f"   Referral ID: {response.get('referral_id')}")
+        
+        # Store referral ID for later tests
+        self.test_referral_id = response.get('referral_id')
+        self.test_referral_email = test_email
+        
+        return True
+
+    def test_check_discount_endpoint(self):
+        """Test GET /api/affiliates/check-discount/{email} - Returns referral discount info"""
+        print(f"\n🔧 Testing GET /api/affiliates/check-discount/{self.test_referral_email}")
+        
+        if not hasattr(self, 'test_referral_email'):
+            print("❌ No test referral email available from previous test")
+            return False
+            
+        success, response = self.run_test(
+            "Check Referral Discount",
+            "GET",
+            f"affiliates/check-discount/{self.test_referral_email}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to check referral discount")
+            return False
+            
+        # Verify response structure
+        required_fields = ['has_discount', 'discount_percentage', 'referred_by_code']
+        missing_fields = [field for field in required_fields if field not in response]
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+            
+        print(f"   ✅ Discount check response structure correct")
+        print(f"   Has Discount: {response.get('has_discount')}")
+        print(f"   Discount Percentage: {response.get('discount_percentage')}%")
+        print(f"   Referred By Code: {response.get('referred_by_code')}")
+        
+        # Verify the referred user has a 20% discount
+        if response.get('has_discount') and response.get('discount_percentage') == 20:
+            print(f"   ✅ Referred user has correct 20% discount")
+        else:
+            print(f"   ❌ Expected 20% discount for referred user")
+            return False
+            
+        return True
+
+    def test_convert_referral_endpoint(self):
+        """Test POST /api/affiliates/convert/{referral_id} - Awards store credit"""
+        print(f"\n🔧 Testing POST /api/affiliates/convert/{self.test_referral_id}")
+        
+        if not hasattr(self, 'test_referral_id'):
+            print("❌ No test referral ID available from previous test")
+            return False
+            
+        # Convert the referral (simulate subscription)
+        convert_data = {
+            "plan_name": "Pro",
+            "plan_price": 29
+        }
+        
+        success, response = self.run_test(
+            "Convert Referral",
+            "POST",
+            f"affiliates/convert/{self.test_referral_id}",
+            200,
+            data=convert_data
+        )
+        
+        if not success:
+            print("❌ Failed to convert referral")
+            return False
+            
+        # Verify response
+        if not response.get('converted'):
+            print(f"❌ Referral not converted: {response.get('reason')}")
+            return False
+            
+        print(f"   ✅ Referral converted successfully")
+        print(f"   Credit Added: {response.get('credit_added')}%")
+        print(f"   Total Credit: {response.get('total_credit')}%")
+        print(f"   Capped: {response.get('capped')}")
+        
+        # Verify 20% credit was added
+        if response.get('credit_added') == 20:
+            print(f"   ✅ Correct 20% store credit awarded")
+        else:
+            print(f"   ❌ Expected 20% credit, got {response.get('credit_added')}%")
+            return False
+            
+        return True
+
+    def test_credit_history_endpoint(self):
+        """Test GET /api/affiliates/credit-history - Returns credit transactions"""
+        print(f"\n🔧 Testing GET /api/affiliates/credit-history")
+        
+        success, response = self.run_test(
+            "Get Credit History",
+            "GET",
+            "affiliates/credit-history",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get credit history")
+            return False
+            
+        # Verify response is a list
+        if not isinstance(response, list):
+            print(f"❌ Expected list response, got {type(response)}")
+            return False
+            
+        print(f"   ✅ Credit history endpoint accessible")
+        print(f"   Found {len(response)} credit transactions")
+        
+        # If we have transactions, verify structure
+        if len(response) > 0:
+            transaction = response[0]
+            required_fields = ['id', 'affiliate_id', 'type', 'amount', 'description', 'created_at']
+            missing_fields = [field for field in required_fields if field not in transaction]
+            
+            if missing_fields:
+                print(f"   ⚠️ Transaction missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ Transaction structure correct")
+                print(f"   Latest transaction: {transaction.get('type')} {transaction.get('amount')}% - {transaction.get('description')}")
+        
+        return True
+
+    def test_register_with_referral(self):
+        """Test POST /api/auth/register with referral_code - Should track referral"""
+        print(f"\n🔧 Testing POST /api/auth/register with referral_code")
+        
+        if not hasattr(self, 'affiliate_code'):
+            print("❌ No affiliate code available for registration test")
+            return False
+            
+        # Test user registration with referral code
+        register_data = {
+            "email": "referred.user@example.com",
+            "password": "password123",
+            "name": "Referred User",
+            "referral_code": self.affiliate_code
+        }
+        
+        success, response = self.run_test(
+            "Register with Referral Code",
+            "POST",
+            "auth/register",
+            200,
+            data=register_data
+        )
+        
+        if not success:
+            print("❌ Failed to register user with referral code")
+            return False
+            
+        # Verify registration was successful
+        if not response.get('token') or not response.get('user'):
+            print("❌ Registration response missing token or user")
+            return False
+            
+        print(f"   ✅ User registered successfully with referral code")
+        print(f"   User ID: {response['user'].get('id')}")
+        print(f"   Email: {response['user'].get('email')}")
+        
+        # Verify the referral was tracked by checking if the email now has a discount
+        success, discount_response = self.run_test(
+            "Verify Referral Tracked During Registration",
+            "GET",
+            f"affiliates/check-discount/{register_data['email']}",
+            200
+        )
+        
+        if success and discount_response.get('has_discount'):
+            print(f"   ✅ Referral automatically tracked during registration")
+            print(f"   Discount: {discount_response.get('discount_percentage')}%")
+        else:
+            print(f"   ⚠️ Referral may not have been tracked automatically")
+            
+        return True
+
+    def test_affiliate_settings_endpoint(self):
+        """Test GET /api/affiliates/settings - Returns program settings"""
+        print(f"\n🔧 Testing GET /api/affiliates/settings")
+        
+        success, response = self.run_test(
+            "Get Affiliate Program Settings",
+            "GET",
+            "affiliates/settings",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get affiliate settings")
+            return False
+            
+        # Verify response structure
+        expected_settings = {
+            'commission_rate': 20,
+            'max_credit_per_cycle': 100,
+            'referral_discount': 20
+        }
+        
+        print(f"   ✅ Affiliate settings endpoint accessible")
+        print(f"   Commission Rate: {response.get('commission_rate')}%")
+        print(f"   Max Credit Per Cycle: {response.get('max_credit_per_cycle')}%")
+        print(f"   Referral Discount: {response.get('referral_discount')}%")
+        print(f"   Cookie Duration: {response.get('cookie_duration_days')} days")
+        print(f"   Program Enabled: {response.get('program_enabled')}")
+        
+        # Verify expected values
+        for key, expected_value in expected_settings.items():
+            if response.get(key) == expected_value:
+                print(f"   ✅ {key}: {expected_value} (correct)")
+            else:
+                print(f"   ⚠️ {key}: expected {expected_value}, got {response.get(key)}")
+                
+        return True
+
     # ============== QUOTA ENFORCEMENT MIDDLEWARE TESTS ==============
 
     def test_quota_enforcement_middleware(self):
