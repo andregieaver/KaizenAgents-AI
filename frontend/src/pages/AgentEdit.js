@@ -739,27 +739,28 @@ const AgentEdit = () => {
         {!isNew && (
           <TabsContent value="test">
             <Card className="border border-border">
-              <CardHeader>
-                <div className="flex items-center justify-between">
+              <CardHeader className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
-                    <CardTitle>Test Conversation</CardTitle>
-                    <CardDescription>Chat with this agent to test its responses</CardDescription>
+                    <CardTitle className="text-base sm:text-lg">Test Conversation</CardTitle>
+                    <CardDescription className="text-xs sm:text-sm">Chat with this agent to test its responses</CardDescription>
                   </div>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setConversationHistory([])}
                     disabled={conversationHistory.length === 0}
+                    className="self-start sm:self-auto"
                   >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Clear
+                    <RotateCcw className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Clear</span>
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
                 <div className="space-y-4">
                   {/* Conversation History */}
-                  <ScrollArea className="h-[400px] pr-4">
+                  <ScrollArea className="h-[300px] sm:h-[400px] pr-2 sm:pr-4">
                     {conversationHistory.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-16 text-center">
                         <Bot className="h-12 w-12 text-muted-foreground mb-3" />
