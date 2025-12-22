@@ -365,7 +365,7 @@ const AgentEdit = () => {
               </h1>
               {!isNew && (
                 <p className="text-sm text-muted-foreground">
-                  {agent.category} • {agent.config?.model || 'Default model'}
+                  {agent.category} • {getModel() || 'Default model'}
                 </p>
               )}
             </div>
