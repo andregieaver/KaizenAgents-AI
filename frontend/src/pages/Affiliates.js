@@ -4,15 +4,13 @@ import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import { Badge } from '../components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Progress } from '../components/ui/progress';
 import { toast } from 'sonner';
 import { 
   Users, 
-  DollarSign, 
   Link as LinkIcon, 
   Copy, 
   CheckCircle, 
@@ -20,11 +18,14 @@ import {
   XCircle,
   TrendingUp,
   Loader2,
-  Wallet,
+  CreditCard,
   Share2,
   BarChart3,
-  ArrowUpRight,
-  Gift
+  Gift,
+  Percent,
+  Sparkles,
+  ArrowRight,
+  History
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
@@ -36,11 +37,8 @@ const Affiliates = () => {
   const [affiliate, setAffiliate] = useState(null);
   const [stats, setStats] = useState(null);
   const [referrals, setReferrals] = useState([]);
-  const [payouts, setPayouts] = useState([]);
+  const [creditHistory, setCreditHistory] = useState([]);
   const [settings, setSettings] = useState(null);
-  const [payoutModalOpen, setPayoutModalOpen] = useState(false);
-  const [payoutAmount, setPayoutAmount] = useState('');
-  const [requestingPayout, setRequestingPayout] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -50,7 +48,7 @@ const Affiliates = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [affiliateRes, statsRes, referralsRes, payoutsRes, settingsRes] = await Promise.all([
+      const [affiliateRes, statsRes, referralsRes, historyRes, settingsRes] = await Promise.all([
         axios.get(`${API}/affiliates/my`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
@@ -60,16 +58,16 @@ const Affiliates = () => {
         axios.get(`${API}/affiliates/referrals`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
-        axios.get(`${API}/affiliates/payouts`, {
+        axios.get(`${API}/affiliates/credit-history`, {
           headers: { Authorization: `Bearer ${token}` }
-        }),
+        }).catch(() => ({ data: [] })),
         axios.get(`${API}/affiliates/settings`)
       ]);
 
       setAffiliate(affiliateRes.data);
       setStats(statsRes.data);
       setReferrals(referralsRes.data);
-      setPayouts(payoutsRes.data);
+      setCreditHistory(historyRes.data || []);
       setSettings(settingsRes.data);
     } catch (error) {
       console.error('Error fetching affiliate data:', error);
@@ -90,35 +88,14 @@ const Affiliates = () => {
     }
   };
 
-  const handleRequestPayout = async () => {
-    setRequestingPayout(true);
-    try {
-      const amount = payoutAmount ? parseFloat(payoutAmount) : null;
-      await axios.post(
-        `${API}/affiliates/payouts/request`,
-        { amount },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success('Payout request submitted successfully!');
-      setPayoutModalOpen(false);
-      setPayoutAmount('');
-      fetchData();
-    } catch (error) {
-      toast.error(error.response?.data?.detail || 'Failed to request payout');
-    } finally {
-      setRequestingPayout(false);
-    }
-  };
-
   const getStatusBadge = (status) => {
     switch (status) {
       case 'converted':
       case 'completed':
-      case 'approved':
         return (
           <Badge variant="outline" className="border-green-500 text-green-500">
             <CheckCircle className="h-3 w-3 mr-1" />
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            Converted
           </Badge>
         );
       case 'pending':
@@ -128,11 +105,11 @@ const Affiliates = () => {
             Pending
           </Badge>
         );
-      case 'rejected':
+      case 'expired':
         return (
-          <Badge variant="outline" className="border-red-500 text-red-500">
+          <Badge variant="outline" className="border-gray-500 text-gray-500">
             <XCircle className="h-3 w-3 mr-1" />
-            Rejected
+            Expired
           </Badge>
         );
       default:
@@ -152,28 +129,65 @@ const Affiliates = () => {
     );
   }
 
+  const creditPercentage = stats?.store_credit || 0;
+  const maxReferralsPerCycle = 5;
+  const referralsThisCycle = stats?.this_cycle_successful || 0;
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold flex items-center gap-3">
           <Gift className="h-8 w-8" />
-          Affiliate Program
+          Referral Program
         </h1>
         <p className="text-muted-foreground mt-2">
-          Earn {settings?.default_commission_rate || 20}% commission for every customer you refer
+          Earn store credit by referring new customers. Both you and your referrals get rewarded!
         </p>
       </div>
 
+      {/* How It Works Banner */}
+      <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5">
+        <CardContent className="py-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <h3 className="font-semibold text-lg">How It Works</h3>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">1</div>
+              <div>
+                <p className="font-medium">Share Your Link</p>
+                <p className="text-sm text-muted-foreground">Send your unique referral link to friends and colleagues</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">2</div>
+              <div>
+                <p className="font-medium">They Get 20% Off</p>
+                <p className="text-sm text-muted-foreground">Your referral saves 20% on their first payment</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">3</div>
+              <div>
+                <p className="font-medium">You Earn 20% Credit</p>
+                <p className="text-sm text-muted-foreground">Get 20% off your next renewal (up to 100% free!)</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Affiliate Link Card */}
-      <Card className="border border-border bg-gradient-to-r from-primary/5 to-primary/10">
+      <Card className="border border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Share2 className="h-5 w-5" />
-            Your Affiliate Link
+            Your Referral Link
           </CardTitle>
           <CardDescription>
-            Share this link to earn commissions on referrals
+            Share this link to earn store credit
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -207,17 +221,60 @@ const Affiliates = () => {
               )}
             </Button>
           </div>
-          
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <DollarSign className="h-4 w-4" />
-              {settings?.default_commission_rate || 20}% commission
-            </span>
-            <span className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              {settings?.cookie_duration_days || 30} day cookie
-            </span>
+        </CardContent>
+      </Card>
+
+      {/* Store Credit Card */}
+      <Card className="border-2 border-green-500/20 bg-gradient-to-r from-green-500/5 to-emerald-500/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-green-600">
+            <CreditCard className="h-5 w-5" />
+            Your Store Credit
+          </CardTitle>
+          <CardDescription>
+            Credit automatically applies to your next subscription renewal
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-4xl font-bold text-green-600">{creditPercentage}%</p>
+              <p className="text-sm text-muted-foreground">off your next renewal</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-muted-foreground">Referrals this cycle</p>
+              <p className="text-2xl font-bold">{referralsThisCycle} / {maxReferralsPerCycle}</p>
+            </div>
           </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Credit Progress</span>
+              <span>{creditPercentage}% / 100% max</span>
+            </div>
+            <Progress value={creditPercentage} className="h-3" />
+          </div>
+
+          {creditPercentage >= 100 ? (
+            <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+              <p className="text-green-600 font-medium flex items-center gap-2">
+                <Sparkles className="h-4 w-4" />
+                Congratulations! Your next renewal is FREE!
+              </p>
+            </div>
+          ) : creditPercentage > 0 ? (
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                Refer {Math.ceil((100 - creditPercentage) / 20)} more customer{Math.ceil((100 - creditPercentage) / 20) > 1 ? 's' : ''} to get your next renewal free!
+              </p>
+            </div>
+          ) : (
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <p className="text-sm text-muted-foreground">
+                Start referring to earn credit. Each successful referral = 20% off your renewal!
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -251,52 +308,45 @@ const Affiliates = () => {
 
         <Card className="border border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Credit Earned</CardTitle>
+            <Percent className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats?.total_earnings?.toFixed(2) || '0.00'}</div>
+            <div className="text-2xl font-bold">{stats?.total_credit_earned || 0}%</div>
             <p className="text-xs text-muted-foreground">
-              ${stats?.this_month_earnings?.toFixed(2) || '0.00'} this month
+              lifetime earnings
             </p>
           </CardContent>
         </Card>
 
         <Card className="border border-border">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Credit Used</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              ${stats?.pending_earnings?.toFixed(2) || '0.00'}
-            </div>
-            <Button
-              variant="link"
-              className="p-0 h-auto text-xs"
-              onClick={() => setPayoutModalOpen(true)}
-              disabled={!stats?.pending_earnings || stats.pending_earnings < (settings?.min_payout_amount || 50)}
-            >
-              Request Payout →
-            </Button>
+            <div className="text-2xl font-bold">{stats?.total_credit_used || 0}%</div>
+            <p className="text-xs text-muted-foreground">
+              applied to renewals
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabs for Referrals and Payouts */}
+      {/* Tabs for Referrals and History */}
       <Tabs defaultValue="referrals" className="space-y-4">
         <TabsList>
           <TabsTrigger value="referrals" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
             Referrals
           </TabsTrigger>
-          <TabsTrigger value="payouts" className="flex items-center gap-2">
-            <Wallet className="h-4 w-4" />
-            Payouts
+          <TabsTrigger value="history" className="flex items-center gap-2">
+            <History className="h-4 w-4" />
+            Credit History
           </TabsTrigger>
           <TabsTrigger value="resources" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            Resources
+            Share
           </TabsTrigger>
         </TabsList>
 
@@ -314,7 +364,7 @@ const Affiliates = () => {
                     <TableHead>Email</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Plan</TableHead>
-                    <TableHead>Commission</TableHead>
+                    <TableHead>Credit Earned</TableHead>
                     <TableHead>Date</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -324,7 +374,7 @@ const Affiliates = () => {
                       <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
                         <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
                         <p>No referrals yet</p>
-                        <p className="text-xs">Share your link to start earning</p>
+                        <p className="text-xs">Share your link to start earning credit</p>
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -336,9 +386,9 @@ const Affiliates = () => {
                         <TableCell>{getStatusBadge(referral.status)}</TableCell>
                         <TableCell>{referral.plan_name || '-'}</TableCell>
                         <TableCell>
-                          {referral.commission_amount > 0 ? (
+                          {referral.credit_earned > 0 ? (
                             <span className="text-green-600 font-medium">
-                              ${referral.commission_amount.toFixed(2)}
+                              +{referral.credit_earned}%
                             </span>
                           ) : (
                             '-'
@@ -356,78 +406,50 @@ const Affiliates = () => {
           </Card>
         </TabsContent>
 
-        {/* Payouts Tab */}
-        <TabsContent value="payouts">
+        {/* Credit History Tab */}
+        <TabsContent value="history">
           <Card className="border border-border">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle>Payout History</CardTitle>
-                <CardDescription>Track your withdrawal requests</CardDescription>
-              </div>
-              <Button
-                onClick={() => setPayoutModalOpen(true)}
-                disabled={!stats?.pending_earnings || stats.pending_earnings < (settings?.min_payout_amount || 50)}
-              >
-                <ArrowUpRight className="h-4 w-4 mr-2" />
-                Request Payout
-              </Button>
+            <CardHeader>
+              <CardTitle>Credit History</CardTitle>
+              <CardDescription>Track your store credit earnings and usage</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="mb-4 p-4 bg-muted/50 rounded-lg">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Pending</p>
-                    <p className="text-lg font-semibold text-green-600">
-                      ${stats?.pending_earnings?.toFixed(2) || '0.00'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Paid</p>
-                    <p className="text-lg font-semibold">
-                      ${stats?.paid_earnings?.toFixed(2) || '0.00'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Min. Payout</p>
-                    <p className="text-lg font-semibold">
-                      ${settings?.min_payout_amount || 50}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Type</TableHead>
                     <TableHead>Amount</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Requested</TableHead>
-                    <TableHead>Processed</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Balance After</TableHead>
+                    <TableHead>Date</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {payouts.length === 0 ? (
+                  {creditHistory.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                        <Wallet className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p>No payouts yet</p>
-                        <p className="text-xs">Request a payout when you reach ${settings?.min_payout_amount || 50}</p>
+                        <History className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p>No credit history yet</p>
+                        <p className="text-xs">Credit transactions will appear here</p>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    payouts.map((payout) => (
-                      <TableRow key={payout.id}>
-                        <TableCell className="font-medium">
-                          ${payout.amount.toFixed(2)}
+                    creditHistory.map((entry) => (
+                      <TableRow key={entry.id}>
+                        <TableCell>
+                          <Badge variant={entry.type === 'earned' ? 'default' : 'secondary'}>
+                            {entry.type === 'earned' ? '+ Earned' : '- Used'}
+                          </Badge>
                         </TableCell>
-                        <TableCell className="capitalize">{payout.payment_method.replace('_', ' ')}</TableCell>
-                        <TableCell>{getStatusBadge(payout.status)}</TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {new Date(payout.requested_at).toLocaleDateString()}
+                        <TableCell className={entry.type === 'earned' ? 'text-green-600 font-medium' : 'text-muted-foreground'}>
+                          {entry.type === 'earned' ? '+' : '-'}{entry.amount}%
                         </TableCell>
+                        <TableCell className="max-w-[200px] truncate">
+                          {entry.description}
+                        </TableCell>
+                        <TableCell>{entry.balance_after}%</TableCell>
                         <TableCell className="text-muted-foreground">
-                          {payout.processed_at ? new Date(payout.processed_at).toLocaleDateString() : '-'}
+                          {new Date(entry.created_at).toLocaleDateString()}
                         </TableCell>
                       </TableRow>
                     ))
@@ -438,25 +460,25 @@ const Affiliates = () => {
           </Card>
         </TabsContent>
 
-        {/* Resources Tab */}
+        {/* Share/Resources Tab */}
         <TabsContent value="resources">
           <Card className="border border-border">
             <CardHeader>
-              <CardTitle>Marketing Resources</CardTitle>
-              <CardDescription>Materials to help you promote and earn more</CardDescription>
+              <CardTitle>Share Your Link</CardTitle>
+              <CardDescription>Quick ways to spread the word</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid gap-4 md:grid-cols-2">
                 <Card className="border">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Quick Share Links</CardTitle>
+                    <CardTitle className="text-base">Quick Share</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
                     <Button
                       variant="outline"
                       className="w-full justify-start"
                       onClick={() => {
-                        const text = `Check out this amazing AI support platform! ${affiliate?.affiliate_link}`;
+                        const text = `Get 20% off your first payment! Check out this amazing platform: ${affiliate?.affiliate_link}`;
                         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
                       }}
                     >
@@ -481,8 +503,8 @@ const Affiliates = () => {
                       variant="outline"
                       className="w-full justify-start"
                       onClick={() => {
-                        const text = `Check out this amazing AI support platform! ${affiliate?.affiliate_link}`;
-                        window.open(`mailto:?subject=Check this out&body=${encodeURIComponent(text)}`, '_blank');
+                        const text = `Hey! I thought you might like this - you can get 20% off your first payment: ${affiliate?.affiliate_link}`;
+                        window.open(`mailto:?subject=Check this out - 20% off!&body=${encodeURIComponent(text)}`, '_blank');
                       }}
                     >
                       <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -500,20 +522,24 @@ const Affiliates = () => {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Commission Rate</span>
-                      <span className="font-medium">{affiliate?.commission_rate || 20}%</span>
+                      <span className="text-muted-foreground">Your Credit</span>
+                      <span className="font-medium text-green-600">20% per referral</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Their Discount</span>
+                      <span className="font-medium">20% off first payment</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Max Credit</span>
+                      <span className="font-medium">100% (5 referrals)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Credit Reset</span>
+                      <span className="font-medium">After renewal</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Cookie Duration</span>
                       <span className="font-medium">{settings?.cookie_duration_days || 30} days</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Minimum Payout</span>
-                      <span className="font-medium">${settings?.min_payout_amount || 50}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Payment Method</span>
-                      <span className="font-medium capitalize">{affiliate?.payment_method?.replace('_', ' ') || 'PayPal'}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -525,19 +551,19 @@ const Affiliates = () => {
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      Share your link on social media and in relevant communities
+                      Share with businesses that need customer support solutions
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      Write blog posts or create videos about your experience
+                      Mention the 20% discount your friends will get
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      Recommend to businesses that need customer support solutions
+                      Add your referral link to your email signature
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                      Include your affiliate link in your email signature
+                      5 referrals = 100% off your next renewal!
                     </li>
                   </ul>
                 </CardContent>
@@ -546,67 +572,6 @@ const Affiliates = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Payout Request Modal */}
-      <Dialog open={payoutModalOpen} onOpenChange={setPayoutModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Request Payout</DialogTitle>
-            <DialogDescription>
-              Withdraw your affiliate earnings
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="p-4 bg-muted/50 rounded-lg">
-              <p className="text-sm text-muted-foreground">Available Balance</p>
-              <p className="text-2xl font-bold text-green-600">
-                ${stats?.pending_earnings?.toFixed(2) || '0.00'}
-              </p>
-            </div>
-
-            <div>
-              <Label htmlFor="payout_amount">Amount to Withdraw</Label>
-              <Input
-                id="payout_amount"
-                type="number"
-                placeholder={`Min: $${settings?.min_payout_amount || 50}`}
-                value={payoutAmount}
-                onChange={(e) => setPayoutAmount(e.target.value)}
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Leave empty to withdraw full balance
-              </p>
-            </div>
-
-            <div className="p-3 bg-muted/30 rounded-lg text-sm">
-              <p className="font-medium">Payment Details</p>
-              <p className="text-muted-foreground">
-                Method: <span className="capitalize">{affiliate?.payment_method?.replace('_', ' ')}</span>
-              </p>
-              <p className="text-muted-foreground">
-                Email: {affiliate?.payment_email}
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPayoutModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleRequestPayout} disabled={requestingPayout}>
-              {requestingPayout ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                'Request Payout'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
