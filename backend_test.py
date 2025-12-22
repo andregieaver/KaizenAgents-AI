@@ -5696,6 +5696,9 @@ def main():
         
         # 20. Store Credit Referral System Tests (Review Request)
         ("Store Credit Referral System", tester.test_store_credit_referral_system),
+        
+        # 21. Quota Limit Email Alerts Tests (Review Request)
+        ("Quota Limit Email Alerts", tester.test_quota_limit_email_alerts),
     ]
     
     print(f"\n📋 Running {len(tests)} comprehensive test scenarios...")
