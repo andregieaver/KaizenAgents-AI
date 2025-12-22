@@ -46,6 +46,7 @@ class UserAgentCreate(BaseModel):
     temperature: float = 0.7
     max_tokens: int = 2000
     model: Optional[str] = None  # If not provided, use default from provider
+    provider_id: Optional[str] = None  # If not provided, use tenant's default provider
 
 class UserAgentUpdate(BaseModel):
     name: Optional[str] = None
@@ -57,6 +58,7 @@ class UserAgentUpdate(BaseModel):
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
     model: Optional[str] = None
+    provider_id: Optional[str] = None
     config: Optional[Dict[str, Any]] = None
     # Orchestration fields
     orchestration_enabled: Optional[bool] = None
