@@ -762,43 +762,43 @@ const AgentEdit = () => {
                   {/* Conversation History */}
                   <ScrollArea className="h-[300px] sm:h-[400px] pr-2 sm:pr-4">
                     {conversationHistory.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <Bot className="h-12 w-12 text-muted-foreground mb-3" />
-                        <p className="text-sm text-muted-foreground">
+                      <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
+                        <Bot className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3" />
+                        <p className="text-xs sm:text-sm text-muted-foreground">
                           Start a conversation to test the agent
                         </p>
                       </div>
                     ) : (
                       <div className="space-y-3">
                         {conversationHistory.map((msg, idx) => (
-                          <div key={idx} className="flex items-start gap-3">
-                            <div className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                          <div key={idx} className="flex items-start gap-2 sm:gap-3">
+                            <div className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                               msg.role === 'user' 
                                 ? 'bg-primary/10' 
                                 : 'bg-primary'
                             }`}>
                               {msg.role === 'user' ? (
-                                <User className="h-4 w-4 text-primary" />
+                                <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                               ) : (
-                                <Bot className="h-4 w-4 text-white" />
+                                <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
                               )}
                             </div>
-                            <div className={`flex-1 p-3 rounded-lg ${
+                            <div className={`flex-1 p-2.5 sm:p-3 rounded-lg ${
                               msg.role === 'user' 
                                 ? 'bg-muted' 
                                 : 'bg-primary/10'
                             }`}>
-                              <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
+                              <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.content}</p>
                             </div>
                           </div>
                         ))}
                         {testing && (
-                          <div className="flex items-start gap-3">
-                            <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                              <Loader2 className="h-4 w-4 text-white animate-spin" />
+                          <div className="flex items-start gap-2 sm:gap-3">
+                            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-primary flex items-center justify-center">
+                              <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white animate-spin" />
                             </div>
-                            <div className="flex-1 bg-primary/10 p-3 rounded-lg">
-                              <p className="text-sm text-muted-foreground">Thinking...</p>
+                            <div className="flex-1 bg-primary/10 p-2.5 sm:p-3 rounded-lg">
+                              <p className="text-xs sm:text-sm text-muted-foreground">Thinking...</p>
                             </div>
                           </div>
                         )}
