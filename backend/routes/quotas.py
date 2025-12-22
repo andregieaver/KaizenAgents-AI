@@ -131,13 +131,19 @@ async def get_quota_usage(current_user: dict = Depends(get_current_user)):
     quotas = []
     
     for feature in config.get("features", []):
-        feature_key = feature["feature_key"]
+        feature_key = feature.get("feature_key")
+        if not feature_key:
+            continue
+            
+        feature_name = feature.get("feature_name", feature_key)
+        feature_description = feature.get("feature_description", "")
+        
         plan_limits = feature.get("plans", {}).get(plan_name_lower)
         
         if not plan_limits or not plan_limits.get("enabled"):
             continue
         
-        limit_value = plan_limits.get("limit_value")
+        limit_value = plan_limits.get("limit_value") or plan_limits.get("limit")
         limit_type = feature.get("limit_type", "quota")
         
         # Get current usage
@@ -147,8 +153,8 @@ async def get_quota_usage(current_user: dict = Depends(get_current_user)):
             current = await quota_service._get_monthly_usage(tenant_id, feature_key)
         
         # Calculate percentage and warning level
-        if limit_value is not None:
-            percentage = (current / limit_value * 100) if limit_value > 0 else 0
+        if limit_value is not None and limit_value > 0:
+            percentage = (current / limit_value * 100)
             remaining = max(0, limit_value - current)
             
             warning_level = None
@@ -177,10 +183,10 @@ async def get_quota_usage(current_user: dict = Depends(get_current_user)):
         
         quotas.append({
             "feature_key": feature_key,
-            "feature_name": feature["feature_name"],
-            "feature_description": feature["feature_description"],
+            "feature_name": feature_name,
+            "feature_description": feature_description,
             "limit_type": limit_type,
-            "unit": feature["unit"],
+            "unit": feature.get("unit", "items"),
             "current": current,
             "limit": limit_value,
             "remaining": remaining,
