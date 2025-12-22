@@ -492,6 +492,21 @@ async def create_checkout_session(
     if subscription and subscription.get("trial_end"):
         trial_days = 0  # No trial for returning customers
     
+    # Check for referral discount (20% off first payment for referred users)
+    discount_percent = 0
+    user_email = current_user.get("email")
+    referral_discount = await db.referral_discounts.find_one(
+        {"email": user_email, "used": False},
+        {"_id": 0}
+    )
+    if referral_discount:
+        discount_percent = referral_discount.get("discount_percentage", 20)
+        log_info(f"Applying referral discount: {discount_percent}%", user_email=user_email)
+    
+    # Check for store credit (for existing subscribers renewing)
+    # Store credit is applied at renewal, not initial checkout
+    # This is handled in the webhook for subscription renewals
+    
     # Create checkout session
     # Dynamically determine frontend URL from request
     origin = request.headers.get("origin") or request.headers.get("referer")
@@ -514,7 +529,9 @@ async def create_checkout_session(
         f"{frontend_url}/dashboard/billing?canceled=true",
         tenant_id,
         plan["id"],
-        trial_days
+        trial_days,
+        discount_percent=discount_percent,
+        discount_duration="once"  # First payment only
     )
     
     if not checkout:
@@ -522,7 +539,9 @@ async def create_checkout_session(
     
     return {
         "checkout_url": checkout["url"],
-        "session_id": checkout["session_id"]
+        "session_id": checkout["session_id"],
+        "referral_discount_applied": discount_percent > 0,
+        "discount_percent": discount_percent
     }
 
 @router.post("/verify-checkout")
