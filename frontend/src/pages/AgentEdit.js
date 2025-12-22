@@ -51,6 +51,10 @@ const AgentEdit = () => {
   const [publishing, setPublishing] = useState(false);
   const avatarInputRef = useRef(null);
   
+  // Providers state
+  const [providers, setProviders] = useState([]);
+  const [loadingProviders, setLoadingProviders] = useState(true);
+  
   // Test conversation state
   const [testMessage, setTestMessage] = useState('');
   const [conversationHistory, setConversationHistory] = useState([]);
@@ -79,7 +83,9 @@ const AgentEdit = () => {
       temperature: 0.7,
       max_tokens: 2000,
       model: '',
-      ai_model: ''  // Legacy field
+      ai_model: '',  // Legacy field
+      provider_id: '',
+      provider_name: ''
     },
     is_active: false,
     is_public: false,
