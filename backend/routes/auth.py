@@ -36,6 +36,18 @@ async def register(user_data: UserCreate):
     user_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
+    # Track referral if referral code provided
+    if user_data.referral_code:
+        try:
+            from routes.affiliates import track_referral
+            result = await track_referral(user_data.referral_code, user_data.email)
+            if result.get("tracked"):
+                logger.info(f"Referral tracked for {user_data.email} with code {user_data.referral_code}")
+            else:
+                logger.info(f"Referral not tracked: {result.get('reason')}")
+        except Exception as e:
+            logger.error(f"Error tracking referral: {e}")
+    
     # Create tenant for new user
     tenant_id = str(uuid.uuid4())
     tenant_doc = {
@@ -76,6 +88,7 @@ async def register(user_data: UserCreate):
         "name": user_data.name,
         "role": "owner",
         "tenant_id": tenant_id,
+        "referred_by": user_data.referral_code.upper() if user_data.referral_code else None,
         "created_at": now
     }
     await db.users.insert_one(user_doc)
