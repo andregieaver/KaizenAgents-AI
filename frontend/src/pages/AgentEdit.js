@@ -74,15 +74,37 @@ const AgentEdit = () => {
     profile_image_url: null,
     config: {
       system_prompt: '',
+      ai_persona: '',  // Legacy field
       temperature: 0.7,
       max_tokens: 2000,
-      model: ''
+      model: '',
+      ai_model: ''  // Legacy field
     },
     is_active: false,
     is_public: false,
     orchestration_enabled: false,
     tags: []
   });
+
+  // Helper to get system prompt (handles both new and legacy field names)
+  const getSystemPrompt = () => {
+    return agent.config?.system_prompt || agent.config?.ai_persona || '';
+  };
+
+  // Helper to get temperature
+  const getTemperature = () => {
+    return agent.config?.temperature ?? 0.7;
+  };
+
+  // Helper to get max tokens
+  const getMaxTokens = () => {
+    return agent.config?.max_tokens ?? 2000;
+  };
+
+  // Helper to get model
+  const getModel = () => {
+    return agent.config?.model || agent.config?.ai_model || '';
+  };
 
   useEffect(() => {
     if (!isNew) {
