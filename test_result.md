@@ -1,6 +1,28 @@
 # Test Results
 
-## Quota Limit Email Alerts Tests (Latest)
+## Agent Page Refactoring Tests (Latest)
+
+### Test Summary
+**Feature:** Agent Individual Embed Code + Dedicated Edit Page
+**Date:** December 22, 2025
+**Status:** IN PROGRESS
+**Tester:** Main Agent (pre-testing)
+
+### Components Implemented:
+1. New `AgentEdit.js` page - Full page for creating/editing agents
+2. Updated `Agents.js` - Cards with embed code, links to edit page
+3. Routes added in `App.js` - `/dashboard/agents/new` and `/dashboard/agents/:agentId`
+4. Agent-specific embed code with `data-agent-id` attribute
+
+### Pre-Testing Validation:
+- ✅ Agents list page shows agent cards with embed code preview
+- ✅ Agent cards link to dedicated edit page
+- ✅ Agent edit page has tabs: Configuration, Test, Embed Code
+- ✅ Embed Code tab shows agent-specific embed code
+
+---
+
+## Quota Limit Email Alerts Tests
 
 ### Test Summary
 **Feature:** Quota Limit Email Alerts
