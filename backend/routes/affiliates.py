@@ -107,6 +107,31 @@ async def get_my_affiliate(current_user: dict = Depends(get_current_user)):
         }
         
         await db.affiliates.insert_one(affiliate)
+    else:
+        # Migrate existing affiliate if needed - add new fields with defaults
+        needs_update = False
+        updates = {}
+        
+        if "store_credit" not in affiliate:
+            updates["store_credit"] = 0
+            needs_update = True
+        if "total_credit_earned" not in affiliate:
+            updates["total_credit_earned"] = 0
+            needs_update = True
+        if "total_credit_used" not in affiliate:
+            updates["total_credit_used"] = 0
+            needs_update = True
+        if "tenant_id" not in affiliate:
+            updates["tenant_id"] = current_user.get("tenant_id")
+            needs_update = True
+            
+        if needs_update:
+            await db.affiliates.update_one(
+                {"user_id": user_id},
+                {"$set": updates}
+            )
+            # Merge updates into response
+            affiliate = {**affiliate, **updates}
     
     return affiliate
 
