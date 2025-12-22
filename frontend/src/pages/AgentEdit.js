@@ -445,21 +445,21 @@ const AgentEdit = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="configuration" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="configuration">
-            <Settings className="h-4 w-4 mr-2" />
-            Configuration
+      <Tabs defaultValue="configuration" className="space-y-4 sm:space-y-6">
+        <TabsList className="w-full sm:w-auto flex">
+          <TabsTrigger value="configuration" className="flex-1 sm:flex-none">
+            <Settings className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Configuration</span>
           </TabsTrigger>
           {!isNew && (
             <>
-              <TabsTrigger value="test">
-                <TestTube className="h-4 w-4 mr-2" />
-                Test
+              <TabsTrigger value="test" className="flex-1 sm:flex-none">
+                <TestTube className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Test</span>
               </TabsTrigger>
-              <TabsTrigger value="embed">
-                <Code className="h-4 w-4 mr-2" />
-                Embed Code
+              <TabsTrigger value="embed" className="flex-1 sm:flex-none">
+                <Code className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Embed</span>
               </TabsTrigger>
             </>
           )}
