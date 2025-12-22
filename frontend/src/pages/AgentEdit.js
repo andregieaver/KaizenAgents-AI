@@ -205,7 +205,8 @@ const AgentEdit = () => {
           system_prompt: systemPrompt,
           temperature: getTemperature(),
           max_tokens: getMaxTokens(),
-          model: getModel() || null
+          model: getModel() || null,
+          provider_id: getProviderId() || null
         };
         
         const response = await axios.post(
@@ -225,6 +226,7 @@ const AgentEdit = () => {
           temperature: getTemperature(),
           max_tokens: getMaxTokens(),
           model: getModel(),
+          provider_id: getProviderId(),
           orchestration_enabled: agent.orchestration_enabled,
           tags: agent.tags
         };
