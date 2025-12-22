@@ -1,6 +1,29 @@
 # Test Results
 
-## Onboarding Flow Feature Tests (Latest)
+## Store Credit Referral System Tests (Latest)
+
+### Test Summary
+**Feature:** Affiliate Store Credit System
+**Date:** December 22, 2025
+**Status:** IN PROGRESS
+**Tester:** Main Agent (pre-testing)
+
+### Components Implemented:
+1. Backend APIs updated (`/api/affiliates/*`)
+2. Frontend Affiliates page redesigned for store credit
+3. Registration page shows referral discount banner
+4. Checkout flow applies referral discounts
+5. Referral tracking on registration
+
+### Pre-Testing Validation:
+- ✅ GET /api/affiliates/my - Returns affiliate with store_credit fields
+- ✅ GET /api/affiliates/stats - Returns stats with credit info
+- ✅ Affiliates page UI shows store credit system
+- ✅ Register page shows 20% OFF banner with referral code
+
+---
+
+## Onboarding Flow Feature Tests
 
 ### Test Summary
 **Feature:** Customer Onboarding Flow
