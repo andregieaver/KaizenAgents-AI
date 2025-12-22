@@ -293,10 +293,14 @@ const AgentEdit = () => {
     try {
       // For testing, we'll simulate a conversation
       // In production, this would call an actual test endpoint
+      const systemPrompt = getSystemPrompt();
+      const temperature = getTemperature();
+      const maxTokens = getMaxTokens();
+      
       const newHistory = [
         ...conversationHistory,
         { role: 'user', content: testMessage },
-        { role: 'assistant', content: `[Test Response] Agent "${agent.name}" would respond based on:\n\nSystem Prompt: ${agent.config?.system_prompt?.substring(0, 100)}...\n\nTemperature: ${agent.config?.temperature}\nMax Tokens: ${agent.config?.max_tokens}` }
+        { role: 'assistant', content: `[Test Response] Agent "${agent.name}" would respond based on:\n\nSystem Prompt: ${systemPrompt?.substring(0, 100)}${systemPrompt?.length > 100 ? '...' : ''}\n\nTemperature: ${temperature}\nMax Tokens: ${maxTokens}` }
       ];
       
       setConversationHistory(newHistory);
