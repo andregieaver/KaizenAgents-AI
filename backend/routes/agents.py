@@ -391,22 +391,40 @@ async def test_agent_conversation(
     max_tokens = config.get("max_tokens", 2000)
     model = config.get("model") or config.get("ai_model")
     
-    # Get the provider
+    # Get the provider - try multiple sources
     provider_id = agent.get("provider_id")
-    if not provider_id:
-        # Fall back to tenant's active provider
-        settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
-        provider_id = settings.get("active_provider_id") if settings else None
+    provider = None
     
-    if not provider_id:
+    if provider_id:
+        # Use agent's specific provider
+        provider = await db.providers.find_one({"id": provider_id, "is_active": True}, {"_id": 0})
+    
+    if not provider:
+        # Fall back to tenant's active provider in settings
+        settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
+        if settings and settings.get("active_provider_id"):
+            provider = await db.providers.find_one(
+                {"id": settings["active_provider_id"], "is_active": True}, 
+                {"_id": 0}
+            )
+    
+    if not provider:
+        # Fall back to first active provider that supports the model
+        if model:
+            provider = await db.providers.find_one(
+                {"is_active": True, "models": {"$in": [model]}}, 
+                {"_id": 0}
+            )
+    
+    if not provider:
+        # Last resort: use any active provider
+        provider = await db.providers.find_one({"is_active": True}, {"_id": 0})
+    
+    if not provider:
         raise HTTPException(
             status_code=400, 
             detail="No AI provider configured. Please configure a provider in Settings."
         )
-    
-    provider = await db.providers.find_one({"id": provider_id, "is_active": True}, {"_id": 0})
-    if not provider:
-        raise HTTPException(status_code=400, detail="Provider not found or not active")
     
     api_key = provider.get("api_key")
     if not api_key:
