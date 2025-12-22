@@ -156,22 +156,31 @@ async def create_user_agent(
     from services.quota_service import check_quota_limit
     await check_quota_limit(tenant_id, "max_agents", increment=1)
     
-    # Get tenant's active provider to determine model
+    # Get tenant settings
     settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
     if not settings:
         raise HTTPException(status_code=404, detail="Tenant settings not found")
     
-    # Get provider details
-    active_provider_id = settings.get("active_provider_id")
-    if not active_provider_id:
-        raise HTTPException(status_code=400, detail="No active provider configured. Please configure a provider in Admin settings first.")
+    # Get provider - use provided provider_id or fall back to tenant's default
+    provider_id = agent_data.provider_id
+    if not provider_id:
+        provider_id = settings.get("active_provider_id")
     
-    provider = await db.providers.find_one({"id": active_provider_id}, {"_id": 0})
+    if not provider_id:
+        raise HTTPException(status_code=400, detail="No provider specified and no default provider configured. Please select a provider or configure one in Admin settings.")
+    
+    provider = await db.providers.find_one({"id": provider_id, "is_active": True}, {"_id": 0})
     if not provider:
-        raise HTTPException(status_code=404, detail="Provider not found")
+        raise HTTPException(status_code=404, detail="Provider not found or not active")
     
     # Use provided model or default from provider
     model = agent_data.model or provider.get("default_model", "gpt-4")
+    
+    # Validate model is available in provider
+    available_models = provider.get("models", [])
+    if available_models and model not in available_models:
+        # If model not in list, still allow it but log a warning
+        logger.warning(f"Model {model} not in provider's known models list")
     
     # Create agent document
     import uuid
@@ -187,7 +196,7 @@ async def create_user_agent(
         "icon": agent_data.icon,
         "profile_image_url": agent_data.profile_image_url,
         "config": {
-            "provider_id": active_provider_id,
+            "provider_id": provider_id,
             "provider_name": provider.get("name", ""),
             "model": model,
             "system_prompt": agent_data.system_prompt,
