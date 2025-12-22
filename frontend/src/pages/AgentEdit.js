@@ -495,10 +495,10 @@ const AgentEdit = () => {
                       id="system-prompt"
                       placeholder="You are a helpful customer support assistant..."
                       rows={8}
-                      value={agent.config?.system_prompt || ''}
+                      value={getSystemPrompt()}
                       onChange={(e) => setAgent({ 
                         ...agent, 
-                        config: { ...agent.config, system_prompt: e.target.value }
+                        config: { ...agent.config, system_prompt: e.target.value, ai_persona: e.target.value }
                       })}
                     />
                     <p className="text-xs text-muted-foreground">
