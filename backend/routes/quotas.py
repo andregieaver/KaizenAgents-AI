@@ -965,6 +965,86 @@ async def get_quota_alerts(current_user: dict = Depends(get_current_user)):
     }
 
 
+# ============== QUOTA EMAIL ALERTS ==============
+
+@router.post("/alerts/send")
+async def send_quota_alerts(current_user: dict = Depends(get_current_user)):
+    """Check and send quota alert emails for the current tenant"""
+    from services.quota_alert_service import quota_alert_service
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    result = await quota_alert_service.check_and_send_alerts(tenant_id)
+    
+    return {
+        "message": "Quota alert check completed",
+        "alerts_sent": result.get("alerts_sent", []),
+        "alerts_skipped": result.get("alerts_skipped", []),
+        "errors": result.get("errors", [])
+    }
+
+
+@router.get("/alerts/history")
+async def get_quota_alert_history(
+    limit: int = 20,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get history of quota alert emails sent for the current tenant"""
+    from services.quota_alert_service import quota_alert_service
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    history = await quota_alert_service.get_alert_history(tenant_id, limit)
+    
+    return {
+        "tenant_id": tenant_id,
+        "alert_count": len(history),
+        "alerts": history
+    }
+
+
+@router.post("/alerts/check-all")
+async def check_all_tenant_quotas(admin_user: dict = Depends(get_super_admin_user)):
+    """
+    Check and send quota alerts for all active tenants (Super Admin only)
+    This can be called manually or by a scheduled job
+    """
+    from services.quota_alert_service import quota_alert_service
+    
+    result = await quota_alert_service.check_all_tenants()
+    
+    return {
+        "message": "Quota alert check completed for all tenants",
+        "tenants_checked": result.get("tenants_checked", 0),
+        "total_alerts_sent": result.get("total_alerts_sent", 0),
+        "details": result.get("tenant_results", [])
+    }
+
+
+@router.delete("/alerts/history")
+async def clear_quota_alert_history(
+    feature_key: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Clear quota alert history for the current tenant (useful for testing)"""
+    from services.quota_alert_service import quota_alert_service
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    result = await quota_alert_service.clear_alert_history(tenant_id, feature_key)
+    
+    return {
+        "message": "Alert history cleared",
+        "deleted_count": result.get("deleted_count", 0)
+    }
+
+
 # ============== SEAT PRICING MANAGEMENT (Super Admin) ==============
 
 class SeatPricingConfig(BaseModel):
