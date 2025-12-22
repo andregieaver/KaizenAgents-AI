@@ -5341,6 +5341,9 @@ def main():
         
         # 19. Customer Onboarding Flow Tests (Review Request)
         ("Customer Onboarding Flow APIs", tester.test_onboarding_apis),
+        
+        # 20. Store Credit Referral System Tests (Review Request)
+        ("Store Credit Referral System", tester.test_store_credit_referral_system),
     ]
     
     print(f"\n📋 Running {len(tests)} comprehensive test scenarios...")
