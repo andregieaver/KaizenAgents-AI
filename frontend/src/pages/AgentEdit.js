@@ -553,7 +553,7 @@ const AgentEdit = () => {
                 <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">
-                      <Label htmlFor="temperature">Temperature</Label>
+                      <Label htmlFor="temperature" className="text-sm">Temperature</Label>
                       <span className="text-sm font-mono text-muted-foreground">{getTemperature()}</span>
                     </div>
                     <input
@@ -575,7 +575,7 @@ const AgentEdit = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="max-tokens">Max Tokens</Label>
+                    <Label htmlFor="max-tokens" className="text-sm">Max Tokens</Label>
                     <Input
                       type="number"
                       id="max-tokens"
@@ -593,15 +593,15 @@ const AgentEdit = () => {
               </Card>
             </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
+            {/* Sidebar - Moves below on mobile */}
+            <div className="space-y-4 sm:space-y-6">
               {/* Avatar */}
               <Card className="border border-border">
-                <CardHeader>
-                  <CardTitle>Agent Avatar</CardTitle>
-                  <CardDescription>Visual representation of the agent</CardDescription>
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-base sm:text-lg">Agent Avatar</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Visual representation of the agent</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
                   <div className="flex justify-center">
                     <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-4xl">
                       {getAvatarSrc(agent.profile_image_url) ? (
