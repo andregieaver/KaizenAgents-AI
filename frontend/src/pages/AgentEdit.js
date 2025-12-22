@@ -357,15 +357,15 @@ const AgentEdit = () => {
   }
 
   return (
-    <div className="p-6 lg:p-8 max-w-5xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/agents')}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/agents')} className="shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-2xl">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-xl sm:text-2xl shrink-0">
               {getAvatarSrc(agent.profile_image_url) ? (
                 <img 
                   src={getAvatarSrc(agent.profile_image_url)} 
@@ -373,18 +373,18 @@ const AgentEdit = () => {
                   className="h-full w-full object-cover"
                 />
               ) : (
-                agent.icon || <Bot className="h-6 w-6 text-primary" />
+                agent.icon || <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               )}
             </div>
-            <div>
-              <h1 className="font-heading text-2xl font-bold tracking-tight flex items-center gap-2">
-                {isNew ? 'Create New Agent' : agent.name || 'Edit Agent'}
+            <div className="min-w-0">
+              <h1 className="font-heading text-lg sm:text-2xl font-bold tracking-tight flex items-center gap-2 flex-wrap">
+                <span className="truncate">{isNew ? 'Create New Agent' : agent.name || 'Edit Agent'}</span>
                 {agent.is_active && (
-                  <Badge className="bg-green-500 text-white">Active</Badge>
+                  <Badge className="bg-green-500 text-white shrink-0">Active</Badge>
                 )}
               </h1>
               {!isNew && (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   {agent.category} • {getModel() || 'Default model'}
                 </p>
               )}
@@ -392,39 +392,55 @@ const AgentEdit = () => {
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto sm:ml-0">
           {!isNew && (
             <>
               <Button 
                 variant="outline" 
+                size="sm"
+                className="hidden sm:flex"
                 onClick={handlePublish}
                 disabled={publishing}
               >
                 {publishing ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
                 ) : (
-                  <Globe className="h-4 w-4 mr-2" />
+                  <Globe className="h-4 w-4 sm:mr-2" />
                 )}
-                {agent.is_public ? 'Unpublish' : 'Publish to Marketplace'}
+                <span className="hidden md:inline">{agent.is_public ? 'Unpublish' : 'Publish'}</span>
               </Button>
               <Button 
                 variant="outline" 
+                size="sm"
+                className="sm:hidden"
+                onClick={handlePublish}
+                disabled={publishing}
+              >
+                {publishing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Globe className="h-4 w-4" />
+                )}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
                 className="text-destructive" 
                 onClick={handleDelete}
                 disabled={agent.is_active}
               >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                <Trash2 className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Delete</span>
               </Button>
             </>
           )}
-          <Button onClick={handleSave} disabled={saving}>
+          <Button size="sm" onClick={handleSave} disabled={saving}>
             {saving ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
             ) : (
-              <Save className="h-4 w-4 mr-2" />
+              <Save className="h-4 w-4 sm:mr-2" />
             )}
-            {isNew ? 'Create Agent' : 'Save Changes'}
+            <span className="hidden sm:inline">{isNew ? 'Create Agent' : 'Save'}</span>
           </Button>
         </div>
       </div>
