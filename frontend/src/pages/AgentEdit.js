@@ -651,10 +651,10 @@ const AgentEdit = () => {
               {/* Status & Actions */}
               {!isNew && (
                 <Card className="border border-border">
-                  <CardHeader>
-                    <CardTitle>Agent Status</CardTitle>
+                  <CardHeader className="p-4 sm:p-6">
+                    <CardTitle className="text-base sm:text-lg">Agent Status</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Power className={`h-4 w-4 ${agent.is_active ? 'text-green-500' : 'text-muted-foreground'}`} />
