@@ -7155,3 +7155,41 @@ The Seat Management feature is **FULLY IMPLEMENTED AND FUNCTIONAL** based on:
 ### Test Credentials:
 - Super Admin: andre@humanweb.no / Pernilla66!
 
+
+
+---
+
+## Create Agent Bug Fix
+
+### Test Summary
+**Feature:** Create Agent 404 Error Bug Fix
+**Date:** December 22, 2025
+**Status:** PASSED - Bug fixed and verified
+**Tester:** Main Agent (Manual Testing)
+**Environment:** Production Preview
+
+### Bug Description
+- **Issue:** Clicking 'Create Agent' button resulted in a 404 error
+- **Root Cause:** When navigating to `/dashboard/agents/new`, the `useParams()` hook returns `undefined` for `agentId` (not `'new'`) because React Router matches the literal route `agents/new` first
+- **Impact:** The `isNew` variable was calculated as `false` (`undefined === 'new'`), causing the component to try fetching data from `/api/agents/undefined`
+
+### Fix Applied
+- **File:** `/app/frontend/src/pages/AgentEdit.js`
+- **Line 44:** Changed `const isNew = agentId === 'new';` to `const isNew = !agentId || agentId === 'new';`
+- **Rationale:** Now handles both cases - when `agentId` is `undefined` (literal route match) or when it equals `'new'` (fallback)
+
+### Verification Results
+1. ✅ Direct navigation to `/dashboard/agents/new` - Page loads correctly with blank form
+2. ✅ Clicking 'Create Agent' button from Agents list - Navigates correctly to new agent form
+3. ✅ Form fields display properly (Agent Name, Icon, Description, Category, System Prompt)
+4. ✅ 'Create Agent' button visible in header
+5. ✅ No 404 errors or 'Failed to load agent' toasts
+
+### Note
+- Actual agent creation requires an AI provider to be configured first (this is expected business logic, not a bug)
+- Error toast 'No active provider configured' is expected behavior when submitting the form without a provider
+
+**Status: BUG FIXED** ✅
+
+---
+
