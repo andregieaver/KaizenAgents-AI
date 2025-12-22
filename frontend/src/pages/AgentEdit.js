@@ -131,7 +131,7 @@ const AgentEdit = () => {
         };
         
         const response = await axios.post(
-          `${API}/agents`,
+          `${API}/agents/`,
           createData,
           { headers: { Authorization: `Bearer ${token}` } }
         );
