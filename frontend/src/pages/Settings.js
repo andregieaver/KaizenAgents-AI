@@ -231,13 +231,9 @@ const Settings = () => {
               <SettingsIcon className="h-4 w-4" />
               <span className="hidden sm:inline">General</span>
             </TabsTrigger>
-            <TabsTrigger value="agents" className="gap-2 px-3" data-testid="tab-agents">
-              <Bot className="h-4 w-4" />
-              <span className="hidden sm:inline">Agents</span>
-            </TabsTrigger>
             <TabsTrigger value="agent-config" className="gap-2 px-3" data-testid="tab-agent-config">
               <Sparkles className="h-4 w-4" />
-              <span className="hidden sm:inline">Active</span>
+              <span className="hidden sm:inline">AI Config</span>
             </TabsTrigger>
             <TabsTrigger value="orchestration" className="gap-2 px-3" data-testid="tab-orchestration">
               <Network className="h-4 w-4" />
@@ -258,11 +254,6 @@ const Settings = () => {
           </TabsList>
           <ScrollBar orientation="horizontal" className="invisible" />
         </ScrollArea>
-
-        {/* Saved Agents Tab */}
-        <TabsContent value="agents">
-          <SavedAgents />
-        </TabsContent>
 
         {/* Usage & Quotas Tab */}
         <TabsContent value="usage">
