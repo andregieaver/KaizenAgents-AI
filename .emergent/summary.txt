@@ -1,80 +1,78 @@
 <analysis>**original_problem_statement:**
-The user's primary goal is to build out a full-featured SaaS application. The work has progressed through several major features, and the current focus is on creating a seamless customer onboarding experience.
+The user's core objective is to build a comprehensive SaaS application. The development has progressed through several major features, including bug fixes, a flexible resource billing system, a waitlist, and a custom email campaign manager.
 
-Initial requests, which are now largely complete, included:
-- Fixing UI/functionality bugs related to quota displays and email testing.
-- Adding an invoice history to the billing page.
-- Implementing a flexible, slider-based system for managing billable resources (Seats, Agents, Conversations) using a High-Water Mark logic.
-- Building an admin interface to manage the pricing of these resources and sync them with Stripe.
+The most recent work has focused on three main areas:
+1.  **Customer Onboarding Flow:** A complete onboarding experience with a welcome email, a dedicated setup page for company information, and a progress tracker on the main dashboard.
+2.  **Affiliate System Overhaul:** Reworking the existing affiliate program to use a store credit model instead of cash payouts. Referrers earn credit that is automatically applied to their next subscription renewal, and referred users get a 20% discount on their first payment.
+3.  **Agent Management Refactor:** Shifting agent creation and management from a super-admin-only feature with modals to a dedicated, full-page experience for company owners. This includes providing a unique embed code for each agent.
 
-Recent completed requests include:
-- A full-featured waitlist system with an admin page, auto-responder, and a reusable page-builder component.
-- A custom email campaign manager allowing admins to create, save, and send bulk emails to specific user segments using a rich text editor.
-
-The current and most important request is to implement a comprehensive onboarding flow:
-1.  **Welcome Email**: Immediately after a user subscribes to a plan, send a welcome email.
-2.  **Email Content**: The email should explain the next steps for onboarding and include a button linking to a dedicated Onboarding page.
-3.  **Onboarding Page**: This page should allow the new company owner to:
-    *   Create the primary owner user account.
-    *   Add company information, such as the brand name.
-4.  **Redirection**: After submitting the form, the user should be taken to the main dashboard.
-5.  **Dashboard Progress Tracker**: At the top of the dashboard, display an onboarding checklist with a percentage completion circle. This tracker should contain links to other setup pages (e.g., agent setup, user profile images, brand profile).
+The user is currently reporting a critical bug that prevents the creation of new agents.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a feature-rich SaaS platform with advanced subscription and user management capabilities.
-- **Subscription & Quota System:** A flexible High-Water Mark billing system allows users to adjust allocations for Seats, Agents, and Conversations via sliders on the Pricing page.
-- **Admin Pricing Controls:** A  admin page provides full CRUD functionality for managing the pricing of Seats, Agents, and Conversations, including a mechanism to sync these products to a Stripe test environment.
-- **Waitlist Functionality:** A complete waitlist system is in place, featuring a public submission form (as a reusable page builder block), an admin page to manage entries, and an editable auto-responder email template.
-- **Custom Email Campaigns:** A super-admin can create, save, and send custom emails to segmented user groups (e.g., all users, users on a specific plan). The email composer includes a Tiptap-based rich text editor.
-- **UI/UX Refinements:** The Billing and Pricing pages have been refactored for better layout and clarity. The ability to edit sent custom emails is intentionally disabled, but drafts are fully editable.
+The application is a multi-tenant SaaS platform with a robust feature set.
+-   **Onboarding Flow:** A complete onboarding system is in place. It triggers a welcome email upon subscription and guides users through setup via a progress tracker on the dashboard.
+-   **Store Credit Affiliate System:** The affiliate program has been fully refactored. It now tracks referrals, applies a 20% discount to new users who sign up with a referral code, and awards the referrer with store credit (up to 100% of their subscription cost) that is automatically deducted from their next renewal. The UI on the Affiliates page reflects this new system.
+-   **Quota Limit Email Alerts:** A backend service is implemented to monitor resource usage (seats, agents, conversations). It automatically triggers email alerts (using  and  templates) when usage hits 80% and 100% thresholds. The email sending fails in the test environment due to an invalid SendGrid key, which is the expected behavior.
+-   **Company-Owned Agent Management:** Agent management has been moved from a super-admin-only feature to a core function for company owners.
+    -   The Agents link now appears in the main sidebar navigation for all authenticated users.
+    -   Agent creation and editing are handled on dedicated full-page views (, ) instead of modals.
+    -   Each agent has its own unique embed code.
+    -   The old super-admin Agents tab in the Settings page has been removed.
+-   **Real AI Agent Testing:** The Test tab on the agent edit page now integrates with the backend, sending the user's message to the configured AI provider (e.g., OpenAI's gpt-4o-mini) and displaying the live response.
 
 **Last working item**:
-The agent just began implementing the new user onboarding flow.
-    - Last item agent was working: The agent created the initial backend file  and started exploring related files (, , ) to understand where to hook into the user and company creation process. The work has just started.
-    - Status: NOT STARTED
+The agent was in the process of debugging a critical issue reported by the user where creating a new agent fails.
+    - Last item agent was working: Fixing a 404 error that occurs when a user clicks the Create Agent button. The agent correctly diagnosed that the frontend is navigating to  but the  page incorrectly attempts to fetch data from the API endpoint  instead of initializing a blank form for a new agent.
+    - Status: IN PROGRESS
     - Agent Testing Done: N
-    - Which testing method agent to use? both
+    - Which testing method agent to use? Frontend testing agent
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-There are no blocking issues. The priority is to implement the new onboarding feature.
+  - Issue 1: Creating a new agent is broken and results in a 404 error. (P0)
+
+  Issues Detail:
+  - Issue 1: 
+     - Attempted fixes: The agent has diagnosed the problem but has not yet implemented a fix. The issue lies in the frontend logic.
+     - Next debug checklist: 
+        1.  Modify .
+        2.  Inside the main  hook that fetches agent data, add a condition to check if  from the URL is equal to .
+        3.  If it is , skip the API call and instead set the component's state to default values for a new agent.
+        4.  If it is not , proceed with fetching the agent data as it currently does.
+     - Why fix this issue and what will be achieved with the fix?: This is a critical bug that completely blocks a core user flow (creating agents). Fixing it is necessary to complete the agent management refactor.
+     - Status:  IN PROGRESS
+     - Is recurring issue? N
+     - Should Test frontend/backend/both after fix?: Frontend
+     - Blocked on other issue: None
 
 **In progress Task List**:
-  - Task 1:  Implement the new customer onboarding flow. (P0)
-
- Task Detail:
-  - Task 1: 
-     - Where to resume: The agent has created . The next steps are to build out the full feature as requested by the user.
-     - What will be achieved with this?: A guided setup process for new customers, which will improve user experience, increase engagement, and ensure essential company and user information is collected upon signup.
-     - Status:  NOT STARTED
-     - Should Test frontend/backend/both after fix?: both
-     - Blocked on something: None
+  None.
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   (P0) Address SendGrid Click Tracking: The agent identified that SendGrid rewrites email links for tracking. The user needs to choose whether to disable this feature or set up a branded domain. This is pending user decision.
-    *   (P1) Implement email alerts for when quota limits are exceeded.
-    -   (P2) E2E Testing of the complete allocation and billing flow.
+    *   (P0) Address SendGrid Click Tracking: The user needs to decide whether to disable this feature or set up a branded domain to avoid link rewriting.
+    *   (P1) E2E Testing of the complete allocation and billing flow.
+    *   (P2) Allow company-created agents to be published as templates in the Marketplace.
 *   **Future Tasks:**
-    -   (P2) Implement AI moderation for marketplace agent submissions.
+    *   (P2) Implement AI moderation for marketplace agent submissions.
     -   (P3) Clean up the homepage content.
-    -   Allow users to publish their own agents.
     -   Add a feature to export conversation history.
 
 **Completed work in this session**
-- **Rich Text Editor for Custom Emails (DONE)**: Integrated the Tiptap rich text editor into the  page for a better composing experience. Fixed a bug preventing the editing of existing draft emails.
-- **Custom Email Campaign Feature (DONE)**: Implemented a full system for admins to create, save, and send custom emails to segmented user categories.
-- **Waitlist Auto-Responder Bug Fix (DONE)**: Fixed a bug where the waitlist confirmation email failed to send due to incorrect  parameters and another bug where the template failed to appear in production due to faulty database initialization logic.
-- **Waitlist Feature (DONE)**: Built a complete waitlist system, including backend APIs, an admin management page, an editable email template, and a reusable Waitlist Block for the page editor.
-- **Billing & Pricing Page UI Refactor (DONE)**: Restructured the Billing page to have a side-by-side layout and moved the resource management sliders to the Pricing page in a three-column grid.
-- **Agent & Conversation Pricing Management (DONE)**: Completed the admin interface by adding backend CRUD and Stripe sync endpoints for agent and conversation pricing.
+- **Store Credit Affiliate System (DONE):** Replaced the cash-based affiliate program with a store credit system, including referral discounts and automatic subscription deductions.
+- **Quota Limit Email Alerts (DONE):** Implemented a backend service to detect and send email alerts when resource quotas are nearing or have exceeded their limits.
+- **Agent Management Moved to Company Owners (DONE):** Refactored the UI and backend to make agent creation and management a tenant-level feature, accessible from the main user navigation.
+- **Dedicated Agent Edit Pages (DONE):** Replaced modals with full-page views for creating and editing agents, each with a unique embed code.
+- **Real AI Agent Testing (DONE):** Integrated the agent test chat with the backend to provide live responses from the configured AI provider.
+- **Customer Onboarding Flow (DONE):** Built the complete user onboarding experience, including a welcome email and a dashboard progress tracker.
+- **Bug Fix - Agent Data Mismatch (DONE):** Corrected a frontend bug where the agent edit page failed to display data due to inconsistent field names (e.g.,  vs. ).
 
 **Earlier issues found/mentioned but not fixed**
    - **Issue 1: Incorrect Homepage Content (P3)**
      - **Debug checklist**: Confirm with the user if they want the homepage cleared, then run a DB script to reset the content.
-     - **Why to solve this issue and what will be achieved with this?**: Restores the homepage to a clean state.
+     - **Why to solve this issue and what will be achieved with this?**: Restores the homepage to a clean, default state.
      - **Should Test frontend/backend/both after fix**: frontend
      - **Is recurring issue?**: N
 
@@ -85,91 +83,80 @@ There are no blocking issues. The priority is to implement the new onboarding fe
 
 
 **Key Technical Concepts**
-- **Idempotent Database Seeding**: Fixed the email template initialization logic in  to be idempotent. It now checks for and adds missing default templates on startup rather than only running on a completely empty collection. This is crucial for deploying updates to existing environments.
-- **React Component State & Props Synchronization**: Fixed a bug in the  Tiptap component where the editor's content wouldn't update when its  prop changed. This was resolved by adding a  hook to synchronize the editor's state with the incoming prop, a common pattern in React when integrating with imperative third-party libraries.
-- **Modular Page Building System**: The agent successfully extended the application's page builder by creating a new , demonstrating understanding of the architecture that separates block registration (), editing UI (), and public rendering ().
+- **Tenant-Scoped Architecture:** The agent management feature was successfully migrated from a global, super-admin system () to a tenant-specific one (), requiring changes to both frontend API calls and sidebar navigation logic.
+- **Frontend State for Create vs. Edit:** The current bug highlights the importance of handling state initialization in reusable UI components. The  page must differentiate between a 'new' entity and an existing one to either set default values or fetch data.
+- **Dynamic AI Provider Selection:** The agent test endpoint was made more robust by adding logic to dynamically find a compatible AI provider if one is not explicitly assigned to the agent, improving user experience.
 
 **key DB schema**
-  - ** (new collection)**: Stores , , ,  (, , ), and timestamps.
-  - ** (new collection)**: Stores campaign data, including , , ,  (, ), , and .
+  - ** (modified)**: Fields like  have been replaced by  and  to support the new credit model.
+  - ** (modified)**: Added  to track the source of a registration and  to prevent re-use.
+  - ** (new)**: Tracks sent quota warnings and errors to prevent spamming users, storing , , , and .
 
 **changes in tech stack**
   - None.
 
 **All files of reference**
-- **/app/backend/routes/onboarding.py**: New file, created for the current task.
-- **/app/backend/routes/subscriptions.py**: Will likely need modification to trigger the onboarding flow.
-- **/app/backend/routes/email_templates.py**: Contains the logic for default email templates, which was recently fixed and will be modified again to add the onboarding email.
-- **/app/frontend/src/pages/CustomEmailsAdmin.js**: Contains the recently completed custom email feature, including the rich text editor.
-- **/app/frontend/src/components/RichTextEditor.js**: The Tiptap editor component that was fixed.
-- **/app/frontend/src/pages/Billing.js**: Recently refactored.
-- **/app/frontend/src/pages/Pricing.js**: Recently refactored to include resource management sliders.
+-   **/app/frontend/src/pages/AgentEdit.js**: **(CURRENT BUG LOCATION)** This file needs to be fixed to handle the  agent case.
+-   **/app/frontend/src/pages/Agents.js**: The list page that links to the broken creation page.
+-   **/app/backend/routes/agents.py**: Contains all backend logic for company-owned agents.
+-   **/app/frontend/src/pages/DashboardLayout.js**: Recently modified to change sidebar navigation.
+-   **/app/backend/routes/affiliates.py**: Contains the new store credit logic.
+-   **/app/backend/services/quota_alert_service.py**: Contains the logic for the quota email alert feature.
 
 **Areas that need refactoring**:
-- : Mentioned in the previous fork as potentially obsolete. This should be reviewed and possibly removed.
+- : This component was mentioned as potentially obsolete in a previous fork and should be reviewed for removal to clean up the codebase.
 
 **key api endpoints**
-- **Waitlist (New)**:
-  - 
-  - 
-  - 
-- **Custom Emails (New)**:
-  - 
-  - 
-  - 
-- **Agent/Conversation Pricing (New)**:
-  - 
-  - 
-- **Resource Allocations (Updated Paths)**:
-  - 
-  - 
-  - 
+-   : Endpoint for creating a new agent (currently failing from the UI).
+-   : Fetches a single agent's details.
+-   : (New) Executes a real AI chat test with the configured provider.
+-   : (New) Triggers a check and sends quota-related email alerts.
+-   : (New) Retrieves the history of sent quota alerts.
+-   : (Modified) Now triggers the onboarding welcome email.
 
 **Critical Info for New Agent**
-- Your primary task is to build the multi-step onboarding flow from scratch as defined in the problem statement.
-- The trigger for this flow is a new subscription. You will need to find where a subscription is confirmed in the backend (likely in ) and inject the logic to send the new welcome email and flag the user/tenant for onboarding.
-- You will need to create a new protected page for onboarding () that new users are redirected to.
-- You will also need to create a new, persistent UI component on the main dashboard that tracks and displays onboarding progress.
-- The SendGrid API key in the test environment is invalid, causing  errors when sending emails. This is expected behavior for testing. The code for sending emails is correct; the issue is with the environment's credentials.
+-   Your immediate and highest priority task is to fix the Create Agent bug. The root cause is in the frontend. The  page needs logic to handle the case where the  in the URL is , at which point it should initialize a blank form instead of trying to fetch data from .
+-   The email sending functionality (for onboarding, quota alerts, etc.) will appear to fail in the test environment with a  error. This is expected because the SendGrid API key is invalid. You only need to verify that the backend *attempts* to send the email by checking the logs.
 
 **documents and test_reports created in this job**
-  -  has been updated multiple times by the testing agent.
+  -  has been updated multiple times with results from backend and frontend testing agents.
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Perfect now, let's focus on the onboarding flow. [Detailed requirements for onboarding flow].
-2.  **User**: The ability to edit custom emails is gone.
-3.  **User**: Is it possible to add the same rich text editor to the email template content as we're using in the page editor for pages?
-4.  **User**: That worked. Continue to implement a solution for creating, sending and saving custom emails, to various categories of users
-5.  **User**: That worked. However, submitting the wait list for fails to trigger the auto-Responder email.
-6.  **User**: I can see the waitlist template on the emails page i dev, but not in production even though ive deployed twice
-7.  **User**: Perfect! Now, let's implement wait list functionality. [Detailed requirements for waitlist feature].
-8.  **User**: Set current plan and usage side by side instead of stacked on desktop. Move the management sections to the dashboard prising page and set them in a three column layout.
-9.  **User**: Remove this area from the dashboard billing page.
-10. **User**: Continue to add the ability to add an change agent and conversation pricing as for additional seats, and sync these products to stripe.
+-   **User**: It works! However clicking create agent gives this error
+-   **User**: Implement real AI testing with backend integration with the configured AI provider.
+-   **User**: testing the agent still fails:
+-   **User**: I tested one of the agents and got these errors:
+-   **User**: Here's the issue. you have to move all the functionality from the dashboard/agents page... make it accessible for the company account owner...
+-   **User**: Continue with Quota Limit Email Alerts (Priority 1)
+-   **User**: Lets change the dashboard/affiliates logic a bit...
+-   **User**: 1. it should reset upon renewal. 2. Only the next renewal...
+-   **User**: Question. If i want to reuse the underlying architecture and backend for a new app, should i fork this app and refactor the new fork?
+-   **User**: Continue
 
 **Project Health Check:**
-- **Broken**: None.
-- **Mocked**:
-    - **Stripe**: Integration relies on test keys. Sync functionality will fail without valid production keys, which is expected.
-    - **SendGrid**: The API key is invalid in the test environment, causing email sending to fail with a  error. The underlying code logic is correct.
+-   **Broken**:
+    -   **Create Agent Functionality**: The primary user flow for creating a new agent is blocked by a 404 error caused by a frontend bug.
+-   **Mocked**:
+    -   **Stripe**: All payment integrations rely on test keys.
+    -   **SendGrid**: The API key is invalid, so no emails are actually sent from the test environment.
 
 **3rd Party Integrations**
-- **Stripe**: For subscription management and product syncing.
-- **SendGrid**: For transactional emails (e.g., waitlist, password reset, custom campaigns).
-- **Tiptap**: Rich text editor used in the custom email composer.
-- **OpenAI (via )**: Present in the codebase.
-- **@dnd-kit**: For drag-and-drop functionality in the page editor.
-- **WooCommerce**: Present in the codebase.
+-   **Stripe**: For subscription management and payments.
+-   **SendGrid**: For all transactional and marketing emails.
+-   **Tiptap**: Rich text editor.
+-   **OpenAI (via )**: For agent AI responses.
+-   **@dnd-kit**: For drag-and-drop UI.
+-   **WooCommerce**: Present in the codebase.
 
 **Testing status**
   - Testing agent used after significant changes: YES
   - Troubleshoot agent used after agent stuck in loop: NO
   - Test files created: None.
-  - Known regressions: None.
+  - Known regressions: The Create Agent feature, which was working in a modal, is now broken in its new full-page implementation.
 
 **Credentials to test flow:**
 -   **Super Admin**:  / 
 -   **Company User**:  / 
 
 **What agent forgot to execute**
-- Nothing was forgotten. The agent was systematically working through the user's requests. The last task (onboarding) was just started when the session ended.</analysis>
+- The agent successfully diagnosed the Create Agent bug but was interrupted before implementing the fix. The next step is to apply the planned changes to .</analysis>

@@ -5,7 +5,7 @@ import io
 from datetime import datetime
 
 class AIAgentHubTester:
-    def __init__(self, base_url="https://onboard-buddy-12.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://tenant-portal-40.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.user_data = None
