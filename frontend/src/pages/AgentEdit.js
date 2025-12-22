@@ -501,7 +501,7 @@ const AgentEdit = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description *</Label>
+                    <Label htmlFor="description" className="text-sm">Description *</Label>
                     <Textarea
                       id="description"
                       placeholder="A brief description of what this agent does..."
@@ -512,7 +512,7 @@ const AgentEdit = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="category">Category</Label>
+                    <Label htmlFor="category" className="text-sm">Category</Label>
                     <select
                       id="category"
                       className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
@@ -526,11 +526,12 @@ const AgentEdit = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="system-prompt">System Prompt *</Label>
+                    <Label htmlFor="system-prompt" className="text-sm">System Prompt *</Label>
                     <Textarea
                       id="system-prompt"
                       placeholder="You are a helpful customer support assistant..."
-                      rows={8}
+                      rows={6}
+                      className="min-h-[120px] sm:min-h-[180px]"
                       value={getSystemPrompt()}
                       onChange={(e) => setAgent({ 
                         ...agent, 
@@ -545,11 +546,11 @@ const AgentEdit = () => {
               </Card>
 
               <Card className="border border-border">
-                <CardHeader>
-                  <CardTitle>Model Parameters</CardTitle>
-                  <CardDescription>Fine-tune the agent's response generation</CardDescription>
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-base sm:text-lg">Model Parameters</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Fine-tune the agent's response generation</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <Label htmlFor="temperature">Temperature</Label>
