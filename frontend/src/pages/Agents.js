@@ -43,7 +43,7 @@ const Agents = () => {
 
   const fetchAgents = async () => {
     try {
-      const response = await axios.get(`${API}/agents`, {
+      const response = await axios.get(`${API}/agents/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAgents(response.data);
