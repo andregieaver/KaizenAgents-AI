@@ -110,8 +110,11 @@ class QuotaAlertService:
             
             # Check each feature's quota
             for feature in config.get("features", []):
-                feature_key = feature["feature_key"]
-                feature_name = feature["feature_name"]
+                feature_key = feature.get("feature_key")
+                if not feature_key:
+                    continue
+                    
+                feature_name = feature.get("feature_name", feature_key)
                 
                 # Get plan limits
                 plan_limits = feature.get("plans", {}).get(plan_name.lower())
