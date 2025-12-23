@@ -13,6 +13,7 @@ from models import *
 from middleware import get_current_user, get_super_admin_user, get_admin_or_owner_user
 from middleware.database import db
 from middleware.auth import create_token, hash_password, verify_password, is_super_admin, JWT_SECRET, JWT_ALGORITHM
+from routes.transfers import check_transfer_triggers
 
 logger = logging.getLogger(__name__)
 
