@@ -900,6 +900,194 @@ const AgentEdit = () => {
           </div>
         </TabsContent>
 
+        {/* Integrations Tab */}
+        <TabsContent value="integrations" className="space-y-4 sm:space-y-6">
+          <Card className="border border-border">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <ShoppingCart className="h-5 w-5" />
+                    WooCommerce Integration
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Connect your WooCommerce store to enable order lookups, refunds, and more
+                  </CardDescription>
+                </div>
+                <Switch
+                  checked={agent.config?.woocommerce?.enabled || false}
+                  onCheckedChange={(checked) => {
+                    setAgent(prev => ({
+                      ...prev,
+                      config: {
+                        ...prev.config,
+                        woocommerce: {
+                          ...prev.config?.woocommerce,
+                          enabled: checked
+                        }
+                      }
+                    }));
+                  }}
+                />
+              </div>
+            </CardHeader>
+            
+            {agent.config?.woocommerce?.enabled && (
+              <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="wc_store_url">Store URL</Label>
+                    <Input
+                      id="wc_store_url"
+                      placeholder="https://your-store.com"
+                      value={agent.config?.woocommerce?.store_url || ''}
+                      onChange={(e) => {
+                        setAgent(prev => ({
+                          ...prev,
+                          config: {
+                            ...prev.config,
+                            woocommerce: {
+                              ...prev.config?.woocommerce,
+                              store_url: e.target.value
+                            }
+                          }
+                        }));
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Your WooCommerce store URL (e.g., https://mystore.com)
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="wc_consumer_key">Consumer Key</Label>
+                    <div className="relative">
+                      <Input
+                        id="wc_consumer_key"
+                        type={showWooCommerceKeys ? 'text' : 'password'}
+                        placeholder="ck_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                        value={agent.config?.woocommerce?.consumer_key || ''}
+                        onChange={(e) => {
+                          setAgent(prev => ({
+                            ...prev,
+                            config: {
+                              ...prev.config,
+                              woocommerce: {
+                                ...prev.config?.woocommerce,
+                                consumer_key: e.target.value
+                              }
+                            }
+                          }));
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7"
+                        onClick={() => setShowWooCommerceKeys(!showWooCommerceKeys)}
+                      >
+                        {showWooCommerceKeys ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="wc_consumer_secret">Consumer Secret</Label>
+                    <Input
+                      id="wc_consumer_secret"
+                      type={showWooCommerceKeys ? 'text' : 'password'}
+                      placeholder="cs_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                      value={agent.config?.woocommerce?.consumer_secret || ''}
+                      onChange={(e) => {
+                        setAgent(prev => ({
+                          ...prev,
+                          config: {
+                            ...prev.config,
+                            woocommerce: {
+                              ...prev.config?.woocommerce,
+                              consumer_secret: e.target.value
+                            }
+                          }
+                        }));
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Find these in WooCommerce → Settings → Advanced → REST API
+                    </p>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      <p className="font-medium text-foreground">Available Capabilities</p>
+                      <ul className="mt-1 space-y-1 text-xs">
+                        <li>• Search orders by customer email</li>
+                        <li>• Get order details and status</li>
+                        <li>• Process refunds</li>
+                        <li>• Update order status</li>
+                      </ul>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        if (!agent.config?.woocommerce?.store_url || 
+                            !agent.config?.woocommerce?.consumer_key ||
+                            !agent.config?.woocommerce?.consumer_secret) {
+                          toast.error('Please fill in all WooCommerce credentials');
+                          return;
+                        }
+                        setTestingWooCommerce(true);
+                        try {
+                          const response = await axios.post(
+                            `${API}/agents/${agent.id}/test-woocommerce`,
+                            {
+                              store_url: agent.config.woocommerce.store_url,
+                              consumer_key: agent.config.woocommerce.consumer_key,
+                              consumer_secret: agent.config.woocommerce.consumer_secret
+                            },
+                            { headers: { Authorization: `Bearer ${token}` } }
+                          );
+                          if (response.data.success) {
+                            toast.success('WooCommerce connection successful!');
+                          } else {
+                            toast.error(response.data.message || 'Connection failed');
+                          }
+                        } catch (error) {
+                          toast.error(error.response?.data?.detail || 'Failed to test connection');
+                        } finally {
+                          setTestingWooCommerce(false);
+                        }
+                      }}
+                      disabled={testingWooCommerce || !agent.id}
+                    >
+                      {testingWooCommerce ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Link className="h-4 w-4 mr-2" />
+                      )}
+                      Test Connection
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+          
+          {/* Future integrations can be added here */}
+          <Card className="border border-dashed border-border bg-muted/30">
+            <CardContent className="p-6 text-center">
+              <div className="text-muted-foreground">
+                <Globe className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">More integrations coming soon</p>
+                <p className="text-xs mt-1">Shopify, Magento, and more</p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* Test Tab */}
         {!isNew && (
           <TabsContent value="test">
