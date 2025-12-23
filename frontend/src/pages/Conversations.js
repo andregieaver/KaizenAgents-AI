@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -8,8 +8,12 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { ScrollArea } from '../components/ui/scroll-area';
-import { MessageSquare, Search, Filter, Users, Bot, User, Wand2, Clock, AlertCircle, Circle } from 'lucide-react';
+import { Checkbox } from '../components/ui/checkbox';
+import { MessageSquare, Search, Filter, Users, Bot, User, Wand2, Clock, AlertCircle, Circle, CheckCircle, Trash2, Archive, Keyboard } from 'lucide-react';
 import { formatDistanceToNow, differenceInHours } from 'date-fns';
+import { toast } from 'sonner';
+import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
+import KeyboardShortcutsHelp from '../components/KeyboardShortcutsHelp';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
