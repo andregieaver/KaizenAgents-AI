@@ -332,7 +332,12 @@ const CustomerDetail = () => {
               </span>
             </div>
             <div>
-              <h1 className="font-heading text-xl font-bold">{customer.name}</h1>
+              <div className="flex items-center gap-2">
+                <h1 className="font-heading text-xl font-bold">{customer.name}</h1>
+                {leadScore && (
+                  <LeadScoreBadge score={leadScore.score} grade={leadScore.grade} />
+                )}
+              </div>
               <p className="text-sm text-muted-foreground">
                 {customer.position && `${customer.position} at `}{customer.company || 'No company'}
               </p>
@@ -340,11 +345,64 @@ const CustomerDetail = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={refreshLeadScore}
+            disabled={loadingScore}
+            title="Refresh lead score"
+          >
+            {loadingScore ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+          </Button>
           <Button variant="ghost" size="sm" onClick={() => setShowDeleteDialog(true)} className="text-destructive">
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
+
+      {/* Lead Score Card (if available) */}
+      {leadScore && (
+        <Card className="border-0 shadow-sm mb-6">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="text-center">
+                  <p className="text-3xl font-bold">{leadScore.score}</p>
+                  <p className="text-xs text-muted-foreground">Lead Score</p>
+                </div>
+                <Separator orientation="vertical" className="h-12" />
+                <div>
+                  <Badge className={`text-sm ${
+                    leadScore.grade === 'A' ? 'bg-green-500' :
+                    leadScore.grade === 'B' ? 'bg-blue-500' :
+                    leadScore.grade === 'C' ? 'bg-yellow-500' :
+                    leadScore.grade === 'D' ? 'bg-orange-500' : 'bg-gray-400'
+                  }`}>
+                    {leadScore.grade_label || leadScore.grade}
+                  </Badge>
+                  {leadScore.recommendations?.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {leadScore.recommendations[0]}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <div className="text-right text-xs text-muted-foreground">
+                {leadScore.metrics && (
+                  <>
+                    <p>{leadScore.metrics.conversation_count} conversations</p>
+                    <p>{leadScore.metrics.message_count} messages</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quick Actions */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
