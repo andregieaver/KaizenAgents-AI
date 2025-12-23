@@ -277,6 +277,42 @@ const CRM = () => {
           />
         </div>
       </div>
+      
+      {/* Quick Filter Chips */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <QuickFilterChip
+          active={activeFilter === 'hot_leads'}
+          onClick={() => setActiveFilter(activeFilter === 'hot_leads' ? 'all' : 'hot_leads')}
+          icon={<Flame className="h-3 w-3" />}
+          label="Hot Leads"
+          count={hotLeadsCount}
+          variant="hot"
+        />
+        <QuickFilterChip
+          active={activeFilter === 'needs_followup'}
+          onClick={() => setActiveFilter(activeFilter === 'needs_followup' ? 'all' : 'needs_followup')}
+          icon={<Bell className="h-3 w-3" />}
+          label="Needs Follow-up"
+          count={needsFollowupCount}
+          variant="warning"
+        />
+        <QuickFilterChip
+          active={activeFilter === 'active'}
+          onClick={() => setActiveFilter(activeFilter === 'active' ? 'all' : 'active')}
+          icon={<CheckCircle className="h-3 w-3" />}
+          label="Active"
+          count={activeCount}
+        />
+        {activeFilter !== 'all' && (
+          <button
+            onClick={() => setActiveFilter('all')}
+            className="inline-flex items-center gap-1 px-2 py-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="h-3 w-3" />
+            Clear filter
+          </button>
+        )}
+      </div>
 
       {/* Customer List */}
       <Card className="border-0 shadow-sm">
