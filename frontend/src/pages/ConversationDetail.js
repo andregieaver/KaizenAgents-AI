@@ -30,7 +30,10 @@ import {
   Building,
   Phone,
   Mail,
-  Tag
+  Tag,
+  MessageCircle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { toast } from 'sonner';
