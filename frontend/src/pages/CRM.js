@@ -119,6 +119,7 @@ const CRM = () => {
   const [search, setSearch] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [activeFilter, setActiveFilter] = useState('all');
   
   const [newCustomer, setNewCustomer] = useState({
     name: '',
@@ -177,11 +178,37 @@ const CRM = () => {
     }
   };
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.name?.toLowerCase().includes(search.toLowerCase()) ||
-    customer.email?.toLowerCase().includes(search.toLowerCase()) ||
-    customer.company?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredCustomers = customers.filter(customer => {
+    // Apply quick filter first
+    if (activeFilter === 'hot_leads') {
+      // Hot leads: Grade A or B (score >= 60)
+      if (!customer.lead_score || customer.lead_score < 60) return false;
+    } else if (activeFilter === 'needs_followup') {
+      // Needs follow-up: Has pending follow-up or overdue
+      if (!customer.next_followup) return false;
+      const followupDate = new Date(customer.next_followup);
+      if (followupDate > new Date()) return false; // Only show if due or overdue
+    } else if (activeFilter === 'active') {
+      if (customer.status !== 'active') return false;
+    }
+    
+    // Then apply search filter
+    if (!search) return true;
+    const searchLower = search.toLowerCase();
+    return (
+      customer.name?.toLowerCase().includes(searchLower) ||
+      customer.email?.toLowerCase().includes(searchLower) ||
+      customer.company?.toLowerCase().includes(searchLower)
+    );
+  });
+  
+  // Calculate filter counts
+  const hotLeadsCount = customers.filter(c => c.lead_score && c.lead_score >= 60).length;
+  const needsFollowupCount = customers.filter(c => {
+    if (!c.next_followup) return false;
+    return new Date(c.next_followup) <= new Date();
+  }).length;
+  const activeCount = customers.filter(c => c.status === 'active').length;
 
   if (loading) {
     return (
