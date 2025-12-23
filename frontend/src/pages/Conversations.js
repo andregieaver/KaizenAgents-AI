@@ -81,17 +81,49 @@ const Conversations = () => {
           />
         </div>
         <Select value={statusFilter} onValueChange={handleStatusFilter}>
-          <SelectTrigger className="w-full sm:w-40 h-10" data-testid="status-filter">
+          <SelectTrigger className="w-full sm:w-48 h-10" data-testid="status-filter">
             <Filter className="h-4 w-4 mr-2" />
             <SelectValue placeholder="Filter status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
+            <SelectItem value="all">All Conversations</SelectItem>
+            <SelectItem value="needs_response">
+              <span className="flex items-center gap-2">
+                <AlertCircle className="h-3 w-3 text-destructive" />
+                Needs Response
+              </span>
+            </SelectItem>
             <SelectItem value="open">Open</SelectItem>
             <SelectItem value="waiting">Waiting</SelectItem>
             <SelectItem value="resolved">Resolved</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Quick Filter Chips */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <QuickFilterChip
+          active={statusFilter === 'needs_response'}
+          onClick={() => handleStatusFilter(statusFilter === 'needs_response' ? 'all' : 'needs_response')}
+          icon={<AlertCircle className="h-3 w-3" />}
+          label="Needs Response"
+          count={conversations.filter(c => needsResponse(c)).length}
+          variant="destructive"
+        />
+        <QuickFilterChip
+          active={statusFilter === 'open'}
+          onClick={() => handleStatusFilter(statusFilter === 'open' ? 'all' : 'open')}
+          icon={<Clock className="h-3 w-3" />}
+          label="Open"
+          count={conversations.filter(c => c.status === 'open').length}
+        />
+        <QuickFilterChip
+          active={statusFilter === 'waiting'}
+          onClick={() => handleStatusFilter(statusFilter === 'waiting' ? 'all' : 'waiting')}
+          icon={<MessageSquare className="h-3 w-3" />}
+          label="Waiting"
+          count={conversations.filter(c => c.status === 'waiting').length}
+        />
       </div>
 
       {/* Conversations List */}
