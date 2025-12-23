@@ -448,7 +448,8 @@ const ConversationRow = ({ conversation, isSelected, isHighlighted, onToggleSele
           </span>
         </div>
       </div>
-    </Link>
+      </Link>
+    </div>
   );
 };
 
