@@ -1,152 +1,48 @@
-backend:
-  - task: "Tiered Email Verification - Widget Session Creation"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/widget.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "Widget session creation working correctly. Successfully creates session with customer email for verification testing."
+# Test Results - Phase 2: AI-Powered Automation
 
-  - task: "Tiered Email Verification - General Question Flow"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "General questions (like 'What are your business hours?') correctly do NOT trigger verification. AI responds normally without verification prompts."
+## Testing Protocol
+- **Testing Agent Used**: Backend Testing Agent
+- **Test Date**: 2025-12-23
+- **Feature Being Tested**: AI Automation (Summary, Follow-ups, Lead Scoring)
 
-  - task: "Tiered Email Verification - Sensitive Question Detection"
-    implemented: true
-    working: true
-    file: "/app/backend/services/verification_service.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "Sensitive questions (like 'Where is my order?') correctly trigger verification flow. AI detects sensitive topics and prompts for verification."
+## Features Implemented
 
-  - task: "Verification API - GET /api/widget/verify/status"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/widget.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "Status endpoint working correctly. Returns verification status (verified: false initially), email, and verified_at timestamp."
+### 1. AI Conversation Summary
+- Auto-generates summary when conversation is resolved
+- Extracts key topics: order_inquiry, product_question, pricing, support, account, refund
+- Analyzes sentiment: positive, negative, neutral
+- Detects purchase intent
+- Suggests follow-up actions
 
-  - task: "Verification API - POST /api/widget/verify/request"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/widget.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "OTP request endpoint working. Returns proper response structure. Email sending fails due to SendGrid not configured (expected in test environment)."
+### 2. Smart Follow-up Suggestions
+- Analyzes conversation context
+- Suggests follow-up type: sales_followup, satisfaction_recovery, feedback_request, retention, relationship_building
+- Recommends timing: 24 hours to 7 days
+- Provides message templates
+- Sets priority: high, medium, low
 
-  - task: "Verification API - POST /api/widget/verify/confirm"
-    implemented: true
-    working: true
-    file: "/app/backend/routes/widget.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "OTP verification endpoint working correctly. Properly rejects wrong codes with 'Invalid code. X attempts remaining' message."
+### 3. AI Lead Scoring (0-100)
+- Grades: A (Hot Lead), B (Warm Lead), C (Potential Lead), D (Cold Lead), F (Low Priority)
+- Scoring factors:
+  - Engagement (message count, conversation count)
+  - Sentiment analysis
+  - Purchase intent detection
+  - Email verification status
+  - Customer loyalty (returning customer)
+- Provides recommendations
 
-  - task: "Verification Security - Rate Limiting"
-    implemented: true
-    working: true
-    file: "/app/backend/services/verification_service.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "Rate limiting working correctly. 60-second cooldown enforced between OTP requests with proper 'Please wait X seconds' message."
+### 4. Auto-Actions on Conversation Resolve
+- Triggers automatically when status changes to "resolved"
+- Generates summary → Creates CRM activity
+- If high priority follow-up needed → Auto-creates follow-up task
+- Updates customer lead score
 
-  - task: "Verification Security - Max Attempts"
-    implemented: true
-    working: true
-    file: "/app/backend/services/verification_service.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "Max attempts limit working. After wrong OTP attempts, system shows remaining attempts count correctly."
+## API Endpoints
+- GET /api/crm/conversations/{id}/summary - Get conversation summary
+- GET /api/crm/conversations/{id}/suggest-followup - Get follow-up suggestion
+- GET /api/crm/customers/{id}/lead-score - Calculate lead score
+- POST /api/crm/conversations/{id}/auto-process - Manually trigger automation
+- POST /api/crm/customers/bulk-score - Score all customers
 
-  - task: "OTP Code Entry via Chat Messages"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "6-digit codes sent as chat messages are correctly interpreted as OTP attempts and processed through verification system."
-
-  - task: "Resend Code Functionality"
-    implemented: true
-    working: true
-    file: "/app/backend/server.py"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-      - working: true
-        agent: "testing"
-        comment: "Resend functionality working. 'resend' messages trigger new OTP request with proper cooldown enforcement."
-
-frontend:
-  - task: "Frontend Integration (Not Tested)"
-    implemented: true
-    working: "NA"
-    file: "N/A"
-    stuck_count: 0
-    priority: "low"
-    needs_retesting: false
-    status_history:
-      - working: "NA"
-        agent: "testing"
-        comment: "Frontend testing not performed as per testing agent limitations. Backend APIs are working correctly for frontend integration."
-
-metadata:
-  created_by: "main_agent"
-  version: "1.0"
-  test_sequence: 1
-  run_ui: false
-
-test_plan:
-  current_focus:
-    - "Tiered Email Verification - All Backend APIs"
-    - "Verification Security Features"
-    - "OTP Flow Integration"
-  stuck_tasks: []
-  test_all: false
-  test_priority: "high_first"
-
-agent_communication:
-  - agent: "testing"
-    message: "Comprehensive testing of Tiered Email Verification system completed. All backend APIs working correctly. Verification flow properly detects sensitive vs general questions. Security features (rate limiting, max attempts) functioning as expected. Email sending fails due to SendGrid not configured in test environment, which is expected behavior."
+## Test Credentials
+- Super Admin: andre@humanweb.no / Pernilla66!
