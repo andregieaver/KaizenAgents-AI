@@ -179,7 +179,7 @@ const Dashboard = () => {
 };
 
 const StatCard = ({ label, value, trend, highlight }) => (
-  <Card className={`border-0 btn-neumorphic !bg-primary !text-primary-foreground ${highlight ? 'ring-2 ring-white/30' : ''}`} data-testid="stat-card">
+  <Card className={`border-0 btn-neumorphic !bg-foreground !text-background ${highlight ? 'ring-2 ring-white/30' : ''}`} data-testid="stat-card">
     <CardContent className="p-3 sm:p-4 text-center">
       <p className="font-heading text-xl sm:text-2xl font-bold tracking-tight mb-0.5">{value}</p>
       <p className="text-xs opacity-80">{label}</p>
