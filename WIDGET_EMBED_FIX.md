@@ -101,7 +101,7 @@ React apps (Create React App, Vite, etc.) use **build-time environment variables
 **Development** (preview/local):
 ```bash
 cat /app/frontend/.env
-# Should show: REACT_APP_BACKEND_URL=https://crm-dash-5.preview.emergentagent.com
+# Should show: REACT_APP_BACKEND_URL=https://convoclient.preview.emergentagent.com
 ```
 
 **Production**:
