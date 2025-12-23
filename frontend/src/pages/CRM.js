@@ -282,13 +282,15 @@ const CRM = () => {
     tags: []
   });
   
-  // DnD sensors - includes TouchSensor for mobile support
+  // DnD sensors - TouchSensor for mobile, PointerSensor for desktop
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(PointerSensor, { 
+      activationConstraint: { distance: 5 } 
+    }),
     useSensor(TouchSensor, { 
       activationConstraint: { 
-        delay: 200,
-        tolerance: 5 
+        delay: 150,  // Shorter delay for easier activation
+        tolerance: 8  // More tolerance for finger movement
       } 
     }),
     useSensor(KeyboardSensor)
