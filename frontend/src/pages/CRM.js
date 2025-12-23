@@ -145,8 +145,8 @@ const PIPELINE_STAGES = [
   { id: 'closed', label: 'Closed', color: 'bg-green-500' },
 ];
 
-// Draggable Kanban Card Component - entire card is draggable on mobile
-const KanbanCard = ({ customer, isDragging, onNavigate }) => {
+// Draggable Kanban Card Component - drag handle on left, rest is clickable
+const KanbanCard = ({ customer, isDragging }) => {
   const {
     attributes,
     listeners,
@@ -167,59 +167,58 @@ const KanbanCard = ({ customer, isDragging, onNavigate }) => {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging || isBeingDragged ? 0.5 : 1,
-    touchAction: 'none',  // Prevent browser touch handling interference
-  };
-
-  // Double-click/double-tap to navigate to customer detail
-  const handleDoubleClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    window.location.href = `/dashboard/crm/${customer.id}`;
   };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-background border rounded-lg p-3 mb-2 transition-all select-none cursor-grab active:cursor-grabbing touch-none ${
+      className={`bg-background border rounded-lg mb-2 transition-all select-none ${
         isBeingDragged ? 'shadow-lg border-primary scale-105 z-50' : 'border-border hover:shadow-md'
       }`}
-      {...attributes}
-      {...listeners}
-      onDoubleClick={handleDoubleClick}
     >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
-          {/* Grip handle visual indicator */}
-          <div className="p-1 text-muted-foreground">
-            <GripVertical className="h-4 w-4" />
-          </div>
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <span className="text-xs font-medium text-primary">
-              {customer.name?.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div className="min-w-0">
-            <p className="font-medium text-sm truncate">{customer.name}</p>
-            {customer.company && (
-              <p className="text-xs text-muted-foreground truncate">{customer.company}</p>
+      <div className="flex">
+        {/* Drag Handle - large touch target */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="flex items-center justify-center w-10 flex-shrink-0 cursor-grab active:cursor-grabbing bg-muted/30 hover:bg-muted rounded-l-lg touch-none"
+          style={{ touchAction: 'none' }}
+        >
+          <GripVertical className="h-5 w-5 text-muted-foreground" />
+        </div>
+        
+        {/* Clickable Content Area */}
+        <Link 
+          to={`/dashboard/crm/${customer.id}`}
+          className="flex-1 p-3 min-w-0"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-xs font-medium text-primary">
+                  {customer.name?.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div className="min-w-0">
+                <p className="font-medium text-sm truncate">{customer.name}</p>
+                {customer.company && (
+                  <p className="text-xs text-muted-foreground truncate">{customer.company}</p>
+                )}
+              </div>
+            </div>
+            {customer.lead_score !== undefined && (
+              <LeadScoreBadge score={customer.lead_score} grade={customer.lead_grade} />
             )}
           </div>
-        </div>
-        {customer.lead_score !== undefined && (
-          <LeadScoreBadge score={customer.lead_score} grade={customer.lead_grade} />
-        )}
+          {customer.email && (
+            <p className="text-xs text-muted-foreground mt-2 truncate flex items-center gap-1">
+              <Mail className="h-3 w-3" />
+              {customer.email}
+            </p>
+          )}
+        </Link>
       </div>
-      {customer.email && (
-        <p className="text-xs text-muted-foreground mt-2 truncate flex items-center gap-1 ml-7">
-          <Mail className="h-3 w-3" />
-          {customer.email}
-        </p>
-      )}
-      {/* Tap hint for mobile */}
-      <p className="text-[10px] text-muted-foreground/50 mt-2 text-center sm:hidden">
-        Double-tap to view • Hold to drag
-      </p>
     </div>
   );
 };
