@@ -261,7 +261,7 @@ const Agents = () => {
                   </div>
 
                   {/* Quick Actions */}
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-4 gap-3">
                     <input
                       type="file"
                       ref={el => avatarInputRefs.current[agent.id] = el}
@@ -270,7 +270,7 @@ const Agents = () => {
                       onChange={(e) => handleAvatarUpload(agent.id, e.target.files[0])}
                     />
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={(e) => {
                         e.preventDefault();
@@ -288,7 +288,7 @@ const Agents = () => {
                     </Button>
                     
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       title="Edit Agent"
                     >
@@ -296,7 +296,7 @@ const Agents = () => {
                     </Button>
                     
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       title="Copy Embed Code"
                       onClick={(e) => copyEmbedCode(agent.id, e)}
@@ -309,7 +309,7 @@ const Agents = () => {
                     </Button>
                     
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       className="text-destructive hover:text-destructive"
                       onClick={(e) => handleDeleteAgent(agent.id, e)}
