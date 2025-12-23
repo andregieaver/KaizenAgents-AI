@@ -165,17 +165,4 @@ const StatusBadge = ({ status }) => {
   return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
-const SetupStep = ({ step, title, description, link, linkText }) => (
-  <div className="p-4 bg-muted/30 rounded-sm">
-    <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-heading font-bold text-sm mb-3">
-      {step}
-    </div>
-    <h3 className="font-medium mb-1">{title}</h3>
-    <p className="text-sm text-muted-foreground mb-3">{description}</p>
-    <Link to={link}>
-      <Button variant="outline" size="sm">{linkText}</Button>
-    </Link>
-  </div>
-);
-
 export default Dashboard;
