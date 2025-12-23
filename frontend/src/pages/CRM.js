@@ -799,6 +799,13 @@ const CRM = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Keyboard Shortcuts Help Modal */}
+      <KeyboardShortcutsHelp 
+        context="crm" 
+        isOpen={showShortcutsHelp} 
+        onClose={() => setShowShortcutsHelp(false)} 
+      />
     </div>
   );
 };
