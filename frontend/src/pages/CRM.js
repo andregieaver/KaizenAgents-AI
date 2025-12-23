@@ -167,6 +167,7 @@ const KanbanCard = ({ customer, isDragging, onNavigate }) => {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging || isBeingDragged ? 0.5 : 1,
+    touchAction: 'none',  // Prevent browser touch handling interference
   };
 
   // Double-click/double-tap to navigate to customer detail
@@ -180,7 +181,7 @@ const KanbanCard = ({ customer, isDragging, onNavigate }) => {
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-background border rounded-lg p-3 mb-2 transition-all select-none cursor-grab active:cursor-grabbing ${
+      className={`bg-background border rounded-lg p-3 mb-2 transition-all select-none cursor-grab active:cursor-grabbing touch-none ${
         isBeingDragged ? 'shadow-lg border-primary scale-105 z-50' : 'border-border hover:shadow-md'
       }`}
       {...attributes}
