@@ -13,6 +13,47 @@ import { formatDistanceToNow, differenceInHours } from 'date-fns';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
+// Helper: Check if conversation needs response (waiting for agent response > 1 hour)
+const needsResponse = (conversation) => {
+  if (conversation.status === 'resolved') return false;
+  if (conversation.mode === 'ai') return false; // AI handles it
+  
+  // Check if last message was from customer and waiting > 1 hour
+  if (conversation.last_message_at) {
+    const hoursSinceLastMessage = differenceInHours(new Date(), new Date(conversation.last_message_at));
+    // Needs response if waiting status OR open for > 1 hour
+    return conversation.status === 'waiting' || (conversation.status === 'open' && hoursSinceLastMessage >= 1);
+  }
+  return conversation.status === 'waiting';
+};
+
+// Quick Filter Chip Component
+const QuickFilterChip = ({ active, onClick, icon, label, count, variant = 'default' }) => (
+  <button
+    onClick={onClick}
+    className={`
+      inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors
+      ${active 
+        ? variant === 'destructive'
+          ? 'bg-destructive text-destructive-foreground'
+          : 'bg-primary text-primary-foreground'
+        : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
+      }
+    `}
+  >
+    {icon}
+    {label}
+    {count > 0 && (
+      <span className={`
+        ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold
+        ${active ? 'bg-white/20' : 'bg-background'}
+      `}>
+        {count}
+      </span>
+    )}
+  </button>
+);
+
 const Conversations = () => {
   const { token } = useAuth();
   const [conversations, setConversations] = useState([]);
