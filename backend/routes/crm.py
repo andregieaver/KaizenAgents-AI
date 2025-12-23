@@ -830,3 +830,4 @@ async def log_activity(
     
     await db.crm_activities.insert_one(activity)
     return activity
+
