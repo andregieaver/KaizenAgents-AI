@@ -200,4 +200,16 @@ code {
             inset 3px 3px 6px rgba(0, 0, 0, 0.5),
             inset -3px -3px 6px rgba(255, 255, 255, 0.03);
     }
+
+    /* Stats grid - responsive */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    
+    @media (min-width: 1024px) {
+        .stats-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
 }
