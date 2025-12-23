@@ -158,11 +158,18 @@ const Dashboard = () => {
   );
 };
 
-const StatCard = ({ label, value, trend, highlight }) => (
-  <Card className={`border-0 btn-neumorphic !bg-card ${highlight ? 'ring-2 ring-primary/30' : ''}`} data-testid="stat-card">
+const StatCard = ({ label, value, trend, highlight, clickable }) => (
+  <Card className={`
+    border-0 btn-neumorphic !bg-card 
+    ${highlight ? 'ring-2 ring-primary/30' : ''} 
+    ${clickable ? 'cursor-pointer hover:scale-[1.02] transition-transform' : ''}
+  `} data-testid="stat-card">
     <CardContent className="p-3 sm:p-4 text-center">
       <p className="font-heading text-xl sm:text-2xl font-bold tracking-tight mb-0.5">{value}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
+      {clickable && (
+        <p className="text-[10px] text-muted-foreground/60 mt-1">Click to view</p>
+      )}
     </CardContent>
   </Card>
 );
