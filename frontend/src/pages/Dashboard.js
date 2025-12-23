@@ -142,7 +142,7 @@ const Dashboard = () => {
       </Card>
 
       {/* Quick Setup */}
-      <Card className="border border-border mt-6">
+      <Card className="border-0 shadow-sm mt-6">
         <CardHeader>
           <CardTitle className="font-heading text-lg">Quick Setup</CardTitle>
         </CardHeader>
