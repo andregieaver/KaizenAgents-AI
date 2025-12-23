@@ -89,41 +89,41 @@ const Dashboard = () => {
 
       {/* Recent Conversations */}
       <Card className="border-0 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="font-heading text-lg">Recent Conversations</CardTitle>
+        <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6">
+          <CardTitle className="font-heading text-base sm:text-lg">Recent Conversations</CardTitle>
           <Link to="/dashboard/conversations">
-            <Button variant="ghost" size="sm" data-testid="view-all-conversations">
+            <Button variant="ghost" size="sm" data-testid="view-all-conversations" className="text-xs sm:text-sm">
               View all
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </Link>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6 pt-0">
           {stats?.recent_conversations?.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {stats.recent_conversations.map((conversation) => (
                 <Link
                   key={conversation.id}
                   to={`/dashboard/conversations/${conversation.id}`}
                   className="block"
                 >
-                  <div className="flex items-center justify-between p-3 rounded-sm border border-border hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center">
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                  <div className="flex items-start sm:items-center justify-between p-2 sm:p-3 rounded-sm border border-border hover:bg-muted/50 transition-colors gap-2">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                      <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+                        <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                       </div>
-                      <div>
-                        <p className="font-medium text-sm">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-xs sm:text-sm truncate">
                           {conversation.customer_name || 'Anonymous'}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                        <p className="text-xs text-muted-foreground truncate">
                           {conversation.last_message || 'No messages yet'}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-3 flex-shrink-0">
                       <StatusBadge status={conversation.status} />
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
                         {conversation.updated_at && formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: true })}
                       </span>
                     </div>
@@ -132,46 +132,14 @@ const Dashboard = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground mb-4">No conversations yet</p>
-              <p className="text-sm text-muted-foreground">
-                Conversations will appear here when customers start chatting through your widget.
+            <div className="text-center py-6 sm:py-8">
+              <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground mb-2 sm:mb-4 text-sm">No conversations yet</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">
+                Conversations will appear here when customers start chatting.
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Quick Setup */}
-      <Card className="border-0 shadow-sm mt-6">
-        <CardHeader>
-          <CardTitle className="font-heading text-lg">Quick Setup</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            <SetupStep
-              step={1}
-              title="Configure AI"
-              description="Add your OpenAI API key to enable AI responses"
-              link="/dashboard/settings"
-              linkText="Go to Settings"
-            />
-            <SetupStep
-              step={2}
-              title="Customize Widget"
-              description="Set your brand colors and welcome message"
-              link="/dashboard/settings"
-              linkText="Customize"
-            />
-            <SetupStep
-              step={3}
-              title="Embed Widget"
-              description="Copy the embed code to your website"
-              link="/dashboard/settings"
-              linkText="Get Code"
-            />
-          </div>
         </CardContent>
       </Card>
     </div>
