@@ -62,17 +62,8 @@ const Dashboard = () => {
 
       {/* Stats Grid - 2 cols mobile, 4 cols desktop */}
       <div 
-        className="gap-3 sm:gap-4 mb-8" 
-        style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))'
-        }}
+        className="stats-grid gap-3 sm:gap-4 mb-8"
       >
-        <style>{`
-          @media (min-width: 1024px) {
-            .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
-          }
-        `}</style>
         <StatCard
           label="Total Conversations"
           value={stats?.total_conversations || 0}
