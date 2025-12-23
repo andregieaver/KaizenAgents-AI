@@ -160,12 +160,23 @@ const CustomerDetail = () => {
       setFollowups(followupsRes.data);
       setConversations(conversationsRes.data || []);
       
-      // Fetch lead score if available
-      if (customerRes.data.lead_score !== undefined) {
+      // Fetch lead score if available, otherwise auto-calculate
+      if (customerRes.data.lead_score !== undefined && customerRes.data.lead_score !== null) {
         setLeadScore({
           score: customerRes.data.lead_score,
           grade: customerRes.data.lead_grade
         });
+      } else {
+        // Auto-calculate lead score if not available
+        try {
+          const scoreRes = await axios.get(
+            `${API}/api/crm/customers/${customerId}/lead-score`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          setLeadScore(scoreRes.data);
+        } catch (scoreError) {
+          console.debug('Could not auto-calculate lead score:', scoreError);
+        }
       }
     } catch (error) {
       console.error('Error fetching customer:', error);
