@@ -348,9 +348,88 @@ const ConversationDetail = () => {
           </div>
 
           <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
-        {/* Sidebar - Actions first on mobile */}
-        <div className="space-y-4 lg:order-2">
-          {/* Actions - Show first on mobile */}
+        {/* Messages - Show first on both mobile and desktop */}
+        <div className="lg:col-span-2 order-1">
+          <Card className="border border-border h-[400px] sm:h-[500px] lg:h-[600px] flex flex-col">
+            <CardHeader className="border-b border-border py-3">
+              <CardTitle className="font-heading text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Messages
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
+              <ScrollArea className="flex-1">
+                <div className="p-4 overflow-hidden">
+                  {messages.length > 0 ? (
+                    <div className="space-y-4">
+                      {messages.map((message) => (
+                        <MessageBubble key={message.id} message={message} />
+                      ))}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  ) : (
+                    <div className="h-full flex items-center justify-center">
+                      <p className="text-muted-foreground">No messages yet</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+              
+              {/* AI Suggestions for Assisted Mode */}
+              {conversation.mode === 'assisted' && (
+                <div className="px-4 py-2 border-t border-border bg-muted/30">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Wand2 className="h-4 w-4 text-primary" />
+                    <span className="text-xs font-medium text-muted-foreground">AI Suggestions</span>
+                    {loadingSuggestions && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+                  </div>
+                  {suggestions.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {suggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleSuggestionClick(suggestion)}
+                          className="text-xs px-3 py-1.5 rounded-full bg-background border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors text-left max-w-full truncate"
+                          title={suggestion}
+                        >
+                          {suggestion.length > 50 ? `${suggestion.substring(0, 50)}...` : suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  ) : !loadingSuggestions && (
+                    <p className="text-xs text-muted-foreground">Waiting for customer message...</p>
+                  )}
+                </div>
+              )}
+              
+              {/* Message Input */}
+              <div className="p-4 border-t border-border">
+                <form onSubmit={handleSendMessage} className="flex gap-2">
+                  <Input
+                    placeholder={conversation.mode === 'assisted' ? "Click a suggestion or type your message..." : "Type a message as an agent..."}
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    disabled={sending}
+                    className="h-10"
+                    data-testid="message-input"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={!newMessage.trim() || sending}
+                    className="h-10"
+                    data-testid="send-message-btn"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar - Actions below conversation on mobile */}
+        <div className="space-y-4 order-2">
+          {/* Actions */}
           <Card className="border border-border">
             <CardHeader className="py-3">
               <CardTitle className="font-heading text-base">Actions</CardTitle>
@@ -358,33 +437,39 @@ const ConversationDetail = () => {
             <CardContent className="space-y-3">
               <div>
                 <p className="text-xs text-muted-foreground mb-2">Mode</p>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex gap-2">
                   <Button
                     variant={conversation.mode === 'ai' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => handleModeChange('ai')}
                     data-testid="mode-ai-btn"
+                    className="flex-1"
+                    title="AI Mode"
                   >
-                    <Sparkles className="h-3 w-3 mr-1" />
-                    AI
+                    <Sparkles className="h-4 w-4" />
+                    <span className="hidden sm:inline ml-1">AI</span>
                   </Button>
                   <Button
                     variant={conversation.mode === 'assisted' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => handleModeChange('assisted')}
                     data-testid="mode-assisted-btn"
+                    className="flex-1"
+                    title="Assisted Mode"
                   >
-                    <Wand2 className="h-3 w-3 mr-1" />
-                    Assisted
+                    <Wand2 className="h-4 w-4" />
+                    <span className="hidden sm:inline ml-1">Assisted</span>
                   </Button>
                   <Button
                     variant={conversation.mode === 'agent' ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => handleModeChange('agent')}
                     data-testid="mode-agent-btn"
+                    className="flex-1"
+                    title="Agent Mode"
                   >
-                    <Hand className="h-3 w-3 mr-1" />
-                    Agent
+                    <Hand className="h-4 w-4" />
+                    <span className="hidden sm:inline ml-1">Agent</span>
                   </Button>
                 </div>
               </div>
