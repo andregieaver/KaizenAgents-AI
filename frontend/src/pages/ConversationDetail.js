@@ -585,7 +585,8 @@ const ConversationDetail = () => {
               <CardTitle className="font-heading text-base">Customer Info</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-1">
+              {/* Row 1: Name and Email */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-muted-foreground">Name</p>
                   <p className="text-sm font-medium">{conversation.customer_name || 'Anonymous'}</p>
@@ -594,6 +595,9 @@ const ConversationDetail = () => {
                   <p className="text-xs text-muted-foreground">Email</p>
                   <p className="text-sm font-medium truncate">{conversation.customer_email || 'Not provided'}</p>
                 </div>
+              </div>
+              {/* Row 2: Source and Started */}
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-muted-foreground">Source</p>
                   <p className="text-sm font-medium capitalize">{conversation.source}</p>
