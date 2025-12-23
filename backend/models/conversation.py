@@ -11,6 +11,7 @@ class ConversationResponse(BaseModel):
     id: str
     tenant_id: str
     customer_id: Optional[str] = None
+    crm_customer_id: Optional[str] = None  # Link to CRM customer
     customer_name: Optional[str] = None
     customer_email: Optional[str] = None
     status: str
