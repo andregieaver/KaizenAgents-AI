@@ -95,6 +95,8 @@ const ConversationDetail = () => {
   const [crmCustomer, setCrmCustomer] = useState(null);
   const [crmLoading, setCrmLoading] = useState(false);
   const [linkSuggested, setLinkSuggested] = useState(false);
+  const [aiInsights, setAiInsights] = useState(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -129,6 +131,28 @@ const ConversationDetail = () => {
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
   }, [id, token]);
+  
+  const fetchAiInsights = async () => {
+    setLoadingInsights(true);
+    try {
+      const [summaryRes, followupRes] = await Promise.all([
+        axios.get(`${API}/crm/conversations/${id}/summary?use_ai=false`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API}/crm/conversations/${id}/suggest-followup`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+      setAiInsights({
+        summary: summaryRes.data,
+        followup: followupRes.data
+      });
+    } catch (error) {
+      console.error('Error fetching AI insights:', error);
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
   
   const fetchCrmStatus = async (conversationId) => {
     try {
