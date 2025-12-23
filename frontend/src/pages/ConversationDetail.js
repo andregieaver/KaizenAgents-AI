@@ -566,7 +566,7 @@ const ConversationDetail = () => {
           </Card>
 
           {/* Customer Info */}
-          <Card className="border border-border">
+          <Card className="border-0 shadow-sm">
             <CardHeader className="py-3">
               <CardTitle className="font-heading text-base">Customer Info</CardTitle>
             </CardHeader>
