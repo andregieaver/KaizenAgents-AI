@@ -357,7 +357,8 @@ const DashboardLayout = () => {
         {/* Navigation */}
         <ScrollArea className="flex-1 py-4">
           <nav className="px-3 space-y-1">
-            {navItems.map((item) => (
+            {/* Main */}
+            {mainNavItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
@@ -375,237 +376,126 @@ const DashboardLayout = () => {
               </Link>
             ))}
             
-            {/* Super Admin Links */}
-            {(adminNavItem || providersNavItem || storageNavItem || rateLimitsNavItem || observabilityNavItem || planManagementNavItem || featureGatesNavItem || integrationsNavItem || discountCodesNavItem || pagesNavItem || componentsNavItem || menusNavItem) && (
-              <>
-                <Separator className="my-3" />
-                {providersNavItem && (
-                  <Link
-                    to={providersNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(providersNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <providersNavItem.icon className="h-4 w-4" />
-                    {providersNavItem.label}
-                  </Link>
+            {/* Work Section */}
+            <div className="pt-3">
+              <p className="px-3 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">Work</p>
+              {workNavItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setSidebarOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                    isActive(item.path)
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                  data-testid={`nav-${item.label.toLowerCase()}`}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+            
+            {/* Resources Section */}
+            <div className="pt-3">
+              <p className="px-3 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">Resources</p>
+              {resourcesNavItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setSidebarOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                    isActive(item.path)
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                  data-testid={`nav-${item.label.toLowerCase()}`}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+            
+            {/* Account Section */}
+            <div className="pt-3">
+              <p className="px-3 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">Account</p>
+              {accountNavItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setSidebarOpen(false)}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
+                    isActive(item.path)
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  )}
+                  data-testid={`nav-${item.label.toLowerCase()}`}
+                >
+                  <item.icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+            
+            {/* Super Admin Section - Collapsible */}
+            {(superAdminNavItems.length > 0 || ownerNavItems.length > 0) && (
+              <div className="pt-3">
+                <button
+                  onClick={() => setAdminExpanded(!adminExpanded)}
+                  className="flex items-center justify-between w-full px-3 mb-2 text-xs font-medium text-destructive uppercase tracking-wider hover:text-destructive/80 transition-colors"
+                >
+                  <span className="flex items-center gap-1.5">
+                    <Shield className="h-3 w-3" />
+                    Admin
+                  </span>
+                  {adminExpanded ? (
+                    <ChevronDown className="h-3 w-3" />
+                  ) : (
+                    <ChevronRight className="h-3 w-3" />
+                  )}
+                </button>
+                {adminExpanded && (
+                  <div className="space-y-1">
+                    {superAdminNavItems.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setSidebarOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-medium transition-colors",
+                          isActive(item.path)
+                            ? "bg-destructive text-destructive-foreground"
+                            : "text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                        )}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                      </Link>
+                    ))}
+                    {ownerNavItems.map((item) => (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setSidebarOpen(false)}
+                        className={cn(
+                          "flex items-center gap-3 px-3 py-2 rounded-sm text-sm font-medium transition-colors",
+                          isActive(item.path)
+                            ? "bg-destructive text-destructive-foreground"
+                            : "text-destructive/70 hover:text-destructive hover:bg-destructive/10"
+                        )}
+                      >
+                        <item.icon className="h-4 w-4" />
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
                 )}
-                {storageNavItem && (
-                  <Link
-                    to={storageNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(storageNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <storageNavItem.icon className="h-4 w-4" />
-                    {storageNavItem.label}
-                  </Link>
-                )}
-                {rateLimitsNavItem && (
-                  <Link
-                    to={rateLimitsNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(rateLimitsNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <rateLimitsNavItem.icon className="h-4 w-4" />
-                    {rateLimitsNavItem.label}
-                  </Link>
-                )}
-                {observabilityNavItem && (
-                  <Link
-                    to={observabilityNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(observabilityNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <observabilityNavItem.icon className="h-4 w-4" />
-                    {observabilityNavItem.label}
-                  </Link>
-                )}
-                {planManagementNavItem && (
-                  <Link
-                    to={planManagementNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(planManagementNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <planManagementNavItem.icon className="h-4 w-4" />
-                    {planManagementNavItem.label}
-                  </Link>
-                )}
-                {featureGatesNavItem && (
-                  <Link
-                    to={featureGatesNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(featureGatesNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <featureGatesNavItem.icon className="h-4 w-4" />
-                    {featureGatesNavItem.label}
-                  </Link>
-                )}
-                {integrationsNavItem && (
-                  <Link
-                    to={integrationsNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(integrationsNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <integrationsNavItem.icon className="h-4 w-4" />
-                    {integrationsNavItem.label}
-                  </Link>
-                )}
-                {discountCodesNavItem && (
-                  <Link
-                    to={discountCodesNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(discountCodesNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <discountCodesNavItem.icon className="h-4 w-4" />
-                    {discountCodesNavItem.label}
-                  </Link>
-                )}
-                {pagesNavItem && (
-                  <Link
-                    to={pagesNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(pagesNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <pagesNavItem.icon className="h-4 w-4" />
-                    {pagesNavItem.label}
-                  </Link>
-                )}
-                {componentsNavItem && (
-                  <Link
-                    to={componentsNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(componentsNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <componentsNavItem.icon className="h-4 w-4" />
-                    {componentsNavItem.label}
-                  </Link>
-                )}
-                {menusNavItem && (
-                  <Link
-                    to={menusNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(menusNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <menusNavItem.icon className="h-4 w-4" />
-                    {menusNavItem.label}
-                  </Link>
-                )}
-                {emailsNavItem && (
-                  <Link
-                    to={emailsNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(emailsNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <emailsNavItem.icon className="h-4 w-4" />
-                    {emailsNavItem.label}
-                  </Link>
-                )}
-                {waitlistNavItem && (
-                  <Link
-                    to={waitlistNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(waitlistNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <waitlistNavItem.icon className="h-4 w-4" />
-                    {waitlistNavItem.label}
-                  </Link>
-                )}
-                {campaignsNavItem && (
-                  <Link
-                    to={campaignsNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(campaignsNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                  >
-                    <campaignsNavItem.icon className="h-4 w-4" />
-                    {campaignsNavItem.label}
-                  </Link>
-                )}
-                {adminNavItem && (
-                  <Link
-                    to={adminNavItem.path}
-                    onClick={() => setSidebarOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-sm text-sm font-medium transition-colors",
-                      isActive(adminNavItem.path)
-                        ? "bg-destructive text-destructive-foreground"
-                        : "text-destructive hover:text-destructive hover:bg-destructive/10"
-                    )}
-                    data-testid="nav-super-admin"
-                  >
-                    <adminNavItem.icon className="h-4 w-4" />
-                    {adminNavItem.label}
-                  </Link>
-                )}
-              </>
+              </div>
             )}
           </nav>
         </ScrollArea>
