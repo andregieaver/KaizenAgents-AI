@@ -323,7 +323,7 @@ Summary:"""
             first = datetime.fromisoformat(messages[0]["created_at"].replace('Z', '+00:00'))
             last = datetime.fromisoformat(messages[-1]["created_at"].replace('Z', '+00:00'))
             return int((last - first).total_seconds() / 60)
-        except:
+        except Exception:
             return 0
     
     # ==================== SMART FOLLOW-UP SUGGESTIONS ====================
