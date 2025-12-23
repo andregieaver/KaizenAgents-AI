@@ -499,6 +499,7 @@ Generate 3 response suggestions for the agent to reply to the customer's last me
 async def update_conversation_status(
     conversation_id: str,
     new_status: Literal["open", "waiting", "resolved"],
+    background_tasks: BackgroundTasks,
     current_user: dict = Depends(get_current_user)
 ):
     tenant_id = current_user.get("tenant_id")
@@ -506,6 +507,12 @@ async def update_conversation_status(
         raise HTTPException(status_code=404, detail="No tenant associated")
     
     now = datetime.now(timezone.utc).isoformat()
+    
+    # Get current status to check if resolving
+    old_conversation = await db.conversations.find_one(
+        {"id": conversation_id, "tenant_id": tenant_id},
+        {"_id": 0, "status": 1}
+    )
     
     result = await db.conversations.find_one_and_update(
         {"id": conversation_id, "tenant_id": tenant_id},
@@ -515,6 +522,16 @@ async def update_conversation_status(
     
     if not result:
         raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    # Trigger AI automation when conversation is resolved
+    if new_status == "resolved" and old_conversation and old_conversation.get("status") != "resolved":
+        from services.ai_automation_service import ai_automation_service
+        background_tasks.add_task(
+            ai_automation_service.on_conversation_resolved,
+            conversation_id,
+            tenant_id,
+            current_user.get("id")
+        )
     
     result.pop("_id", None)
     return result
