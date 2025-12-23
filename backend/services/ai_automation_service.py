@@ -216,7 +216,7 @@ class AIAutomationService:
             summary += "Conversation was handled by AI assistant. "
         
         if status == "resolved":
-            summary += f"The matter was resolved. "
+            summary += "The matter was resolved. "
         elif status == "waiting":
             summary += "Awaiting customer response. "
         else:
