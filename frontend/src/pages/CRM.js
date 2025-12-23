@@ -266,9 +266,14 @@ const CRM = () => {
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                        <Badge variant={customer.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                          {customer.status}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          {customer.lead_score !== undefined && (
+                            <LeadScoreBadge score={customer.lead_score} grade={customer.lead_grade} />
+                          )}
+                          <Badge variant={customer.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                            {customer.status}
+                          </Badge>
+                        </div>
                         {customer.last_contact && (
                           <span className="text-xs text-muted-foreground">
                             {formatDistanceToNow(new Date(customer.last_contact), { addSuffix: true })}
