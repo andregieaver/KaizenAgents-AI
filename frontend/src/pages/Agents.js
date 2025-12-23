@@ -168,7 +168,7 @@ const Agents = () => {
         <Button 
           onClick={() => navigate('/dashboard/agents/new')} 
           size="icon"
-          className="sm:hidden h-12 w-12 rounded-full shadow-lg"
+          className="sm:hidden !h-12 !w-12 !rounded-full shadow-lg flex-shrink-0"
         >
           <Plus className="h-5 w-5" />
         </Button>
@@ -187,10 +187,10 @@ const Agents = () => {
         <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {agents.map((agent) => (
             <Link key={agent.id} to={`/dashboard/agents/${agent.id}`}>
-              <Card className={`border transition-colors cursor-pointer h-full ${
+              <Card className={`border-0 shadow-sm transition-colors cursor-pointer h-full ${
                 agent.is_active 
-                  ? 'border-primary/50 bg-primary/5' 
-                  : 'border-border hover:border-primary/30'
+                  ? 'bg-primary/5 ring-1 ring-primary/30' 
+                  : 'hover:shadow-md'
               }`}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
