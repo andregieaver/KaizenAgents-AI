@@ -509,6 +509,76 @@ const CustomerDetail = () => {
           </Card>
         </TabsContent>
 
+        {/* Conversations Tab */}
+        <TabsContent value="conversations">
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="py-3">
+              <CardTitle className="text-base flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Conversation History
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {conversations.length === 0 ? (
+                <div className="text-center py-8">
+                  <MessageSquare className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-muted-foreground mb-1">No conversations yet</p>
+                  <p className="text-xs text-muted-foreground">
+                    Conversations will appear here when linked to this customer
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {conversations.map((conv) => (
+                    <Link
+                      key={conv.id}
+                      to={`/dashboard/conversations/${conv.id}`}
+                      className="block"
+                    >
+                      <div className="p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge 
+                                variant={conv.status === 'resolved' ? 'outline' : conv.status === 'open' ? 'default' : 'secondary'}
+                                className="text-xs"
+                              >
+                                {conv.status}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {conv.mode}
+                              </Badge>
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {conv.source}
+                              </Badge>
+                            </div>
+                            {conv.last_message && (
+                              <p className="text-sm text-muted-foreground truncate">
+                                {conv.last_message}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                              <span>{conv.message_count || 0} messages</span>
+                              <span>•</span>
+                              <span>{format(new Date(conv.created_at), 'MMM d, yyyy')}</span>
+                              {conv.last_message_at && (
+                                <>
+                                  <span>•</span>
+                                  <span>Last: {formatDistanceToNow(new Date(conv.last_message_at), { addSuffix: true })}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         {/* History Tab */}
         <TabsContent value="history">
           <Card className="border-0 shadow-sm">
