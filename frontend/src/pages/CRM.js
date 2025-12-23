@@ -294,14 +294,14 @@ const CRM = () => {
   });
   
   // DnD sensors - TouchSensor for mobile, PointerSensor for desktop
+  // Using distance constraint instead of delay for Android Chrome compatibility
   const sensors = useSensors(
     useSensor(PointerSensor, { 
       activationConstraint: { distance: 5 } 
     }),
     useSensor(TouchSensor, { 
       activationConstraint: { 
-        delay: 150,  // Shorter delay for easier activation
-        tolerance: 8  // More tolerance for finger movement
+        distance: 10,  // Use distance instead of delay for Android
       } 
     }),
     useSensor(KeyboardSensor)
