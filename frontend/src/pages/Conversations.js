@@ -378,13 +378,13 @@ const ConversationRow = ({ conversation, isSelected, isHighlighted, onToggleSele
     <div
       data-conversation-row
       className={`
-        flex items-center gap-2 transition-colors
+        flex items-center transition-colors border-b border-border last:border-b-0
         ${isHighlighted ? 'bg-primary/10 ring-1 ring-primary/30' : ''}
         ${isSelected ? 'bg-primary/5' : ''}
       `}
     >
-      {/* Checkbox for bulk selection */}
-      <div className="pl-3 py-4">
+      {/* Checkbox for bulk selection - hidden on mobile for cleaner look */}
+      <div className="hidden sm:block pl-3 py-4">
         <Checkbox
           checked={isSelected}
           onCheckedChange={onToggleSelect}
@@ -395,10 +395,10 @@ const ConversationRow = ({ conversation, isSelected, isHighlighted, onToggleSele
       
       <Link
         to={`/dashboard/conversations/${conversation.id}`}
-        className="flex-1 block hover:bg-muted/50 transition-colors"
+        className="flex-1 block hover:bg-muted/50 transition-colors active:bg-muted"
         data-testid="conversation-row"
       >
-        <div className="p-4 pl-2 flex items-start sm:items-center gap-3 sm:gap-4">
+        <div className="p-3 sm:p-4 sm:pl-2 flex items-start gap-3">
           {/* Avatar with unread indicator */}
           <div className="relative h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
             <Users className="h-5 w-5 text-muted-foreground" />
@@ -407,47 +407,41 @@ const ConversationRow = ({ conversation, isSelected, isHighlighted, onToggleSele
             )}
           </div>
 
-          {/* Content */}
+          {/* Content - Mobile optimized */}
           <div className="flex-1 min-w-0">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-              <span className={`font-medium text-sm ${hasUnread ? 'text-foreground' : ''}`}>
+            <div className="flex items-center justify-between gap-2 mb-0.5">
+              <span className={`font-medium text-sm truncate ${hasUnread ? 'text-foreground' : ''}`}>
                 {conversation.customer_name || 'Anonymous'}
                 {hasUnread && (
                   <Circle className="inline-block h-2 w-2 ml-1.5 fill-primary text-primary" />
                 )}
               </span>
-              <span className="text-xs text-muted-foreground truncate">
-                {conversation.customer_email}
-              </span>
-            </div>
-            <p className={`text-sm truncate ${hasUnread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
-              {conversation.last_message || 'No messages yet'}
-            </p>
-            {/* Mobile: Show meta info below message */}
-            <div className="flex items-center gap-2 mt-2 sm:hidden">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                {getModeIcon(conversation.mode)}
-                <span className="capitalize">{conversation.mode}</span>
-              </div>
-              <StatusBadge status={conversation.status} />
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
                 {conversation.updated_at && formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: true })}
               </span>
             </div>
+            
+            <p className="text-xs text-muted-foreground truncate mb-1.5 sm:hidden">
+              {conversation.customer_email}
+            </p>
+            
+            <p className={`text-sm truncate ${hasUnread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+              {conversation.last_message || 'No messages yet'}
+            </p>
+            
+            {/* Meta row - always visible, compact on mobile */}
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                {getModeIcon(conversation.mode)}
+                <span className="capitalize hidden sm:inline">{conversation.mode}</span>
+              </div>
+              <StatusBadge status={conversation.status} />
+              <span className="text-xs text-muted-foreground truncate hidden sm:block">
+                {conversation.customer_email}
+              </span>
+            </div>
           </div>
-
-        {/* Meta - Desktop only */}
-        <div className="hidden sm:flex items-center gap-3 flex-shrink-0">
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            {getModeIcon(conversation.mode)}
-            <span className="capitalize">{conversation.mode}</span>
-          </div>
-          <StatusBadge status={conversation.status} />
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            {conversation.updated_at && formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: true })}
-          </span>
         </div>
-      </div>
       </Link>
     </div>
   );
