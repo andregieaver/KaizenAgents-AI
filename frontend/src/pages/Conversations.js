@@ -60,11 +60,18 @@ const QuickFilterChip = ({ active, onClick, icon, label, count, variant = 'defau
 
 const Conversations = () => {
   const { token } = useAuth();
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState('');
   const statusFilter = searchParams.get('status') || 'all';
+  
+  // Keyboard navigation & bulk selection state
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const listRef = useRef(null);
 
   useEffect(() => {
     const fetchConversations = async () => {
