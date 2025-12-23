@@ -94,6 +94,59 @@ const OnboardingProgress = () => {
   const completedSteps = onboarding.steps.filter(s => s.completed).length;
   const totalSteps = onboarding.steps.length;
 
+  // Minimized view for 80%+ completion
+  if (minimized) {
+    return (
+      <Card className="border border-primary/20 bg-gradient-to-r from-primary/5 to-background mb-6">
+        <CardContent className="p-3 sm:p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="relative h-10 w-10 flex-shrink-0">
+                <svg className="h-10 w-10 -rotate-90" viewBox="0 0 36 36">
+                  <circle cx="18" cy="18" r="16" fill="none" className="stroke-muted" strokeWidth="2" />
+                  <circle
+                    cx="18" cy="18" r="16" fill="none"
+                    className="stroke-primary" strokeWidth="2"
+                    strokeDasharray={`${onboarding.completion_percentage} 100`}
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xs font-bold">{onboarding.completion_percentage}%</span>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Setup {completedSteps}/{totalSteps} complete</p>
+                <p className="text-xs text-muted-foreground">
+                  {onboarding.steps.find(s => !s.completed)?.label || 'All done!'}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setMinimized(false)}
+                className="text-xs"
+              >
+                Expand
+                <ChevronRight className="h-3 w-3 ml-1" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7"
+                onClick={handleDismiss}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border border-primary/20 bg-gradient-to-r from-primary/5 to-background mb-6">
       <CardContent className="p-4 sm:p-6">
