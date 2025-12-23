@@ -447,30 +447,54 @@ const CRM = () => {
     
     if (!over) return;
     
-    // Find which column was dropped onto
+    // Find the dragged customer
     const activeCustomer = customers.find(c => c.id === active.id);
     if (!activeCustomer) return;
     
-    // Determine the new stage based on the drop target
-    // For now, we'll update the customer's pipeline_stage field
-    const newStage = over.id; // The column ID is the stage
+    // Determine the target stage - check if dropped on column or on another card
+    let targetStage = null;
     
-    if (activeCustomer.pipeline_stage !== newStage) {
+    // Check if dropped directly on a column
+    if (PIPELINE_STAGES.some(s => s.id === over.id)) {
+      targetStage = over.id;
+    } else {
+      // Dropped on a card - find which column that card is in
+      const targetCustomer = customers.find(c => c.id === over.id);
+      if (targetCustomer) {
+        targetStage = targetCustomer.pipeline_stage || 'lead';
+      }
+    }
+    
+    if (!targetStage) return;
+    
+    const currentStage = activeCustomer.pipeline_stage || 'lead';
+    
+    // Only update if stage actually changed
+    if (currentStage !== targetStage) {
+      // Optimistically update local state first for immediate feedback
+      setCustomers(prev => prev.map(c => 
+        c.id === active.id ? { ...c, pipeline_stage: targetStage } : c
+      ));
+      
       try {
         await axios.patch(
           `${API}/api/crm/customers/${active.id}`,
-          { pipeline_stage: newStage },
+          { pipeline_stage: targetStage },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        // Update local state
-        setCustomers(prev => prev.map(c => 
-          c.id === active.id ? { ...c, pipeline_stage: newStage } : c
-        ));
-        toast.success(`Moved to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}`);
+        toast.success(`Moved to ${PIPELINE_STAGES.find(s => s.id === targetStage)?.label}`);
       } catch (error) {
+        // Revert on error
+        setCustomers(prev => prev.map(c => 
+          c.id === active.id ? { ...c, pipeline_stage: currentStage } : c
+        ));
         toast.error('Failed to update customer stage');
       }
     }
+  };
+  
+  const handleDragCancel = () => {
+    setActiveId(null);
   };
   
   // Group customers by pipeline stage for Kanban view
