@@ -1,126 +1,63 @@
-# Test Results - Shopify Integration
+# Test Results - Phase 1 UX Enhancements
 
 ## Testing Protocol
 - **Testing Agent Used**: Frontend Testing Agent
 - **Test Date**: 2025-12-23
-- **Feature Being Tested**: Shopify Integration in Agent Edit
+- **Features Being Tested**: Phase 1 Quick Wins - UX Enhancements
 
 ## Features Implemented
 
-### Backend
-- Created Shopify service (/app/backend/services/shopify_service.py)
-- Added test endpoint: POST /api/agents/test-shopify
-- Credential encryption for access token
+### 1. Auto-fetch CRM and AI Insights on Conversation Open
+- CRM lookup happens automatically when conversation loads
+- AI insights (summary, follow-up suggestion) auto-fetch when conversation loads
+- No manual click needed
 
-### Frontend
-- Added Shopify card in Integrations tab
-- Enable/disable toggle
-- Store domain input
-- Access token input (masked with show/hide)
-- Test Connection button
-- Capability list display
+### 2. Auto-calculate Lead Score on Customer View
+- When viewing customer detail, lead score auto-calculates if missing
+- No need to manually click refresh button
+
+### 3. "Needs Response" Filter for Conversations
+- New filter option in dropdown: "Needs Response"
+- Quick filter chips: Needs Response (red), Open, Waiting
+- Shows count for each filter
+- Identifies conversations waiting > 1 hour for human response
+
+### 4. Clickable Dashboard Stats
+- All 4 stat cards are now clickable
+- Total Conversations → /dashboard/conversations
+- Needs Response → /dashboard/conversations?status=needs_response
+- Resolved → /dashboard/conversations?status=resolved
+- CRM Customers → /dashboard/crm
+- Visual feedback: "Click to view" hint
+
+### 5. Auto-minimize Onboarding at 80%
+- Onboarding progress auto-minimizes when 80%+ complete
+- Shows compact view with progress and next step
+- "Expand" button to see full view
+- "Minimize" button in full view
 
 ## Test Credentials
 - Super Admin: andre@humanweb.no / Pernilla66!
 
-## Shopify Capabilities
-- Search orders by customer email
-- Get order details and tracking
-- Process refunds
-- Cancel orders
-- Get customer information
+## Test Scenarios
 
-## Test Results
+### Scenario 1: Dashboard Stats Navigation
+1. Login and view dashboard
+2. Click each stat card
+3. Verify navigation to correct filtered view
 
-### Frontend Tests
-- task: "Navigate to Agent Integrations Tab"
-  implemented: true
-  working: true
-  file: "/app/frontend/src/pages/AgentEdit.js"
-  stuck_count: 0
-  priority: "high"
-  needs_retesting: false
-  status_history:
-    - working: true
-      agent: "testing"
-      comment: "Successfully navigated to Agents page, found agent edit page, and accessed Integrations tab. All navigation working correctly."
+### Scenario 2: Conversation Filters
+1. Navigate to Conversations
+2. Click "Needs Response" quick filter chip
+3. Verify filter is applied
+4. Check dropdown also has "Needs Response" option
 
-- task: "Test Shopify Integration UI"
-  implemented: true
-  working: true
-  file: "/app/frontend/src/pages/AgentEdit.js"
-  stuck_count: 0
-  priority: "high"
-  needs_retesting: false
-  status_history:
-    - working: true
-      agent: "testing"
-      comment: "Shopify Integration card found with proper title, description, Shopify logo/icon (SVG), and toggle switch. UI components are properly implemented and visible."
+### Scenario 3: Conversation Detail Auto-Load
+1. Open any conversation
+2. Verify CRM card shows data (or "Add to CRM" if not linked)
+3. Verify AI Insights card shows summary/sentiment
 
-- task: "Test Connection Button"
-  implemented: true
-  working: false
-  file: "/app/frontend/src/pages/AgentEdit.js"
-  stuck_count: 1
-  priority: "high"
-  needs_retesting: true
-  status_history:
-    - working: false
-      agent: "testing"
-      comment: "Toggle switch is present and clickable, but form fields (Store Domain input, Access Token input, Test Connection button) do not appear after enabling the toggle. The toggle state changes but conditional form rendering is not working."
-
-- task: "Verify Both Integrations Visible"
-  implemented: true
-  working: true
-  file: "/app/frontend/src/pages/AgentEdit.js"
-  stuck_count: 0
-  priority: "medium"
-  needs_retesting: false
-  status_history:
-    - working: true
-      agent: "testing"
-      comment: "Both WooCommerce and Shopify integration cards are visible on the Integrations tab. 'More integrations coming soon' placeholder with Magento and BigCommerce is also present."
-
-### Backend Tests
-- task: "Shopify Service Implementation"
-  implemented: true
-  working: true
-  file: "/app/backend/services/shopify_service.py"
-  stuck_count: 0
-  priority: "high"
-  needs_retesting: false
-  status_history:
-    - working: true
-      agent: "testing"
-      comment: "Shopify service is properly implemented with test_connection, search_orders_by_email, get_order_details, create_refund, cancel_order, and get_customer_by_email methods. Credential encryption is working."
-
-- task: "Shopify Test Endpoint"
-  implemented: true
-  working: true
-  file: "/app/backend/routes/agents.py"
-  stuck_count: 0
-  priority: "high"
-  needs_retesting: false
-  status_history:
-    - working: true
-      agent: "testing"
-      comment: "POST /api/agents/test-shopify endpoint is implemented and accepts store_domain and access_token parameters for testing connections."
-
-## Agent Communication
-agent_communication:
-  - agent: "testing"
-    message: "Shopify Integration feature is mostly working. The UI components are properly implemented and visible, but there's an issue with the form fields not appearing after enabling the Shopify toggle. The toggle state changes but the conditional rendering of form fields (Store Domain, Access Token inputs, and Test Connection button) is not working. Backend implementation is complete and functional."
-
-## Metadata
-metadata:
-  created_by: "testing_agent"
-  version: "1.0"
-  test_sequence: 1
-
-test_plan:
-  current_focus:
-    - "Fix Shopify toggle form field rendering"
-  stuck_tasks:
-    - "Test Connection Button"
-  test_all: false
-  test_priority: "high_first"
+### Scenario 4: Customer Lead Score Auto-Calculate
+1. Navigate to CRM
+2. Click on a customer
+3. Verify lead score card displays automatically
