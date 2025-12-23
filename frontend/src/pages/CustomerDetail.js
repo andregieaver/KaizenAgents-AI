@@ -26,7 +26,11 @@ import {
   MoreHorizontal,
   PhoneCall,
   Video,
-  AlertCircle
+  AlertCircle,
+  TrendingUp,
+  Zap,
+  RefreshCw,
+  Sparkles
 } from 'lucide-react';
 
 import { Button } from '../components/ui/button';
