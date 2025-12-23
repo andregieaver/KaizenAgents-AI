@@ -117,6 +117,103 @@ const Conversations = () => {
       conv.last_message?.toLowerCase().includes(searchLower)
     );
   });
+  
+  // Keyboard shortcuts
+  const handleNavigateNext = useCallback(() => {
+    setSelectedIndex(prev => Math.min(prev + 1, filteredConversations.length - 1));
+  }, [filteredConversations.length]);
+  
+  const handleNavigatePrev = useCallback(() => {
+    setSelectedIndex(prev => Math.max(prev - 1, 0));
+  }, []);
+  
+  const handleOpenSelected = useCallback(() => {
+    if (selectedIndex >= 0 && filteredConversations[selectedIndex]) {
+      navigate(`/dashboard/conversations/${filteredConversations[selectedIndex].id}`);
+    }
+  }, [selectedIndex, filteredConversations, navigate]);
+  
+  const handleSelectAll = useCallback(() => {
+    if (selectedIds.size === filteredConversations.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredConversations.map(c => c.id)));
+    }
+  }, [filteredConversations, selectedIds.size]);
+  
+  useKeyboardShortcuts({
+    'j': handleNavigateNext,
+    'k': handleNavigatePrev,
+    'Enter': handleOpenSelected,
+    '?': () => setShowShortcutsHelp(true),
+    'Escape': () => {
+      setSelectedIds(new Set());
+      setSelectedIndex(-1);
+    },
+    'ctrl+a': handleSelectAll,
+  }, !showShortcutsHelp);
+  
+  // Scroll selected item into view
+  useEffect(() => {
+    if (selectedIndex >= 0 && listRef.current) {
+      const items = listRef.current.querySelectorAll('[data-conversation-row]');
+      items[selectedIndex]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+  }, [selectedIndex]);
+  
+  // Toggle selection
+  const toggleSelection = (id) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+  
+  // Bulk actions
+  const handleBulkResolve = async () => {
+    try {
+      await Promise.all(
+        Array.from(selectedIds).map(id =>
+          axios.patch(`${API}/conversations/${id}/status?new_status=resolved`, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        )
+      );
+      toast.success(`${selectedIds.size} conversations resolved`);
+      setSelectedIds(new Set());
+      // Refresh
+      const response = await axios.get(`${API}/conversations`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setConversations(response.data);
+    } catch (error) {
+      toast.error('Failed to resolve some conversations');
+    }
+  };
+  
+  const handleBulkReopen = async () => {
+    try {
+      await Promise.all(
+        Array.from(selectedIds).map(id =>
+          axios.patch(`${API}/conversations/${id}/status?new_status=open`, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        )
+      );
+      toast.success(`${selectedIds.size} conversations reopened`);
+      setSelectedIds(new Set());
+      // Refresh
+      const response = await axios.get(`${API}/conversations`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setConversations(response.data);
+    } catch (error) {
+      toast.error('Failed to reopen some conversations');
+    }
+  };
 
   return (
     <div className="p-6 lg:p-8 page-transition" data-testid="conversations-page">
