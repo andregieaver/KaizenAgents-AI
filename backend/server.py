@@ -120,12 +120,99 @@ async def generate_ai_response(messages: List[dict], settings: dict, conversatio
     
     If orchestration is enabled, routes through the Mother agent for intelligent delegation.
     Otherwise, uses the standard agent configuration.
+    
+    Includes tiered verification: checks if sensitive info is requested and triggers
+    verification flow if user is not verified.
     """
     try:
         # Get tenant_id from settings
         tenant_id = settings.get("tenant_id")
         if not tenant_id:
             return "I apologize, but the AI assistant is not configured yet. Please contact support."
+        
+        # Get the latest user message for verification check
+        latest_user_message = ""
+        for msg in reversed(messages):
+            if msg.get("author_type") == "customer":
+                latest_user_message = msg.get("content", "")
+                break
+        
+        # === TIERED VERIFICATION CHECK ===
+        if conversation_id and latest_user_message:
+            try:
+                from services.verification_service import verification_service, VerificationService
+                
+                # Check if message requests sensitive information
+                if VerificationService.requires_verification(latest_user_message):
+                    # Check if conversation is verified
+                    is_verified = await verification_service.is_conversation_verified(conversation_id)
+                    
+                    if not is_verified:
+                        # Get conversation to check for email
+                        conversation = await db.conversations.find_one(
+                            {"id": conversation_id},
+                            {"_id": 0, "customer_email": 1}
+                        )
+                        
+                        if conversation and conversation.get("customer_email"):
+                            # Has email - trigger OTP
+                            success, message = await verification_service.create_verification(
+                                conversation_id=conversation_id,
+                                email=conversation["customer_email"],
+                                tenant_id=tenant_id
+                            )
+                            
+                            if success:
+                                return f"""I'd be happy to help you with that! However, to protect your privacy and ensure I'm speaking with the account holder, I'll need to verify your identity first.
+
+I've sent a **6-digit verification code** to {conversation['customer_email']}. Please enter the code here to continue.
+
+💡 *This is a one-time verification for this chat session.*"""
+                            else:
+                                return f"""I'd be happy to help you with that! To verify your identity, I need to send you a verification code.
+
+{message}
+
+Once verified, I'll be able to access your account information."""
+                        else:
+                            # No email - ask for it
+                            return """I'd be happy to help you with that! However, to access account-specific information, I need to verify your identity.
+
+**Please provide your email address** and I'll send you a verification code.
+
+This helps protect your privacy and ensures I'm sharing information with the right person."""
+                
+                # Check if this looks like an OTP code (6 digits)
+                if latest_user_message.strip().isdigit() and len(latest_user_message.strip()) == 6:
+                    # Try to verify OTP
+                    success, message = await verification_service.verify_otp(
+                        conversation_id=conversation_id,
+                        code=latest_user_message.strip()
+                    )
+                    
+                    if success:
+                        return message + "\n\nHow can I help you today? Feel free to ask about your orders, account, or any other questions."
+                    else:
+                        return message
+                
+                # Check for "resend" request
+                if latest_user_message.strip().lower() in ["resend", "resend code", "send again", "new code"]:
+                    conversation = await db.conversations.find_one(
+                        {"id": conversation_id},
+                        {"_id": 0, "customer_email": 1}
+                    )
+                    
+                    if conversation and conversation.get("customer_email"):
+                        success, message = await verification_service.create_verification(
+                            conversation_id=conversation_id,
+                            email=conversation["customer_email"],
+                            tenant_id=tenant_id
+                        )
+                        return message
+                    
+            except Exception as e:
+                logger.error(f"Verification check error: {str(e)}")
+                # Continue with normal response if verification check fails
         
         # Get company's agent configuration
         agent_config = await db.company_agent_configs.find_one({"company_id": tenant_id}, {"_id": 0})
