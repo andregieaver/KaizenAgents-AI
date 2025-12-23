@@ -197,7 +197,25 @@ const AgentEdit = () => {
       const response = await axios.get(`${API}/agents/${agentId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setAgent(response.data);
+      // Ensure config has all required fields initialized
+      const agentData = response.data;
+      agentData.config = {
+        ...agentData.config,
+        woocommerce: {
+          enabled: false,
+          store_url: '',
+          consumer_key: '',
+          consumer_secret: '',
+          ...agentData.config?.woocommerce
+        },
+        shopify: {
+          enabled: false,
+          store_domain: '',
+          access_token: '',
+          ...agentData.config?.shopify
+        }
+      };
+      setAgent(agentData);
     } catch (error) {
       console.error('Error fetching agent:', error);
       toast.error('Failed to load agent');
