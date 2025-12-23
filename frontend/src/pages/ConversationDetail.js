@@ -337,10 +337,6 @@ const ConversationDetail = () => {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <StatusBadge status={conversation.status} />
-              <ModeBadge mode={conversation.mode} />
-            </div>
           </div>
 
           <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
