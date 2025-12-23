@@ -262,6 +262,20 @@ async def update_user_agent(
             elif key == "config" and value:
                 # Merge with existing config
                 existing_config = agent.get("config", {})
+                
+                # Handle WooCommerce credentials encryption
+                if "woocommerce" in value:
+                    wc_config = value.get("woocommerce", {})
+                    if wc_config.get("consumer_key") and not wc_config.get("consumer_key", "").startswith("ck_encrypted_"):
+                        # Encrypt consumer key
+                        wc_config["consumer_key_encrypted"] = encrypt_credential(wc_config["consumer_key"])
+                        del wc_config["consumer_key"]
+                    if wc_config.get("consumer_secret") and not wc_config.get("consumer_secret", "").startswith("cs_encrypted_"):
+                        # Encrypt consumer secret
+                        wc_config["consumer_secret_encrypted"] = encrypt_credential(wc_config["consumer_secret"])
+                        del wc_config["consumer_secret"]
+                    value["woocommerce"] = wc_config
+                
                 existing_config.update(value)
                 update_fields["config"] = existing_config
     
