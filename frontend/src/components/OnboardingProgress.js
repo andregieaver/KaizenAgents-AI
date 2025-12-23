@@ -32,6 +32,7 @@ const OnboardingProgress = () => {
   const [onboarding, setOnboarding] = useState(null);
   const [dismissed, setDismissed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [minimized, setMinimized] = useState(false);
 
   useEffect(() => {
     const fetchOnboardingStatus = async () => {
@@ -52,6 +53,11 @@ const OnboardingProgress = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setOnboarding(statusRes.data);
+        
+        // Auto-minimize if 80% or more complete
+        if (statusRes.data?.progress >= 80) {
+          setMinimized(true);
+        }
       } catch (error) {
         console.error('Error fetching onboarding status:', error);
       } finally {
