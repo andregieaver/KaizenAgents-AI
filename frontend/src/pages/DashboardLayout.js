@@ -615,15 +615,6 @@ const DashboardLayout = () => {
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top Bar */}
         <header className="h-16 border-b border-border flex items-center px-4 lg:px-6 gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden h-9 w-9"
-            onClick={() => setSidebarOpen(true)}
-            data-testid="mobile-menu-btn"
-          >
-            <Menu className="h-5 w-5" />
-          </Button>
           <Breadcrumb />
           
           {/* Transfer notification badge in header */}
@@ -645,6 +636,17 @@ const DashboardLayout = () => {
               </span>
             </Button>
           )}
+          
+          {/* Mobile menu button - far right */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`lg:hidden h-9 w-9 ${pendingTransfers.length === 0 ? 'ml-auto' : ''}`}
+            onClick={() => setSidebarOpen(true)}
+            data-testid="mobile-menu-btn"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
         </header>
 
         {/* Page Content */}
