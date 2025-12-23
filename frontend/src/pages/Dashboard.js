@@ -60,8 +60,19 @@ const Dashboard = () => {
         <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your support today.</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="gap-3 sm:gap-4 mb-8" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
+      {/* Stats Grid - 2 cols mobile, 4 cols desktop */}
+      <div 
+        className="gap-3 sm:gap-4 mb-8" 
+        style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))'
+        }}
+      >
+        <style>{`
+          @media (min-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+          }
+        `}</style>
         <StatCard
           label="Total Conversations"
           value={stats?.total_conversations || 0}
