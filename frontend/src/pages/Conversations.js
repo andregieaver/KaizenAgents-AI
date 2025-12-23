@@ -66,7 +66,8 @@ const Conversations = () => {
     const fetchConversations = async () => {
       try {
         let url = `${API}/conversations`;
-        if (statusFilter && statusFilter !== 'all') {
+        // needs_response is a client-side filter
+        if (statusFilter && statusFilter !== 'all' && statusFilter !== 'needs_response') {
           url += `?status=${statusFilter}`;
         }
         const response = await axios.get(url, {
@@ -93,6 +94,10 @@ const Conversations = () => {
   };
 
   const filteredConversations = conversations.filter(conv => {
+    // Apply needs_response filter
+    if (statusFilter === 'needs_response' && !needsResponse(conv)) {
+      return false;
+    }
     if (!search) return true;
     const searchLower = search.toLowerCase();
     return (
