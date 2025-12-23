@@ -66,6 +66,7 @@ const DashboardLayout = () => {
   const [pendingTransfers, setPendingTransfers] = useState([]);
   const [showTransferPopup, setShowTransferPopup] = useState(false);
   const [currentTransfer, setCurrentTransfer] = useState(null);
+  const [adminExpanded, setAdminExpanded] = useState(false);
 
   useEffect(() => {
     const fetchBrandSettings = async () => {
