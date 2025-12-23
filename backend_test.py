@@ -6190,7 +6190,10 @@ def main():
         # 20. Store Credit Referral System Tests (Review Request)
         ("Store Credit Referral System", tester.test_store_credit_referral_system),
         
-        # 21. Quota Limit Email Alerts Tests (Review Request)
+        # 21. Tiered Email Verification System Tests (Review Request)
+        ("Tiered Email Verification System", tester.test_tiered_email_verification_system),
+        
+        # 22. Quota Limit Email Alerts Tests (Review Request)
         ("Quota Limit Email Alerts", tester.test_quota_limit_email_alerts),
     ]
     
