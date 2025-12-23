@@ -596,89 +596,131 @@ const CRM = () => {
         )}
       </div>
 
-      {/* Customer List */}
-      <Card className="border-0 shadow-sm">
-        <CardContent className="p-0">
-          {filteredCustomers.length === 0 ? (
-            <div className="text-center py-12">
-              <Users className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground mb-2">No customers yet</p>
-              <Button onClick={() => setShowAddModal(true)} variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                Add your first customer
-              </Button>
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {filteredCustomers.map((customer) => (
-                <Link
-                  key={customer.id}
-                  to={`/dashboard/crm/${customer.id}`}
-                  className="block"
-                >
-                  <div className="p-4 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-medium text-primary">
-                            {customer.name?.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm truncate">{customer.name}</p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            {customer.company && (
-                              <span className="flex items-center gap-1 truncate">
-                                <Building className="h-3 w-3" />
-                                {customer.company}
+      {/* Customer List / Kanban View */}
+      {viewMode === 'list' ? (
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-0">
+            {filteredCustomers.length === 0 ? (
+              <div className="text-center py-12">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground mb-2">No customers yet</p>
+                <Button onClick={() => setShowAddModal(true)} variant="outline" size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add your first customer
+                </Button>
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {filteredCustomers.map((customer, index) => (
+                  <div
+                    key={customer.id}
+                    className={`flex items-center gap-2 transition-colors ${
+                      selectedIndex === index ? 'bg-primary/10 ring-1 ring-primary/30' : ''
+                    } ${selectedIds.has(customer.id) ? 'bg-primary/5' : ''}`}
+                  >
+                    {/* Checkbox */}
+                    <div className="pl-3 py-4">
+                      <Checkbox
+                        checked={selectedIds.has(customer.id)}
+                        onCheckedChange={() => toggleSelection(customer.id)}
+                        className="h-4 w-4"
+                      />
+                    </div>
+                    
+                    <Link
+                      to={`/dashboard/crm/${customer.id}`}
+                      className="flex-1 block"
+                    >
+                      <div className="p-4 pl-2 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <span className="text-sm font-medium text-primary">
+                                {customer.name?.charAt(0).toUpperCase()}
                               </span>
-                            )}
-                            {customer.email && (
-                              <span className="flex items-center gap-1 truncate">
-                                <Mail className="h-3 w-3" />
-                                {customer.email}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm truncate">{customer.name}</p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                {customer.company && (
+                                  <span className="flex items-center gap-1 truncate">
+                                    <Building className="h-3 w-3" />
+                                    {customer.company}
+                                  </span>
+                                )}
+                                {customer.email && (
+                                  <span className="flex items-center gap-1 truncate">
+                                    <Mail className="h-3 w-3" />
+                                    {customer.email}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                            <div className="flex items-center gap-2">
+                              {customer.lead_score !== undefined && (
+                                <LeadScoreBadge score={customer.lead_score} grade={customer.lead_grade} />
+                              )}
+                              <Badge variant={customer.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                                {customer.status}
+                              </Badge>
+                            </div>
+                            {customer.last_contact && (
+                              <span className="text-xs text-muted-foreground">
+                                {formatDistanceToNow(new Date(customer.last_contact), { addSuffix: true })}
                               </span>
                             )}
                           </div>
                         </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                        <div className="flex items-center gap-2">
-                          {customer.lead_score !== undefined && (
-                            <LeadScoreBadge score={customer.lead_score} grade={customer.lead_grade} />
-                          )}
-                          <Badge variant={customer.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                            {customer.status}
-                          </Badge>
-                        </div>
-                        {customer.last_contact && (
-                          <span className="text-xs text-muted-foreground">
-                            {formatDistanceToNow(new Date(customer.last_contact), { addSuffix: true })}
-                          </span>
+                        {customer.tags?.length > 0 && (
+                          <div className="flex gap-1 mt-2 ml-13">
+                            {customer.tags.slice(0, 3).map((tag, i) => (
+                              <Badge key={i} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {customer.tags.length > 3 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{customer.tags.length - 3}
+                              </Badge>
+                            )}
+                          </div>
                         )}
                       </div>
-                    </div>
-                    {customer.tags?.length > 0 && (
-                      <div className="flex gap-1 mt-2 ml-13">
-                        {customer.tags.slice(0, 3).map((tag, i) => (
-                          <Badge key={i} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                        {customer.tags.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{customer.tags.length - 3}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
+                    </Link>
                   </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        /* Kanban View */
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex gap-4 overflow-x-auto pb-4">
+            {PIPELINE_STAGES.map(stage => (
+              <KanbanColumn
+                key={stage.id}
+                stage={stage}
+                customers={customersByStage[stage.id] || []}
+              />
+            ))}
+          </div>
+          <DragOverlay>
+            {activeId ? (
+              <div className="bg-background border border-border rounded-lg p-3 shadow-lg opacity-80">
+                {customers.find(c => c.id === activeId)?.name}
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      )}
 
       {/* Add Customer Modal */}
       <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
