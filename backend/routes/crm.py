@@ -54,6 +54,9 @@ class CustomerResponse(BaseModel):
     status: str = "active"
     total_conversations: int = 0
     last_contact: Optional[str] = None
+    lead_score: Optional[int] = None
+    lead_grade: Optional[str] = None
+    lead_score_updated_at: Optional[str] = None
     created_at: str
     updated_at: str
 
