@@ -158,9 +158,19 @@ const Agents = () => {
           </p>
         </div>
         
-        <Button onClick={() => navigate('/dashboard/agents/new')}>
+        {/* Desktop button with text */}
+        <Button onClick={() => navigate('/dashboard/agents/new')} className="hidden sm:flex">
           <Plus className="h-4 w-4 mr-2" />
           Create Agent
+        </Button>
+        
+        {/* Mobile circular icon button */}
+        <Button 
+          onClick={() => navigate('/dashboard/agents/new')} 
+          size="icon"
+          className="sm:hidden h-12 w-12 rounded-full shadow-lg"
+        >
+          <Plus className="h-5 w-5" />
         </Button>
       </div>
 
