@@ -196,7 +196,7 @@ const StatusBadge = ({ status }) => {
 };
 
 const SetupStep = ({ step, title, description, link, linkText }) => (
-  <div className="p-4 border border-border rounded-sm">
+  <div className="p-4 bg-muted/30 rounded-sm">
     <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-heading font-bold text-sm mb-3">
       {step}
     </div>
