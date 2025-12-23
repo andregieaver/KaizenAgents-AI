@@ -217,10 +217,41 @@ const Conversations = () => {
 
   return (
     <div className="p-6 lg:p-8 page-transition" data-testid="conversations-page">
-      <div className="mb-6">
-        <h1 className="font-heading text-2xl lg:text-3xl font-bold tracking-tight mb-2">Conversations</h1>
-        <p className="text-muted-foreground">Manage and respond to customer conversations</p>
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="font-heading text-2xl lg:text-3xl font-bold tracking-tight mb-2">Conversations</h1>
+          <p className="text-muted-foreground">Manage and respond to customer conversations</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowShortcutsHelp(true)}
+          className="hidden sm:flex items-center gap-1 text-muted-foreground"
+        >
+          <Keyboard className="h-4 w-4" />
+          <span className="text-xs">Press ? for shortcuts</span>
+        </Button>
       </div>
+      
+      {/* Bulk Actions Toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg animate-in slide-in-from-top-2">
+          <span className="text-sm font-medium">{selectedIds.size} selected</span>
+          <div className="flex items-center gap-2 ml-auto">
+            <Button size="sm" variant="outline" onClick={handleBulkResolve}>
+              <CheckCircle className="h-4 w-4 mr-1" />
+              Resolve
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleBulkReopen}>
+              <Archive className="h-4 w-4 mr-1" />
+              Reopen
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -288,10 +319,16 @@ const Conversations = () => {
               <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
             </div>
           ) : filteredConversations.length > 0 ? (
-            <ScrollArea className="h-[calc(100vh-320px)]">
-              <div className="divide-y divide-border">
-                {filteredConversations.map((conversation) => (
-                  <ConversationRow key={conversation.id} conversation={conversation} />
+            <ScrollArea className="h-[calc(100vh-380px)]">
+              <div className="divide-y divide-border" ref={listRef}>
+                {filteredConversations.map((conversation, index) => (
+                  <ConversationRow 
+                    key={conversation.id} 
+                    conversation={conversation}
+                    isSelected={selectedIds.has(conversation.id)}
+                    isHighlighted={index === selectedIndex}
+                    onToggleSelect={() => toggleSelection(conversation.id)}
+                  />
                 ))}
               </div>
             </ScrollArea>
