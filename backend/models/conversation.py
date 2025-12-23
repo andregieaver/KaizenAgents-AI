@@ -14,6 +14,8 @@ class ConversationResponse(BaseModel):
     crm_customer_id: Optional[str] = None  # Link to CRM customer
     customer_name: Optional[str] = None
     customer_email: Optional[str] = None
+    email_verified: Optional[bool] = False  # Tiered verification status
+    email_verified_at: Optional[str] = None
     status: str
     mode: str
     source: str
