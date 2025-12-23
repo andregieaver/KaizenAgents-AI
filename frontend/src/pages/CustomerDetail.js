@@ -59,8 +59,45 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '../components/ui/tooltip';
 
 const API = process.env.REACT_APP_BACKEND_URL;
+
+// Lead Score Badge Component
+const LeadScoreBadge = ({ score, grade }) => {
+  if (!score && score !== 0) return null;
+  
+  const gradeConfig = {
+    'A': { color: 'bg-green-500', label: 'Hot' },
+    'B': { color: 'bg-blue-500', label: 'Warm' },
+    'C': { color: 'bg-yellow-500', label: 'Potential' },
+    'D': { color: 'bg-orange-500', label: 'Cold' },
+    'F': { color: 'bg-gray-400', label: 'Low' }
+  };
+  
+  const config = gradeConfig[grade] || gradeConfig['F'];
+  
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium text-white ${config.color}`}>
+            <TrendingUp className="h-3 w-3" />
+            {score}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>Lead Score: {score}/100 ({config.label})</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
 
 const CustomerDetail = () => {
   const { customerId } = useParams();
