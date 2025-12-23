@@ -73,10 +73,53 @@ async def create_widget_session(session_data: WidgetSessionCreate):
     conversation_id = str(uuid.uuid4())
     customer_id = str(uuid.uuid4())
     
+    # Auto-link or create CRM customer if email provided
+    crm_customer_id = None
+    if session_data.customer_email:
+        # Check if CRM customer exists with this email
+        existing_crm = await db.crm_customers.find_one(
+            {"email": session_data.customer_email, "tenant_id": tenant_id},
+            {"_id": 0, "id": 1}
+        )
+        if existing_crm:
+            crm_customer_id = existing_crm["id"]
+            # Update last contact
+            await db.crm_customers.update_one(
+                {"id": crm_customer_id},
+                {
+                    "$set": {"last_contact": now, "updated_at": now},
+                    "$inc": {"total_conversations": 1}
+                }
+            )
+        else:
+            # Auto-create CRM customer
+            crm_customer_id = str(uuid.uuid4())
+            crm_customer = {
+                "id": crm_customer_id,
+                "tenant_id": tenant_id,
+                "name": session_data.customer_name or "Unknown",
+                "email": session_data.customer_email,
+                "phone": None,
+                "company": None,
+                "position": None,
+                "address": None,
+                "notes": "Auto-created from widget conversation",
+                "tags": ["from-chat", "auto-created"],
+                "custom_fields": {},
+                "status": "active",
+                "total_conversations": 1,
+                "last_contact": now,
+                "created_at": now,
+                "updated_at": now
+            }
+            await db.crm_customers.insert_one(crm_customer)
+            logger.info(f"Auto-created CRM customer {crm_customer_id} from widget session")
+    
     conversation_doc = {
         "id": conversation_id,
         "tenant_id": tenant_id,
         "customer_id": customer_id,
+        "crm_customer_id": crm_customer_id,  # Link to CRM
         "customer_name": session_data.customer_name,
         "customer_email": session_data.customer_email,
         "status": "open",
