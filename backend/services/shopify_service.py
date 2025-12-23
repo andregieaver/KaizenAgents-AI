@@ -345,7 +345,7 @@ class ShopifyService:
             
             return {
                 "success": True,
-                "message": f"Order cancelled successfully",
+                "message": "Order cancelled successfully",
                 "order": result.get("order", {})
             }
         except httpx.HTTPStatusError as e:
@@ -353,7 +353,7 @@ class ShopifyService:
             try:
                 error_data = e.response.json()
                 error_msg = error_data.get("errors", str(e))
-            except:
+            except Exception:
                 pass
             return {
                 "success": False,
