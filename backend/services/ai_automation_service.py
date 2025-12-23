@@ -91,7 +91,6 @@ class AIAutomationService:
             
             # Analyze messages
             customer_messages = [m for m in messages if m.get("author_type") == "customer"]
-            ai_messages = [m for m in messages if m.get("author_type") in ["ai", "agent"]]
             
             # Calculate basic metrics
             total_messages = len(messages)
