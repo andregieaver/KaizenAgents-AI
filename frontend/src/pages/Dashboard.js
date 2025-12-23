@@ -61,28 +61,24 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
         <StatCard
-          icon={<MessageSquare className="h-5 w-5" />}
           label="Total Conversations"
           value={stats?.total_conversations || 0}
           trend="all time"
         />
         <StatCard
-          icon={<Clock className="h-5 w-5" />}
           label="Open"
           value={stats?.open_conversations || 0}
           trend="need attention"
           highlight
         />
         <StatCard
-          icon={<CheckCircle className="h-5 w-5" />}
           label="Resolved"
           value={stats?.resolved_conversations || 0}
           trend="completed"
         />
         <StatCard
-          icon={<Bot className="h-5 w-5" />}
           label="AI Handled"
           value={`${stats?.ai_handled_rate || 0}%`}
           trend="automated"
