@@ -113,6 +113,10 @@ const AgentEdit = () => {
   // WooCommerce state
   const [testingWooCommerce, setTestingWooCommerce] = useState(false);
   const [showWooCommerceKeys, setShowWooCommerceKeys] = useState(false);
+  
+  // Shopify state
+  const [testingShopify, setTestingShopify] = useState(false);
+  const [showShopifyToken, setShowShopifyToken] = useState(false);
 
   // Helper to get system prompt (handles both new and legacy field names)
   const getSystemPrompt = () => {
