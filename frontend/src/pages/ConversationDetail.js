@@ -446,7 +446,7 @@ const ConversationDetail = () => {
                     <span className="hidden sm:inline ml-1">AI</span>
                   </Button>
                   <Button
-                    variant={conversation.mode === 'assisted' ? 'default' : 'outline'}
+                    variant={conversation.mode === 'assisted' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => handleModeChange('assisted')}
                     data-testid="mode-assisted-btn"
@@ -457,7 +457,7 @@ const ConversationDetail = () => {
                     <span className="hidden sm:inline ml-1">Assisted</span>
                   </Button>
                   <Button
-                    variant={conversation.mode === 'agent' ? 'default' : 'outline'}
+                    variant={conversation.mode === 'agent' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => handleModeChange('agent')}
                     data-testid="mode-agent-btn"
@@ -474,7 +474,7 @@ const ConversationDetail = () => {
                 <p className="text-xs text-muted-foreground mb-2">Status</p>
                 <div className="flex gap-2">
                   <Button
-                    variant={conversation.status === 'resolved' ? 'default' : 'outline'}
+                    variant={conversation.status === 'resolved' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => handleStatusChange('resolved')}
                     className="flex-1"
@@ -484,7 +484,7 @@ const ConversationDetail = () => {
                     Resolve
                   </Button>
                   <Button
-                    variant={conversation.status === 'open' ? 'default' : 'outline'}
+                    variant={conversation.status === 'open' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => handleStatusChange('open')}
                     className="flex-1"
@@ -498,7 +498,7 @@ const ConversationDetail = () => {
           </Card>
 
           {/* Emotional Meters */}
-          <Card className="border border-border">
+          <Card className="border-0 shadow-sm">
             <CardHeader className="py-3">
               <CardTitle className="font-heading text-base flex items-center gap-2">
                 <Heart className="h-4 w-4" />
