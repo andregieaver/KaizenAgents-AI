@@ -132,6 +132,13 @@ const ConversationDetail = () => {
     return () => clearInterval(interval);
   }, [id, token]);
   
+  // Auto-fetch AI insights when conversation loads (only once)
+  useEffect(() => {
+    if (conversation && !aiInsights && !loadingInsights) {
+      fetchAiInsights();
+    }
+  }, [conversation?.id]);
+  
   const fetchAiInsights = async () => {
     setLoadingInsights(true);
     try {
@@ -148,7 +155,7 @@ const ConversationDetail = () => {
         followup: followupRes.data
       });
     } catch (error) {
-      console.error('Error fetching AI insights:', error);
+      console.debug('Error fetching AI insights:', error);
     } finally {
       setLoadingInsights(false);
     }
