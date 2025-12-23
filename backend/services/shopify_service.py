@@ -298,7 +298,7 @@ class ShopifyService:
             try:
                 error_data = e.response.json()
                 error_msg = error_data.get("errors", str(e))
-            except:
+            except Exception:
                 error_msg = str(e)
             
             logger.error(f"Failed to create refund: {error_msg}")
