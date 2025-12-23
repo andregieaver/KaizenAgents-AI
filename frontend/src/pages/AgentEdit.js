@@ -29,7 +29,13 @@ import {
   ExternalLink,
   Power,
   Globe,
-  Tag
+  Tag,
+  ShoppingCart,
+  Eye,
+  EyeOff,
+  Link,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScrollArea } from '../components/ui/scroll-area';
