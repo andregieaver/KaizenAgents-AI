@@ -713,7 +713,7 @@ const AgentEdit = () => {
               <Card className="border border-border">
                 <CardHeader className="p-4 sm:p-6">
                   <CardTitle className="text-base sm:text-lg">Model Parameters</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">Fine-tune the agent's response generation</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm">Fine-tune the agent&apos;s response generation</CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
                   <div className="space-y-2">
