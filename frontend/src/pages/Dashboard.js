@@ -61,7 +61,7 @@ const Dashboard = () => {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+      <div className="grid gap-3 sm:gap-4 mb-8" style={{ gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
         <StatCard
           label="Total Conversations"
           value={stats?.total_conversations || 0}
