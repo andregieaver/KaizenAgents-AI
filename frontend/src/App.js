@@ -75,7 +75,9 @@ const PublicRoute = ({ children }) => {
     );
   }
 
-  if (isAuthenticated) {
+  // Also check localStorage token for immediate redirect after login
+  const hasToken = localStorage.getItem('token');
+  if (isAuthenticated || hasToken) {
     return <Navigate to="/dashboard" replace />;
   }
 
