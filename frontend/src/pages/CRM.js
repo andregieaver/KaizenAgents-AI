@@ -152,31 +152,37 @@ const KanbanCard = ({ customer, isDragging }) => {
     setNodeRef,
     transform,
     transition,
+    isDragging: isBeingDragged,
   } = useSortable({ id: customer.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging || isBeingDragged ? 0.5 : 1,
+    touchAction: 'none', // Important for touch devices
   };
 
   return (
-    <Link to={`/dashboard/crm/${customer.id}`}>
-      <div
-        ref={setNodeRef}
-        style={style}
-        className="bg-background border border-border rounded-lg p-3 mb-2 cursor-pointer hover:shadow-md transition-shadow"
-        {...attributes}
-      >
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div
-              {...listeners}
-              className="cursor-grab active:cursor-grabbing p-1 -ml-1 hover:bg-muted rounded"
-              onClick={(e) => e.preventDefault()}
-            >
-              <GripVertical className="h-3 w-3 text-muted-foreground" />
-            </div>
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`bg-background border rounded-lg p-3 mb-2 transition-shadow ${
+        isBeingDragged ? 'shadow-lg border-primary z-50' : 'border-border hover:shadow-md'
+      }`}
+      {...attributes}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          {/* Larger touch-friendly drag handle */}
+          <div
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing p-2 -ml-2 -my-1 hover:bg-muted rounded touch-none"
+            onClick={(e) => e.preventDefault()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </div>
+          <Link to={`/dashboard/crm/${customer.id}`} className="flex items-center gap-2 min-w-0 flex-1">
             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
               <span className="text-xs font-medium text-primary">
                 {customer.name?.charAt(0).toUpperCase()}
@@ -188,13 +194,15 @@ const KanbanCard = ({ customer, isDragging }) => {
                 <p className="text-xs text-muted-foreground truncate">{customer.company}</p>
               )}
             </div>
-          </div>
-          {customer.lead_score !== undefined && (
-            <LeadScoreBadge score={customer.lead_score} grade={customer.lead_grade} />
-          )}
+          </Link>
         </div>
+        {customer.lead_score !== undefined && (
+          <LeadScoreBadge score={customer.lead_score} grade={customer.lead_grade} />
+        )}
+      </div>
+      <Link to={`/dashboard/crm/${customer.id}`}>
         {customer.email && (
-          <p className="text-xs text-muted-foreground mt-2 truncate flex items-center gap-1">
+          <p className="text-xs text-muted-foreground mt-2 truncate flex items-center gap-1 ml-8">
             <Mail className="h-3 w-3" />
             {customer.email}
           </p>
