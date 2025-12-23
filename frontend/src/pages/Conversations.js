@@ -312,7 +312,7 @@ const Conversations = () => {
       </div>
 
       {/* Conversations List */}
-      <Card className="border border-border">
+      <Card className="border border-border rounded-none sm:rounded-lg -mx-6 sm:mx-0">
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center">
