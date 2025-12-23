@@ -276,6 +276,15 @@ async def update_user_agent(
                         del wc_config["consumer_secret"]
                     value["woocommerce"] = wc_config
                 
+                # Handle Shopify credentials encryption
+                if "shopify" in value:
+                    shopify_config = value.get("shopify", {})
+                    if shopify_config.get("access_token") and not shopify_config.get("access_token", "").startswith("shpat_encrypted_"):
+                        # Encrypt access token
+                        shopify_config["access_token_encrypted"] = encrypt_credential(shopify_config["access_token"])
+                        del shopify_config["access_token"]
+                    value["shopify"] = shopify_config
+                
                 existing_config.update(value)
                 update_fields["config"] = existing_config
     
