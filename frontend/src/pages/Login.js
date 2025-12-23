@@ -21,13 +21,10 @@ const Login = () => {
     try {
       await login(email, password);
       toast.success('Welcome back!');
-      // Small delay to ensure state updates before navigation
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 100);
+      // Use window.location for more reliable redirect
+      window.location.href = '/dashboard';
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Login failed');
-    } finally {
       setLoading(false);
     }
   };
