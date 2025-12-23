@@ -579,6 +579,206 @@ async def send_customer_email(
     
     return {"success": True, "message": "Email sent successfully"}
 
+# --- Conversation Integration Endpoints ---
+
+@router.get("/customers/{customer_id}/conversations")
+async def get_customer_conversations(
+    customer_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all conversations linked to a CRM customer"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify customer exists
+    customer = await db.crm_customers.find_one(
+        {"id": customer_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+    
+    # Find conversations by crm_customer_id or by matching email
+    query = {"tenant_id": tenant_id}
+    if customer.get("email"):
+        query["$or"] = [
+            {"crm_customer_id": customer_id},
+            {"customer_email": customer["email"]}
+        ]
+    else:
+        query["crm_customer_id"] = customer_id
+    
+    conversations = await db.conversations.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    # Enrich with message count
+    for conv in conversations:
+        msg_count = await db.messages.count_documents({"conversation_id": conv["id"]})
+        conv["message_count"] = msg_count
+    
+    return conversations
+
+
+@router.post("/customers/from-conversation/{conversation_id}")
+async def create_customer_from_conversation(
+    conversation_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a CRM customer from an existing conversation or link to existing"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get the conversation
+    conversation = await db.conversations.find_one(
+        {"id": conversation_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    # Check if already linked to a CRM customer
+    if conversation.get("crm_customer_id"):
+        existing = await db.crm_customers.find_one(
+            {"id": conversation["crm_customer_id"], "tenant_id": tenant_id},
+            {"_id": 0}
+        )
+        if existing:
+            return {"customer": existing, "created": False, "message": "Already linked to CRM customer"}
+    
+    # Try to find existing customer by email
+    customer_email = conversation.get("customer_email")
+    existing_customer = None
+    if customer_email:
+        existing_customer = await db.crm_customers.find_one(
+            {"email": customer_email, "tenant_id": tenant_id},
+            {"_id": 0}
+        )
+    
+    if existing_customer:
+        # Link conversation to existing customer
+        await db.conversations.update_one(
+            {"id": conversation_id},
+            {"$set": {"crm_customer_id": existing_customer["id"]}}
+        )
+        
+        # Update customer stats
+        conv_count = await db.conversations.count_documents({
+            "tenant_id": tenant_id,
+            "$or": [
+                {"crm_customer_id": existing_customer["id"]},
+                {"customer_email": customer_email}
+            ]
+        })
+        await db.crm_customers.update_one(
+            {"id": existing_customer["id"]},
+            {
+                "$set": {
+                    "total_conversations": conv_count,
+                    "last_contact": datetime.now(timezone.utc).isoformat()
+                }
+            }
+        )
+        
+        # Log activity
+        await log_activity(
+            tenant_id=tenant_id,
+            customer_id=existing_customer["id"],
+            type="conversation_linked",
+            title="Conversation linked",
+            description=f"Linked to conversation from {conversation.get('source', 'widget')}",
+            metadata={"conversation_id": conversation_id},
+            user_id=current_user.get("id")
+        )
+        
+        return {"customer": existing_customer, "created": False, "message": "Linked to existing CRM customer"}
+    
+    # Create new customer
+    now = datetime.now(timezone.utc).isoformat()
+    customer = {
+        "id": str(uuid4()),
+        "tenant_id": tenant_id,
+        "name": conversation.get("customer_name") or "Unknown",
+        "email": customer_email,
+        "phone": None,
+        "company": None,
+        "position": None,
+        "address": None,
+        "notes": f"Created from {conversation.get('source', 'widget')} conversation",
+        "tags": ["from-chat"],
+        "custom_fields": {},
+        "status": "active",
+        "total_conversations": 1,
+        "last_contact": now,
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    await db.crm_customers.insert_one(customer)
+    
+    # Link conversation to new customer
+    await db.conversations.update_one(
+        {"id": conversation_id},
+        {"$set": {"crm_customer_id": customer["id"]}}
+    )
+    
+    # Log activity
+    await log_activity(
+        tenant_id=tenant_id,
+        customer_id=customer["id"],
+        type="customer_created",
+        title="Customer created from conversation",
+        description=f"Created from {conversation.get('source', 'widget')} conversation",
+        metadata={"conversation_id": conversation_id},
+        user_id=current_user.get("id")
+    )
+    
+    return {"customer": customer, "created": True, "message": "New CRM customer created"}
+
+
+@router.get("/lookup-by-conversation/{conversation_id}")
+async def lookup_crm_by_conversation(
+    conversation_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Check if a conversation is linked to a CRM customer"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get the conversation
+    conversation = await db.conversations.find_one(
+        {"id": conversation_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    # Check direct link
+    if conversation.get("crm_customer_id"):
+        customer = await db.crm_customers.find_one(
+            {"id": conversation["crm_customer_id"], "tenant_id": tenant_id},
+            {"_id": 0}
+        )
+        if customer:
+            return {"linked": True, "customer": customer}
+    
+    # Try to find by email
+    customer_email = conversation.get("customer_email")
+    if customer_email:
+        customer = await db.crm_customers.find_one(
+            {"email": customer_email, "tenant_id": tenant_id},
+            {"_id": 0}
+        )
+        if customer:
+            return {"linked": True, "customer": customer, "link_suggested": True}
+    
+    return {"linked": False, "customer": None}
+
+
 # --- Stats Endpoint ---
 
 @router.get("/stats")
