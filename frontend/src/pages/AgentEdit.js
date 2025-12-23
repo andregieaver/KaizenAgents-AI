@@ -1085,13 +1085,167 @@ const AgentEdit = () => {
             )}
           </Card>
           
-          {/* Future integrations can be added here */}
+          {/* Shopify Integration */}
+          <Card className="border border-border">
+            <CardHeader className="p-4 sm:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M15.337 3.415c-.18-.036-.358-.054-.538-.054-.654 0-1.236.345-1.691 1.021-.383.571-.64 1.36-.754 2.293l-1.836.566c.127-1.254.502-2.37 1.127-3.314.756-1.146 1.745-1.727 2.963-1.727.285 0 .576.03.87.094.36.08.672.252.94.516.268.263.48.598.635 1.004.155.405.232.866.232 1.384v.004c0 .105-.004.21-.014.316l-1.285.396c.02-.236.03-.46.03-.673 0-.614-.097-1.078-.292-1.39-.195-.313-.44-.47-.734-.53l.347-.906zm-5.27 7.96l1.455-4.587 1.457.37-1.455 4.587-1.457-.37zm9.07-3.12l-1.142 3.6-1.39-.353 1.142-3.6 1.39.353zm-8.16 10.113c-.36 0-.647-.158-.862-.474-.214-.316-.322-.742-.322-1.28v-.01c0-.537.108-.963.322-1.278.215-.315.502-.473.862-.473.36 0 .647.158.862.473.214.315.322.74.322 1.278v.01c0 .538-.108.964-.322 1.28-.215.316-.502.474-.862.474zm0-4.52c-.763 0-1.375.278-1.836.833-.46.555-.69 1.288-.69 2.2v.01c0 .91.23 1.644.69 2.2.46.555 1.073.833 1.836.833.763 0 1.375-.278 1.836-.833.46-.556.69-1.29.69-2.2v-.01c0-.912-.23-1.645-.69-2.2-.46-.555-1.073-.833-1.836-.833z"/>
+                    </svg>
+                    Shopify Integration
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Connect your Shopify store to enable order lookups, customer info, and more
+                  </CardDescription>
+                </div>
+                <Switch
+                  checked={agent.config?.shopify?.enabled || false}
+                  onCheckedChange={(checked) => {
+                    setAgent(prev => ({
+                      ...prev,
+                      config: {
+                        ...prev.config,
+                        shopify: {
+                          ...prev.config?.shopify,
+                          enabled: checked
+                        }
+                      }
+                    }));
+                  }}
+                />
+              </div>
+            </CardHeader>
+            
+            {agent.config?.shopify?.enabled && (
+              <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="shopify_store_domain">Store Domain</Label>
+                    <Input
+                      id="shopify_store_domain"
+                      placeholder="your-store.myshopify.com"
+                      value={agent.config?.shopify?.store_domain || ''}
+                      onChange={(e) => {
+                        setAgent(prev => ({
+                          ...prev,
+                          config: {
+                            ...prev.config,
+                            shopify: {
+                              ...prev.config?.shopify,
+                              store_domain: e.target.value
+                            }
+                          }
+                        }));
+                      }}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Your Shopify store domain (e.g., mystore or mystore.myshopify.com)
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="shopify_access_token">Admin API Access Token</Label>
+                    <div className="relative">
+                      <Input
+                        id="shopify_access_token"
+                        type={showShopifyToken ? 'text' : 'password'}
+                        placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                        value={agent.config?.shopify?.access_token || ''}
+                        onChange={(e) => {
+                          setAgent(prev => ({
+                            ...prev,
+                            config: {
+                              ...prev.config,
+                              shopify: {
+                                ...prev.config?.shopify,
+                                access_token: e.target.value
+                              }
+                            }
+                          }));
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7"
+                        onClick={() => setShowShopifyToken(!showShopifyToken)}
+                      >
+                        {showShopifyToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Get this from Shopify Admin → Apps → Develop apps → Create an app → API credentials
+                    </p>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-muted-foreground">
+                      <p className="font-medium text-foreground">Available Capabilities</p>
+                      <ul className="mt-1 space-y-1 text-xs">
+                        <li>• Search orders by customer email</li>
+                        <li>• Get order details and tracking</li>
+                        <li>• Process refunds</li>
+                        <li>• Cancel orders</li>
+                        <li>• Get customer information</li>
+                      </ul>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        if (!agent.config?.shopify?.store_domain || 
+                            !agent.config?.shopify?.access_token) {
+                          toast.error('Please fill in all Shopify credentials');
+                          return;
+                        }
+                        setTestingShopify(true);
+                        try {
+                          const response = await axios.post(
+                            `${API}/agents/test-shopify`,
+                            {
+                              store_domain: agent.config.shopify.store_domain,
+                              access_token: agent.config.shopify.access_token
+                            },
+                            { headers: { Authorization: `Bearer ${token}` } }
+                          );
+                          if (response.data.success) {
+                            toast.success(`Connected to ${response.data.shop_name || 'Shopify store'}!`);
+                          } else {
+                            toast.error(response.data.message || 'Connection failed');
+                          }
+                        } catch (error) {
+                          toast.error(error.response?.data?.detail || 'Failed to test connection');
+                        } finally {
+                          setTestingShopify(false);
+                        }
+                      }}
+                      disabled={testingShopify}
+                    >
+                      {testingShopify ? (
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <Link className="h-4 w-4 mr-2" />
+                      )}
+                      Test Connection
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+          
+          {/* Future integrations placeholder */}
           <Card className="border border-dashed border-border bg-muted/30">
             <CardContent className="p-6 text-center">
               <div className="text-muted-foreground">
                 <Globe className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">More integrations coming soon</p>
-                <p className="text-xs mt-1">Shopify, Magento, and more</p>
+                <p className="text-xs mt-1">Magento, BigCommerce, and more</p>
               </div>
             </CardContent>
           </Card>
