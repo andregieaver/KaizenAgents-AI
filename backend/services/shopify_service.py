@@ -378,7 +378,7 @@ class ShopifyService:
             Dict with success status
         """
         try:
-            result = await self._make_request(
+            await self._make_request(
                 "PUT",
                 f"orders/{order_id}.json",
                 json_data={
