@@ -343,6 +343,14 @@ const CustomerDetail = () => {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="w-full sm:w-auto">
           <TabsTrigger value="overview" className="flex-1 sm:flex-none">Overview</TabsTrigger>
+          <TabsTrigger value="conversations" className="flex-1 sm:flex-none">
+            Conversations
+            {conversations.length > 0 && (
+              <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+                {conversations.length}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="history" className="flex-1 sm:flex-none">History</TabsTrigger>
           <TabsTrigger value="followups" className="flex-1 sm:flex-none">Follow-ups</TabsTrigger>
         </TabsList>
