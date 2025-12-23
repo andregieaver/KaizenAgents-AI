@@ -27,11 +27,11 @@ SENSITIVE_TOPICS = [
     "password", "login", "credential", "security",
     # Order-related  
     "order", "purchase", "transaction", "refund", "shipping", "delivery",
-    "tracking", "return", "cancel",
+    "tracking", "cancel order", "cancel subscription", "cancel my",
     # Personal data
-    "address", "phone", "email change", "personal", "profile", "data",
+    "my address", "phone number", "email change", "personal info", "profile", "my data",
     # Financial
-    "credit", "debit", "bank", "card", "wallet", "money", "fund"
+    "credit", "debit", "bank", "card number", "wallet", "money", "fund"
 ]
 
 
