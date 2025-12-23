@@ -176,16 +176,11 @@ const Dashboard = () => {
   );
 };
 
-const StatCard = ({ icon, label, value, trend, highlight }) => (
-  <Card className={`border ${highlight ? 'border-primary/50 bg-primary/5' : 'border-border'}`} data-testid="stat-card">
-    <CardContent className="p-6">
-      <div className="flex items-center justify-between mb-4">
-        <div className={`h-10 w-10 rounded-sm flex items-center justify-center ${highlight ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
-          {icon}
-        </div>
-      </div>
-      <p className="font-heading text-3xl font-bold tracking-tight mb-1">{value}</p>
-      <p className="text-sm text-muted-foreground">{label}</p>
+const StatCard = ({ label, value, trend, highlight }) => (
+  <Card className={`border-0 shadow-sm ${highlight ? 'bg-primary/5' : ''}`} data-testid="stat-card">
+    <CardContent className="p-4 sm:p-6">
+      <p className="font-heading text-2xl sm:text-3xl font-bold tracking-tight mb-1">{value}</p>
+      <p className="text-xs sm:text-sm text-muted-foreground">{label}</p>
     </CardContent>
   </Card>
 );
