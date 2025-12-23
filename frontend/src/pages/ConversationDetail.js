@@ -659,6 +659,103 @@ const ConversationDetail = () => {
               </div>
             </CardContent>
           </Card>
+          
+          {/* CRM Integration */}
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="py-3">
+              <CardTitle className="font-heading text-base flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                CRM
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {crmCustomer ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-sm font-medium text-primary">
+                        {crmCustomer.name?.charAt(0).toUpperCase() || '?'}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{crmCustomer.name}</p>
+                      {crmCustomer.company && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Building className="h-3 w-3" />
+                          {crmCustomer.company}
+                        </p>
+                      )}
+                    </div>
+                    <Badge variant={crmCustomer.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                      {crmCustomer.status}
+                    </Badge>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {crmCustomer.email && (
+                      <div className="flex items-center gap-1 text-muted-foreground truncate">
+                        <Mail className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate">{crmCustomer.email}</span>
+                      </div>
+                    )}
+                    {crmCustomer.phone && (
+                      <div className="flex items-center gap-1 text-muted-foreground">
+                        <Phone className="h-3 w-3 flex-shrink-0" />
+                        {crmCustomer.phone}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {crmCustomer.tags?.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {crmCustomer.tags.slice(0, 3).map((tag, i) => (
+                        <Badge key={i} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <Separator />
+                  
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{crmCustomer.total_conversations || 0} conversations</span>
+                    {crmCustomer.last_contact && (
+                      <span>Last: {formatDistanceToNow(new Date(crmCustomer.last_contact), { addSuffix: true })}</span>
+                    )}
+                  </div>
+                  
+                  <Link to={`/dashboard/crm/${crmCustomer.id}`}>
+                    <Button variant="outline" size="sm" className="w-full">
+                      <ExternalLink className="h-3 w-3 mr-2" />
+                      View in CRM
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="text-center py-2">
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {linkSuggested 
+                      ? 'Found matching customer in CRM' 
+                      : 'Not linked to CRM yet'}
+                  </p>
+                  <Button 
+                    onClick={handleLinkToCrm} 
+                    disabled={crmLoading}
+                    size="sm"
+                    className="w-full"
+                  >
+                    {crmLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <UserPlus className="h-4 w-4 mr-2" />
+                    )}
+                    {linkSuggested ? 'Link to CRM' : 'Add to CRM'}
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
         </div>
