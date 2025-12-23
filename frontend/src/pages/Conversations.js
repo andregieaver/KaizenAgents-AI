@@ -8,7 +8,7 @@ import { Badge } from '../components/ui/badge';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { ScrollArea } from '../components/ui/scroll-area';
-import { MessageSquare, Search, Filter, Users, Bot, User, Wand2, Clock, AlertCircle } from 'lucide-react';
+import { MessageSquare, Search, Filter, Users, Bot, User, Wand2, Clock, AlertCircle, Circle } from 'lucide-react';
 import { formatDistanceToNow, differenceInHours } from 'date-fns';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -217,6 +217,10 @@ const ConversationRow = ({ conversation }) => {
         return <Users className="h-3 w-3" />;
     }
   };
+  
+  // Check if conversation has unread messages (last message from customer and not resolved)
+  const hasUnread = conversation.has_unread || 
+    (conversation.last_message_author === 'customer' && conversation.status !== 'resolved');
 
   return (
     <Link
@@ -225,22 +229,28 @@ const ConversationRow = ({ conversation }) => {
       data-testid="conversation-row"
     >
       <div className="p-4 flex items-start sm:items-center gap-3 sm:gap-4">
-        {/* Avatar */}
-        <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
+        {/* Avatar with unread indicator */}
+        <div className="relative h-10 w-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
           <Users className="h-5 w-5 text-muted-foreground" />
+          {hasUnread && (
+            <span className="absolute -top-0.5 -right-0.5 h-3 w-3 bg-primary rounded-full border-2 border-background" />
+          )}
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-            <span className="font-medium text-sm">
+            <span className={`font-medium text-sm ${hasUnread ? 'text-foreground' : ''}`}>
               {conversation.customer_name || 'Anonymous'}
+              {hasUnread && (
+                <Circle className="inline-block h-2 w-2 ml-1.5 fill-primary text-primary" />
+              )}
             </span>
             <span className="text-xs text-muted-foreground truncate">
               {conversation.customer_email}
             </span>
           </div>
-          <p className="text-sm text-muted-foreground truncate">
+          <p className={`text-sm truncate ${hasUnread ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
             {conversation.last_message || 'No messages yet'}
           </p>
           {/* Mobile: Show meta info below message */}
