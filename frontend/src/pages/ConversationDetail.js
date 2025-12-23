@@ -118,10 +118,6 @@ const ConversationDetail = () => {
     return () => clearInterval(interval);
   }, [id, token]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
   // Fetch suggestions when in assisted mode and messages change
   useEffect(() => {
     if (conversation?.mode === 'assisted' && messages.length > 0) {
