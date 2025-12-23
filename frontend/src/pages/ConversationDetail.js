@@ -346,8 +346,8 @@ const ConversationDetail = () => {
           <div className="flex flex-col lg:grid lg:grid-cols-3 gap-6">
         {/* Messages - Show first on both mobile and desktop */}
         <div className="lg:col-span-2 order-1">
-          <Card className="border border-border h-[400px] sm:h-[500px] lg:h-[600px] flex flex-col">
-            <CardHeader className="border-b border-border py-3">
+          <Card className="border-0 shadow-sm h-[400px] sm:h-[500px] lg:h-[600px] flex flex-col">
+            <CardHeader className="py-3">
               <CardTitle className="font-heading text-base flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
                 Messages
@@ -373,7 +373,7 @@ const ConversationDetail = () => {
               
               {/* AI Suggestions for Assisted Mode */}
               {conversation.mode === 'assisted' && (
-                <div className="px-4 py-2 border-t border-border bg-muted/30">
+                <div className="px-4 py-2 bg-muted/30">
                   <div className="flex items-center gap-2 mb-2">
                     <Wand2 className="h-4 w-4 text-primary" />
                     <span className="text-xs font-medium text-muted-foreground">AI Suggestions</span>
@@ -385,7 +385,7 @@ const ConversationDetail = () => {
                         <button
                           key={index}
                           onClick={() => handleSuggestionClick(suggestion)}
-                          className="text-xs px-3 py-1.5 rounded-full bg-background border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors text-left max-w-full truncate"
+                          className="text-xs px-3 py-1.5 rounded-full bg-background hover:bg-primary hover:text-primary-foreground transition-colors text-left max-w-full truncate shadow-sm"
                           title={suggestion}
                         >
                           {suggestion.length > 50 ? `${suggestion.substring(0, 50)}...` : suggestion}
@@ -399,14 +399,14 @@ const ConversationDetail = () => {
               )}
               
               {/* Message Input */}
-              <div className="p-4 border-t border-border">
+              <div className="p-4 bg-muted/20">
                 <form onSubmit={handleSendMessage} className="flex gap-2">
                   <Input
                     placeholder={conversation.mode === 'assisted' ? "Click a suggestion or type your message..." : "Type a message as an agent..."}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     disabled={sending}
-                    className="h-10"
+                    className="h-10 border-0 bg-background shadow-sm"
                     data-testid="message-input"
                   />
                   <Button
@@ -426,7 +426,7 @@ const ConversationDetail = () => {
         {/* Sidebar - Actions below conversation on mobile */}
         <div className="space-y-4 order-2">
           {/* Actions */}
-          <Card className="border border-border">
+          <Card className="border-0 shadow-sm">
             <CardHeader className="py-3">
               <CardTitle className="font-heading text-base">Actions</CardTitle>
             </CardHeader>
@@ -435,7 +435,7 @@ const ConversationDetail = () => {
                 <p className="text-xs text-muted-foreground mb-2">Mode</p>
                 <div className="flex gap-2">
                   <Button
-                    variant={conversation.mode === 'ai' ? 'default' : 'outline'}
+                    variant={conversation.mode === 'ai' ? 'default' : 'ghost'}
                     size="sm"
                     onClick={() => handleModeChange('ai')}
                     data-testid="mode-ai-btn"
