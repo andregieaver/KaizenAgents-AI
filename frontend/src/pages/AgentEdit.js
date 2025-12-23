@@ -1042,7 +1042,7 @@ const AgentEdit = () => {
                         setTestingWooCommerce(true);
                         try {
                           const response = await axios.post(
-                            `${API}/agents/${agent.id}/test-woocommerce`,
+                            `${API}/agents/test-woocommerce`,
                             {
                               store_url: agent.config.woocommerce.store_url,
                               consumer_key: agent.config.woocommerce.consumer_key,
@@ -1061,7 +1061,7 @@ const AgentEdit = () => {
                           setTestingWooCommerce(false);
                         }
                       }}
-                      disabled={testingWooCommerce || !agent.id}
+                      disabled={testingWooCommerce}
                     >
                       {testingWooCommerce ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
