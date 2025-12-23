@@ -237,9 +237,10 @@ const KanbanColumn = ({ stage, customers }) => {
   return (
     <div 
       ref={setNodeRef}
-      className={`flex-shrink-0 w-72 rounded-lg p-3 transition-colors ${
+      className={`flex-shrink-0 w-72 rounded-lg p-3 transition-colors touch-none ${
         isOver ? 'bg-primary/10 ring-2 ring-primary/30' : 'bg-muted/30'
       }`}
+      style={{ touchAction: 'none' }}
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
@@ -248,7 +249,7 @@ const KanbanColumn = ({ stage, customers }) => {
         </div>
         <Badge variant="secondary" className="text-xs">{customers.length}</Badge>
       </div>
-      <ScrollArea className="h-[calc(100vh-380px)]">
+      <div className="h-[calc(100vh-380px)] overflow-y-auto">
         <SortableContext items={customers.map(c => c.id)} strategy={verticalListSortingStrategy}>
           <div className="min-h-[100px]">
             {customers.map(customer => (
@@ -263,7 +264,7 @@ const KanbanColumn = ({ stage, customers }) => {
             )}
           </div>
         </SortableContext>
-      </ScrollArea>
+      </div>
     </div>
   );
 };
