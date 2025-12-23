@@ -190,6 +190,52 @@ const DashboardLayout = () => {
     navigate('/');
   };
 
+  // Navigation items grouped by category
+  const mainNavItems = [
+    { path: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
+  ];
+  
+  const workNavItems = [
+    { path: '/dashboard/conversations', icon: Inbox, label: 'Conversations' },
+    { path: '/dashboard/crm', icon: Users, label: 'CRM' },
+    { path: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
+  ];
+  
+  const resourcesNavItems = [
+    { path: '/marketplace', icon: Bot, label: 'Marketplace' },
+    { path: '/dashboard/agents', icon: Bot, label: 'Agents' },
+    { path: '/dashboard/team', icon: Users, label: 'Users' },
+  ];
+  
+  const accountNavItems = [
+    { path: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
+    { path: '/dashboard/affiliates', icon: Gift, label: 'Affiliates' },
+    { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
+  ];
+
+  // Super Admin items (collapsible)
+  const superAdminNavItems = user?.is_super_admin ? [
+    { path: '/dashboard/admin', icon: Shield, label: 'Super Admin' },
+    { path: '/dashboard/providers', icon: MessageSquare, label: 'AI Providers' },
+    { path: '/dashboard/storage', icon: Database, label: 'Storage' },
+    { path: '/dashboard/rate-limits', icon: Shield, label: 'Rate Limits' },
+    { path: '/dashboard/observability', icon: AlertTriangle, label: 'Observability' },
+    { path: '/dashboard/admin/plans', icon: DollarSign, label: 'Plan Management' },
+    { path: '/dashboard/admin/feature-gates', icon: Shield, label: 'Feature Gates' },
+    { path: '/dashboard/integrations', icon: Plug, label: 'Integrations' },
+    { path: '/dashboard/admin/discounts', icon: Tag, label: 'Discount Codes' },
+    { path: '/dashboard/admin/pages', icon: FileText, label: 'Pages' },
+    { path: '/dashboard/admin/emails', icon: Mail, label: 'Emails' },
+    { path: '/dashboard/admin/waitlist', icon: ClipboardList, label: 'Waitlist' },
+    { path: '/dashboard/admin/campaigns', icon: Send, label: 'Campaigns' },
+  ] : [];
+  
+  // Owner-only items
+  const ownerNavItems = user?.role === 'owner' ? [
+    { path: '/dashboard/admin/components', icon: Layout, label: 'Global Components' },
+    { path: '/dashboard/admin/menus', icon: Menu, label: 'Menus' },
+  ] : [];
+
   const navItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
     { path: '/dashboard/conversations', icon: Inbox, label: 'Conversations' },
