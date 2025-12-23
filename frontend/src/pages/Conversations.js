@@ -319,8 +319,8 @@ const Conversations = () => {
               <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
             </div>
           ) : filteredConversations.length > 0 ? (
-            <ScrollArea className="h-[calc(100vh-380px)]">
-              <div className="divide-y divide-border" ref={listRef}>
+            <ScrollArea className="h-[calc(100vh-340px)] sm:h-[calc(100vh-380px)]">
+              <div ref={listRef}>
                 {filteredConversations.map((conversation, index) => (
                   <ConversationRow 
                     key={conversation.id} 
