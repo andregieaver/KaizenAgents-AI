@@ -751,7 +751,7 @@ const AgentEdit = () => {
                       })}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Maximum length of the agent's responses
+                      Maximum length of the agent&apos;s responses
                     </p>
                   </div>
                 </CardContent>
