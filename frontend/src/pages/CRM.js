@@ -134,6 +134,102 @@ const QuickFilterChip = ({ active, onClick, icon, label, count, variant = 'defau
   </button>
 );
 
+// Pipeline stages for Kanban view
+const PIPELINE_STAGES = [
+  { id: 'lead', label: 'Lead', color: 'bg-gray-500' },
+  { id: 'qualified', label: 'Qualified', color: 'bg-blue-500' },
+  { id: 'proposal', label: 'Proposal', color: 'bg-purple-500' },
+  { id: 'negotiation', label: 'Negotiation', color: 'bg-amber-500' },
+  { id: 'closed', label: 'Closed', color: 'bg-green-500' },
+];
+
+// Kanban Card Component
+const KanbanCard = ({ customer, isDragging }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: customer.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Link to={`/dashboard/crm/${customer.id}`}>
+      <div
+        ref={setNodeRef}
+        style={style}
+        className="bg-background border border-border rounded-lg p-3 mb-2 cursor-pointer hover:shadow-md transition-shadow"
+        {...attributes}
+      >
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <div
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing p-1 -ml-1 hover:bg-muted rounded"
+              onClick={(e) => e.preventDefault()}
+            >
+              <GripVertical className="h-3 w-3 text-muted-foreground" />
+            </div>
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-medium text-primary">
+                {customer.name?.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="min-w-0">
+              <p className="font-medium text-sm truncate">{customer.name}</p>
+              {customer.company && (
+                <p className="text-xs text-muted-foreground truncate">{customer.company}</p>
+              )}
+            </div>
+          </div>
+          {customer.lead_score !== undefined && (
+            <LeadScoreBadge score={customer.lead_score} grade={customer.lead_grade} />
+          )}
+        </div>
+        {customer.email && (
+          <p className="text-xs text-muted-foreground mt-2 truncate flex items-center gap-1">
+            <Mail className="h-3 w-3" />
+            {customer.email}
+          </p>
+        )}
+      </div>
+    </Link>
+  );
+};
+
+// Kanban Column Component
+const KanbanColumn = ({ stage, customers, onDrop }) => {
+  return (
+    <div className="flex-shrink-0 w-72 bg-muted/30 rounded-lg p-3">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className={`h-2 w-2 rounded-full ${stage.color}`} />
+          <h3 className="font-medium text-sm">{stage.label}</h3>
+        </div>
+        <Badge variant="secondary" className="text-xs">{customers.length}</Badge>
+      </div>
+      <ScrollArea className="h-[calc(100vh-380px)]">
+        <SortableContext items={customers.map(c => c.id)} strategy={verticalListSortingStrategy}>
+          {customers.map(customer => (
+            <KanbanCard key={customer.id} customer={customer} />
+          ))}
+        </SortableContext>
+        {customers.length === 0 && (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            No customers
+          </div>
+        )}
+      </ScrollArea>
+    </div>
+  );
+};
+
 const CRM = () => {
   const navigate = useNavigate();
   const { token } = useAuth();
@@ -144,6 +240,11 @@ const CRM = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [saving, setSaving] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'kanban'
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [activeId, setActiveId] = useState(null);
   
   const [newCustomer, setNewCustomer] = useState({
     name: '',
@@ -154,6 +255,12 @@ const CRM = () => {
     notes: '',
     tags: []
   });
+  
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor)
+  );
 
   useEffect(() => {
     fetchData();
