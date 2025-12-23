@@ -212,4 +212,15 @@ code {
             grid-template-columns: repeat(4, minmax(0, 1fr));
         }
     }
+
+    /* Stat card - consistent dark background in both themes */
+    .stat-card-dark {
+        background-color: hsl(215 20% 34%) !important;
+        color: hsl(0 0% 100%) !important;
+    }
+    
+    .dark .stat-card-dark {
+        background-color: hsl(215 20% 34%) !important;
+        color: hsl(0 0% 100%) !important;
+    }
 }
