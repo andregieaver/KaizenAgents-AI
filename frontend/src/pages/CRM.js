@@ -757,11 +757,12 @@ const CRM = () => {
         /* Kanban View */
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={closestCenter}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onDragCancel={handleDragCancel}
         >
-          <div className="flex gap-4 overflow-x-auto pb-4">
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
             {PIPELINE_STAGES.map(stage => (
               <KanbanColumn
                 key={stage.id}
@@ -770,10 +771,20 @@ const CRM = () => {
               />
             ))}
           </div>
-          <DragOverlay>
+          <DragOverlay dropAnimation={null}>
             {activeId ? (
-              <div className="bg-background border border-border rounded-lg p-3 shadow-lg opacity-80">
-                {customers.find(c => c.id === activeId)?.name}
+              <div className="bg-background border-2 border-primary rounded-lg p-3 shadow-xl w-64">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="text-xs font-medium text-primary">
+                      {customers.find(c => c.id === activeId)?.name?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{customers.find(c => c.id === activeId)?.name}</p>
+                    <p className="text-xs text-muted-foreground">{customers.find(c => c.id === activeId)?.email}</p>
+                  </div>
+                </div>
               </div>
             ) : null}
           </DragOverlay>
