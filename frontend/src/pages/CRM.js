@@ -146,7 +146,7 @@ const PIPELINE_STAGES = [
 ];
 
 // Draggable Kanban Card Component - entire card is draggable on mobile
-const KanbanCard = ({ customer, isDragging }) => {
+const KanbanCard = ({ customer, isDragging, onNavigate }) => {
   const {
     attributes,
     listeners,
@@ -169,16 +169,23 @@ const KanbanCard = ({ customer, isDragging }) => {
     opacity: isDragging || isBeingDragged ? 0.5 : 1,
   };
 
-  // On mobile, entire card is draggable. On desktop, use grip handle.
+  // Double-click/double-tap to navigate to customer detail
+  const handleDoubleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    window.location.href = `/dashboard/crm/${customer.id}`;
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-background border rounded-lg p-3 mb-2 transition-all select-none ${
+      className={`bg-background border rounded-lg p-3 mb-2 transition-all select-none cursor-grab active:cursor-grabbing ${
         isBeingDragged ? 'shadow-lg border-primary scale-105 z-50' : 'border-border hover:shadow-md'
       }`}
       {...attributes}
       {...listeners}
+      onDoubleClick={handleDoubleClick}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
@@ -208,6 +215,10 @@ const KanbanCard = ({ customer, isDragging }) => {
           {customer.email}
         </p>
       )}
+      {/* Tap hint for mobile */}
+      <p className="text-[10px] text-muted-foreground/50 mt-2 text-center sm:hidden">
+        Double-tap to view • Hold to drag
+      </p>
     </div>
   );
 };
