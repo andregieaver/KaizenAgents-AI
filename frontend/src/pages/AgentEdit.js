@@ -704,7 +704,7 @@ const AgentEdit = () => {
                       })}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Define the agent's personality, knowledge, and behavior
+                      Define the agent&apos;s personality, knowledge, and behavior
                     </p>
                   </div>
                 </CardContent>
