@@ -509,6 +509,45 @@ const ConversationDetail = () => {
               
               {/* Message Input */}
               <div className="p-4 bg-muted/20">
+                {/* Canned Responses Toggle */}
+                <div className="mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowCannedResponses(!showCannedResponses)}
+                    className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <MessageCircle className="h-3 w-3" />
+                    Quick Responses
+                    {showCannedResponses ? (
+                      <ChevronUp className="h-3 w-3" />
+                    ) : (
+                      <ChevronDown className="h-3 w-3" />
+                    )}
+                  </button>
+                  
+                  {/* Canned Responses Panel */}
+                  {showCannedResponses && (
+                    <div className="mt-2 p-2 bg-background rounded-md border border-border max-h-32 overflow-y-auto">
+                      <div className="flex flex-wrap gap-1.5">
+                        {cannedResponses.map((response) => (
+                          <button
+                            key={response.id}
+                            type="button"
+                            onClick={() => {
+                              setNewMessage(response.text);
+                              setShowCannedResponses(false);
+                            }}
+                            className="px-2 py-1 text-xs bg-muted hover:bg-primary hover:text-primary-foreground rounded transition-colors truncate max-w-[150px]"
+                            title={response.text}
+                          >
+                            {response.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
                 <form onSubmit={handleSendMessage} className="flex gap-2">
                   <Input
                     placeholder={conversation.mode === 'assisted' ? "Click a suggestion or type your message..." : "Type a message as an agent..."}
