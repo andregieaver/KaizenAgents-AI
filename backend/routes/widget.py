@@ -345,3 +345,106 @@ async def get_widget_config(tenant_id: str):
         "widget_theme": settings.get("widget_theme", "light"),
         "welcome_message": settings.get("welcome_message", "Hi! How can we help?")
     }
+
+
+# --- Verification Endpoints ---
+
+class VerificationRequest(BaseModel):
+    email: Optional[str] = None
+
+class OTPVerifyRequest(BaseModel):
+    code: str
+
+@router.post("/verify/request/{conversation_id}")
+async def request_verification(
+    conversation_id: str,
+    token: str,
+    request_data: VerificationRequest = None
+):
+    """Request OTP verification for a conversation"""
+    from services.verification_service import verification_service
+    
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("conversation_id") != conversation_id:
+            raise HTTPException(status_code=403, detail="Invalid session")
+        tenant_id = payload.get("tenant_id")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    # Get conversation to find email
+    conversation = await db.conversations.find_one({"id": conversation_id}, {"_id": 0})
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    # Check if already verified
+    if conversation.get("email_verified"):
+        return {"success": True, "message": "Already verified", "verified": True}
+    
+    # Get email from request or conversation
+    email = None
+    if request_data and request_data.email:
+        email = request_data.email
+        # Update conversation with email
+        await db.conversations.update_one(
+            {"id": conversation_id},
+            {"$set": {"customer_email": email}}
+        )
+    else:
+        email = conversation.get("customer_email")
+    
+    if not email:
+        return {
+            "success": False,
+            "message": "Please provide your email address to receive a verification code.",
+            "requires_email": True
+        }
+    
+    # Create and send OTP
+    success, message = await verification_service.create_verification(
+        conversation_id=conversation_id,
+        email=email,
+        tenant_id=tenant_id
+    )
+    
+    return {"success": success, "message": message, "email": email}
+
+
+@router.post("/verify/confirm/{conversation_id}")
+async def confirm_verification(
+    conversation_id: str,
+    token: str,
+    verify_data: OTPVerifyRequest
+):
+    """Verify OTP code"""
+    from services.verification_service import verification_service
+    
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("conversation_id") != conversation_id:
+            raise HTTPException(status_code=403, detail="Invalid session")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    success, message = await verification_service.verify_otp(
+        conversation_id=conversation_id,
+        code=verify_data.code.strip()
+    )
+    
+    return {"success": success, "message": message, "verified": success}
+
+
+@router.get("/verify/status/{conversation_id}")
+async def get_verification_status(conversation_id: str, token: str):
+    """Get verification status for a conversation"""
+    from services.verification_service import verification_service
+    
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("conversation_id") != conversation_id:
+            raise HTTPException(status_code=403, detail="Invalid session")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    
+    status = await verification_service.get_verification_status(conversation_id)
+    return status
