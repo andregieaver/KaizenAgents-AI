@@ -67,6 +67,7 @@ const CustomerDetail = () => {
   const [customer, setCustomer] = useState(null);
   const [activities, setActivities] = useState([]);
   const [followups, setFollowups] = useState([]);
+  const [conversations, setConversations] = useState([]);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
@@ -96,7 +97,7 @@ const CustomerDetail = () => {
 
   const fetchData = async () => {
     try {
-      const [customerRes, activitiesRes, followupsRes] = await Promise.all([
+      const [customerRes, activitiesRes, followupsRes, conversationsRes] = await Promise.all([
         axios.get(`${API}/api/crm/customers/${customerId}`, {
           headers: { Authorization: `Bearer ${token}` }
         }),
@@ -105,12 +106,16 @@ const CustomerDetail = () => {
         }),
         axios.get(`${API}/api/crm/followups?customer_id=${customerId}`, {
           headers: { Authorization: `Bearer ${token}` }
-        })
+        }),
+        axios.get(`${API}/api/crm/customers/${customerId}/conversations`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: [] })) // Gracefully handle if no conversations
       ]);
       setCustomer(customerRes.data);
       setEditData(customerRes.data);
       setActivities(activitiesRes.data);
       setFollowups(followupsRes.data);
+      setConversations(conversationsRes.data || []);
     } catch (error) {
       console.error('Error fetching customer:', error);
       toast.error('Failed to load customer');
