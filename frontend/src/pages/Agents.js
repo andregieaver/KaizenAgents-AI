@@ -261,7 +261,7 @@ const Agents = () => {
                   </div>
 
                   {/* Quick Actions */}
-                  <div className="grid grid-cols-4 gap-3">
+                  <div className="flex items-center justify-center gap-6 py-2">
                     <input
                       type="file"
                       ref={el => avatarInputRefs.current[agent.id] = el}
@@ -271,7 +271,7 @@ const Agents = () => {
                     />
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon"
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
@@ -279,44 +279,47 @@ const Agents = () => {
                       }}
                       disabled={uploadingAvatar === agent.id}
                       title="Upload Avatar"
+                      className="h-10 w-10"
                     >
                       {uploadingAvatar === agent.id ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Loader2 className="h-5 w-5 animate-spin" />
                       ) : (
-                        <Upload className="h-4 w-4" />
+                        <Upload className="h-5 w-5" />
                       )}
                     </Button>
                     
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon"
                       title="Edit Agent"
+                      className="h-10 w-10"
                     >
-                      <Edit className="h-4 w-4" />
+                      <Edit className="h-5 w-5" />
                     </Button>
                     
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="icon"
                       title="Copy Embed Code"
                       onClick={(e) => copyEmbedCode(agent.id, e)}
+                      className="h-10 w-10"
                     >
                       {copiedAgentId === agent.id ? (
-                        <Check className="h-4 w-4 text-green-500" />
+                        <Check className="h-5 w-5 text-green-500" />
                       ) : (
-                        <Code className="h-4 w-4" />
+                        <Code className="h-5 w-5" />
                       )}
                     </Button>
                     
                     <Button
                       variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
+                      size="icon"
+                      className="h-10 w-10 text-destructive hover:text-destructive"
                       onClick={(e) => handleDeleteAgent(agent.id, e)}
                       title="Delete Agent"
                       disabled={agent.is_active}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-5 w-5" />
                     </Button>
                   </div>
 
