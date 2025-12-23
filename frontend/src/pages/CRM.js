@@ -340,6 +340,110 @@ const CRM = () => {
     return new Date(c.next_followup) <= new Date();
   }).length;
   const activeCount = customers.filter(c => c.status === 'active').length;
+  
+  // Keyboard shortcuts
+  const handleNavigateNext = useCallback(() => {
+    setSelectedIndex(prev => Math.min(prev + 1, filteredCustomers.length - 1));
+  }, [filteredCustomers.length]);
+  
+  const handleNavigatePrev = useCallback(() => {
+    setSelectedIndex(prev => Math.max(prev - 1, 0));
+  }, []);
+  
+  const handleOpenSelected = useCallback(() => {
+    if (selectedIndex >= 0 && filteredCustomers[selectedIndex]) {
+      navigate(`/dashboard/crm/${filteredCustomers[selectedIndex].id}`);
+    }
+  }, [selectedIndex, filteredCustomers, navigate]);
+  
+  useKeyboardShortcuts({
+    'j': handleNavigateNext,
+    'k': handleNavigatePrev,
+    'Enter': handleOpenSelected,
+    'n': () => setShowAddModal(true),
+    'v': () => setViewMode(prev => prev === 'list' ? 'kanban' : 'list'),
+    '?': () => setShowShortcutsHelp(true),
+    'Escape': () => {
+      setSelectedIds(new Set());
+      setSelectedIndex(-1);
+      setShowAddModal(false);
+    },
+  }, !showShortcutsHelp && !showAddModal);
+  
+  // Toggle selection
+  const toggleSelection = (id) => {
+    const newSelected = new Set(selectedIds);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedIds(newSelected);
+  };
+  
+  // Bulk delete
+  const handleBulkDelete = async () => {
+    if (!window.confirm(`Delete ${selectedIds.size} customers? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      await Promise.all(
+        Array.from(selectedIds).map(id =>
+          axios.delete(`${API}/api/crm/customers/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        )
+      );
+      toast.success(`${selectedIds.size} customers deleted`);
+      setSelectedIds(new Set());
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to delete some customers');
+    }
+  };
+  
+  // Drag handlers for Kanban
+  const handleDragStart = (event) => {
+    setActiveId(event.active.id);
+  };
+  
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    setActiveId(null);
+    
+    if (!over) return;
+    
+    // Find which column was dropped onto
+    const activeCustomer = customers.find(c => c.id === active.id);
+    if (!activeCustomer) return;
+    
+    // Determine the new stage based on the drop target
+    // For now, we'll update the customer's pipeline_stage field
+    const newStage = over.id; // The column ID is the stage
+    
+    if (activeCustomer.pipeline_stage !== newStage) {
+      try {
+        await axios.patch(
+          `${API}/api/crm/customers/${active.id}`,
+          { pipeline_stage: newStage },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        // Update local state
+        setCustomers(prev => prev.map(c => 
+          c.id === active.id ? { ...c, pipeline_stage: newStage } : c
+        ));
+        toast.success(`Moved to ${PIPELINE_STAGES.find(s => s.id === newStage)?.label}`);
+      } catch (error) {
+        toast.error('Failed to update customer stage');
+      }
+    }
+  };
+  
+  // Group customers by pipeline stage for Kanban view
+  const customersByStage = PIPELINE_STAGES.reduce((acc, stage) => {
+    acc[stage.id] = filteredCustomers.filter(c => (c.pipeline_stage || 'lead') === stage.id);
+    return acc;
+  }, {});
 
   if (loading) {
     return (
