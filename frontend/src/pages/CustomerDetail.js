@@ -72,6 +72,8 @@ const CustomerDetail = () => {
   const [activities, setActivities] = useState([]);
   const [followups, setFollowups] = useState([]);
   const [conversations, setConversations] = useState([]);
+  const [leadScore, setLeadScore] = useState(null);
+  const [loadingScore, setLoadingScore] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editData, setEditData] = useState({});
@@ -120,6 +122,14 @@ const CustomerDetail = () => {
       setActivities(activitiesRes.data);
       setFollowups(followupsRes.data);
       setConversations(conversationsRes.data || []);
+      
+      // Fetch lead score if available
+      if (customerRes.data.lead_score !== undefined) {
+        setLeadScore({
+          score: customerRes.data.lead_score,
+          grade: customerRes.data.lead_grade
+        });
+      }
     } catch (error) {
       console.error('Error fetching customer:', error);
       toast.error('Failed to load customer');
