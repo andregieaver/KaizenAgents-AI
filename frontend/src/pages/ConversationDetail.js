@@ -348,10 +348,28 @@ const ConversationDetail = () => {
         <div className="lg:col-span-2 order-1">
           <Card className="border-0 shadow-sm h-[400px] sm:h-[500px] lg:h-[600px] flex flex-col">
             <CardHeader className="py-3">
-              <CardTitle className="font-heading text-base flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Messages
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="font-heading text-base flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Messages
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  {/* Mode Indicator */}
+                  <Badge variant="secondary" className="text-xs capitalize">
+                    {conversation.mode === 'ai' && <Sparkles className="h-3 w-3 mr-1" />}
+                    {conversation.mode === 'assisted' && <Wand2 className="h-3 w-3 mr-1" />}
+                    {conversation.mode === 'agent' && <Hand className="h-3 w-3 mr-1" />}
+                    {conversation.mode}
+                  </Badge>
+                  {/* Status Indicator */}
+                  <Badge 
+                    variant={conversation.status === 'resolved' ? 'outline' : 'default'}
+                    className="text-xs capitalize"
+                  >
+                    {conversation.status}
+                  </Badge>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="flex-1 p-0 flex flex-col overflow-hidden">
               <ScrollArea className="flex-1">
