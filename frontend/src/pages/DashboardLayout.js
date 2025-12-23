@@ -18,6 +18,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  ChevronDown,
   Shield,
   Users,
   User,
@@ -35,7 +36,9 @@ import {
   Layout,
   Mail,
   ClipboardList,
-  Send
+  Send,
+  Briefcase,
+  Cog
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
