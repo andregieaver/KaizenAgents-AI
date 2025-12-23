@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -24,7 +24,13 @@ import {
   Wand2,
   Loader2,
   Activity,
-  Heart
+  Heart,
+  UserPlus,
+  ExternalLink,
+  Building,
+  Phone,
+  Mail,
+  Tag
 } from 'lucide-react';
 import { formatDistanceToNow, format } from 'date-fns';
 import { toast } from 'sonner';
