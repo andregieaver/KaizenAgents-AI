@@ -207,8 +207,8 @@ const KanbanCard = ({ customer, isDragging }) => {
             {customer.email}
           </p>
         )}
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 };
 
