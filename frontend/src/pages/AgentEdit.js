@@ -85,13 +85,23 @@ const AgentEdit = () => {
       model: '',
       ai_model: '',  // Legacy field
       provider_id: '',
-      provider_name: ''
+      provider_name: '',
+      woocommerce: {
+        enabled: false,
+        store_url: '',
+        consumer_key: '',
+        consumer_secret: ''
+      }
     },
     is_active: false,
     is_public: false,
     orchestration_enabled: false,
     tags: []
   });
+  
+  // WooCommerce state
+  const [testingWooCommerce, setTestingWooCommerce] = useState(false);
+  const [showWooCommerceKeys, setShowWooCommerceKeys] = useState(false);
 
   // Helper to get system prompt (handles both new and legacy field names)
   const getSystemPrompt = () => {
