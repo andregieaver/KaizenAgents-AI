@@ -466,11 +466,58 @@ const CRM = () => {
           </p>
         </div>
         
-        <Button onClick={() => setShowAddModal(true)} className="sm:w-auto">
-          <UserPlus className="h-4 w-4 mr-2" />
-          Add Customer
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* View Toggle */}
+          <div className="flex items-center border rounded-md p-1">
+            <Button
+              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="h-8"
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('kanban')}
+              className="h-8"
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowShortcutsHelp(true)}
+            className="hidden sm:flex items-center gap-1 text-muted-foreground"
+          >
+            <Keyboard className="h-4 w-4" />
+          </Button>
+          
+          <Button onClick={() => setShowAddModal(true)} className="sm:w-auto">
+            <UserPlus className="h-4 w-4 mr-2" />
+            Add Customer
+          </Button>
+        </div>
       </div>
+      
+      {/* Bulk Actions Toolbar */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg animate-in slide-in-from-top-2">
+          <span className="text-sm font-medium">{selectedIds.size} selected</span>
+          <div className="flex items-center gap-2 ml-auto">
+            <Button size="sm" variant="destructive" onClick={handleBulkDelete}>
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="stats-grid gap-3 sm:gap-4 mb-6">
