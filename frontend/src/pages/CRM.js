@@ -770,9 +770,19 @@ const CRM = () => {
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          onDragCancel={handleDragCancel}
+          onDragStart={(event) => {
+            handleDragStart(event);
+            // Add class to body to prevent scrolling during drag
+            document.body.classList.add('kanban-dragging');
+          }}
+          onDragEnd={(event) => {
+            document.body.classList.remove('kanban-dragging');
+            handleDragEnd(event);
+          }}
+          onDragCancel={() => {
+            document.body.classList.remove('kanban-dragging');
+            handleDragCancel();
+          }}
         >
           <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
             {PIPELINE_STAGES.map(stage => (
@@ -785,7 +795,7 @@ const CRM = () => {
           </div>
           <DragOverlay dropAnimation={null}>
             {activeId ? (
-              <div className="bg-background border-2 border-primary rounded-lg p-3 shadow-xl w-64">
+              <div className="bg-background border-2 border-primary rounded-lg p-3 shadow-xl w-64 touch-none">
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                     <span className="text-xs font-medium text-primary">
