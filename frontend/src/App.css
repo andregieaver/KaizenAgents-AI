@@ -46,6 +46,20 @@
     }
 }
 
+/* Kanban drag and drop - prevent scroll interference on mobile */
+.kanban-dragging {
+  overflow: hidden !important;
+  touch-action: none !important;
+}
+
+/* Touch-none utility for draggable elements */
+.touch-none {
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+
 /* Typing indicator */
 .typing-dot {
     animation: typingBounce 1.4s infinite ease-in-out both;
