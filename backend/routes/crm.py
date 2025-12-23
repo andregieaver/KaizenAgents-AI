@@ -831,3 +831,139 @@ async def log_activity(
     await db.crm_activities.insert_one(activity)
     return activity
 
+
+
+# --- AI Automation Endpoints ---
+
+@router.get("/customers/{customer_id}/lead-score")
+async def get_customer_lead_score(
+    customer_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Calculate and return lead score for a customer"""
+    from services.ai_automation_service import ai_automation_service
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    result = await ai_automation_service.calculate_lead_score(customer_id, tenant_id)
+    
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    
+    return result
+
+
+@router.get("/conversations/{conversation_id}/summary")
+async def get_conversation_summary(
+    conversation_id: str,
+    use_ai: bool = True,
+    current_user: dict = Depends(get_current_user)
+):
+    """Generate AI-powered summary for a conversation"""
+    from services.ai_automation_service import ai_automation_service
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    result = await ai_automation_service.generate_conversation_summary(
+        conversation_id, tenant_id, use_ai=use_ai
+    )
+    
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    
+    return result
+
+
+@router.get("/conversations/{conversation_id}/suggest-followup")
+async def get_followup_suggestion(
+    conversation_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get AI-suggested follow-up for a conversation"""
+    from services.ai_automation_service import ai_automation_service
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    result = await ai_automation_service.suggest_followup(conversation_id, tenant_id)
+    
+    if "error" in result:
+        raise HTTPException(status_code=404, detail=result["error"])
+    
+    return result
+
+
+@router.post("/conversations/{conversation_id}/auto-process")
+async def auto_process_conversation(
+    conversation_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Manually trigger AI automation for a conversation
+    (normally runs automatically when resolved)
+    """
+    from services.ai_automation_service import ai_automation_service
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    result = await ai_automation_service.on_conversation_resolved(
+        conversation_id,
+        tenant_id,
+        current_user.get("id")
+    )
+    
+    if "error" in result:
+        raise HTTPException(status_code=400, detail=result["error"])
+    
+    return result
+
+
+@router.post("/customers/bulk-score")
+async def bulk_calculate_lead_scores(
+    current_user: dict = Depends(get_current_user)
+):
+    """Calculate lead scores for all customers"""
+    from services.ai_automation_service import ai_automation_service
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get all customers
+    customers = await db.crm_customers.find(
+        {"tenant_id": tenant_id},
+        {"_id": 0, "id": 1}
+    ).to_list(1000)
+    
+    results = {
+        "processed": 0,
+        "errors": 0,
+        "scores": []
+    }
+    
+    for customer in customers:
+        try:
+            score_result = await ai_automation_service.calculate_lead_score(
+                customer["id"], tenant_id
+            )
+            if "error" not in score_result:
+                results["processed"] += 1
+                results["scores"].append({
+                    "customer_id": customer["id"],
+                    "score": score_result["score"],
+                    "grade": score_result["grade"]
+                })
+            else:
+                results["errors"] += 1
+        except Exception:
+            results["errors"] += 1
+    
+    return results
+
