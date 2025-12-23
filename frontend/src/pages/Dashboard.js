@@ -86,7 +86,7 @@ const Dashboard = () => {
       </div>
 
       {/* Recent Conversations */}
-      <Card className="border border-border">
+      <Card className="border-0 shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="font-heading text-lg">Recent Conversations</CardTitle>
           <Link to="/dashboard/conversations">
