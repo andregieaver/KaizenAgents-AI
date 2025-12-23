@@ -675,6 +675,38 @@ async def test_woocommerce_connection(
             "message": f"Connection test failed: {str(e)}"
         }
 
+
+class WooCommerceTestRequest(BaseModel):
+    store_url: str
+    consumer_key: str
+    consumer_secret: str
+
+@router.post("/test-woocommerce")
+async def test_woocommerce_direct(
+    request: WooCommerceTestRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Test WooCommerce API connection with provided credentials (before saving)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    try:
+        wc_service = WooCommerceService(
+            request.store_url,
+            request.consumer_key,
+            request.consumer_secret
+        )
+        result = await wc_service.test_connection()
+        return result
+    except Exception as e:
+        logger.error(f"WooCommerce test failed: {str(e)}")
+        return {
+            "success": False,
+            "message": f"Connection test failed: {str(e)}"
+        }
+
+
 @router.post("/{agent_id}/upload-image")
 async def upload_agent_profile_image(
     agent_id: str,
