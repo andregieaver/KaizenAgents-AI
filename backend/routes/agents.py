@@ -721,6 +721,37 @@ async def test_woocommerce_direct(
         }
 
 
+class ShopifyTestRequest(BaseModel):
+    store_domain: str
+    access_token: str
+
+@router.post("/test-shopify")
+async def test_shopify_direct(
+    request: ShopifyTestRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Test Shopify API connection with provided credentials (before saving)"""
+    from services.shopify_service import ShopifyService
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    try:
+        shopify_service = ShopifyService(
+            request.store_domain,
+            request.access_token
+        )
+        result = await shopify_service.test_connection()
+        return result
+    except Exception as e:
+        logger.error(f"Shopify test failed: {str(e)}")
+        return {
+            "success": False,
+            "message": f"Connection test failed: {str(e)}"
+        }
+
+
 @router.post("/{agent_id}/upload-image")
 async def upload_agent_profile_image(
     agent_id: str,
