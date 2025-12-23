@@ -780,6 +780,100 @@ const ConversationDetail = () => {
               )}
             </CardContent>
           </Card>
+          
+          {/* AI Insights */}
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="py-3">
+              <CardTitle className="font-heading text-base flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  AI Insights
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={fetchAiInsights}
+                  disabled={loadingInsights}
+                  className="h-6 w-6 p-0"
+                >
+                  {loadingInsights ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Activity className="h-3 w-3" />
+                  )}
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {aiInsights ? (
+                <div className="space-y-3">
+                  {/* Summary */}
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Summary</p>
+                    <p className="text-sm">{aiInsights.summary?.summary}</p>
+                  </div>
+                  
+                  {/* Sentiment & Topics */}
+                  <div className="flex flex-wrap gap-1">
+                    {aiInsights.summary?.sentiment && (
+                      <Badge variant={
+                        aiInsights.summary.sentiment === 'positive' ? 'default' :
+                        aiInsights.summary.sentiment === 'negative' ? 'destructive' : 'secondary'
+                      } className="text-xs">
+                        {aiInsights.summary.sentiment}
+                      </Badge>
+                    )}
+                    {aiInsights.summary?.topics?.slice(0, 2).map((topic, i) => (
+                      <Badge key={i} variant="outline" className="text-xs">
+                        {topic.replace('_', ' ')}
+                      </Badge>
+                    ))}
+                  </div>
+                  
+                  {/* Follow-up Suggestion */}
+                  {aiInsights.followup && (
+                    <div className="pt-2 border-t">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Suggested Follow-up</p>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={
+                          aiInsights.followup.priority === 'high' ? 'destructive' :
+                          aiInsights.followup.priority === 'medium' ? 'default' : 'secondary'
+                        } className="text-xs">
+                          {aiInsights.followup.priority}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {aiInsights.followup.type?.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {aiInsights.followup.reason}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-2">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Analyze this conversation
+                  </p>
+                  <Button 
+                    onClick={fetchAiInsights} 
+                    disabled={loadingInsights}
+                    size="sm"
+                    variant="outline"
+                    className="w-full"
+                  >
+                    {loadingInsights ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <Sparkles className="h-4 w-4 mr-2" />
+                    )}
+                    Get AI Insights
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
         </div>
