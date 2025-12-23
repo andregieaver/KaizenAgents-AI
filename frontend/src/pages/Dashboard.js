@@ -64,27 +64,39 @@ const Dashboard = () => {
       <div 
         className="stats-grid gap-3 sm:gap-4 mb-8"
       >
-        <StatCard
-          label="Total Conversations"
-          value={stats?.total_conversations || 0}
-          trend="all time"
-        />
-        <StatCard
-          label="Open"
-          value={stats?.open_conversations || 0}
-          trend="need attention"
-          highlight
-        />
-        <StatCard
-          label="Resolved"
-          value={stats?.resolved_conversations || 0}
-          trend="completed"
-        />
-        <StatCard
-          label="AI Handled"
-          value={`${stats?.ai_handled_rate || 0}%`}
-          trend="automated"
-        />
+        <Link to="/dashboard/conversations">
+          <StatCard
+            label="Total Conversations"
+            value={stats?.total_conversations || 0}
+            trend="all time"
+            clickable
+          />
+        </Link>
+        <Link to="/dashboard/conversations?status=needs_response">
+          <StatCard
+            label="Needs Response"
+            value={stats?.waiting_conversations || stats?.open_conversations || 0}
+            trend="need attention"
+            highlight
+            clickable
+          />
+        </Link>
+        <Link to="/dashboard/conversations?status=resolved">
+          <StatCard
+            label="Resolved"
+            value={stats?.resolved_conversations || 0}
+            trend="completed"
+            clickable
+          />
+        </Link>
+        <Link to="/dashboard/crm">
+          <StatCard
+            label="CRM Customers"
+            value={stats?.total_customers || 0}
+            trend="total"
+            clickable
+          />
+        </Link>
       </div>
 
       {/* Recent Conversations */}
