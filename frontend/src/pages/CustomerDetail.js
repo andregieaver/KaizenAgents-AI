@@ -137,6 +137,22 @@ const CustomerDetail = () => {
       setLoading(false);
     }
   };
+  
+  const refreshLeadScore = async () => {
+    setLoadingScore(true);
+    try {
+      const response = await axios.get(
+        `${API}/api/crm/customers/${customerId}/lead-score`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setLeadScore(response.data);
+      toast.success('Lead score updated');
+    } catch (error) {
+      toast.error('Failed to calculate lead score');
+    } finally {
+      setLoadingScore(false);
+    }
+  };
 
   const handleSave = async () => {
     setSaving(true);
