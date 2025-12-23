@@ -1,9 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
+import {
+  DndContext,
+  DragOverlay,
+  closestCorners,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   Users,
   Plus,
@@ -25,13 +40,20 @@ import {
   Star,
   Flame,
   Bell,
-  X
+  X,
+  LayoutGrid,
+  List,
+  Keyboard,
+  GripVertical,
+  Trash2
 } from 'lucide-react';
 
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
+import { Checkbox } from '../components/ui/checkbox';
+import { ScrollArea } from '../components/ui/scroll-area';
 import {
   Dialog,
   DialogContent,
@@ -47,6 +69,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../components/ui/tooltip';
+import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
+import KeyboardShortcutsHelp from '../components/KeyboardShortcutsHelp';
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
