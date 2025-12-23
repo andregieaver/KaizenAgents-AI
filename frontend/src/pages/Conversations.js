@@ -345,6 +345,13 @@ const Conversations = () => {
           )}
         </CardContent>
       </Card>
+      
+      {/* Keyboard Shortcuts Help Modal */}
+      <KeyboardShortcutsHelp 
+        context="conversations" 
+        isOpen={showShortcutsHelp} 
+        onClose={() => setShowShortcutsHelp(false)} 
+      />
     </div>
   );
 };
