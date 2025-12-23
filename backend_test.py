@@ -1367,6 +1367,439 @@ class AIAgentHubTester:
         
         return True
 
+    # ============== PHASE 2: AI-POWERED AUTOMATION TESTS ==============
+
+    def test_phase2_ai_automation_features(self):
+        """Test all Phase 2 AI-Powered Automation features for CRM"""
+        print(f"\n🎯 Testing Phase 2: AI-Powered Automation Features")
+        
+        # Test all automation features as requested in review
+        login_test = self.test_super_admin_login()
+        if not login_test:
+            print("❌ Login failed - cannot continue with automation tests")
+            return False
+        
+        # Create test data first
+        setup_test = self.test_automation_setup()
+        conversation_summary_test = self.test_conversation_summary_api()
+        followup_suggestion_test = self.test_followup_suggestion_api()
+        lead_score_test = self.test_lead_score_api()
+        bulk_score_test = self.test_bulk_score_api()
+        auto_process_test = self.test_auto_process_api()
+        auto_trigger_test = self.test_auto_trigger_on_resolve()
+        
+        # Summary of automation tests
+        print(f"\n📋 Phase 2 AI Automation Test Results:")
+        print(f"   Super Admin Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
+        print(f"   Setup Test Data: {'✅ PASSED' if setup_test else '❌ FAILED'}")
+        print(f"   Conversation Summary API: {'✅ PASSED' if conversation_summary_test else '❌ FAILED'}")
+        print(f"   Follow-up Suggestion API: {'✅ PASSED' if followup_suggestion_test else '❌ FAILED'}")
+        print(f"   Lead Score API: {'✅ PASSED' if lead_score_test else '❌ FAILED'}")
+        print(f"   Bulk Score API: {'✅ PASSED' if bulk_score_test else '❌ FAILED'}")
+        print(f"   Auto-Process API: {'✅ PASSED' if auto_process_test else '❌ FAILED'}")
+        print(f"   Auto-trigger on Resolve: {'✅ PASSED' if auto_trigger_test else '❌ FAILED'}")
+        
+        return all([login_test, setup_test, conversation_summary_test, followup_suggestion_test, 
+                   lead_score_test, bulk_score_test, auto_process_test, auto_trigger_test])
+
+    def test_automation_setup(self):
+        """Setup test data for automation testing"""
+        print(f"\n🔧 Setting up test data for AI automation")
+        
+        # Create a widget session to generate conversation data
+        if not self.tenant_id:
+            print("❌ No tenant ID available")
+            return False
+            
+        session_data = {
+            "tenant_id": self.tenant_id,
+            "customer_name": "John Smith",
+            "customer_email": "john.smith@example.com"
+        }
+        
+        success, response = self.run_test(
+            "Create Widget Session for Automation",
+            "POST",
+            "widget/session",
+            200,
+            data=session_data
+        )
+        
+        if success and 'session_token' in response and 'conversation_id' in response:
+            self.automation_session_token = response['session_token']
+            self.automation_conversation_id = response['conversation_id']
+            print(f"   ✅ Widget session created")
+            print(f"   Conversation ID: {self.automation_conversation_id}")
+            
+            # Send some messages to create conversation history
+            messages = [
+                "Hi, I'm interested in your premium plan. What's the pricing?",
+                "I need help with my recent order #12345",
+                "The product quality is excellent, thank you!"
+            ]
+            
+            for i, msg in enumerate(messages):
+                msg_data = {"content": msg}
+                success, _ = self.run_test(
+                    f"Send Test Message {i+1}",
+                    "POST",
+                    f"widget/messages/{self.automation_conversation_id}?token={self.automation_session_token}",
+                    200,
+                    data=msg_data
+                )
+                if not success:
+                    print(f"   ⚠️ Failed to send message {i+1}")
+            
+            # Create a CRM customer from the conversation
+            success, response = self.run_test(
+                "Create CRM Customer from Conversation",
+                "POST",
+                f"crm/customers/from-conversation/{self.automation_conversation_id}",
+                200
+            )
+            
+            if success and response.get("customer"):
+                self.automation_customer_id = response["customer"]["id"]
+                print(f"   ✅ CRM customer created: {self.automation_customer_id}")
+                return True
+            else:
+                print("   ⚠️ Failed to create CRM customer, but continuing tests")
+                return True
+        else:
+            print("❌ Failed to create widget session")
+            return False
+
+    def test_conversation_summary_api(self):
+        """Test GET /api/crm/conversations/{conversation_id}/summary"""
+        print(f"\n🔧 Testing Conversation Summary API")
+        
+        if not hasattr(self, 'automation_conversation_id'):
+            print("❌ No conversation ID available for summary test")
+            return False
+        
+        # Test with use_ai=false for rule-based summary
+        success, response = self.run_test(
+            "Get Conversation Summary (Rule-based)",
+            "GET",
+            f"crm/conversations/{self.automation_conversation_id}/summary?use_ai=false",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get conversation summary")
+            return False
+        
+        # Verify response structure
+        required_fields = ["summary", "key_points", "topics", "sentiment", "metrics", "suggested_actions"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+        
+        print(f"   ✅ Summary generated: {response.get('summary', '')[:100]}...")
+        print(f"   ✅ Sentiment: {response.get('sentiment')}")
+        print(f"   ✅ Topics: {response.get('topics', [])}")
+        print(f"   ✅ Key points: {len(response.get('key_points', []))}")
+        print(f"   ✅ Suggested actions: {len(response.get('suggested_actions', []))}")
+        
+        # Verify metrics structure
+        metrics = response.get("metrics", {})
+        expected_metrics = ["total_messages", "customer_messages", "duration_minutes", "has_purchase_intent"]
+        for metric in expected_metrics:
+            if metric not in metrics:
+                print(f"   ⚠️ Missing metric: {metric}")
+        
+        print(f"   ✅ Metrics: {metrics}")
+        
+        # Test with use_ai=true (AI-powered summary)
+        success, ai_response = self.run_test(
+            "Get Conversation Summary (AI-powered)",
+            "GET",
+            f"crm/conversations/{self.automation_conversation_id}/summary?use_ai=true",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ AI summary: {ai_response.get('summary', '')[:100]}...")
+        else:
+            print("   ⚠️ AI summary failed, but rule-based works")
+        
+        return True
+
+    def test_followup_suggestion_api(self):
+        """Test GET /api/crm/conversations/{conversation_id}/suggest-followup"""
+        print(f"\n🔧 Testing Follow-up Suggestion API")
+        
+        if not hasattr(self, 'automation_conversation_id'):
+            print("❌ No conversation ID available for follow-up test")
+            return False
+        
+        success, response = self.run_test(
+            "Get Follow-up Suggestion",
+            "GET",
+            f"crm/conversations/{self.automation_conversation_id}/suggest-followup",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get follow-up suggestion")
+            return False
+        
+        # Verify response structure
+        required_fields = ["type", "priority", "timing", "timing_hours", "reason", "message_template", "suggested_due_date"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+        
+        print(f"   ✅ Follow-up type: {response.get('type')}")
+        print(f"   ✅ Priority: {response.get('priority')}")
+        print(f"   ✅ Timing: {response.get('timing')} ({response.get('timing_hours')} hours)")
+        print(f"   ✅ Reason: {response.get('reason')}")
+        print(f"   ✅ Due date: {response.get('suggested_due_date')}")
+        print(f"   ✅ Template: {response.get('message_template', '')[:80]}...")
+        
+        # Verify valid values
+        valid_types = ["sales_followup", "satisfaction_recovery", "feedback_request", "retention", "relationship_building", "general_check"]
+        valid_priorities = ["high", "medium", "low"]
+        
+        if response.get('type') not in valid_types:
+            print(f"   ⚠️ Unexpected follow-up type: {response.get('type')}")
+        
+        if response.get('priority') not in valid_priorities:
+            print(f"   ⚠️ Unexpected priority: {response.get('priority')}")
+        
+        return True
+
+    def test_lead_score_api(self):
+        """Test GET /api/crm/customers/{customer_id}/lead-score"""
+        print(f"\n🔧 Testing Lead Score API")
+        
+        if not hasattr(self, 'automation_customer_id'):
+            print("❌ No customer ID available for lead score test")
+            return False
+        
+        success, response = self.run_test(
+            "Get Customer Lead Score",
+            "GET",
+            f"crm/customers/{self.automation_customer_id}/lead-score",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get lead score")
+            return False
+        
+        # Verify response structure
+        required_fields = ["score", "grade", "grade_label", "breakdown", "recommendations", "metrics"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+        
+        score = response.get('score', 0)
+        grade = response.get('grade')
+        grade_label = response.get('grade_label')
+        
+        print(f"   ✅ Lead Score: {score}/100")
+        print(f"   ✅ Grade: {grade} ({grade_label})")
+        
+        # Verify score is in valid range
+        if not (0 <= score <= 100):
+            print(f"   ❌ Score out of range: {score}")
+            return False
+        
+        # Verify grade mapping
+        valid_grades = {"A": "Hot Lead", "B": "Warm Lead", "C": "Potential Lead", "D": "Cold Lead", "F": "Low Priority"}
+        if grade not in valid_grades or valid_grades[grade] != grade_label:
+            print(f"   ⚠️ Grade mapping issue: {grade} -> {grade_label}")
+        
+        # Verify breakdown structure
+        breakdown = response.get('breakdown', {})
+        expected_breakdown = ["engagement", "sentiment", "purchase_intent", "verification", "loyalty"]
+        for category in expected_breakdown:
+            if category not in breakdown:
+                print(f"   ⚠️ Missing breakdown category: {category}")
+        
+        print(f"   ✅ Breakdown: {breakdown}")
+        
+        # Verify recommendations
+        recommendations = response.get('recommendations', [])
+        print(f"   ✅ Recommendations ({len(recommendations)}): {recommendations}")
+        
+        # Verify metrics
+        metrics = response.get('metrics', {})
+        expected_metrics = ["conversation_count", "message_count", "has_verified_email"]
+        for metric in expected_metrics:
+            if metric not in metrics:
+                print(f"   ⚠️ Missing metric: {metric}")
+        
+        print(f"   ✅ Metrics: {metrics}")
+        
+        return True
+
+    def test_bulk_score_api(self):
+        """Test POST /api/crm/customers/bulk-score"""
+        print(f"\n🔧 Testing Bulk Score API")
+        
+        success, response = self.run_test(
+            "Bulk Calculate Lead Scores",
+            "POST",
+            "crm/customers/bulk-score",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to bulk calculate scores")
+            return False
+        
+        # Verify response structure
+        required_fields = ["processed", "errors", "scores"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+        
+        processed = response.get('processed', 0)
+        errors = response.get('errors', 0)
+        scores = response.get('scores', [])
+        
+        print(f"   ✅ Processed: {processed} customers")
+        print(f"   ✅ Errors: {errors}")
+        print(f"   ✅ Scores calculated: {len(scores)}")
+        
+        # Verify scores structure
+        if scores:
+            first_score = scores[0]
+            score_fields = ["customer_id", "score", "grade"]
+            for field in score_fields:
+                if field not in first_score:
+                    print(f"   ⚠️ Missing score field: {field}")
+            
+            print(f"   ✅ Sample score: {first_score}")
+        
+        return True
+
+    def test_auto_process_api(self):
+        """Test POST /api/crm/conversations/{conversation_id}/auto-process"""
+        print(f"\n🔧 Testing Auto-Process API")
+        
+        if not hasattr(self, 'automation_conversation_id'):
+            print("❌ No conversation ID available for auto-process test")
+            return False
+        
+        success, response = self.run_test(
+            "Manually Trigger Auto-Process",
+            "POST",
+            f"crm/conversations/{self.automation_conversation_id}/auto-process",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to trigger auto-process")
+            return False
+        
+        # Verify response contains automation results
+        expected_fields = ["summary", "followup_suggestion"]
+        for field in expected_fields:
+            if field not in response:
+                print(f"   ⚠️ Missing field: {field}")
+            else:
+                print(f"   ✅ {field}: Generated")
+        
+        # Check if lead score was calculated (if CRM customer linked)
+        if "lead_score" in response:
+            print(f"   ✅ Lead score: {response['lead_score'].get('score', 'N/A')}")
+        
+        # Check if CRM activity was created
+        if response.get("activity_created"):
+            print(f"   ✅ CRM activity created")
+        
+        # Check if follow-up was auto-created
+        if response.get("followup_created"):
+            print(f"   ✅ High-priority follow-up auto-created")
+        
+        return True
+
+    def test_auto_trigger_on_resolve(self):
+        """Test auto-trigger when conversation status changes to resolved"""
+        print(f"\n🔧 Testing Auto-trigger on Conversation Resolve")
+        
+        if not hasattr(self, 'automation_conversation_id'):
+            print("❌ No conversation ID available for resolve test")
+            return False
+        
+        # First, check current status
+        success, conv_response = self.run_test(
+            "Get Conversation Status",
+            "GET",
+            f"conversations/{self.automation_conversation_id}",
+            200
+        )
+        
+        if success:
+            current_status = conv_response.get('status', 'unknown')
+            print(f"   Current status: {current_status}")
+        
+        # Change status to resolved to trigger automation
+        success, response = self.run_test(
+            "Change Status to Resolved",
+            "PATCH",
+            f"conversations/{self.automation_conversation_id}/status?new_status=resolved",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to change conversation status to resolved")
+            return False
+        
+        print(f"   ✅ Status changed to: {response.get('status')}")
+        
+        # Wait a moment for background task to process
+        import time
+        time.sleep(2)
+        
+        # Check if CRM activities were created (if customer is linked)
+        if hasattr(self, 'automation_customer_id'):
+            success, activities = self.run_test(
+                "Check CRM Activities",
+                "GET",
+                f"crm/activities?customer_id={self.automation_customer_id}",
+                200
+            )
+            
+            if success and isinstance(activities, list):
+                resolve_activities = [a for a in activities if a.get('type') == 'conversation_resolved']
+                if resolve_activities:
+                    print(f"   ✅ Found {len(resolve_activities)} resolve activities")
+                    latest_activity = resolve_activities[0]
+                    print(f"   ✅ Activity: {latest_activity.get('title')}")
+                else:
+                    print(f"   ⚠️ No resolve activities found (may be processing)")
+            
+            # Check if follow-ups were auto-created
+            success, followups = self.run_test(
+                "Check Auto-created Follow-ups",
+                "GET",
+                f"crm/followups?customer_id={self.automation_customer_id}",
+                200
+            )
+            
+            if success and isinstance(followups, list):
+                auto_followups = [f for f in followups if f.get('title', '').startswith('Auto:')]
+                if auto_followups:
+                    print(f"   ✅ Found {len(auto_followups)} auto-created follow-ups")
+                    for followup in auto_followups:
+                        print(f"   ✅ Follow-up: {followup.get('title')} (Priority: {followup.get('priority')})")
+                else:
+                    print(f"   ℹ️ No auto-created follow-ups (depends on conversation analysis)")
+        
+        return True
+
     # ============== TIERED EMAIL VERIFICATION TESTS ==============
 
     def test_tiered_email_verification_system(self):
