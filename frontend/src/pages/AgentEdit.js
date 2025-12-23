@@ -97,6 +97,11 @@ const AgentEdit = () => {
         store_url: '',
         consumer_key: '',
         consumer_secret: ''
+      },
+      shopify: {
+        enabled: false,
+        store_domain: '',
+        access_token: ''
       }
     },
     is_active: false,
