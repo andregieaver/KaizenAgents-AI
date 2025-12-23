@@ -92,6 +92,9 @@ const ConversationDetail = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [sentiment, setSentiment] = useState({ engagement: 5, tone: 0 });
   const [analyzingSentiment, setAnalyzingSentiment] = useState(false);
+  const [crmCustomer, setCrmCustomer] = useState(null);
+  const [crmLoading, setCrmLoading] = useState(false);
+  const [linkSuggested, setLinkSuggested] = useState(false);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -111,6 +114,9 @@ const ConversationDetail = () => {
         setConversation(convRes.data);
         setMessages(msgsRes.data);
         setConversations(convsRes.data);
+        
+        // Fetch CRM link status
+        fetchCrmStatus(convRes.data.id);
       } catch (error) {
         console.error('Error fetching conversation:', error);
         toast.error('Failed to load conversation');
@@ -123,6 +129,42 @@ const ConversationDetail = () => {
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
   }, [id, token]);
+  
+  const fetchCrmStatus = async (conversationId) => {
+    try {
+      const response = await axios.get(
+        `${API}/crm/lookup-by-conversation/${conversationId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.linked) {
+        setCrmCustomer(response.data.customer);
+        setLinkSuggested(response.data.link_suggested || false);
+      } else {
+        setCrmCustomer(null);
+        setLinkSuggested(false);
+      }
+    } catch (error) {
+      console.debug('CRM lookup failed:', error);
+    }
+  };
+  
+  const handleLinkToCrm = async () => {
+    setCrmLoading(true);
+    try {
+      const response = await axios.post(
+        `${API}/crm/customers/from-conversation/${id}`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setCrmCustomer(response.data.customer);
+      setLinkSuggested(false);
+      toast.success(response.data.created ? 'Customer added to CRM' : 'Linked to existing CRM customer');
+    } catch (error) {
+      toast.error('Failed to link to CRM');
+    } finally {
+      setCrmLoading(false);
+    }
+  };
 
   // Fetch suggestions when in assisted mode and messages change
   useEffect(() => {
