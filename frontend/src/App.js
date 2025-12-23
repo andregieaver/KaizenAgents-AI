@@ -16,6 +16,8 @@ import DashboardLayout from "./pages/DashboardLayout";
 import Dashboard from "./pages/Dashboard";
 import Conversations from "./pages/Conversations";
 import ConversationDetail from "./pages/ConversationDetail";
+import CRM from "./pages/CRM";
+import CustomerDetail from "./pages/CustomerDetail";
 import Settings from "./pages/Settings";
 import WidgetDemo from "./pages/WidgetDemo";
 import SuperAdmin from "./pages/SuperAdmin";
