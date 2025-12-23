@@ -8,8 +8,8 @@ from datetime import datetime, timezone
 from uuid import uuid4
 import logging
 
-from db import db
-from middleware.auth import get_current_user
+from middleware.database import db
+from middleware import get_current_user
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/crm", tags=["crm"])
