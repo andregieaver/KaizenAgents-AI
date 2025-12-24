@@ -6512,6 +6512,367 @@ class AIAgentHubTester:
         
         return True
 
+    # ============== RAG SYSTEM SPECIFIC TESTS ==============
+    
+    def test_rag_document_upload(self):
+        """Upload a test document with specific content for RAG testing"""
+        print(f"\n🔧 Testing RAG Document Upload")
+        
+        # Create test document with specific content as requested
+        test_content = """Our company name is ACME Corp. We sell widgets. Our return policy is 30 days.
+
+Company Information:
+- Name: ACME Corp
+- Products: Widgets and gadgets
+- Return Policy: 30-day return policy for all products
+- Customer Service: Available 24/7
+- Shipping: Free shipping on orders over $50
+
+Contact Information:
+- Email: support@acmecorp.com
+- Phone: 1-800-WIDGETS
+- Address: 123 Widget Street, Gadget City, GC 12345
+
+Policies:
+- All items can be returned within 30 days of purchase
+- Refunds are processed within 5-7 business days
+- Free shipping on orders over $50
+- Warranty: 1-year warranty on all products"""
+        
+        # Create file-like object
+        file_content = io.BytesIO(test_content.encode('utf-8'))
+        files = {'file': ('acme_corp_info.txt', file_content, 'text/plain')}
+        
+        success, response = self.run_test(
+            "Upload RAG Test Document",
+            "POST",
+            f"agents/{self.agent_id}/documents",
+            200,
+            files=files
+        )
+        
+        if success:
+            print(f"   ✅ Document uploaded successfully")
+            print(f"   Document ID: {response.get('id', 'N/A')}")
+            print(f"   Filename: {response.get('filename', 'N/A')}")
+            print(f"   File Size: {response.get('file_size', 'N/A')} bytes")
+            
+            # Store document ID for cleanup
+            self.test_document_id = response.get('id')
+            return True
+        else:
+            print(f"   ❌ Document upload failed")
+            return False
+    
+    def test_get_agent_documents(self):
+        """Get agent documents to verify upload"""
+        print(f"\n🔧 Testing Get Agent Documents")
+        
+        if not self.agent_id:
+            print("❌ No agent ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Get Agent Documents",
+            "GET",
+            f"agents/{self.agent_id}/documents",
+            200
+        )
+        
+        if success:
+            documents = response if isinstance(response, list) else []
+            print(f"   ✅ Found {len(documents)} documents")
+            
+            # Look for our test document
+            test_doc_found = False
+            for doc in documents:
+                if 'acme_corp_info.txt' in doc.get('filename', ''):
+                    test_doc_found = True
+                    print(f"   ✅ Test document found: {doc.get('filename')}")
+                    print(f"   Document ID: {doc.get('id')}")
+                    break
+            
+            if not test_doc_found:
+                print(f"   ⚠️ Test document not found in agent documents")
+                
+            return True
+        else:
+            print(f"   ❌ Failed to get agent documents")
+            return False
+    
+    def test_rag_widget_session(self):
+        """Create widget session for RAG testing"""
+        print(f"\n🔧 Testing RAG Widget Session Creation")
+        
+        if not self.tenant_id:
+            print("❌ No tenant ID available")
+            return False
+            
+        session_data = {
+            "tenant_id": self.tenant_id,
+            "customer_name": "RAG Test Customer",
+            "customer_email": "ragtest@example.com"
+        }
+        
+        success, response = self.run_test(
+            "Create RAG Widget Session",
+            "POST",
+            "widget/session",
+            200,
+            data=session_data
+        )
+        
+        if success and 'session_token' in response and 'conversation_id' in response:
+            self.rag_session_token = response['session_token']
+            self.rag_conversation_id = response['conversation_id']
+            print(f"   ✅ RAG widget session created")
+            print(f"   Session Token: {self.rag_session_token[:20]}...")
+            print(f"   Conversation ID: {self.rag_conversation_id}")
+            return True
+        else:
+            print("❌ Failed to create RAG widget session")
+            return False
+    
+    def test_rag_knowledge_base_question(self):
+        """Test question that should be answered from knowledge base"""
+        print(f"\n🔧 Testing Knowledge Base Question (Should Answer)")
+        
+        if not hasattr(self, 'rag_conversation_id') or not hasattr(self, 'rag_session_token'):
+            print("❌ No RAG conversation ID or session token available")
+            return False
+            
+        message_data = {
+            "content": "What is your return policy?"
+        }
+        
+        success, response = self.run_test(
+            "Send Knowledge Base Question",
+            "POST",
+            f"widget/messages/{self.rag_conversation_id}?token={self.rag_session_token}",
+            200,
+            data=message_data
+        )
+        
+        if not success:
+            print("❌ Failed to send knowledge base question")
+            return False
+            
+        ai_message = response.get('ai_message')
+        if not ai_message:
+            print("❌ No AI response received")
+            return False
+            
+        ai_content = ai_message.get('content', '').lower()
+        print(f"   AI Response: {ai_message.get('content', '')[:150]}...")
+        
+        # Check if response contains knowledge base content
+        knowledge_indicators = ['30 days', '30-day', 'return policy', 'acme corp', 'widgets']
+        has_knowledge = any(indicator in ai_content for indicator in knowledge_indicators)
+        
+        # Check that it doesn't refuse to answer
+        refusal_indicators = ['knowledge base', 'support team', 'contact', "don't have", 'not available']
+        has_refusal = any(indicator in ai_content for indicator in refusal_indicators)
+        
+        if has_knowledge and not has_refusal:
+            print("   ✅ Agent correctly answered from knowledge base")
+            return True
+        elif has_refusal:
+            print("   ❌ Agent refused to answer despite having knowledge base")
+            return False
+        else:
+            print("   ⚠️ Agent response unclear - may not be using knowledge base")
+            return False
+    
+    def test_rag_general_knowledge_refusal(self):
+        """Test question NOT in knowledge base (should refuse)"""
+        print(f"\n🔧 Testing General Knowledge Question (Should Refuse)")
+        
+        if not hasattr(self, 'rag_conversation_id') or not hasattr(self, 'rag_session_token'):
+            print("❌ No RAG conversation ID or session token available")
+            return False
+            
+        message_data = {
+            "content": "What is the capital of France?"
+        }
+        
+        success, response = self.run_test(
+            "Send General Knowledge Question",
+            "POST",
+            f"widget/messages/{self.rag_conversation_id}?token={self.rag_session_token}",
+            200,
+            data=message_data
+        )
+        
+        if not success:
+            print("❌ Failed to send general knowledge question")
+            return False
+            
+        ai_message = response.get('ai_message')
+        if not ai_message:
+            print("❌ No AI response received")
+            return False
+            
+        ai_content = ai_message.get('content', '').lower()
+        print(f"   AI Response: {ai_message.get('content', '')[:150]}...")
+        
+        # Check if agent properly refuses
+        refusal_indicators = ['knowledge base', 'support team', 'contact', "don't have", 'not available', "i don't have that information"]
+        has_refusal = any(indicator in ai_content for indicator in refusal_indicators)
+        
+        # Check that it doesn't answer with general knowledge
+        general_knowledge_indicators = ['paris', 'france', 'capital']
+        has_general_knowledge = any(indicator in ai_content for indicator in general_knowledge_indicators)
+        
+        if has_refusal and not has_general_knowledge:
+            print("   ✅ Agent correctly refused general knowledge question")
+            return True
+        elif has_general_knowledge:
+            print("   ❌ Agent answered with general knowledge (should refuse)")
+            return False
+        else:
+            print("   ⚠️ Agent response unclear - may not be properly refusing")
+            return False
+    
+    def test_rag_empty_knowledge_base(self):
+        """Test behavior when knowledge base is empty"""
+        print(f"\n🔧 Testing Empty Knowledge Base Scenario")
+        
+        # First, delete the test document to simulate empty knowledge base
+        if hasattr(self, 'test_document_id') and self.test_document_id:
+            success, response = self.run_test(
+                "Delete Test Document",
+                "DELETE",
+                f"agents/{self.agent_id}/documents/{self.test_document_id}",
+                200
+            )
+            
+            if success:
+                print("   ✅ Test document deleted")
+            else:
+                print("   ⚠️ Failed to delete test document")
+        
+        # Create new widget session for empty knowledge base test
+        session_data = {
+            "tenant_id": self.tenant_id,
+            "customer_name": "Empty KB Test Customer",
+            "customer_email": "emptykb@example.com"
+        }
+        
+        success, response = self.run_test(
+            "Create Empty KB Widget Session",
+            "POST",
+            "widget/session",
+            200,
+            data=session_data
+        )
+        
+        if not success:
+            print("❌ Failed to create empty KB widget session")
+            return False
+            
+        empty_session_token = response['session_token']
+        empty_conversation_id = response['conversation_id']
+        
+        # Test any question with empty knowledge base
+        message_data = {
+            "content": "What is your return policy?"
+        }
+        
+        success, response = self.run_test(
+            "Send Question to Empty Knowledge Base",
+            "POST",
+            f"widget/messages/{empty_conversation_id}?token={empty_session_token}",
+            200,
+            data=message_data
+        )
+        
+        if not success:
+            print("❌ Failed to send question to empty knowledge base")
+            return False
+            
+        ai_message = response.get('ai_message')
+        if not ai_message:
+            print("❌ No AI response received")
+            return False
+            
+        ai_content = ai_message.get('content', '').lower()
+        print(f"   AI Response: {ai_message.get('content', '')[:150]}...")
+        
+        # Check for expected empty knowledge base response
+        empty_kb_indicators = [
+            "don't have access to any company documentation",
+            "no knowledge base configured",
+            "contact our support team"
+        ]
+        
+        has_empty_kb_response = any(indicator in ai_content for indicator in empty_kb_indicators)
+        
+        if has_empty_kb_response:
+            print("   ✅ Agent correctly indicates empty knowledge base")
+            return True
+        else:
+            print("   ❌ Agent should indicate no knowledge base available")
+            return False
+
+    def run_rag_tests(self):
+        """Run RAG (Retrieval Augmented Generation) system tests"""
+        print("🚀 Starting RAG System Tests")
+        print(f"   Base URL: {self.base_url}")
+        print("   Testing that AI agents ONLY answer from their knowledge base")
+        print("=" * 60)
+        
+        # Step 1: Login and get token
+        if not self.test_super_admin_login():
+            print("❌ Login failed - stopping tests")
+            return False
+            
+        # Step 2: Get agents list
+        if not self.test_agents_list():
+            print("❌ Failed to get agents list - stopping tests")
+            return False
+            
+        # Step 3: Upload a test document
+        if not self.test_rag_document_upload():
+            print("❌ Failed to upload test document - stopping tests")
+            return False
+            
+        # Step 4: Get agent documents to verify upload
+        if not self.test_get_agent_documents():
+            print("❌ Failed to get agent documents - stopping tests")
+            return False
+            
+        # Step 5: Test the chat widget with knowledge base questions
+        if not self.test_rag_widget_session():
+            print("❌ Failed to create widget session - stopping tests")
+            return False
+            
+        # Step 6: Test question IN the knowledge base
+        if not self.test_rag_knowledge_base_question():
+            print("❌ Failed knowledge base question test")
+            return False
+            
+        # Step 7: Test question NOT in the knowledge base
+        if not self.test_rag_general_knowledge_refusal():
+            print("❌ Failed general knowledge refusal test")
+            return False
+            
+        # Step 8: Test empty knowledge base scenario
+        if not self.test_rag_empty_knowledge_base():
+            print("❌ Failed empty knowledge base test")
+            return False
+        
+        # Print final summary
+        print("\n" + "=" * 60)
+        print(f"🏁 RAG Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
+        
+        if self.tests_passed == self.tests_run:
+            print("✅ All RAG tests passed!")
+        else:
+            print(f"❌ {self.tests_run - self.tests_passed} RAG tests failed")
+            
+        return self.tests_passed == self.tests_run
+
+
 def main_quota_tests():
     """Main function to run only quota enforcement tests as requested in review"""
     print("🎯 Starting Quota Enforcement Middleware Testing")
