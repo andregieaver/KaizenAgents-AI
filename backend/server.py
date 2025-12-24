@@ -4327,20 +4327,33 @@ async def set_tenant_context(request: Request, call_next):
     response = await call_next(request)
     return response
 
+# CORS Configuration - MUST set CORS_ORIGINS in production
+cors_origins = os.environ.get('CORS_ORIGINS', '')
+if not cors_origins:
+    logger.warning("CORS_ORIGINS not set! Defaulting to localhost only. Set CORS_ORIGINS in production!")
+    cors_origins = "http://localhost:3000,http://localhost:8001"
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=[origin.strip() for origin in cors_origins.split(',') if origin.strip()],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 @app.on_event("startup")
-async def startup_load_rate_limits():
-    """Load rate limits from database on startup"""
-    from middleware.rate_limiter import rate_limiter
+async def startup_event():
+    """Initialize database indexes and load configurations on startup"""
+    # Create database indexes for performance
+    try:
+        from db_indexes import create_indexes
+        await create_indexes(db)
+        logger.info("Database indexes initialized")
+    except Exception as e:
+        logger.warning(f"Failed to create indexes (may already exist): {e}")
     
-    # Load saved rate limits
+    # Load rate limits from database
+    from middleware.rate_limiter import rate_limiter
     saved_limits = await db.rate_limits.find({}, {"_id": 0}).to_list(1000)
     for limit_config in saved_limits:
         tenant_id = limit_config.get("tenant_id")
