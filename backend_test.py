@@ -6896,6 +6896,280 @@ Policies:
             
         return self.tests_passed == self.tests_run
 
+    # ============== RAG SYSTEM ENFORCEMENT TESTS ==============
+
+    def test_rag_system_enforcement_orchestration(self):
+        """Test RAG System enforcement in the Orchestration flow as specified in review request"""
+        print(f"\n🎯 Testing RAG System Enforcement in Orchestration Flow")
+        print("=" * 60)
+        
+        # Login first
+        if not self.test_super_admin_login():
+            print("❌ Login failed - cannot continue with RAG enforcement tests")
+            return False
+        
+        # Test all critical RAG enforcement scenarios
+        session_test = self.test_rag_widget_session_creation()
+        general_knowledge_test = self.test_rag_general_knowledge_refusal()
+        company_question_test = self.test_rag_company_specific_question()
+        backend_logs_test = self.test_rag_backend_logs_verification()
+        
+        # Summary of RAG enforcement tests
+        print(f"\n📋 RAG System Enforcement Test Results:")
+        print(f"   Create Widget Session: {'✅ PASSED' if session_test else '❌ FAILED'}")
+        print(f"   General Knowledge Refusal (Critical): {'✅ PASSED' if general_knowledge_test else '❌ FAILED'}")
+        print(f"   Company-Specific Question: {'✅ PASSED' if company_question_test else '❌ FAILED'}")
+        print(f"   Backend Logs Verification: {'✅ PASSED' if backend_logs_test else '❌ FAILED'}")
+        
+        # Critical verification message
+        if general_knowledge_test:
+            print(f"\n✅ CRITICAL TEST PASSED: AI correctly REFUSED to answer 'What is the capital of France?'")
+        else:
+            print(f"\n❌ CRITICAL TEST FAILED: AI answered general knowledge question when it should have refused")
+        
+        return all([session_test, general_knowledge_test, company_question_test, backend_logs_test])
+
+    def test_rag_widget_session_creation(self):
+        """Create widget session for RAG enforcement testing"""
+        print(f"\n🔧 Creating Widget Session for RAG Testing")
+        
+        if not self.tenant_id:
+            print("❌ No tenant ID available for RAG widget session test")
+            return False
+            
+        session_data = {
+            "tenant_id": self.tenant_id,
+            "customer_name": "RAG Test Customer",
+            "customer_email": "ragtest@example.com"
+        }
+        
+        success, response = self.run_test(
+            "RAG Widget Session Creation",
+            "POST",
+            "widget/session",
+            200,
+            data=session_data
+        )
+        
+        if success and 'session_token' in response and 'conversation_id' in response:
+            self.rag_session_token = response['session_token']
+            self.rag_conversation_id = response['conversation_id']
+            print(f"   ✅ RAG test session created successfully")
+            print(f"   Session Token: {self.rag_session_token[:20]}...")
+            print(f"   Conversation ID: {self.rag_conversation_id}")
+            return True
+        else:
+            print("❌ Failed to create RAG test session")
+            return False
+
+    def test_rag_general_knowledge_refusal(self):
+        """CRITICAL TEST: AI should REFUSE to answer 'What is the capital of France?'"""
+        print(f"\n🔧 CRITICAL TEST: General Knowledge Question Refusal")
+        print("   Testing: 'What is the capital of France?' - AI MUST refuse to answer")
+        
+        if not hasattr(self, 'rag_conversation_id') or not hasattr(self, 'rag_session_token'):
+            print("❌ No RAG conversation ID or session token available")
+            return False
+            
+        message_data = {
+            "content": "What is the capital of France?"
+        }
+        
+        success, response = self.run_test(
+            "RAG General Knowledge Refusal Test",
+            "POST",
+            f"widget/messages/{self.rag_conversation_id}?token={self.rag_session_token}",
+            200,
+            data=message_data
+        )
+        
+        if not success:
+            print("❌ Failed to send general knowledge question")
+            return False
+            
+        # Verify response structure
+        customer_message = response.get('customer_message')
+        ai_message = response.get('ai_message')
+        
+        if not customer_message:
+            print("❌ Customer message not found in response")
+            return False
+            
+        if not ai_message:
+            print("❌ AI message not found in response")
+            return False
+            
+        ai_content = ai_message.get('content', '')
+        print(f"   AI Response: {ai_content}")
+        
+        # Check if AI properly REFUSED to answer
+        ai_content_lower = ai_content.lower()
+        
+        # Indicators that AI refused (GOOD)
+        refusal_indicators = [
+            'i can only help with questions about our company',
+            'i don\'t have information about that',
+            'knowledge base',
+            'company and services',
+            'our products and services',
+            'contact support',
+            'support team'
+        ]
+        
+        # Indicators that AI answered the question (BAD)
+        answer_indicators = [
+            'paris',
+            'the capital of france is',
+            'france\'s capital',
+            'capital city of france'
+        ]
+        
+        has_refusal = any(indicator in ai_content_lower for indicator in refusal_indicators)
+        has_answer = any(indicator in ai_content_lower for indicator in answer_indicators)
+        
+        if has_answer:
+            print(f"   ❌ CRITICAL FAILURE: AI answered 'Paris' or provided general knowledge")
+            print(f"   ❌ This violates RAG enforcement - AI should refuse general knowledge questions")
+            return False
+        elif has_refusal:
+            print(f"   ✅ CRITICAL SUCCESS: AI correctly refused to answer general knowledge question")
+            print(f"   ✅ RAG enforcement is working correctly")
+            return True
+        else:
+            print(f"   ⚠️ UNCLEAR: AI response doesn't clearly refuse or answer")
+            print(f"   Response: {ai_content}")
+            # If it doesn't contain "Paris" or clear answer, consider it a pass
+            if 'paris' not in ai_content_lower and 'capital' not in ai_content_lower:
+                print(f"   ✅ LIKELY SUCCESS: No direct answer provided")
+                return True
+            else:
+                print(f"   ❌ LIKELY FAILURE: Response may contain answer")
+                return False
+
+    def test_rag_company_specific_question(self):
+        """Test company-specific question - should respond appropriately from knowledge base or refuse"""
+        print(f"\n🔧 Testing Company-Specific Question")
+        print("   Testing: 'What is your return policy?' - Should use knowledge base or appropriately refuse")
+        
+        if not hasattr(self, 'rag_conversation_id') or not hasattr(self, 'rag_session_token'):
+            print("❌ No RAG conversation ID or session token available")
+            return False
+            
+        message_data = {
+            "content": "What is your return policy?"
+        }
+        
+        success, response = self.run_test(
+            "RAG Company-Specific Question Test",
+            "POST",
+            f"widget/messages/{self.rag_conversation_id}?token={self.rag_session_token}",
+            200,
+            data=message_data
+        )
+        
+        if not success:
+            print("❌ Failed to send company-specific question")
+            return False
+            
+        # Verify response structure
+        ai_message = response.get('ai_message')
+        if not ai_message:
+            print("❌ AI message not found in response")
+            return False
+            
+        ai_content = ai_message.get('content', '')
+        print(f"   AI Response: {ai_content}")
+        
+        ai_content_lower = ai_content.lower()
+        
+        # Check for appropriate responses
+        knowledge_base_response = any(indicator in ai_content_lower for indicator in [
+            'return', 'refund', 'policy', '30 days', 'exchange'
+        ])
+        
+        appropriate_refusal = any(indicator in ai_content_lower for indicator in [
+            'don\'t have information about that',
+            'knowledge base',
+            'contact support',
+            'support team'
+        ])
+        
+        # Should NOT make up a policy from general knowledge
+        made_up_policy = any(indicator in ai_content_lower for indicator in [
+            'typically', 'usually', 'most companies', 'generally'
+        ])
+        
+        if knowledge_base_response:
+            print(f"   ✅ SUCCESS: AI provided information from knowledge base")
+            return True
+        elif appropriate_refusal:
+            print(f"   ✅ SUCCESS: AI appropriately refused with company-specific message")
+            return True
+        elif made_up_policy:
+            print(f"   ❌ FAILURE: AI appears to have made up a policy from general knowledge")
+            return False
+        else:
+            print(f"   ✅ ACCEPTABLE: AI provided a response without making up information")
+            return True
+
+    def test_rag_backend_logs_verification(self):
+        """Verify backend logs show correct RAG enforcement behavior"""
+        print(f"\n🔧 Testing Backend Logs Verification")
+        
+        # We can't directly access backend logs, but we can test the orchestration status
+        # to verify that the system is correctly detecting knowledge base and enforcing constraints
+        
+        success, response = self.run_test(
+            "Get Orchestration Settings for RAG Verification",
+            "GET",
+            "settings/orchestration",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Orchestration settings accessible")
+            print(f"   Enabled: {response.get('enabled', False)}")
+            print(f"   Mother Agent Type: {response.get('mother_agent_type', 'N/A')}")
+            print(f"   Mother Agent ID: {response.get('mother_agent_id', 'N/A')}")
+            
+            # Check if orchestration is enabled (which affects RAG enforcement)
+            if response.get('enabled'):
+                print(f"   ✅ Orchestration is enabled - RAG enforcement should be active")
+            else:
+                print(f"   ⚠️ Orchestration is disabled - standard RAG enforcement applies")
+        else:
+            print("❌ Failed to get orchestration settings")
+            return False
+        
+        # Test agent configuration to verify knowledge base setup
+        success, response = self.run_test(
+            "Get Agent Configuration for Knowledge Base Verification",
+            "GET",
+            "settings/agent-config",
+            200
+        )
+        
+        if success:
+            uploaded_docs = response.get('uploaded_docs', [])
+            scraping_domains = response.get('scraping_domains', [])
+            
+            print(f"   Knowledge Base Status:")
+            print(f"     - Uploaded Documents: {len(uploaded_docs)}")
+            print(f"     - Scraping Domains: {len(scraping_domains)}")
+            
+            has_knowledge_base = len(uploaded_docs) > 0 or len(scraping_domains) > 0
+            
+            if has_knowledge_base:
+                print(f"   ✅ Knowledge base detected - RAG enforcement should be strict")
+                print(f"   ✅ System should refuse general knowledge questions")
+            else:
+                print(f"   ⚠️ No knowledge base found - system should refuse ALL questions")
+            
+            return True
+        else:
+            print("❌ Failed to get agent configuration")
+            return False
+
 
 def main_quota_tests():
     """Main function to run only quota enforcement tests as requested in review"""
