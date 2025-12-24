@@ -1,4 +1,15 @@
 backend:
+  - task: "Company-Level Mother Agent Feature"
+    implemented: true
+    working: true
+    file: "server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ ALL TESTS PASSED: Company-Level Mother Agent feature is fully working. Successfully tested: 1) GET /api/settings/orchestration returns correct fields (mother_agent_type, mother_agent_id, mother_agent_name, allowed_child_agent_ids), 2) GET /api/agents/ returns 10 company agents, 3) GET /api/admin/agents returns 3 admin agents, 4) PUT orchestration config with company agent (E-commerce Support Agent) sets mother_agent_type='company' correctly, 5) PUT orchestration config with admin agent (Aida) sets mother_agent_type='admin' correctly, 6) Invalid company agent ID returns proper 404 error. Company-level agents take priority over admin-level agents as expected. All API endpoints working correctly with proper validation."
   - task: "RAG System Testing"
     implemented: true
     working: false
