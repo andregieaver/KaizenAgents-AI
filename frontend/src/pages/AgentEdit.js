@@ -1056,9 +1056,9 @@ const AgentEdit = () => {
                 <p className="font-medium mb-2">How it works:</p>
                 <ul className="text-muted-foreground space-y-1 text-xs">
                   <li>• <strong>Force:</strong> Always uses the selected language (best for single-language support)</li>
-                  <li>• <strong>Browser:</strong> Uses the visitor's browser language preference</li>
-                  <li>• <strong>Geo:</strong> Detects language based on visitor's location</li>
-                  <li>• <strong>Auto-detect:</strong> Matches the language used in the customer's message</li>
+                  <li>• <strong>Browser:</strong> Uses the visitor&apos;s browser language preference</li>
+                  <li>• <strong>Geo:</strong> Detects language based on visitor&apos;s location</li>
+                  <li>• <strong>Auto-detect:</strong> Matches the language used in the customer&apos;s message</li>
                 </ul>
               </div>
             </CardContent>
