@@ -568,8 +568,47 @@ async def register(user_data: UserCreate):
         }
     }
 
+# Auth rate limiter - prevents brute force attacks
+from collections import defaultdict
+import time
+
+class AuthRateLimiter:
+    def __init__(self, max_attempts: int = 5, window_seconds: int = 300):
+        self.max_attempts = max_attempts
+        self.window_seconds = window_seconds
+        self.attempts = defaultdict(list)
+    
+    def is_allowed(self, identifier: str) -> bool:
+        now = time.time()
+        cutoff = now - self.window_seconds
+        self.attempts[identifier] = [t for t in self.attempts[identifier] if t > cutoff]
+        
+        if len(self.attempts[identifier]) >= self.max_attempts:
+            return False
+        
+        self.attempts[identifier].append(now)
+        return True
+    
+    def get_remaining_time(self, identifier: str) -> int:
+        if not self.attempts[identifier]:
+            return 0
+        oldest = min(self.attempts[identifier])
+        return max(0, int(self.window_seconds - (time.time() - oldest)))
+
+auth_rate_limiter = AuthRateLimiter(max_attempts=5, window_seconds=300)
+
 @auth_router.post("/login", response_model=dict)
-async def login(credentials: UserLogin):
+async def login(credentials: UserLogin, request: Request):
+    # Rate limit by IP address
+    client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or (request.client.host if request.client else "unknown")
+    
+    if not auth_rate_limiter.is_allowed(client_ip):
+        remaining = auth_rate_limiter.get_remaining_time(client_ip)
+        raise HTTPException(
+            status_code=429, 
+            detail=f"Too many login attempts. Please try again in {remaining} seconds."
+        )
+    
     user = await db.users.find_one({"email": credentials.email}, {"_id": 0})
     if not user or not verify_password(credentials.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid credentials")
