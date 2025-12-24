@@ -203,16 +203,44 @@ class AIAgentHubTester:
         return success
 
     def test_agents_list(self):
+        """Test GET /api/agents (user agents)"""
+        success, response = self.run_test(
+            "List User Agents",
+            "GET",
+            "agents",
+            200
+        )
+        
+        if success and isinstance(response, list):
+            print(f"   Found {len(response)} user agents")
+            for agent in response:
+                print(f"   - {agent.get('name')} ({agent.get('category')})")
+                print(f"     ID: {agent.get('id')}")
+                if not self.agent_id:  # Use first agent for testing
+                    self.agent_id = agent.get('id')
+                    print(f"     Using agent ID for testing: {self.agent_id}")
+            
+            # If no user agents, try admin agents
+            if len(response) == 0:
+                print("   No user agents found, trying admin agents...")
+                return self.test_admin_agents_list()
+            
+            return True
+        else:
+            print("   No user agents found, trying admin agents...")
+            return self.test_admin_agents_list()
+
+    def test_admin_agents_list(self):
         """Test GET /api/admin/agents"""
         success, response = self.run_test(
-            "List AI Agents",
+            "List Admin Agents",
             "GET",
             "admin/agents",
             200
         )
         
         if success and isinstance(response, list):
-            print(f"   Found {len(response)} agents")
+            print(f"   Found {len(response)} admin agents")
             for agent in response:
                 print(f"   - {agent.get('name')} (Model: {agent.get('model')}, Provider: {agent.get('provider_name')})")
                 print(f"     Temperature: {agent.get('temperature')}, Max Tokens: {agent.get('max_tokens')}")
