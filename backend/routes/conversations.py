@@ -7,6 +7,7 @@ from typing import List, Optional, Literal, Dict, Any
 from datetime import datetime, timezone, timedelta
 import uuid
 import jwt
+import os
 
 from models import ConversationResponse, MessageCreate, MessageResponse
 from middleware import get_current_user, get_super_admin_user, get_admin_or_owner_user
