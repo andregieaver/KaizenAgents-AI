@@ -8,7 +8,9 @@ from datetime import datetime, timezone, timedelta
 from .database import get_db
 
 # JWT Config
-JWT_SECRET = os.environ.get('JWT_SECRET', 'your-super-secret-key-change-in-production')
+JWT_SECRET = os.environ.get('JWT_SECRET')
+if not JWT_SECRET:
+    raise ValueError('JWT_SECRET environment variable is required')
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = 24
 
