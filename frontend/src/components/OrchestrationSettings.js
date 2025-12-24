@@ -306,50 +306,110 @@ const OrchestrationSettings = () => {
             <CardHeader>
               <CardTitle className="font-heading text-lg flex items-center gap-2">
                 <Cpu className="h-5 w-5 text-primary" />
-                Mother Agent (Orchestrator)
+                Mother Agent (Coordinator)
               </CardTitle>
               <CardDescription>
-                Select the AI agent that will analyze requests and delegate to child agents
+                Select the AI agent that will analyze requests and delegate to specialized child agents.
+                You can use your own company agent as the coordinator.
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              {adminAgents.length === 0 ? (
-                <div className="flex items-center gap-2 text-muted-foreground p-4 border rounded-lg">
-                  <AlertCircle className="h-5 w-5" />
-                  <span>No admin agents available. Create agents in the Super Admin panel.</span>
+            <CardContent className="space-y-4">
+              {/* Current Selection */}
+              {orchestrationConfig.mother_agent_id && (
+                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-primary" />
+                    <span className="font-medium">Selected: {orchestrationConfig.mother_agent_name}</span>
+                    <Badge variant="outline" className="ml-2">
+                      {orchestrationConfig.mother_agent_type === 'admin' ? 'Admin Agent' : 'Company Agent'}
+                    </Badge>
+                  </div>
                 </div>
-              ) : (
-                <Select
-                  value={orchestrationConfig.mother_agent_id || ''}
-                  onValueChange={selectMotherAgent}
-                >
-                  <SelectTrigger className="w-full md:w-96">
-                    <SelectValue placeholder="Select Mother Agent" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {adminAgents.filter(a => a.is_active).map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        <div className="flex items-center gap-2">
-                          <Bot className="h-4 w-4" />
-                          <span>{agent.name}</span>
-                          <Badge variant="outline" className="ml-2 text-xs">
-                            {agent.model}
-                          </Badge>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               )}
               
-              {orchestrationConfig.mother_agent_id && (
-                <div className="mt-4 p-4 border rounded-lg bg-muted/50">
-                  <div className="flex items-start gap-2">
-                    <Info className="h-4 w-4 text-blue-500 mt-0.5" />
-                    <div className="text-sm text-muted-foreground">
-                      <p>The Mother agent will use the API key configured in its Admin Provider settings.</p>
-                      <p className="mt-1">Ensure the provider has sufficient credits for orchestration calls.</p>
-                    </div>
+              {/* Company Agents Section */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Bot className="h-4 w-4 text-blue-500" />
+                  Your Company Agents (Recommended)
+                </Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Use one of your own agents as the coordinator. This agent will use your knowledge base and configurations.
+                </p>
+                {userAgents.filter(a => a.is_active).length === 0 ? (
+                  <div className="flex items-center gap-2 text-muted-foreground p-3 border rounded-lg text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>No active company agents. Create agents in the Agents page first.</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {userAgents.filter(a => a.is_active).map((agent) => (
+                      <button
+                        key={agent.id}
+                        onClick={() => selectMotherAgent(agent.id, 'company')}
+                        className={cn(
+                          "p-3 rounded-lg border text-left transition-all",
+                          orchestrationConfig.mother_agent_id === agent.id && orchestrationConfig.mother_agent_type === 'company'
+                            ? "border-primary bg-primary/10"
+                            : "border-border hover:border-primary/50"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{agent.icon || '🤖'}</span>
+                            <span className="font-medium text-sm">{agent.name}</span>
+                          </div>
+                          {orchestrationConfig.mother_agent_id === agent.id && orchestrationConfig.mother_agent_type === 'company' && (
+                            <CheckCircle2 className="h-4 w-4 text-primary" />
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 truncate">
+                          {agent.description || 'No description'}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <Separator />
+              
+              {/* Admin Agents Section (Legacy/Advanced) */}
+              {adminAgents.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <Cpu className="h-4 w-4 text-amber-500" />
+                    System Agents (Advanced)
+                  </Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Admin-level agents created by super admins. Use these for system-wide orchestration.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                    {adminAgents.filter(a => a.is_active).map((agent) => (
+                      <button
+                        key={agent.id}
+                        onClick={() => selectMotherAgent(agent.id, 'admin')}
+                        className={cn(
+                          "p-3 rounded-lg border text-left transition-all",
+                          orchestrationConfig.mother_agent_id === agent.id && orchestrationConfig.mother_agent_type === 'admin'
+                            ? "border-amber-500 bg-amber-500/10"
+                            : "border-border hover:border-amber-500/50"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Bot className="h-4 w-4 text-amber-500" />
+                            <span className="font-medium text-sm">{agent.name}</span>
+                          </div>
+                          {orchestrationConfig.mother_agent_id === agent.id && orchestrationConfig.mother_agent_type === 'admin' && (
+                            <CheckCircle2 className="h-4 w-4 text-amber-500" />
+                          )}
+                        </div>
+                        <Badge variant="outline" className="mt-1 text-xs">
+                          {agent.model}
+                        </Badge>
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
