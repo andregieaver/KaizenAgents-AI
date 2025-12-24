@@ -55,7 +55,7 @@ class QuotaAlertService:
             "feature_key": feature_key,
             "alert_type": alert_type,
             "sent_at": {"$gte": cooldown_cutoff.isoformat()}
-        })
+        }, {"_id": 0})
         
         return recent_alert is not None
     
