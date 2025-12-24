@@ -7642,6 +7642,15 @@ def main():
         print(f"\n⚠️  {tester.tests_run - tester.tests_passed} tests failed - see details above")
         return 1
 
+def main_new_features():
+    """Run only the new features tests from review request"""
+    print("🚀 Starting New Features Backend Testing")
+    print("=" * 70)
+    
+    tester = AIAgentHubTester()
+    success = tester.run_new_features_tests()
+    return 0 if success else 1
+
 # ============== COMPANY-LEVEL MOTHER AGENT TESTS ==============
 
 def test_company_level_mother_agent_feature():
