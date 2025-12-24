@@ -7142,7 +7142,7 @@ def test_get_company_agents(tester):
     success, response = tester.run_test(
         "Get Company Agents List",
         "GET",
-        "agents",
+        "agents/",
         200
     )
     
