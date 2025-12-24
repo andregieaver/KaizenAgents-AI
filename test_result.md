@@ -55,7 +55,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Company-Level Mother Agent Feature"
+    - "Orchestration Settings Frontend Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
