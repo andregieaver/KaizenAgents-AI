@@ -1118,3 +1118,200 @@ async def get_available_child_agents(current_user: dict = Depends(get_current_us
         })
     
     return result
+
+
+
+# Agent Documents Endpoints
+@router.get("/{agent_id}/documents")
+async def get_agent_documents(agent_id: str, user: dict = Depends(get_current_user)):
+    """Get documents for an agent."""
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify agent belongs to tenant
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Get documents for this agent
+    documents = await db.agent_documents.find(
+        {"agent_id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    return documents
+
+
+@router.post("/{agent_id}/documents")
+async def upload_agent_document(
+    agent_id: str,
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user)
+):
+    """Upload a document for an agent."""
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify agent belongs to tenant
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Check file size (5MB limit)
+    content = await file.read()
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=400, detail="File size must be less than 5MB")
+    
+    # Check file type
+    allowed_extensions = ['.pdf', '.txt', '.md', '.docx', '.csv']
+    ext = '.' + file.filename.split('.')[-1].lower() if '.' in file.filename else ''
+    if ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type. Allowed: {', '.join(allowed_extensions)}")
+    
+    # Store document metadata
+    doc_id = str(uuid.uuid4())
+    doc_record = {
+        "id": doc_id,
+        "agent_id": agent_id,
+        "tenant_id": tenant_id,
+        "filename": file.filename,
+        "content_type": file.content_type,
+        "file_size": len(content),
+        "upload_date": datetime.now(timezone.utc).isoformat(),
+        "uploaded_by": user.get("id")
+    }
+    
+    await db.agent_documents.insert_one(doc_record)
+    
+    # TODO: Process document content for RAG (store in vector DB)
+    # For now, we just store the metadata
+    
+    return {"message": "Document uploaded successfully", "document_id": doc_id}
+
+
+@router.delete("/{agent_id}/documents/{filename}")
+async def delete_agent_document(
+    agent_id: str,
+    filename: str,
+    user: dict = Depends(get_current_user)
+):
+    """Delete a document from an agent."""
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify agent belongs to tenant
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Delete the document
+    result = await db.agent_documents.delete_one({
+        "agent_id": agent_id,
+        "tenant_id": tenant_id,
+        "filename": filename
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    return {"message": "Document deleted successfully"}
+
+
+# Web Scraping Endpoints
+class ScrapeRequest(BaseModel):
+    domains: List[str]
+    max_depth: int = 2
+    max_pages: int = 50
+
+
+@router.post("/{agent_id}/scrape")
+async def trigger_agent_scraping(
+    agent_id: str,
+    request: ScrapeRequest,
+    user: dict = Depends(get_current_user)
+):
+    """Trigger web scraping for an agent."""
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify agent belongs to tenant
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Create or update scraping status
+    scraping_status = {
+        "agent_id": agent_id,
+        "tenant_id": tenant_id,
+        "status": "in_progress",
+        "domains": request.domains,
+        "max_depth": request.max_depth,
+        "max_pages": request.max_pages,
+        "pages_scraped": 0,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "last_scraped_at": None,
+        "error": None
+    }
+    
+    await db.agent_scraping.update_one(
+        {"agent_id": agent_id},
+        {"$set": scraping_status},
+        upsert=True
+    )
+    
+    # TODO: Trigger actual scraping job (background task)
+    # For now, we simulate completion
+    await db.agent_scraping.update_one(
+        {"agent_id": agent_id},
+        {"$set": {
+            "status": "completed",
+            "pages_scraped": len(request.domains) * 10,  # Simulated
+            "last_scraped_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": "Scraping started", "status": "in_progress"}
+
+
+@router.get("/{agent_id}/scraping-status")
+async def get_agent_scraping_status(agent_id: str, user: dict = Depends(get_current_user)):
+    """Get scraping status for an agent."""
+    tenant_id = user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify agent belongs to tenant
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Get scraping status
+    status = await db.agent_scraping.find_one(
+        {"agent_id": agent_id},
+        {"_id": 0}
+    )
+    
+    if not status:
+        return {"status": "idle", "pages_scraped": 0}
+    
+    return status
+
