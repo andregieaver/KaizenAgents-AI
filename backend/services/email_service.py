@@ -17,7 +17,7 @@ class EmailService:
     @staticmethod
     async def get_sendgrid_settings() -> Optional[Dict[str, Any]]:
         """Get SendGrid configuration from database"""
-        settings = await db.platform_settings.find_one({"key": "sendgrid_integration"})
+        settings = await db.platform_settings.find_one({"key": "sendgrid_integration"}, {"_id": 0})
         if not settings or not settings.get("value"):
             return None
         
