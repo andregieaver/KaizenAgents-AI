@@ -1,13 +1,16 @@
 """
-Widget routes
+Widget routes - Public endpoints for chat widget
 """
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, BackgroundTasks, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import List, Optional, Literal, Dict, Any
 from datetime import datetime, timezone, timedelta
 import uuid
 import jwt
 import logging
+import time
+from collections import defaultdict
 
 from models import MessageCreate
 from middleware import get_current_user, get_super_admin_user, get_admin_or_owner_user
@@ -16,6 +19,43 @@ from middleware.auth import create_token, hash_password, verify_password, is_sup
 from routes.transfers import check_transfer_triggers
 
 logger = logging.getLogger(__name__)
+
+# Simple in-memory rate limiter for widget endpoints
+class WidgetRateLimiter:
+    def __init__(self, requests_per_minute: int = 60):
+        self.requests_per_minute = requests_per_minute
+        self.requests = defaultdict(list)
+    
+    def is_allowed(self, identifier: str) -> bool:
+        now = time.time()
+        minute_ago = now - 60
+        
+        # Clean old requests
+        self.requests[identifier] = [t for t in self.requests[identifier] if t > minute_ago]
+        
+        if len(self.requests[identifier]) >= self.requests_per_minute:
+            return False
+        
+        self.requests[identifier].append(now)
+        return True
+    
+    def get_client_id(self, request: Request) -> str:
+        """Get client identifier from request"""
+        forwarded = request.headers.get("X-Forwarded-For")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+        return request.client.host if request.client else "unknown"
+
+widget_rate_limiter = WidgetRateLimiter(requests_per_minute=60)
+
+async def check_widget_rate_limit(request: Request):
+    """Rate limit dependency for widget endpoints"""
+    client_id = widget_rate_limiter.get_client_id(request)
+    if not widget_rate_limiter.is_allowed(client_id):
+        raise HTTPException(
+            status_code=429,
+            detail="Too many requests. Please try again later."
+        )
 
 # Widget-specific models
 class WidgetSessionCreate(BaseModel):
@@ -35,7 +75,7 @@ class WidgetMessageCreate(BaseModel):
 router = APIRouter(prefix="/widget", tags=["widget"])
 
 @router.get("/{tenant_id}/settings")
-async def get_widget_settings(tenant_id: str):
+async def get_widget_settings(tenant_id: str, _: None = Depends(check_widget_rate_limit)):
     """Public endpoint to get widget configuration"""
     settings = await db.settings.find_one({"tenant_id": tenant_id}, {"_id": 0})
     if not settings:
