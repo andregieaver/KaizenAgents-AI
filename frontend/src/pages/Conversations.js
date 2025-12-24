@@ -9,13 +9,20 @@ import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Checkbox } from '../components/ui/checkbox';
-import { MessageSquare, Search, Filter, Users, Bot, User, Wand2, Clock, AlertCircle, Circle, CheckCircle, Trash2, Archive, Keyboard } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
+import { MessageSquare, Search, Filter, Users, Bot, User, Wand2, Clock, AlertCircle, Circle, CheckCircle, Trash2, Archive, Keyboard, Download, FileText } from 'lucide-react';
 import { formatDistanceToNow, differenceInHours } from 'date-fns';
 import { toast } from 'sonner';
 import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
 import KeyboardShortcutsHelp from '../components/KeyboardShortcutsHelp';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 // Helper: Check if conversation needs response (waiting for agent response > 1 hour)
 const needsResponse = (conversation) => {
