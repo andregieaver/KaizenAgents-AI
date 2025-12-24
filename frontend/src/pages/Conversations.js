@@ -229,15 +229,50 @@ const Conversations = () => {
           <h1 className="font-heading text-2xl lg:text-3xl font-bold tracking-tight mb-2">Conversations</h1>
           <p className="text-muted-foreground">Manage and respond to customer conversations</p>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShowShortcutsHelp(true)}
-          className="hidden sm:flex items-center gap-1 text-muted-foreground"
-        >
-          <Keyboard className="h-4 w-4" />
-          <span className="text-xs">Press ? for shortcuts</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowShortcutsHelp(true)}
+            className="hidden sm:flex items-center gap-1 text-muted-foreground"
+          >
+            <Keyboard className="h-4 w-4" />
+            <span className="text-xs">Press ? for shortcuts</span>
+          </Button>
+          
+          {/* Export Button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => {
+                window.open(`${BACKEND_URL}/api/conversations/export?format=csv`, '_blank');
+                toast.success('Downloading CSV...');
+              }}>
+                <FileText className="h-4 w-4 mr-2" />
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                window.open(`${BACKEND_URL}/api/conversations/export?format=json`, '_blank');
+                toast.success('Downloading JSON...');
+              }}>
+                <FileText className="h-4 w-4 mr-2" />
+                Export as JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                window.open(`${BACKEND_URL}/api/conversations/export?format=json&include_messages=true`, '_blank');
+                toast.success('Downloading JSON with messages...');
+              }}>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Export with Messages (JSON)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       
       {/* Bulk Actions Toolbar */}
