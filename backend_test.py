@@ -7046,8 +7046,19 @@ def main():
 if __name__ == "__main__":
     import sys
     
-    # Check if quota tests are requested
-    if len(sys.argv) > 1 and sys.argv[1] == "quota":
-        sys.exit(main_quota_tests())
+    # Check if specific test is requested
+    if len(sys.argv) > 1:
+        test_name = sys.argv[1]
+        
+        if test_name == "rag":
+            tester = AIAgentHubTester()
+            success = tester.run_rag_tests()
+            sys.exit(0 if success else 1)
+        elif test_name == "quota":
+            sys.exit(main_quota_tests())
+        else:
+            print(f"Unknown test: {test_name}")
+            print("Available tests: rag, quota")
+            sys.exit(1)
     else:
         sys.exit(main())
