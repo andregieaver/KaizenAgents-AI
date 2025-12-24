@@ -501,3 +501,60 @@ All requested mobile drag and drop improvements have been successfully implement
 - Phase 3 UX Enhancements: ✅ All working (COMPLETE)
 - Mobile Drag and Drop Fix: ✅ Implementation complete (requires mobile device validation)
 - Language Tab Feature: ✅ Implementation complete and production-ready
+
+## Company-Level Mother Agent Feature Test (2025-12-24)
+**Testing Agent**: Main Agent  
+**Test Focus**: Company-Level Mother Agent implementation for Orchestration
+
+### ✅ IMPLEMENTATION COMPLETE
+
+#### Backend Changes
+1. **models/orchestration.py**
+   - Added `mother_user_agent_id` field to `OrchestrationConfig` model
+   - Added `mother_user_agent_id` field to `OrchestrationConfigUpdate` model
+   - Added `mother_agent_type` field to `OrchestrationStatusResponse` model
+
+2. **server.py - GET /api/settings/orchestration**
+   - Updated to check for company-level mother agent first (priority)
+   - Falls back to admin-level mother agent if no company agent selected
+   - Returns `mother_agent_type` field ('admin' or 'company')
+
+3. **server.py - PUT /api/settings/orchestration**
+   - Added validation for `mother_user_agent_id` (company agents)
+   - Validates that company agent belongs to the tenant
+
+4. **server.py - generate_ai_response**
+   - Updated to check for either admin or company-level mother agent
+
+5. **services/orchestrator.py**
+   - Updated `initialize()` to load either admin or company mother agent
+   - Company-level agent takes priority over admin-level
+   - Added `mother_agent_type` tracking
+   - Updated audit log to track which type of mother agent was used
+
+#### Frontend (Already Implemented)
+- OrchestrationSettings.js correctly displays both company and admin agents
+- Selecting company agent sends `mother_user_agent_id`
+- Selecting admin agent sends `mother_admin_agent_id`
+- UI shows correct badge ("Company Agent" vs "Admin Agent")
+
+### 🧪 TEST RESULTS
+
+#### Test 1: Select Company Agent as Mother
+- **Action**: Clicked "E-commerce Support Agent" 
+- **Result**: ✅ PASSED
+- **Verification**: API returns `mother_agent_type: "company"`
+
+#### Test 2: Switch Back to Admin Agent
+- **Action**: Clicked "Aida" admin agent
+- **Result**: ✅ PASSED
+- **Verification**: API returns `mother_agent_type: "admin"`
+
+#### Test 3: API Response Structure
+- **Endpoint**: GET /api/settings/orchestration
+- **New Fields**: `mother_agent_type`, `allowed_child_agent_ids`
+- **Result**: ✅ All fields returned correctly
+
+### 📊 FEATURE STATUS: ✅ COMPLETE
+
+**Summary**: Companies can now select their own agents as "Mother Agents" for orchestration, giving them full autonomy over their multi-agent orchestration setup without depending on system-wide admin agents.
