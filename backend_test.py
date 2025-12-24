@@ -6574,58 +6574,54 @@ Policies:
         success, response = self.run_test(
             "Upload RAG Test Document",
             "POST",
-            f"agents/{self.agent_id}/documents",
+            "settings/agent-config/upload-doc",
             200,
             files=files
         )
         
         if success:
             print(f"   ✅ Document uploaded successfully")
-            print(f"   Document ID: {response.get('id', 'N/A')}")
+            print(f"   Status: {response.get('status', 'N/A')}")
             print(f"   Filename: {response.get('filename', 'N/A')}")
-            print(f"   File Size: {response.get('file_size', 'N/A')} bytes")
+            print(f"   Chunks Processed: {response.get('chunks_processed', 0)}")
             
-            # Store document ID for cleanup
-            self.test_document_id = response.get('id')
+            # Store document info for cleanup
+            self.test_document_filename = response.get('filename')
             return True
         else:
             print(f"   ❌ Document upload failed")
             return False
     
     def test_get_agent_documents(self):
-        """Get agent documents to verify upload"""
-        print(f"\n🔧 Testing Get Agent Documents")
-        
-        if not self.agent_id:
-            print("❌ No agent ID available")
-            return False
+        """Get company agent config to verify document upload"""
+        print(f"\n🔧 Testing Get Company Agent Config")
             
         success, response = self.run_test(
-            "Get Agent Documents",
+            "Get Company Agent Config",
             "GET",
-            f"agents/{self.agent_id}/documents",
+            "settings/agent-config",
             200
         )
         
         if success:
-            documents = response if isinstance(response, list) else []
-            print(f"   ✅ Found {len(documents)} documents")
+            uploaded_docs = response.get('uploaded_docs', [])
+            print(f"   ✅ Found {len(uploaded_docs)} uploaded documents")
             
             # Look for our test document
             test_doc_found = False
-            for doc in documents:
+            for doc in uploaded_docs:
                 if 'acme_corp_info.txt' in doc.get('filename', ''):
                     test_doc_found = True
                     print(f"   ✅ Test document found: {doc.get('filename')}")
-                    print(f"   Document ID: {doc.get('id')}")
+                    print(f"   File Size: {doc.get('file_size')} bytes")
                     break
             
             if not test_doc_found:
-                print(f"   ⚠️ Test document not found in agent documents")
+                print(f"   ⚠️ Test document not found in uploaded documents")
                 
             return True
         else:
-            print(f"   ❌ Failed to get agent documents")
+            print(f"   ❌ Failed to get company agent config")
             return False
     
     def test_rag_widget_session(self):
