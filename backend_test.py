@@ -6762,11 +6762,11 @@ Policies:
         print(f"\n🔧 Testing Empty Knowledge Base Scenario")
         
         # First, delete the test document to simulate empty knowledge base
-        if hasattr(self, 'test_document_id') and self.test_document_id:
+        if hasattr(self, 'test_document_filename') and self.test_document_filename:
             success, response = self.run_test(
                 "Delete Test Document",
                 "DELETE",
-                f"agents/{self.agent_id}/documents/{self.test_document_id}",
+                f"settings/agent-config/docs/{self.test_document_filename}",
                 200
             )
             
