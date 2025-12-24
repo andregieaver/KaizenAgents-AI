@@ -408,8 +408,8 @@ Current user request: {user_prompt}"""
                 logger.error(f"RAG retrieval in orchestration failed: {str(e)}")
                 # Continue without context but maintain has_knowledge_base if it was set
             
-            # Build orchestration prompt WITH knowledge context
-            system_prompt = self.build_orchestration_prompt(user_prompt, children, knowledge_context)
+            # Build orchestration prompt WITH knowledge context and knowledge base flag
+            system_prompt = self.build_orchestration_prompt(user_prompt, children, knowledge_context, has_knowledge_base)
             
             # Get provider for Mother agent
             provider = await db.providers.find_one(
