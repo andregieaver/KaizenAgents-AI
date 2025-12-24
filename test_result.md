@@ -10,6 +10,9 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ ALL TESTS PASSED: Company-Level Mother Agent feature is fully working. Successfully tested: 1) GET /api/settings/orchestration returns correct fields (mother_agent_type, mother_agent_id, mother_agent_name, allowed_child_agent_ids), 2) GET /api/agents/ returns 10 company agents, 3) GET /api/admin/agents returns 3 admin agents, 4) PUT orchestration config with company agent (E-commerce Support Agent) sets mother_agent_type='company' correctly, 5) PUT orchestration config with admin agent (Aida) sets mother_agent_type='admin' correctly, 6) Invalid company agent ID returns proper 404 error. Company-level agents take priority over admin-level agents as expected. All API endpoints working correctly with proper validation."
+      - working: true
+        agent: "testing"
+        comment: "✅ COMPREHENSIVE TESTING COMPLETED: Performed detailed testing as per review request with credentials andre@humanweb.no/Pernilla66! and tenant ID 1c752635-c958-435d-8a48-a1f1209cccd4. PART 1 PASSED: Successfully set E-commerce Support Agent (ID: 7b883064-2b02-4f70-9f12-7942d3229f71) as company-level mother agent, verified mother_agent_type='company', tested widget with company mother agent enforcing RAG restrictions (correctly refused 'What is 2+2?' question), and successfully switched back to admin agent (mother_agent_type='admin'). All orchestration endpoints working correctly with proper validation between company and admin agents."
   - task: "RAG System Testing"
     implemented: true
     working: true
