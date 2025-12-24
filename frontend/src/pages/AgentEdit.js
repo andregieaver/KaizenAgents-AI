@@ -35,10 +35,14 @@ import {
   EyeOff,
   Link,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Languages
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { ScrollArea } from '../components/ui/scroll-area';
+import { LanguageSelector } from '../components/LanguageSelector';
+import { getLanguageName } from '../data/languages';
+import { cn } from '../lib/utils';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
