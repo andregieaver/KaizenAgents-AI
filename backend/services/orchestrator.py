@@ -352,31 +352,61 @@ Current user request: {user_prompt}"""
             
             # Retrieve RAG context for knowledge base enforcement
             knowledge_context = ""
+            has_knowledge_base = False
+            
             try:
                 from services.rag_service import retrieve_relevant_chunks, format_context_for_agent
                 
-                # Get the active agent config to find which agent's knowledge to use
-                config = await db.company_agent_configs.find_one(
-                    {"company_id": self.tenant_id},
-                    {"_id": 0}
-                )
-                agent_id = config.get("agent_id") if config else None
-                
-                if agent_id:
-                    relevant_chunks = await retrieve_relevant_chunks(
-                        query=user_prompt,
-                        company_id=self.tenant_id,
-                        agent_id=agent_id,
-                        db=db,
-                        top_k=5
+                # Determine which agent's knowledge to use:
+                # - For company mother agents: use the mother agent's own knowledge
+                # - For admin mother agents: use the company's primary agent's knowledge
+                if self.mother_agent_type == "company":
+                    # Use the company mother agent's knowledge base
+                    knowledge_agent_id = self.mother_agent["id"]
+                    logger.info(f"Using company mother agent's knowledge: {knowledge_agent_id}")
+                else:
+                    # Use the company's primary agent's knowledge base
+                    config = await db.company_agent_configs.find_one(
+                        {"company_id": self.tenant_id},
+                        {"_id": 0}
                     )
+                    knowledge_agent_id = config.get("agent_id") if config else None
+                    logger.info(f"Using company primary agent's knowledge: {knowledge_agent_id}")
+                
+                if knowledge_agent_id:
+                    # Check if this agent has any knowledge base (documents or scraped content)
+                    doc_count = await db.knowledge_chunks.count_documents({
+                        "agent_id": knowledge_agent_id,
+                        "tenant_id": self.tenant_id
+                    })
                     
-                    if relevant_chunks:
-                        knowledge_context = format_context_for_agent(relevant_chunks)
-                        logger.info(f"Retrieved {len(relevant_chunks)} chunks for orchestration")
+                    # Also check agent_documents collection
+                    agent_doc_count = await db.agent_documents.count_documents({
+                        "agent_id": knowledge_agent_id,
+                        "tenant_id": self.tenant_id
+                    })
+                    
+                    has_knowledge_base = (doc_count > 0) or (agent_doc_count > 0)
+                    logger.info(f"Knowledge base check: chunks={doc_count}, docs={agent_doc_count}, has_kb={has_knowledge_base}")
+                    
+                    if has_knowledge_base:
+                        # Try to retrieve relevant chunks for the user's question
+                        relevant_chunks = await retrieve_relevant_chunks(
+                            query=user_prompt,
+                            company_id=self.tenant_id,
+                            agent_id=knowledge_agent_id,
+                            db=db,
+                            top_k=5
+                        )
+                        
+                        if relevant_chunks:
+                            knowledge_context = format_context_for_agent(relevant_chunks)
+                            logger.info(f"Retrieved {len(relevant_chunks)} chunks for orchestration")
+                        else:
+                            logger.info(f"No relevant chunks found for query: {user_prompt[:50]}...")
             except Exception as e:
                 logger.error(f"RAG retrieval in orchestration failed: {str(e)}")
-                # Continue without context
+                # Continue without context but maintain has_knowledge_base if it was set
             
             # Build orchestration prompt WITH knowledge context
             system_prompt = self.build_orchestration_prompt(user_prompt, children, knowledge_context)
