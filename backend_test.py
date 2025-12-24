@@ -7954,9 +7954,11 @@ if __name__ == "__main__":
         elif test_name == "mother_agent":
             success = test_company_level_mother_agent_feature()
             sys.exit(0 if success else 1)
+        elif test_name == "new_features":
+            sys.exit(main_new_features())
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: rag, rag_enforcement, quota, mother_agent")
+            print("Available tests: rag, rag_enforcement, quota, mother_agent, new_features")
             sys.exit(1)
     else:
         sys.exit(main())
