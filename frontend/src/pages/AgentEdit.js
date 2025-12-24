@@ -687,10 +687,14 @@ const AgentEdit = () => {
       </div>
 
       <Tabs defaultValue="configuration" className="space-y-4 sm:space-y-6">
-        <TabsList className="w-full sm:w-auto flex">
+        <TabsList className="w-full sm:w-auto flex flex-wrap">
           <TabsTrigger value="configuration" className="flex-1 sm:flex-none">
             <Settings className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Configuration</span>
+          </TabsTrigger>
+          <TabsTrigger value="knowledge" className="flex-1 sm:flex-none">
+            <Database className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Knowledge</span>
           </TabsTrigger>
           <TabsTrigger value="language" className="flex-1 sm:flex-none">
             <Languages className="h-4 w-4 sm:mr-2" />
