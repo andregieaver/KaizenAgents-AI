@@ -114,12 +114,19 @@ class OrchestratorService:
         
         return children_info
     
-    def build_orchestration_prompt(self, user_prompt: str, children: List[Dict[str, Any]], knowledge_context: str = "") -> str:
-        """Build the system prompt for the Mother agent to decide on delegation"""
+    def build_orchestration_prompt(self, user_prompt: str, children: List[Dict[str, Any]], knowledge_context: str = "", has_knowledge_base: bool = False) -> str:
+        """Build the system prompt for the Mother agent to decide on delegation
+        
+        Args:
+            user_prompt: The user's question
+            children: List of available child agents
+            knowledge_context: Retrieved relevant content from knowledge base
+            has_knowledge_base: Whether any knowledge base exists (documents/scraped content)
+        """
         children_json = json.dumps(children, indent=2)
         
-        # If there's knowledge context, use strict RAG mode
-        if knowledge_context:
+        # If there's knowledge context with actual content, use it
+        if knowledge_context and knowledge_context.strip():
             return f"""You are an orchestrator AI for a customer support system.
 
 CRITICAL RESTRICTIONS - YOU MUST FOLLOW THESE:
@@ -151,8 +158,37 @@ When processing a request:
 5. If neither knowledge nor child agents can help, politely say you don't have that information
 
 Current user request: {user_prompt}"""
+        elif has_knowledge_base:
+            # Knowledge base exists but no relevant content found for this query
+            # This is the CRITICAL case - must refuse general knowledge questions
+            return f"""You are an orchestrator AI for a customer support system.
+
+CRITICAL: The customer asked a question that is NOT covered in our company documentation.
+
+You have access to these child agents for specific tasks (orders, products only):
+{children_json}
+
+STRICT RULES:
+1. If a child agent can handle the request (like checking orders), delegate using JSON format below
+2. For ALL OTHER questions, you MUST respond EXACTLY with: "I don't have information about that topic in my knowledge base. Is there something else I can help you with regarding our products and services?"
+3. NEVER answer general knowledge questions (geography, history, science, math, celebrities, etc.)
+4. NEVER use your AI knowledge to answer anything
+5. If someone asks "what is the capital of France" or ANY general question, respond: "I can only help with questions about our company and services."
+
+For delegation ONLY, respond with this JSON format:
+{{
+  "delegate": true,
+  "child_agent_id": "<agent_id>",
+  "action_type": "<action_type>",
+  "parameters": {{}},
+  "reasoning": "<brief explanation>"
+}}
+
+Current user request: {user_prompt}
+
+Remember: If this is NOT about checking orders/products that a child agent can handle, you MUST refuse to answer."""
         else:
-            # No knowledge base - very restricted mode
+            # No knowledge base at all - very restricted mode
             return f"""You are an orchestrator AI for a customer support system.
 
 CRITICAL: There is NO company knowledge base configured yet.
