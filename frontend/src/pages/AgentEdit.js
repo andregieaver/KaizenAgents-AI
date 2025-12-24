@@ -169,6 +169,122 @@ const AgentEdit = () => {
     const provider = providers.find(p => p.id === providerId);
     return provider?.models || [];
   };
+  
+  // Format file size
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+  
+  // Fetch agent documents
+  const fetchAgentDocuments = async (agentIdToFetch) => {
+    try {
+      const response = await axios.get(`${API}/agents/${agentIdToFetch}/documents`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUploadedDocs(response.data || []);
+    } catch (error) {
+      console.error('Error fetching documents:', error);
+    }
+  };
+  
+  // Handle file upload for knowledge base
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Check file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+    
+    // Check file type
+    const allowedTypes = ['.pdf', '.txt', '.md', '.docx', '.csv'];
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+    if (!allowedTypes.includes(ext)) {
+      toast.error('Unsupported file type. Please upload PDF, TXT, MD, DOCX, or CSV files.');
+      return;
+    }
+    
+    setUploading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      await axios.post(`${API}/agents/${agent.id}/documents`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      toast.success('Document uploaded successfully');
+      fetchAgentDocuments(agent.id);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to upload document');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+  
+  // Handle document deletion
+  const handleDeleteDocument = async (filename) => {
+    if (!window.confirm(`Delete "${filename}"? This cannot be undone.`)) return;
+    
+    try {
+      await axios.delete(`${API}/agents/${agent.id}/documents/${encodeURIComponent(filename)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Document deleted');
+      fetchAgentDocuments(agent.id);
+    } catch (error) {
+      toast.error('Failed to delete document');
+    }
+  };
+  
+  // Trigger web scraping
+  const handleTriggerScraping = async () => {
+    const domains = agent.config?.scraping_domains;
+    if (!domains) {
+      toast.error('Please enter at least one domain to scrape');
+      return;
+    }
+    
+    setScraping(true);
+    try {
+      const response = await axios.post(`${API}/agents/${agent.id}/scrape`, {
+        domains: domains.split(',').map(d => d.trim()).filter(Boolean),
+        max_depth: agent.config?.scraping_max_depth || 2,
+        max_pages: agent.config?.scraping_max_pages || 50
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setScrapingStatus(response.data);
+      toast.success('Scraping started. This may take a few minutes.');
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to start scraping');
+    } finally {
+      setScraping(false);
+    }
+  };
+  
+  // Fetch scraping status
+  const fetchScrapingStatus = async (agentIdToFetch) => {
+    try {
+      const response = await axios.get(`${API}/agents/${agentIdToFetch}/scraping-status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setScrapingStatus(response.data);
+    } catch (error) {
+      // Silently fail - scraping might not be configured
+    }
+  };
 
   // Fetch available providers
   useEffect(() => {
