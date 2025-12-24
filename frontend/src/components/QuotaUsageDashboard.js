@@ -50,7 +50,6 @@ const QuotaUsageDashboard = () => {
       setUsage(usageRes.data);
       setSubscription(subRes.data);
     } catch (error) {
-      console.error('Error loading quota usage:', error);
       toast.error('Failed to load quota usage');
     } finally {
       setLoading(false);

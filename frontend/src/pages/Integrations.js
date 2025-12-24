@@ -107,7 +107,6 @@ const Integrations = () => {
         }));
       }
     } catch (error) {
-      console.error('Error fetching integration settings:', error);
       toast.error('Failed to load integration settings');
     } finally {
       setLoading(false);

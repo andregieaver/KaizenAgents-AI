@@ -134,7 +134,6 @@ const AgentEdit = () => {
       });
       setUploadedDocs(response.data || []);
     } catch (error) {
-      console.error('Error fetching documents:', error);
     }
   };
 
@@ -249,7 +248,6 @@ const AgentEdit = () => {
           }));
         }
       } catch (error) {
-        console.error('Error fetching providers:', error);
       } finally {
         setLoadingProviders(false);
       }
@@ -296,7 +294,6 @@ const AgentEdit = () => {
       fetchAgentDocuments(agentId);
       fetchScrapingStatus(agentId);
     } catch (error) {
-      console.error('Error fetching agent:', error);
       toast.error('Failed to load agent');
       navigate('/dashboard/agents');
     } finally {

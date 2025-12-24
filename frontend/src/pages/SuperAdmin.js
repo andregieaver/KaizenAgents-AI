@@ -71,7 +71,6 @@ const SuperAdmin = () => {
       setTenants(tenantsRes.data);
       setUsers(usersRes.data);
     } catch (error) {
-      console.error('Error fetching admin data:', error);
     } finally {
       setLoading(false);
     }

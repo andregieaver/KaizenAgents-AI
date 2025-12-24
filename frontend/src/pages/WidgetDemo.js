@@ -47,7 +47,6 @@ const WidgetDemo = () => {
           }]);
         }
       } catch (error) {
-        console.error('Error initializing session:', error);
       } finally {
         setLoading(false);
       }
@@ -85,7 +84,6 @@ const WidgetDemo = () => {
         setMessages(prev => [...prev, response.data.ai_message]);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         author_type: 'ai',

@@ -99,7 +99,6 @@ const OrchestrationSettings = () => {
         setSelectedChildren(configRes.data.allowed_child_agent_ids);
       }
     } catch (error) {
-      console.error('Error fetching orchestration data:', error);
       toast.error('Failed to load orchestration settings');
     } finally {
       setLoading(false);
@@ -114,7 +113,6 @@ const OrchestrationSettings = () => {
       });
       setOrchestrationRuns(response.data || []);
     } catch (error) {
-      console.error('Error fetching runs:', error);
     } finally {
       setLoadingRuns(false);
     }

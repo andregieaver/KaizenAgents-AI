@@ -59,7 +59,6 @@ const PlanManagement = () => {
       });
       setPlans(response.data);
     } catch (error) {
-      console.error('Error fetching plans:', error);
       toast.error('Failed to load plans');
     } finally {
       setLoading(false);

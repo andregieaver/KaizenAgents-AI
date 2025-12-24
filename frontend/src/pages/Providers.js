@@ -53,7 +53,6 @@ const Providers = () => {
       });
       setProviders(response.data);
     } catch (error) {
-      console.error('Error fetching providers:', error);
       toast.error('Failed to load providers');
     } finally {
       setLoading(false);

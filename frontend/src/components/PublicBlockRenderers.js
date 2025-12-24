@@ -271,7 +271,6 @@ export const PricingCardsBlock = ({ block }) => {
         const publicPlans = data.filter(p => p.is_public).sort((a, b) => a.sort_order - b.sort_order);
         setPlans(publicPlans);
       } catch (error) {
-        console.error('Failed to fetch pricing plans:', error);
       } finally {
         setLoading(false);
       }
@@ -542,7 +541,6 @@ const AgentGridBlockComponent = ({ block }) => {
         setAgents(response.data);
         setFilteredAgents(response.data);
       } catch (error) {
-        console.error('Error fetching agents:', error);
       } finally {
         setLoading(false);
       }

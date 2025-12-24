@@ -66,7 +66,6 @@ const Profile = () => {
       setEditName(response.data.name);
       setAvatarUrl(response.data.avatar_url || '');
     } catch (error) {
-      console.error('Error fetching profile:', error);
       toast.error('Failed to load profile');
     } finally {
       setLoading(false);

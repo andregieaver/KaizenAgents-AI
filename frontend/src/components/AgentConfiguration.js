@@ -78,7 +78,6 @@ const AgentConfiguration = () => {
       // Fetch scraping status
       fetchScrapingStatus();
     } catch (error) {
-      console.error('Error fetching data:', error);
       toast.error('Failed to load agent configuration');
     } finally {
       setLoading(false);
@@ -92,7 +91,6 @@ const AgentConfiguration = () => {
       });
       setScrapingStatus(response.data);
     } catch (error) {
-      console.error('Error fetching scraping status:', error);
     }
   };
 

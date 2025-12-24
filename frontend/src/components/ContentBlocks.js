@@ -89,7 +89,6 @@ const MenuBlockEditor = ({ block, updateBlock }) => {
       });
       setMenus(response.data);
     } catch (error) {
-      console.error('Error fetching menus:', error);
     } finally {
       setLoading(false);
     }

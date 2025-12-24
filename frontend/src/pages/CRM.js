@@ -333,7 +333,6 @@ const CRM = () => {
       setCustomers(customersRes.data);
       setStats(statsRes.data);
     } catch (error) {
-      console.error('Error fetching CRM data:', error);
     } finally {
       setLoading(false);
     }

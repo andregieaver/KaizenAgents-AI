@@ -84,7 +84,6 @@ const FeatureGatesAdmin = () => {
       setCategories(['all', ...(categoriesRes.data.categories || [])]);
       setHasChanges(false);
     } catch (error) {
-      console.error('Error loading feature gates:', error);
       toast.error(error.response?.data?.detail || 'Failed to load feature gates');
     } finally {
       setLoading(false);
@@ -99,7 +98,6 @@ const FeatureGatesAdmin = () => {
       });
       setSeatPricing(response.data || []);
     } catch (error) {
-      console.error('Error loading seat pricing:', error);
       // Don't show error toast - pricing might not be configured yet
     } finally {
       setLoadingSeatPricing(false);
@@ -137,7 +135,6 @@ const FeatureGatesAdmin = () => {
       setEditingPlan(null);
       loadSeatPricing();
     } catch (error) {
-      console.error('Error saving seat pricing:', error);
       toast.error(error.response?.data?.detail || 'Failed to save seat pricing');
     } finally {
       setSavingSeatPrice(false);
@@ -154,7 +151,6 @@ const FeatureGatesAdmin = () => {
       toast.success('Seat pricing synced to Stripe successfully!');
       loadSeatPricing();
     } catch (error) {
-      console.error('Error syncing seat pricing to Stripe:', error);
       toast.error(error.response?.data?.detail || 'Failed to sync to Stripe. Make sure Stripe is configured.');
     } finally {
       setSyncingSeatPricing(null);
@@ -171,7 +167,6 @@ const FeatureGatesAdmin = () => {
       });
       setAgentPricing(response.data || []);
     } catch (error) {
-      console.error('Error loading agent pricing:', error);
     } finally {
       setLoadingAgentPricing(false);
     }
@@ -233,7 +228,6 @@ const FeatureGatesAdmin = () => {
       });
       setConversationPricing(response.data || []);
     } catch (error) {
-      console.error('Error loading conversation pricing:', error);
     } finally {
       setLoadingConversationPricing(false);
     }
@@ -324,7 +318,6 @@ const FeatureGatesAdmin = () => {
       toast.success('Feature gate configuration saved!');
       setHasChanges(false);
     } catch (error) {
-      console.error('Error saving config:', error);
       toast.error(error.response?.data?.detail || 'Failed to save configuration');
     } finally {
       setSaving(false);

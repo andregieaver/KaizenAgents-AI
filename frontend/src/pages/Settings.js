@@ -66,7 +66,6 @@ const Settings = () => {
           setApiKey('');
         }
       } catch (error) {
-        console.error('Error fetching settings:', error);
         toast.error('Failed to load settings');
       } finally {
         setLoading(false);
@@ -199,7 +198,6 @@ const Settings = () => {
         }
       }
     } catch (err) {
-      console.error('Failed to copy:', err);
       toast.error('Failed to copy. Please copy manually.');
     }
   };

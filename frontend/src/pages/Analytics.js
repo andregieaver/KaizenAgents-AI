@@ -93,7 +93,6 @@ const Analytics = () => {
       setAgentPerformance(agentsRes.data.agents || []);
       setSentimentSummary(sentimentRes.data);
     } catch (error) {
-      console.error('Error fetching analytics:', error);
     } finally {
       setLoading(false);
     }

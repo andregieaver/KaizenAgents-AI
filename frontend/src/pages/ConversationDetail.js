@@ -136,7 +136,6 @@ const ConversationDetail = () => {
         // Fetch CRM link status
         fetchCrmStatus(convRes.data.id);
       } catch (error) {
-        console.error('Error fetching conversation:', error);
         toast.error('Failed to load conversation');
       } finally {
         setLoading(false);
@@ -250,7 +249,6 @@ const ConversationDetail = () => {
         tone: response.data.tone || 0
       });
     } catch (error) {
-      console.error('Error analyzing sentiment:', error);
     } finally {
       setAnalyzingSentiment(false);
     }
@@ -312,7 +310,6 @@ const ConversationDetail = () => {
       );
       setSuggestions(response.data.suggestions || []);
     } catch (error) {
-      console.error('Error fetching suggestions:', error);
       setSuggestions([]);
     } finally {
       setLoadingSuggestions(false);
@@ -333,7 +330,6 @@ const ConversationDetail = () => {
       setConversation(response.data);
       toast.success(`Status changed to ${status}`);
     } catch (error) {
-      console.error('Status change error:', error);
       toast.error(error.response?.data?.detail || 'Failed to change status');
     }
   };

@@ -60,7 +60,6 @@ const AdminPagesList = () => {
       });
       setPages(response.data);
     } catch (error) {
-      console.error('Error fetching pages:', error);
       toast.error('Failed to load pages');
     } finally {
       setLoading(false);

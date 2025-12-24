@@ -95,7 +95,6 @@ const EmailTemplates = () => {
       });
       setTemplates(response.data || []);
     } catch (error) {
-      console.error('Error fetching email templates:', error);
       toast.error('Failed to load email templates');
     } finally {
       setLoading(false);
@@ -129,7 +128,6 @@ const EmailTemplates = () => {
       setEditModalOpen(false);
       fetchTemplates();
     } catch (error) {
-      console.error('Error saving template:', error);
       toast.error(error.response?.data?.detail || 'Failed to save template');
     } finally {
       setSaving(false);
@@ -151,7 +149,6 @@ const EmailTemplates = () => {
       setPreviewContent(response.data);
       setPreviewModalOpen(true);
     } catch (error) {
-      console.error('Error previewing template:', error);
       toast.error('Failed to generate preview');
     } finally {
       setPreviewing(false);
@@ -187,7 +184,6 @@ const EmailTemplates = () => {
       
       fetchTemplates();
     } catch (error) {
-      console.error('Error resetting template:', error);
       toast.error(error.response?.data?.detail || 'Failed to reset template');
     } finally {
       setResetting(false);
@@ -215,7 +211,6 @@ const EmailTemplates = () => {
       setShowTestEmailInput(false);
       setTestEmailAddress('');
     } catch (error) {
-      console.error('Error sending test email:', error);
       toast.error(error.response?.data?.detail || 'Failed to send test email');
     } finally {
       setSendingTest(false);

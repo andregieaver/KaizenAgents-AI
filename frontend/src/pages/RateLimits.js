@@ -60,7 +60,6 @@ const RateLimits = () => {
       });
       setRateLimits(response.data.rate_limits || []);
     } catch (error) {
-      console.error('Error fetching rate limits:', error);
       toast.error('Failed to load rate limits');
     } finally {
       setLoading(false);

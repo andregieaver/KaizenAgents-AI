@@ -53,7 +53,6 @@ const CustomPage = () => {
       const response = await axios.get(`${API}/admin/pages/public/${pageSlug}`);
       setPage(response.data);
     } catch (error) {
-      console.error('Error fetching page:', error);
       setError(error.response?.status === 404 ? 'Page not found' : 'Failed to load page');
     } finally {
       setLoading(false);

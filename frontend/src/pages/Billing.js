@@ -72,9 +72,7 @@ const Billing = () => {
               toast.info('Payment received. Activating your subscription...');
             }
           } catch (error) {
-            console.error('Error verifying checkout:', error);
             const errorDetail = error.response?.data?.detail || error.message;
-            console.error('Error detail:', errorDetail);
             toast.error(`Subscription activation failed: ${errorDetail}`, {
               description: 'Please contact support if the issue persists.'
             });
@@ -132,7 +130,6 @@ const Billing = () => {
       fetchConversationAllocation();
       fetchPlans();
     } catch (error) {
-      console.error('Error fetching billing data:', error);
       toast.error('Failed to load billing information');
     } finally {
       setLoading(false);
@@ -148,7 +145,6 @@ const Billing = () => {
       });
       setInvoices(response.data.invoices || []);
     } catch (error) {
-      console.error('Error fetching invoices:', error);
       // Don't show error toast for invoices - just silently fail
     } finally {
       setLoadingInvoices(false);
@@ -163,7 +159,6 @@ const Billing = () => {
       setSeatAllocation(response.data);
       setSeatSliderValue(response.data.current_seats);
     } catch (error) {
-      console.error('Error fetching seat allocation:', error);
     }
   };
 
@@ -175,7 +170,6 @@ const Billing = () => {
       setAgentAllocation(response.data);
       setAgentSliderValue(response.data.current_agents);
     } catch (error) {
-      console.error('Error fetching agent allocation:', error);
     }
   };
 
@@ -187,7 +181,6 @@ const Billing = () => {
       setConversationAllocation(response.data);
       setConversationSliderValue(response.data.current_conversations);
     } catch (error) {
-      console.error('Error fetching conversation allocation:', error);
     }
   };
 
@@ -198,7 +191,6 @@ const Billing = () => {
       });
       setPlans(response.data || []);
     } catch (error) {
-      console.error('Error fetching plans:', error);
     }
   };
 

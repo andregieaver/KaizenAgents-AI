@@ -33,7 +33,6 @@ const MenuEditor = () => {
       setMenuName(response.data.name);
       setItems(response.data.items || []);
     } catch (error) {
-      console.error('Error fetching menu:', error);
       alert('Failed to load menu');
     } finally {
       setLoading(false);
@@ -66,7 +65,6 @@ const MenuEditor = () => {
 
       navigate('/dashboard/admin/menus');
     } catch (error) {
-      console.error('Error saving menu:', error);
       alert('Failed to save menu');
     } finally {
       setSaving(false);

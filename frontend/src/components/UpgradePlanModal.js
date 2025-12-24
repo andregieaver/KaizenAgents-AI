@@ -68,7 +68,6 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
         display_name: usageRes.data.plan_display_name
       });
     } catch (error) {
-      console.error('Error loading plans:', error);
       toast.error('Failed to load upgrade options');
     } finally {
       setLoading(false);
@@ -90,7 +89,6 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
       // Reload the page to refresh quotas
       setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
-      console.error('Error upgrading:', error);
       toast.error(error.response?.data?.detail || 'Failed to upgrade plan');
     } finally {
       setUpgrading(false);
@@ -120,7 +118,6 @@ const UpgradePlanModal = ({ open, onOpenChange, feature = null, currentUsage = n
       // Reload to refresh quotas
       setTimeout(() => window.location.reload(), 1500);
     } catch (error) {
-      console.error('Error purchasing seats:', error);
       toast.error(error.response?.data?.detail || 'Failed to purchase seats');
     } finally {
       setPurchasingSeats(false);

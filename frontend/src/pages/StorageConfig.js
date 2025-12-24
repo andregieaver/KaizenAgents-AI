@@ -51,7 +51,6 @@ const StorageConfig = () => {
         gcs_region: response.data.gcs_region || 'us-central1'
       });
     } catch (error) {
-      console.error('Error fetching config:', error);
       toast.error('Failed to load storage configuration');
     } finally {
       setLoading(false);

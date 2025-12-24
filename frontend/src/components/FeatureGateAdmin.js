@@ -45,7 +45,6 @@ const FeatureGateAdmin = () => {
       setPlans(plansRes.data.plans || []);
       setCategories(['all', ...(categoriesRes.data.categories || [])]);
     } catch (error) {
-      console.error('Error loading feature gates:', error);
       toast.error(error.response?.data?.detail || 'Failed to load feature gates');
     } finally {
       setLoading(false);
@@ -78,7 +77,6 @@ const FeatureGateAdmin = () => {
       toast.success('Feature gate configuration saved!');
       setHasChanges(false);
     } catch (error) {
-      console.error('Error saving config:', error);
       toast.error(error.response?.data?.detail || 'Failed to save configuration');
     } finally {
       setSaving(false);

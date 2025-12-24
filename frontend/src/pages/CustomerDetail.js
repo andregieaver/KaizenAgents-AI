@@ -179,7 +179,6 @@ const CustomerDetail = () => {
         }
       }
     } catch (error) {
-      console.error('Error fetching customer:', error);
       toast.error('Failed to load customer');
     } finally {
       setLoading(false);

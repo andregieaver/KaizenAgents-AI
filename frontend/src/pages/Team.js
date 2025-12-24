@@ -140,7 +140,6 @@ const Team = () => {
             toast.info('This seat purchase was already processed');
           }
         } catch (error) {
-          console.error('Error verifying seat purchase:', error);
           toast.error('Failed to verify seat purchase');
         }
         
@@ -201,7 +200,6 @@ const Team = () => {
         }
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
       toast.error('Failed to load team data');
     } finally {
       setLoading(false);
@@ -227,7 +225,6 @@ const Team = () => {
         window.location.href = response.data.checkout_url;
       }
     } catch (error) {
-      console.error('Error creating checkout:', error);
       const detail = error.response?.data?.detail;
       if (detail) {
         toast.error(detail);

@@ -24,7 +24,6 @@ const MenusList = () => {
       });
       setMenus(response.data);
     } catch (error) {
-      console.error('Error fetching menus:', error);
     } finally {
       setLoading(false);
     }
@@ -40,7 +39,6 @@ const MenusList = () => {
       });
       fetchMenus();
     } catch (error) {
-      console.error('Error deleting menu:', error);
       alert('Failed to delete menu');
     }
   };

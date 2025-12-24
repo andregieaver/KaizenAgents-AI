@@ -93,7 +93,6 @@ const Conversations = () => {
         });
         setConversations(response.data);
       } catch (error) {
-        console.error('Error fetching conversations:', error);
       } finally {
         setLoading(false);
       }

@@ -68,7 +68,6 @@ const Marketplace = () => {
       const response = await axios.get(`${API}/marketplace/`, { headers });
       setAgents(response.data);
     } catch (error) {
-      console.error('Error fetching agents:', error);
       toast.error('Failed to load marketplace');
     } finally {
       setLoading(false);
@@ -116,7 +115,6 @@ const Marketplace = () => {
       // Redirect to Settings > Agents tab
       navigate('/dashboard/settings?tab=agents');
     } catch (error) {
-      console.error('Clone error:', error);
       toast.error(error.response?.data?.detail || 'Failed to clone agent');
     } finally {
       setCloning(false);

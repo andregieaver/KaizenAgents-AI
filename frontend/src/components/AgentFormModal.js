@@ -132,7 +132,6 @@ const AgentFormModal = ({ open, onClose, agent = null, onSuccess, token }) => {
       
       return response.data.profile_image_url;
     } catch (error) {
-      console.error('Image upload error:', error);
       toast.error('Failed to upload image');
       return null;
     } finally {
@@ -196,7 +195,6 @@ const AgentFormModal = ({ open, onClose, agent = null, onSuccess, token }) => {
       onSuccess();
       onClose();
     } catch (error) {
-      console.error('Error saving agent:', error);
       toast.error(error.response?.data?.detail || 'Failed to save agent');
     } finally {
       setLoading(false);

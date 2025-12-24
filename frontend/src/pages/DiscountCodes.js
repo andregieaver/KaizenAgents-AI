@@ -56,7 +56,6 @@ const DiscountCodes = () => {
       setCodes(codesRes.data);
       setPlans(plansRes.data);
     } catch (error) {
-      console.error('Error fetching data:', error);
       toast.error('Failed to load discount codes');
     } finally {
       setLoading(false);

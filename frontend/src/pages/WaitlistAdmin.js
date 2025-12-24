@@ -84,7 +84,6 @@ const WaitlistAdmin = () => {
       setEntries(entriesRes.data);
       setStats(statsRes.data);
     } catch (error) {
-      console.error('Error fetching waitlist data:', error);
       toast.error('Failed to load waitlist data');
     } finally {
       setLoading(false);

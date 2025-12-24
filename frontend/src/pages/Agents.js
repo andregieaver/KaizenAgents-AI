@@ -48,7 +48,6 @@ const Agents = () => {
       });
       setAgents(response.data);
     } catch (error) {
-      console.error('Error fetching agents:', error);
       toast.error('Failed to load agents');
     } finally {
       setLoading(false);

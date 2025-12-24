@@ -24,7 +24,6 @@ const Dashboard = () => {
         });
         setStats(response.data);
       } catch (error) {
-        console.error('Error fetching stats:', error);
       } finally {
         setLoading(false);
       }

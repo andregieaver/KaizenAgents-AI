@@ -53,7 +53,6 @@ const AgentTestTab = ({ agent, agentId, token }) => {
     } catch (error) {
       const errorMsg = error.response?.data?.detail || 'Test failed';
       toast.error(errorMsg);
-      console.error('Agent test error:', error);
     } finally {
       setTesting(false);
     }

@@ -134,7 +134,6 @@ const Pricing = () => {
         }
       }
     } catch (error) {
-      console.error('Error fetching pricing data:', error);
       toast.error('Failed to load pricing information');
     } finally {
       setLoading(false);
@@ -155,7 +154,6 @@ const Pricing = () => {
       const currentPlanPricing = allPricing.find(p => p.plan_id === planId);
       setSeatPricingConfig(currentPlanPricing || null);
     } catch (error) {
-      console.error('Error fetching seat pricing config:', error);
       setSeatPricingConfig(null);
     } finally {
       setLoadingSeatConfig(false);
@@ -189,7 +187,6 @@ const Pricing = () => {
         setConversationSliderValue(convRes.data.current_conversations);
       }
     } catch (error) {
-      console.error('Error fetching allocations:', error);
     }
   };
 
@@ -301,7 +298,6 @@ const Pricing = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
-      console.error('Error applying stored discount:', error);
     } finally {
       setApplyingDiscount(false);
     }
@@ -477,7 +473,6 @@ const Pricing = () => {
       // Reload subscription data
       fetchData();
     } catch (error) {
-      console.error('Error purchasing seats:', error);
       toast.error(error.response?.data?.detail || 'Failed to purchase seats');
     } finally {
       setPurchasingSeats(false);

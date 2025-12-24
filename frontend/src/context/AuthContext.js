@@ -22,7 +22,6 @@ export const AuthProvider = ({ children }) => {
       });
       setUser(response.data);
     } catch (error) {
-      console.error('Auth error:', error);
       localStorage.removeItem('token');
       setToken(null);
       setUser(null);

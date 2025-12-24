@@ -70,7 +70,6 @@ const Affiliates = () => {
       setCreditHistory(historyRes.data || []);
       setSettings(settingsRes.data);
     } catch (error) {
-      console.error('Error fetching affiliate data:', error);
       toast.error('Failed to load affiliate data');
     } finally {
       setLoading(false);

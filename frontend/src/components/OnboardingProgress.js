@@ -59,7 +59,6 @@ const OnboardingProgress = () => {
           setMinimized(true);
         }
       } catch (error) {
-        console.error('Error fetching onboarding status:', error);
       } finally {
         setLoading(false);
       }
@@ -77,7 +76,6 @@ const OnboardingProgress = () => {
       });
       setDismissed(true);
     } catch (error) {
-      console.error('Error dismissing onboarding:', error);
     }
   };
 

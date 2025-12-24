@@ -25,7 +25,6 @@ const GlobalComponents = () => {
       });
       setComponents(response.data);
     } catch (error) {
-      console.error('Error fetching components:', error);
       toast.error('Failed to load global components');
     } finally {
       setLoading(false);

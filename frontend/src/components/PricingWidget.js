@@ -48,7 +48,6 @@ const PricingWidget = () => {
         }
       }
     } catch (error) {
-      console.error('[PricingWidget] Error fetching pricing data:', error);
       toast.error('Failed to load pricing information');
     } finally {
       setLoading(false);
