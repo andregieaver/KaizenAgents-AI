@@ -336,6 +336,9 @@ const AgentEdit = () => {
       const agentData = response.data;
       agentData.config = {
         ...agentData.config,
+        scraping_domains: agentData.config?.scraping_domains || '',
+        scraping_max_depth: agentData.config?.scraping_max_depth || 2,
+        scraping_max_pages: agentData.config?.scraping_max_pages || 50,
         woocommerce: {
           enabled: false,
           store_url: '',
@@ -351,6 +354,10 @@ const AgentEdit = () => {
         }
       };
       setAgent(agentData);
+      
+      // Fetch documents and scraping status for this agent
+      fetchAgentDocuments(agentId);
+      fetchScrapingStatus(agentId);
     } catch (error) {
       console.error('Error fetching agent:', error);
       toast.error('Failed to load agent');
