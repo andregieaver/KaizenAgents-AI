@@ -25,6 +25,7 @@ class OrchestratorService:
         self.tenant_id = tenant_id
         self.config = None
         self.mother_agent = None
+        self.mother_agent_type = None  # 'admin' or 'company'
         self.available_children = []
     
     async def initialize(self) -> bool:
@@ -46,18 +47,32 @@ class OrchestratorService:
         
         self.config = orchestration
         
-        # Load mother agent
-        mother_id = orchestration.get("mother_admin_agent_id")
-        if mother_id:
-            self.mother_agent = await db.agents.find_one(
-                {"id": mother_id, "is_active": True},
+        # Load mother agent - company-level takes priority over admin-level
+        mother_user_id = orchestration.get("mother_user_agent_id")
+        mother_admin_id = orchestration.get("mother_admin_agent_id")
+        
+        # Try company-level mother agent first (from user_agents collection)
+        if mother_user_id:
+            self.mother_agent = await db.user_agents.find_one(
+                {"id": mother_user_id, "tenant_id": self.tenant_id, "is_active": True},
                 {"_id": 0}
             )
-            if not self.mother_agent:
-                logger.error(f"Mother agent {mother_id} not found or inactive")
-                return False
-        else:
-            logger.error("No mother agent configured")
+            if self.mother_agent:
+                self.mother_agent_type = "company"
+                logger.info(f"Using company-level mother agent: {mother_user_id}")
+        
+        # Fall back to admin-level mother agent (from agents collection)
+        if not self.mother_agent and mother_admin_id:
+            self.mother_agent = await db.agents.find_one(
+                {"id": mother_admin_id, "is_active": True},
+                {"_id": 0}
+            )
+            if self.mother_agent:
+                self.mother_agent_type = "admin"
+                logger.info(f"Using admin-level mother agent: {mother_admin_id}")
+        
+        if not self.mother_agent:
+            logger.error("No valid mother agent configured or available")
             return False
         
         # Load available child agents (filtered by tenant_id for security)
@@ -72,7 +87,7 @@ class OrchestratorService:
                 {"_id": 0}
             ).to_list(100)
         
-        logger.info(f"Orchestrator initialized for tenant {self.tenant_id} with {len(self.available_children)} children")
+        logger.info(f"Orchestrator initialized for tenant {self.tenant_id} with {len(self.available_children)} children (mother type: {self.mother_agent_type})")
         return True
     
     async def get_children_for_prompt(self, user_prompt: str) -> List[Dict[str, Any]]:
