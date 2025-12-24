@@ -117,6 +117,7 @@ async def invite_user(
     )
     
     # Return user without sensitive data
+    # Note: temp_password is sent via email, not in API response for security
     return {
         "id": user_id,
         "email": user_data.email,
@@ -125,7 +126,7 @@ async def invite_user(
         "avatar_url": None,
         "created_at": now,
         "last_login": None,
-        "temp_password": temp_password  # Return this once so admin can share with user
+        "message": "User created. Temporary password has been sent via email."
     }
 
 @router.get("/{user_id}", response_model=TeamMemberResponse)
