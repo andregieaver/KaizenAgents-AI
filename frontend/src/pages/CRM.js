@@ -572,6 +572,32 @@ const CRM = () => {
             <Keyboard className="h-4 w-4" />
           </Button>
           
+          {/* Export Button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => {
+                window.open(`${API}/api/crm/export?format=csv`, '_blank');
+                toast.success('Downloading CSV...');
+              }}>
+                <FileText className="h-4 w-4 mr-2" />
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                window.open(`${API}/api/crm/export?format=json`, '_blank');
+                toast.success('Downloading JSON...');
+              }}>
+                <FileText className="h-4 w-4 mr-2" />
+                Export as JSON
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <Button onClick={() => setShowAddModal(true)} className="sm:w-auto">
             <UserPlus className="h-4 w-4 mr-2" />
             Add Customer
