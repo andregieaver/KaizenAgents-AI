@@ -1191,8 +1191,52 @@ async def upload_agent_document(
     
     await db.agent_documents.insert_one(doc_record)
     
-    # TODO: Process document content for RAG (store in vector DB)
-    # For now, we just store the metadata
+    # Process document content for RAG
+    try:
+        # Extract text based on file type
+        text_content = ""
+        
+        if ext in ['.txt', '.md', '.csv']:
+            # Plain text files
+            text_content = content.decode('utf-8', errors='ignore')
+        elif ext == '.pdf':
+            # PDF files - try to extract text
+            try:
+                import io
+                import PyPDF2
+                pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
+                for page in pdf_reader.pages:
+                    text_content += page.extract_text() + "\n"
+            except Exception as pdf_err:
+                print(f"PDF extraction error: {pdf_err}")
+                text_content = ""
+        elif ext == '.docx':
+            # DOCX files - try to extract text
+            try:
+                import io
+                from docx import Document
+                doc = Document(io.BytesIO(content))
+                text_content = "\n".join([para.text for para in doc.paragraphs])
+            except Exception as docx_err:
+                print(f"DOCX extraction error: {docx_err}")
+                text_content = ""
+        
+        # Store chunks in knowledge base
+        if text_content.strip():
+            from services.rag_service import store_document_chunks
+            chunks_stored = await store_document_chunks(
+                db=db,
+                agent_id=agent_id,
+                tenant_id=tenant_id,
+                document_id=doc_id,
+                filename=file.filename,
+                content=text_content,
+                source_type="document"
+            )
+            print(f"Stored {chunks_stored} chunks for document {file.filename}")
+    except Exception as e:
+        print(f"RAG processing error: {e}")
+        # Continue even if RAG processing fails - document is still uploaded
     
     return {"message": "Document uploaded successfully", "document_id": doc_id}
 
