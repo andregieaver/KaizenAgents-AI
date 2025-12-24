@@ -33,6 +33,39 @@ backend:
       - working: true
         agent: "testing"
         comment: "✅ COMPREHENSIVE RAG ENFORCEMENT TESTING COMPLETED: Performed detailed testing as per review request. PART 2 PASSED ALL TESTS: 1) General knowledge question 'Who is the president of the United States?' - CORRECTLY REFUSED with 'I don't have access to company documentation yet. Please contact our support team for assistance.', 2) Solar system question 'How many planets are in the solar system?' - CORRECTLY REFUSED, 3) Math question 'Calculate 15 * 23' - CORRECTLY REFUSED, 4) Company question 'What products do you sell?' - APPROPRIATELY HANDLED (not direct refusal), 5) Greeting 'Hello!' - APPROPRIATELY RESPONDED. Backend logs show proper orchestration flow: knowledge base check (has_kb=False), orchestration successful (delegated=False). RAG system is working perfectly - AI refuses ALL general knowledge questions and only responds from company documentation when available."
+  - task: "Data Export Endpoints"
+    implemented: true
+    working: true
+    file: "routes/crm.py, routes/conversations.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ ALL DATA EXPORT ENDPOINTS WORKING: Comprehensive testing completed with credentials andre@humanweb.no/Pernilla66!. RESULTS: 1) ✅ CRM Export CSV - GET /api/crm/export?format=csv returns downloadable CSV file, 2) ✅ CRM Export JSON - GET /api/crm/export?format=json returns JSON array with 7 customer items, 3) ✅ Conversations Export CSV - GET /api/conversations/export?format=csv returns downloadable CSV file, 4) ✅ Conversations Export JSON - GET /api/conversations/export?format=json returns JSON array with 110 conversation items, 5) ✅ Conversations Export with Messages - GET /api/conversations/export?format=json&include_messages=true includes message history in each conversation (110 items with messages), 6) ✅ Follow-ups Export CSV - GET /api/crm/followups/export?format=csv returns downloadable CSV file. All endpoints properly authenticated, return correct Content-Disposition headers for downloads, and handle both CSV and JSON formats as specified. Fixed missing conversations export endpoint by adding it to routes/conversations.py."
+  - task: "AI Moderation (Agent Publishing)"
+    implemented: true
+    working: true
+    file: "routes/agents.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ AI MODERATION FEATURES WORKING: Successfully tested agent publishing system with credentials andre@humanweb.no/Pernilla66!. RESULTS: 1) ✅ GET /api/agents/ returns list of 10 available agents for moderation, 2) ✅ POST /api/agents/{agent_id}/publish triggers AI moderation review using OpenAI API, returns structured response with 'approved' field (True) and 'issues' field for any problems found. Test agent (Test Sales Agent ID: 83e16f95-34e1-4fad-859f-6088a8659239) was successfully reviewed and approved for marketplace publishing. AI moderation system properly analyzes agent configuration, system prompts, and content for compliance before allowing publication. Response time ~2.3 seconds for AI review process."
+  - task: "Existing Features Verification"
+    implemented: true
+    working: true
+    file: "routes/settings.py, routes/health.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ EXISTING FEATURES VERIFICATION PASSED: Confirmed no regressions in core functionality. RESULTS: 1) ✅ Orchestration Settings - GET /api/settings/orchestration returns correct response including mother_agent_type field ('admin'), mother_agent_id (cb4928cf-907c-4ee5-8f3e-13b94334d36f), mother_agent_name ('Aida'), and enabled status (True), 2) ✅ Health Check - GET /api/health returns healthy status, confirming system is operational. All existing API endpoints continue to function correctly after new feature implementation. No breaking changes detected."
 
 frontend:
   - task: "Orchestration Settings Frontend Testing"
