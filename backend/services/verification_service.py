@@ -61,7 +61,7 @@ class VerificationService:
         recent_code = await db.verification_codes.find_one({
             "conversation_id": conversation_id,
             "created_at": {"$gte": (now - timedelta(seconds=OTP_COOLDOWN_SECONDS)).isoformat()}
-        })
+        }, {"_id": 0})
         
         if recent_code:
             remaining = OTP_COOLDOWN_SECONDS - int((now - datetime.fromisoformat(recent_code["created_at"].replace('Z', '+00:00'))).total_seconds())
