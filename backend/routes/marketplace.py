@@ -7,7 +7,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 import uuid
 
-from models import *
+# No models imported - using local Pydantic models
 from middleware import get_current_user
 from middleware.database import db
 

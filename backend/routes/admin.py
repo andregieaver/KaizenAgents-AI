@@ -8,7 +8,7 @@ from datetime import datetime, timezone, timedelta
 import uuid
 import jwt
 
-from models import *
+from models import SettingsUpdate
 from middleware import get_current_user, get_super_admin_user, get_admin_or_owner_user
 from middleware.database import db
 from middleware.auth import create_token, hash_password, verify_password, is_super_admin, JWT_SECRET, JWT_ALGORITHM

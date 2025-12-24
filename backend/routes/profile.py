@@ -7,7 +7,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
 import uuid
 
-from models import *
+# No models imported from models module
 from middleware import get_current_user, get_super_admin_user
 from middleware.database import db
 from middleware.auth import is_super_admin, hash_password, verify_password

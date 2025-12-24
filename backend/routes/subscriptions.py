@@ -10,7 +10,7 @@ import uuid
 import os
 from utils.logger import log_error, log_info
 
-from models import *
+# No models imported from models module
 from middleware import get_current_user, get_super_admin_user
 from middleware.database import db
 from services.stripe_service import StripeService
