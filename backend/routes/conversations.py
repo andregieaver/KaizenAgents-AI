@@ -15,6 +15,123 @@ from middleware.auth import create_token, hash_password, verify_password, is_sup
 
 router = APIRouter(prefix="/conversations", tags=["conversations"])
 
+@router.get("/export")
+async def export_conversations(
+    format: str = Query("csv", description="Export format: csv or json"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    date_from: Optional[str] = Query(None, description="Filter from date (ISO format)"),
+    date_to: Optional[str] = Query(None, description="Filter to date (ISO format)"),
+    include_messages: bool = Query(False, description="Include message content in export"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Export conversations to CSV or JSON"""
+    import csv
+    import io
+    import json as json_module
+    from fastapi.responses import StreamingResponse
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Build query
+    query = {"tenant_id": tenant_id}
+    
+    if status:
+        query["status"] = status
+    
+    if date_from:
+        query["created_at"] = {"$gte": date_from}
+    if date_to:
+        if "created_at" in query:
+            query["created_at"]["$lte"] = date_to
+        else:
+            query["created_at"] = {"$lte": date_to}
+    
+    # Fetch conversations
+    conversations = await db.conversations.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
+    
+    # Optionally include messages
+    if include_messages:
+        for conv in conversations:
+            messages = await db.messages.find(
+                {"conversation_id": conv["id"]},
+                {"_id": 0}
+            ).sort("created_at", 1).to_list(1000)
+            conv["messages"] = messages
+    
+    if format.lower() == "json":
+        return StreamingResponse(
+            io.StringIO(json_module.dumps(conversations, indent=2, default=str)),
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename=conversations_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.json"
+            }
+        )
+    else:
+        # CSV export
+        if not conversations:
+            return StreamingResponse(
+                io.StringIO("No data to export"),
+                media_type="text/csv",
+                headers={
+                    "Content-Disposition": f"attachment; filename=conversations_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv"
+                }
+            )
+        
+        output = io.StringIO()
+        
+        fieldnames = [
+            "id", "customer_email", "customer_name", "status", "mode",
+            "message_count", "sentiment_score", "sentiment_label",
+            "summary", "agent_id", "agent_name",
+            "created_at", "updated_at"
+        ]
+        
+        if include_messages:
+            fieldnames.append("messages_text")
+        
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
+        writer.writeheader()
+        
+        for conv in conversations:
+            row = {
+                "id": conv.get("id"),
+                "customer_email": conv.get("customer_email"),
+                "customer_name": conv.get("customer_name"),
+                "status": conv.get("status"),
+                "mode": conv.get("mode"),
+                "message_count": conv.get("message_count", 0),
+                "sentiment_score": conv.get("sentiment_score"),
+                "sentiment_label": conv.get("sentiment_label"),
+                "summary": conv.get("summary", ""),
+                "agent_id": conv.get("agent_id"),
+                "agent_name": conv.get("agent_name"),
+                "created_at": conv.get("created_at"),
+                "updated_at": conv.get("updated_at")
+            }
+            
+            if include_messages and conv.get("messages"):
+                # Flatten messages to text
+                msg_texts = []
+                for msg in conv["messages"]:
+                    role = msg.get("author_type", "unknown")
+                    content = msg.get("content", "")
+                    msg_texts.append(f"[{role}]: {content}")
+                row["messages_text"] = " | ".join(msg_texts)
+            
+            writer.writerow(row)
+        
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename=conversations_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.csv"
+            }
+        )
+
 @router.get("", response_model=List[ConversationResponse])
 @router.get("/", response_model=List[ConversationResponse])
 async def list_conversations(
