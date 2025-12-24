@@ -7067,6 +7067,285 @@ def main():
         print(f"\n⚠️  {tester.tests_run - tester.tests_passed} tests failed - see details above")
         return 1
 
+# ============== COMPANY-LEVEL MOTHER AGENT TESTS ==============
+
+def test_company_level_mother_agent_feature():
+    """Test the Company-Level Mother Agent feature for Orchestration system"""
+    print(f"\n🎯 Testing Company-Level Mother Agent Feature")
+    
+    tester = AIAgentHubTester()
+    
+    # Test all required test cases
+    login_test = tester.test_super_admin_login()
+    if not login_test:
+        print("❌ Login failed - cannot continue with mother agent tests")
+        return False
+    
+    get_config_test = test_get_orchestration_config(tester)
+    get_agents_test = test_get_company_agents(tester)
+    get_admin_agents_test = test_get_admin_agents(tester)
+    set_company_agent_test = test_set_company_agent_as_mother(tester)
+    set_admin_agent_test = test_set_admin_agent_as_mother(tester)
+    invalid_agent_test = test_invalid_company_agent(tester)
+    
+    # Summary of mother agent tests
+    print(f"\n📋 Company-Level Mother Agent Test Results:")
+    print(f"   Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
+    print(f"   Get Orchestration Config: {'✅ PASSED' if get_config_test else '❌ FAILED'}")
+    print(f"   Get Company Agents: {'✅ PASSED' if get_agents_test else '❌ FAILED'}")
+    print(f"   Get Admin Agents: {'✅ PASSED' if get_admin_agents_test else '❌ FAILED'}")
+    print(f"   Set Company Agent as Mother: {'✅ PASSED' if set_company_agent_test else '❌ FAILED'}")
+    print(f"   Set Admin Agent as Mother: {'✅ PASSED' if set_admin_agent_test else '❌ FAILED'}")
+    print(f"   Invalid Company Agent Validation: {'✅ PASSED' if invalid_agent_test else '❌ FAILED'}")
+    
+    return all([login_test, get_config_test, get_agents_test, get_admin_agents_test, 
+               set_company_agent_test, set_admin_agent_test, invalid_agent_test])
+
+def test_get_orchestration_config(tester):
+    """Test GET /api/settings/orchestration"""
+    print(f"\n🔧 Testing GET Orchestration Config")
+    
+    success, response = tester.run_test(
+        "Get Orchestration Configuration",
+        "GET",
+        "settings/orchestration",
+        200
+    )
+    
+    if not success:
+        print("❌ Failed to get orchestration configuration")
+        return False
+    
+    # Verify response includes required fields
+    required_fields = ["mother_agent_type", "mother_agent_id", "mother_agent_name", "allowed_child_agent_ids"]
+    missing_fields = [field for field in required_fields if field not in response]
+    
+    if missing_fields:
+        print(f"❌ Missing required fields: {missing_fields}")
+        return False
+    
+    print(f"   ✅ Mother Agent Type: {response.get('mother_agent_type')}")
+    print(f"   ✅ Mother Agent ID: {response.get('mother_agent_id')}")
+    print(f"   ✅ Mother Agent Name: {response.get('mother_agent_name')}")
+    print(f"   ✅ Allowed Child Agent IDs: {len(response.get('allowed_child_agent_ids', []))}")
+    
+    # Store current config for later tests
+    tester.current_mother_agent_type = response.get('mother_agent_type')
+    tester.current_mother_agent_id = response.get('mother_agent_id')
+    
+    return True
+
+def test_get_company_agents(tester):
+    """Test GET /api/agents/ to get company agents"""
+    print(f"\n🔧 Testing GET Company Agents")
+    
+    success, response = tester.run_test(
+        "Get Company Agents List",
+        "GET",
+        "agents",
+        200
+    )
+    
+    if not success:
+        print("❌ Failed to get company agents")
+        return False
+    
+    if not isinstance(response, list):
+        print(f"❌ Expected array response, got {type(response)}")
+        return False
+    
+    print(f"   ✅ Found {len(response)} company agents")
+    
+    # Store first active agent for testing
+    for agent in response:
+        if agent.get('is_active', True):
+            tester.test_company_agent_id = agent.get('id')
+            print(f"   ✅ Using company agent: {agent.get('name')} (ID: {tester.test_company_agent_id})")
+            break
+    
+    if not hasattr(tester, 'test_company_agent_id'):
+        print("   ⚠️ No active company agents found")
+        tester.test_company_agent_id = None
+    
+    return True
+
+def test_get_admin_agents(tester):
+    """Test GET /api/admin/agents to get admin agents"""
+    print(f"\n🔧 Testing GET Admin Agents")
+    
+    success, response = tester.run_test(
+        "Get Admin Agents List",
+        "GET",
+        "admin/agents",
+        200
+    )
+    
+    if not success:
+        print("❌ Failed to get admin agents")
+        return False
+    
+    if not isinstance(response, list):
+        print(f"❌ Expected array response, got {type(response)}")
+        return False
+    
+    print(f"   ✅ Found {len(response)} admin agents")
+    
+    # Store first active agent for testing
+    for agent in response:
+        if agent.get('is_active', True):
+            tester.test_admin_agent_id = agent.get('id')
+            print(f"   ✅ Using admin agent: {agent.get('name')} (ID: {tester.test_admin_agent_id})")
+            break
+    
+    if not hasattr(tester, 'test_admin_agent_id'):
+        print("   ⚠️ No active admin agents found")
+        tester.test_admin_agent_id = None
+    
+    return True
+
+def test_set_company_agent_as_mother(tester):
+    """Test PUT /api/settings/orchestration with company agent"""
+    print(f"\n🔧 Testing Set Company Agent as Mother")
+    
+    if not hasattr(tester, 'test_company_agent_id') or not tester.test_company_agent_id:
+        print("❌ No company agent ID available for testing")
+        return False
+    
+    config_data = {
+        "enabled": True,
+        "mother_user_agent_id": tester.test_company_agent_id,
+        "mother_admin_agent_id": None,
+        "allowed_child_agent_ids": []
+    }
+    
+    success, response = tester.run_test(
+        "Set Company Agent as Mother",
+        "PUT",
+        "settings/orchestration",
+        200,
+        data=config_data
+    )
+    
+    if not success:
+        print("❌ Failed to set company agent as mother")
+        return False
+    
+    print(f"   ✅ Successfully set company agent as mother")
+    
+    # Verify the change by getting the config again
+    success, verify_response = tester.run_test(
+        "Verify Company Agent Set",
+        "GET",
+        "settings/orchestration",
+        200
+    )
+    
+    if success:
+        mother_agent_type = verify_response.get('mother_agent_type')
+        mother_agent_id = verify_response.get('mother_agent_id')
+        
+        if mother_agent_type == 'company':
+            print(f"   ✅ Mother agent type is 'company'")
+        else:
+            print(f"   ❌ Expected mother_agent_type 'company', got '{mother_agent_type}'")
+            return False
+        
+        if mother_agent_id == tester.test_company_agent_id:
+            print(f"   ✅ Mother agent ID matches company agent")
+        else:
+            print(f"   ❌ Mother agent ID mismatch: expected {tester.test_company_agent_id}, got {mother_agent_id}")
+            return False
+    else:
+        print("   ⚠️ Could not verify company agent configuration")
+    
+    return True
+
+def test_set_admin_agent_as_mother(tester):
+    """Test PUT /api/settings/orchestration with admin agent"""
+    print(f"\n🔧 Testing Set Admin Agent as Mother")
+    
+    if not hasattr(tester, 'test_admin_agent_id') or not tester.test_admin_agent_id:
+        print("❌ No admin agent ID available for testing")
+        return False
+    
+    config_data = {
+        "enabled": True,
+        "mother_admin_agent_id": tester.test_admin_agent_id,
+        "mother_user_agent_id": None,
+        "allowed_child_agent_ids": []
+    }
+    
+    success, response = tester.run_test(
+        "Set Admin Agent as Mother",
+        "PUT",
+        "settings/orchestration",
+        200,
+        data=config_data
+    )
+    
+    if not success:
+        print("❌ Failed to set admin agent as mother")
+        return False
+    
+    print(f"   ✅ Successfully set admin agent as mother")
+    
+    # Verify the change by getting the config again
+    success, verify_response = tester.run_test(
+        "Verify Admin Agent Set",
+        "GET",
+        "settings/orchestration",
+        200
+    )
+    
+    if success:
+        mother_agent_type = verify_response.get('mother_agent_type')
+        mother_agent_id = verify_response.get('mother_agent_id')
+        
+        if mother_agent_type == 'admin':
+            print(f"   ✅ Mother agent type is 'admin'")
+        else:
+            print(f"   ❌ Expected mother_agent_type 'admin', got '{mother_agent_type}'")
+            return False
+        
+        if mother_agent_id == tester.test_admin_agent_id:
+            print(f"   ✅ Mother agent ID matches admin agent")
+        else:
+            print(f"   ❌ Mother agent ID mismatch: expected {tester.test_admin_agent_id}, got {mother_agent_id}")
+            return False
+    else:
+        print("   ⚠️ Could not verify admin agent configuration")
+    
+    return True
+
+def test_invalid_company_agent(tester):
+    """Test PUT /api/settings/orchestration with invalid company agent ID"""
+    print(f"\n🔧 Testing Invalid Company Agent Validation")
+    
+    # Use a fake UUID that doesn't exist
+    fake_agent_id = "00000000-0000-0000-0000-000000000000"
+    
+    config_data = {
+        "enabled": True,
+        "mother_user_agent_id": fake_agent_id,
+        "mother_admin_agent_id": None,
+        "allowed_child_agent_ids": []
+    }
+    
+    success, response = tester.run_test(
+        "Set Invalid Company Agent",
+        "PUT",
+        "settings/orchestration",
+        404,  # Expecting 404 error
+        data=config_data
+    )
+    
+    if success:
+        print(f"   ✅ Correctly returned 404 error for invalid agent ID")
+        return True
+    else:
+        print(f"   ❌ Expected 404 error but got different response")
+        return False
+
 if __name__ == "__main__":
     import sys
     
@@ -7080,9 +7359,12 @@ if __name__ == "__main__":
             sys.exit(0 if success else 1)
         elif test_name == "quota":
             sys.exit(main_quota_tests())
+        elif test_name == "mother_agent":
+            success = test_company_level_mother_agent_feature()
+            sys.exit(0 if success else 1)
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: rag, quota")
+            print("Available tests: rag, quota, mother_agent")
             sys.exit(1)
     else:
         sys.exit(main())
