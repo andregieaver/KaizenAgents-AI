@@ -3,13 +3,16 @@ backend:
     implemented: true
     working: false
     file: "server.py"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
     needs_retesting: false
     status_history:
       - working: false
         agent: "testing"
         comment: "CRITICAL: RAG system not enforcing knowledge base restrictions. Agent answers general knowledge questions (e.g., 'What is the capital of France?' -> 'The capital of France is Paris') when it should refuse and only answer from uploaded documents. Document upload works (22 docs found, test doc uploaded successfully with 1 chunk processed), but orchestration system (delegated=False) bypasses RAG constraints. System needs to enforce STRICT knowledge base limitations as specified in requirements."
+      - working: false
+        agent: "testing"
+        comment: "RE-TESTED: RAG enforcement still BROKEN after supposed fix. Test A (off-topic question 'What is the capital of France?') FAILED - agent answered 'The capital of France is Paris' instead of refusing. Test B (company question 'What is your return policy?') PASSED - agent appropriately refused with company-specific response. Root cause: Orchestration system (enabled=true, delegated=False) is bypassing RAG constraints in generate_ai_response function. The orchestration Mother agent is not enforcing knowledge base restrictions. Knowledge base has 22 documents uploaded and is functional, but orchestration flow ignores RAG enforcement logic."
 
 frontend:
   - task: "Frontend Testing"
