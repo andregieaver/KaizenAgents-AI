@@ -7957,9 +7957,13 @@ if __name__ == "__main__":
             sys.exit(0 if success else 1)
         elif test_name == "new_features":
             sys.exit(main_new_features())
+        elif test_name == "security":
+            tester = AIAgentHubTester()
+            success = tester.test_security_verification_suite()
+            sys.exit(0 if success else 1)
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: rag, rag_enforcement, quota, mother_agent, new_features")
+            print("Available tests: rag, rag_enforcement, quota, mother_agent, new_features, security")
             sys.exit(1)
     else:
         sys.exit(main())
