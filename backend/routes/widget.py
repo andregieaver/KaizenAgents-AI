@@ -94,7 +94,7 @@ async def get_widget_settings(tenant_id: str, _: None = Depends(check_widget_rat
     }
 
 @router.post("/session", response_model=WidgetSessionResponse)
-async def create_widget_session(session_data: WidgetSessionCreate):
+async def create_widget_session(session_data: WidgetSessionCreate, _: None = Depends(check_widget_rate_limit)):
     """Public endpoint for widget to create a session"""
     tenant_id = session_data.tenant_id
     
@@ -203,7 +203,7 @@ async def create_widget_session(session_data: WidgetSessionCreate):
     }
 
 @router.get("/messages/{conversation_id}")
-async def get_widget_messages(conversation_id: str, token: str):
+async def get_widget_messages(conversation_id: str, token: str, _: None = Depends(check_widget_rate_limit)):
     """Get messages for widget session"""
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
@@ -240,7 +240,7 @@ async def get_widget_messages(conversation_id: str, token: str):
     }
 
 @router.post("/messages/{conversation_id}")
-async def send_widget_message(conversation_id: str, token: str, message_data: WidgetMessageCreate):
+async def send_widget_message(conversation_id: str, token: str, message_data: WidgetMessageCreate, _: None = Depends(check_widget_rate_limit)):
     """Send message from widget and get AI response"""
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
