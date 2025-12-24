@@ -44,6 +44,8 @@ test_plan:
 agent_communication:
   - agent: "testing"
     message: "RAG system testing completed. CRITICAL ISSUE FOUND: AI agents are NOT restricted to knowledge base only. Despite successful document upload (test document with ACME Corp info uploaded, 1 chunk processed), the agent answers general knowledge questions like 'What is the capital of France?' with 'The capital of France is Paris' instead of refusing. The orchestration system appears to bypass RAG constraints. This violates the core requirement that agents should ONLY answer from uploaded documents and refuse general questions. Main agent needs to fix the RAG enforcement in the orchestration/AI generation pipeline."
+  - agent: "testing"
+    message: "RAG ENFORCEMENT RE-TEST COMPLETED - STILL BROKEN: After supposed fix, RAG system is still NOT enforcing knowledge base restrictions. CRITICAL FAILURE: Agent answered 'What is the capital of France?' with 'The capital of France is Paris' when it should refuse. Root cause identified: Orchestration system (enabled with Mother agent cb4928cf-907c-4ee5-8f3e-13b94334d36f) bypasses RAG enforcement logic in generate_ai_response function. The orchestration flow (delegated=False) does not apply the same strict knowledge base constraints as the standard RAG flow. Knowledge base is functional (22 documents, recent upload successful), but orchestration Mother agent ignores RAG restrictions. URGENT: Fix orchestration system to enforce same RAG constraints as standard flow."
 - **Status**: ✅ WORKING
 - **? Key Help Modal**: Opens correctly, shows J, K, Enter, ? shortcuts
 - **J/K Navigation**: Successfully highlights conversation rows
