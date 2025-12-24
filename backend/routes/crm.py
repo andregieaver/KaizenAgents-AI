@@ -974,3 +974,166 @@ async def bulk_calculate_lead_scores(
     
     return results
 
+
+
+# ============== DATA EXPORT ENDPOINTS ==============
+
+@router.get("/export")
+async def export_customers(
+    format: str = Query("csv", description="Export format: csv or json"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    date_from: Optional[str] = Query(None, description="Filter from date (ISO format)"),
+    date_to: Optional[str] = Query(None, description="Filter to date (ISO format)"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Export CRM customers to CSV or JSON"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Build query
+    query = {"tenant_id": tenant_id}
+    
+    if status:
+        query["status"] = status
+    
+    if date_from:
+        query["created_at"] = {"$gte": date_from}
+    if date_to:
+        if "created_at" in query:
+            query["created_at"]["$lte"] = date_to
+        else:
+            query["created_at"] = {"$lte": date_to}
+    
+    # Fetch customers
+    customers = await db.crm_customers.find(query, {"_id": 0}).to_list(10000)
+    
+    if format.lower() == "json":
+        # Return JSON
+        return StreamingResponse(
+            io.StringIO(json.dumps(customers, indent=2, default=str)),
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename=crm_customers_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            }
+        )
+    else:
+        # Return CSV
+        if not customers:
+            return StreamingResponse(
+                io.StringIO("No data to export"),
+                media_type="text/csv",
+                headers={
+                    "Content-Disposition": f"attachment; filename=crm_customers_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                }
+            )
+        
+        output = io.StringIO()
+        
+        # Define CSV columns
+        fieldnames = [
+            "id", "name", "email", "phone", "company", "position", 
+            "status", "lead_score", "lead_grade", "total_conversations",
+            "tags", "notes", "created_at", "updated_at", "last_contact"
+        ]
+        
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
+        writer.writeheader()
+        
+        for customer in customers:
+            # Flatten tags list to comma-separated string
+            row = {**customer}
+            row["tags"] = ", ".join(customer.get("tags", []))
+            writer.writerow(row)
+        
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename=crm_customers_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            }
+        )
+
+
+@router.get("/followups/export")
+async def export_followups(
+    format: str = Query("csv", description="Export format: csv or json"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    date_from: Optional[str] = Query(None, description="Filter from date (ISO format)"),
+    date_to: Optional[str] = Query(None, description="Filter to date (ISO format)"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Export CRM follow-ups to CSV or JSON"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Build query
+    query = {"tenant_id": tenant_id}
+    
+    if status:
+        query["status"] = status
+    
+    if date_from:
+        query["due_date"] = {"$gte": date_from}
+    if date_to:
+        if "due_date" in query:
+            query["due_date"]["$lte"] = date_to
+        else:
+            query["due_date"] = {"$lte": date_to}
+    
+    # Fetch followups with customer names
+    followups = await db.crm_followups.find(query, {"_id": 0}).to_list(10000)
+    
+    # Add customer names
+    for followup in followups:
+        customer = await db.crm_customers.find_one(
+            {"id": followup.get("customer_id")},
+            {"_id": 0, "name": 1, "email": 1}
+        )
+        followup["customer_name"] = customer.get("name") if customer else "Unknown"
+        followup["customer_email"] = customer.get("email") if customer else ""
+    
+    if format.lower() == "json":
+        return StreamingResponse(
+            io.StringIO(json.dumps(followups, indent=2, default=str)),
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename=crm_followups_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            }
+        )
+    else:
+        if not followups:
+            return StreamingResponse(
+                io.StringIO("No data to export"),
+                media_type="text/csv",
+                headers={
+                    "Content-Disposition": f"attachment; filename=crm_followups_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                }
+            )
+        
+        output = io.StringIO()
+        
+        fieldnames = [
+            "id", "customer_id", "customer_name", "customer_email",
+            "title", "description", "type", "priority", "status",
+            "due_date", "created_at", "completed_at"
+        ]
+        
+        writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
+        writer.writeheader()
+        
+        for followup in followups:
+            writer.writerow(followup)
+        
+        output.seek(0)
+        
+        return StreamingResponse(
+            output,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename=crm_followups_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+            }
+        )
