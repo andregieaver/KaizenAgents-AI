@@ -117,7 +117,7 @@ agent_communication:
 
 ## Latest Test Results (2025-12-23 - Testing Agent)
 **Testing Agent**: Frontend Testing Agent  
-**Test Environment**: Production (https://convoclient.preview.emergentagent.com)  
+**Test Environment**: Production (https://orchestra-refactor.preview.emergentagent.com)  
 **Login Credentials**: andre@humanweb.no / Pernilla66!
 
 ### ✅ FULLY WORKING FEATURES
@@ -167,7 +167,7 @@ All requested features have been successfully implemented and tested:
 
 ## Mobile Drag and Drop Test Results (2025-12-23 - Testing Agent)
 **Testing Agent**: Frontend Testing Agent  
-**Test Environment**: Production (https://convoclient.preview.emergentagent.com)  
+**Test Environment**: Production (https://orchestra-refactor.preview.emergentagent.com)  
 **Login Credentials**: andre@humanweb.no / Pernilla66!
 **Test Focus**: Mobile drag and drop improvements in CRM Kanban view
 
@@ -278,7 +278,7 @@ All requested mobile drag and drop improvements have been successfully implement
 
 ## Language Tab Feature Test Results (2025-12-24 - Testing Agent)
 **Testing Agent**: Frontend Testing Agent  
-**Test Environment**: Production (https://convoclient.preview.emergentagent.com)  
+**Test Environment**: Production (https://orchestra-refactor.preview.emergentagent.com)  
 **Login Credentials**: andre@humanweb.no / Pernilla66!
 **Test Focus**: New Language tab on Agent Edit page
 
@@ -364,7 +364,7 @@ All requested mobile drag and drop improvements have been successfully implement
 
 ## Knowledge Tab Feature Test Results (2025-12-24 - Testing Agent)
 **Testing Agent**: Frontend Testing Agent  
-**Test Environment**: Production (https://convoclient.preview.emergentagent.com)  
+**Test Environment**: Production (https://orchestra-refactor.preview.emergentagent.com)  
 **Login Credentials**: andre@humanweb.no / Pernilla66!
 **Test Focus**: New Knowledge tab on Agent Edit page
 
