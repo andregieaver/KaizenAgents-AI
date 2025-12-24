@@ -316,12 +316,14 @@ This helps protect your privacy and ensures I'm sharing information with the rig
         context = ""
         if has_knowledge_base:
             try:
-                from rag_service import retrieve_relevant_chunks, format_context_for_agent
+                from services.rag_service import retrieve_relevant_chunks, format_context_for_agent
                 
                 # Retrieve relevant chunks using provider's API key
+                # Pass both company_id and agent_id for agent-specific retrieval
                 relevant_chunks = await retrieve_relevant_chunks(
                     query=latest_message,
                     company_id=tenant_id,
+                    agent_id=agent["id"],
                     db=db,
                     api_key=provider["api_key"],
                     top_k=5
@@ -332,6 +334,8 @@ This helps protect your privacy and ensures I'm sharing information with the rig
                     logger.info(f"Retrieved {len(relevant_chunks)} relevant chunks for query")
                 else:
                     logger.warning(f"No relevant chunks found for query: {latest_message}")
+            except ImportError:
+                logger.warning("RAG service not available, continuing without context retrieval")
             except Exception as e:
                 logger.error(f"RAG retrieval error: {str(e)}")
                 # Continue without context if RAG fails
