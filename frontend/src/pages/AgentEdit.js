@@ -2,50 +2,34 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Textarea } from '../components/ui/textarea';
 import { Badge } from '../components/ui/badge';
-import { Separator } from '../components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Switch } from '../components/ui/switch';
 import {
   Bot,
   ArrowLeft,
   Save,
   Loader2,
-  Upload,
-  Code,
-  Copy,
-  Check,
-  TestTube,
   Trash2,
-  Send,
-  User,
-  RotateCcw,
   Settings,
-  ExternalLink,
-  Power,
   Globe,
-  Tag,
   ShoppingCart,
-  Eye,
-  EyeOff,
-  Link,
-  CheckCircle,
-  AlertCircle,
   Languages,
-  FileText,
-  Database,
-  RefreshCw
+  TestTube,
+  Code,
+  Database
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { ScrollArea } from '../components/ui/scroll-area';
-import { LanguageSelector } from '../components/LanguageSelector';
-import { getLanguageName } from '../data/languages';
-import { cn } from '../lib/utils';
+
+// Import tab components
+import {
+  AgentConfigurationTab,
+  AgentKnowledgeTab,
+  AgentLanguageTab,
+  AgentIntegrationsTab,
+  AgentTestTab,
+  AgentEmbedTab
+} from '../components/agent';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -54,34 +38,24 @@ const AgentEdit = () => {
   const { agentId } = useParams();
   const navigate = useNavigate();
   const { token, user } = useAuth();
-  // Handle both direct /agents/new route (agentId is undefined) and fallback check
   const isNew = !agentId || agentId === 'new';
   
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const avatarInputRef = useRef(null);
+  const fileInputRef = useRef(null);
   
   // Providers state
   const [providers, setProviders] = useState([]);
   const [loadingProviders, setLoadingProviders] = useState(true);
   
-  // Test conversation state
-  const [testMessage, setTestMessage] = useState('');
-  const [conversationHistory, setConversationHistory] = useState([]);
-  const [testing, setTesting] = useState(false);
-  
-  // Categories
-  const categories = [
-    'Customer Support',
-    'Sales',
-    'Technical Support',
-    'E-commerce',
-    'General',
-    'Other'
-  ];
+  // Knowledge Base state
+  const [uploadedDocs, setUploadedDocs] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [scraping, setScraping] = useState(false);
+  const [scrapingStatus, setScrapingStatus] = useState(null);
 
   const [agent, setAgent] = useState({
     id: null,
@@ -92,15 +66,15 @@ const AgentEdit = () => {
     profile_image_url: null,
     config: {
       system_prompt: '',
-      ai_persona: '',  // Legacy field
+      ai_persona: '',
       temperature: 0.7,
       max_tokens: 2000,
       model: '',
-      ai_model: '',  // Legacy field
+      ai_model: '',
       provider_id: '',
       provider_name: '',
       response_language: null,
-      language_mode: 'browser',  // 'force', 'browser', 'geo'
+      language_mode: 'browser',
       scraping_domains: '',
       scraping_max_depth: 2,
       scraping_max_pages: 50,
@@ -121,56 +95,21 @@ const AgentEdit = () => {
     orchestration_enabled: false,
     tags: []
   });
+
+  // Helper functions
+  const getSystemPrompt = () => agent.config?.system_prompt || agent.config?.ai_persona || '';
+  const getTemperature = () => agent.config?.temperature ?? 0.7;
+  const getMaxTokens = () => agent.config?.max_tokens ?? 2000;
+  const getModel = () => agent.config?.model || agent.config?.ai_model || '';
+  const getProviderId = () => agent.config?.provider_id || '';
   
-  // WooCommerce state
-  const [testingWooCommerce, setTestingWooCommerce] = useState(false);
-  const [showWooCommerceKeys, setShowWooCommerceKeys] = useState(false);
-  
-  // Shopify state
-  const [testingShopify, setTestingShopify] = useState(false);
-  const [showShopifyToken, setShowShopifyToken] = useState(false);
-  
-  // Knowledge Base state
-  const [uploadedDocs, setUploadedDocs] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [scraping, setScraping] = useState(false);
-  const [scrapingStatus, setScrapingStatus] = useState(null);
-  const fileInputRef = useRef(null);
-
-  // Helper to get system prompt (handles both new and legacy field names)
-  const getSystemPrompt = () => {
-    return agent.config?.system_prompt || agent.config?.ai_persona || '';
-  };
-
-  // Helper to get temperature
-  const getTemperature = () => {
-    return agent.config?.temperature ?? 0.7;
-  };
-
-  // Helper to get max tokens
-  const getMaxTokens = () => {
-    return agent.config?.max_tokens ?? 2000;
-  };
-
-  // Helper to get model
-  const getModel = () => {
-    return agent.config?.model || agent.config?.ai_model || '';
-  };
-
-  // Helper to get provider ID
-  const getProviderId = () => {
-    return agent.config?.provider_id || '';
-  };
-
-  // Get available models for selected provider
   const getAvailableModels = () => {
     const providerId = getProviderId();
     if (!providerId) return [];
     const provider = providers.find(p => p.id === providerId);
     return provider?.models || [];
   };
-  
-  // Format file size
+
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -178,8 +117,16 @@ const AgentEdit = () => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
-  
-  // Fetch agent documents
+
+  const getAvatarSrc = (url) => {
+    if (!url) return null;
+    if (url.startsWith('/api/')) {
+      return `${BACKEND_URL}${url}`;
+    }
+    return url;
+  };
+
+  // API functions
   const fetchAgentDocuments = async (agentIdToFetch) => {
     try {
       const response = await axios.get(`${API}/agents/${agentIdToFetch}/documents`, {
@@ -190,19 +137,16 @@ const AgentEdit = () => {
       console.error('Error fetching documents:', error);
     }
   };
-  
-  // Handle file upload for knowledge base
+
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Check file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('File size must be less than 5MB');
       return;
     }
     
-    // Check file type
     const allowedTypes = ['.pdf', '.txt', '.md', '.docx', '.csv'];
     const ext = '.' + file.name.split('.').pop().toLowerCase();
     if (!allowedTypes.includes(ext)) {
@@ -232,8 +176,7 @@ const AgentEdit = () => {
       }
     }
   };
-  
-  // Handle document deletion
+
   const handleDeleteDocument = async (filename) => {
     if (!window.confirm(`Delete "${filename}"? This cannot be undone.`)) return;
     
@@ -247,8 +190,7 @@ const AgentEdit = () => {
       toast.error('Failed to delete document');
     }
   };
-  
-  // Trigger web scraping
+
   const handleTriggerScraping = async () => {
     const domains = agent.config?.scraping_domains;
     if (!domains) {
@@ -273,8 +215,7 @@ const AgentEdit = () => {
       setScraping(false);
     }
   };
-  
-  // Fetch scraping status
+
   const fetchScrapingStatus = async (agentIdToFetch) => {
     try {
       const response = await axios.get(`${API}/agents/${agentIdToFetch}/scraping-status`, {
@@ -282,11 +223,11 @@ const AgentEdit = () => {
       });
       setScrapingStatus(response.data);
     } catch (error) {
-      // Silently fail - scraping might not be configured
+      // Silently fail
     }
   };
 
-  // Fetch available providers
+  // Fetch providers
   useEffect(() => {
     const fetchProviders = async () => {
       try {
@@ -295,7 +236,6 @@ const AgentEdit = () => {
         });
         setProviders(response.data);
         
-        // If creating new agent and no provider set, select the first one
         if (isNew && response.data.length > 0 && !getProviderId()) {
           const firstProvider = response.data[0];
           setAgent(prev => ({
@@ -310,7 +250,6 @@ const AgentEdit = () => {
         }
       } catch (error) {
         console.error('Error fetching providers:', error);
-        // Don't show error toast - providers might not be configured yet
       } finally {
         setLoadingProviders(false);
       }
@@ -321,6 +260,7 @@ const AgentEdit = () => {
     }
   }, [token]);
 
+  // Fetch agent
   useEffect(() => {
     if (!isNew) {
       fetchAgent();
@@ -332,7 +272,6 @@ const AgentEdit = () => {
       const response = await axios.get(`${API}/agents/${agentId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      // Ensure config has all required fields initialized
       const agentData = response.data;
       agentData.config = {
         ...agentData.config,
@@ -354,8 +293,6 @@ const AgentEdit = () => {
         }
       };
       setAgent(agentData);
-      
-      // Fetch documents and scraping status for this agent
       fetchAgentDocuments(agentId);
       fetchScrapingStatus(agentId);
     } catch (error) {
@@ -529,66 +466,6 @@ const AgentEdit = () => {
     }
   };
 
-  const handleTestAgent = async () => {
-    if (!testMessage.trim() || isNew) return;
-
-    setTesting(true);
-    try {
-      // Call the real AI test endpoint
-      const response = await axios.post(
-        `${API}/agents/${agentId}/test`,
-        {
-          message: testMessage,
-          history: conversationHistory.map(msg => ({
-            role: msg.role,
-            content: msg.content
-          }))
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      
-      const newHistory = [
-        ...conversationHistory,
-        { role: 'user', content: testMessage },
-        { role: 'assistant', content: response.data.agent_response }
-      ];
-      
-      setConversationHistory(newHistory);
-      setTestMessage('');
-      
-      // Show model info on first message
-      if (conversationHistory.length === 0) {
-        toast.success(`Using ${response.data.model_used} via ${response.data.provider_used}`);
-      }
-    } catch (error) {
-      const errorMsg = error.response?.data?.detail || 'Test failed';
-      toast.error(errorMsg);
-      console.error('Agent test error:', error);
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  const getAvatarSrc = (url) => {
-    if (!url) return null;
-    if (url.startsWith('/api/')) {
-      return `${BACKEND_URL}${url}`;
-    }
-    return url;
-  };
-
-  const getEmbedCode = () => {
-    const baseUrl = BACKEND_URL?.replace('/api', '') || window.location.origin;
-    return `<script src="${baseUrl}/widget.js" data-tenant-id="${user?.tenant_id}" data-agent-id="${agent.id}" async></script>`;
-  };
-
-  const copyEmbedCode = () => {
-    navigator.clipboard.writeText(getEmbedCode());
-    setCopied(true);
-    toast.success('Embed code copied!');
-    setTimeout(() => setCopied(false), 2000);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[400px]">
@@ -718,1244 +595,63 @@ const AgentEdit = () => {
           )}
         </TabsList>
 
-        {/* Configuration Tab */}
         <TabsContent value="configuration" className="space-y-4 sm:space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Main Configuration */}
-            <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-              <Card className="border border-border">
-                <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="text-base sm:text-lg">Agent Details</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">Basic information about this agent</CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="agent-name" className="text-sm">Agent Name *</Label>
-                      <Input
-                        id="agent-name"
-                        placeholder="e.g., Customer Support Specialist"
-                        value={agent.name}
-                        onChange={(e) => setAgent({ ...agent, name: e.target.value })}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="agent-icon" className="text-sm">Icon</Label>
-                      <Input
-                        id="agent-icon"
-                        placeholder="🤖"
-                        value={agent.icon}
-                        onChange={(e) => setAgent({ ...agent, icon: e.target.value })}
-                        className="text-xl"
-                        maxLength={2}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="description" className="text-sm">Description *</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="A brief description of what this agent does..."
-                      rows={2}
-                      value={agent.description}
-                      onChange={(e) => setAgent({ ...agent, description: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="category" className="text-sm">Category</Label>
-                    <select
-                      id="category"
-                      className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
-                      value={agent.category}
-                      onChange={(e) => setAgent({ ...agent, category: e.target.value })}
-                    >
-                      {categories.map((cat) => (
-                        <option key={cat} value={cat}>{cat}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Provider and Model Selection */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="provider" className="text-sm">AI Provider</Label>
-                      <select
-                        id="provider"
-                        className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
-                        value={getProviderId()}
-                        onChange={(e) => {
-                          const selectedProvider = providers.find(p => p.id === e.target.value);
-                          setAgent({ 
-                            ...agent, 
-                            config: { 
-                              ...agent.config, 
-                              provider_id: e.target.value,
-                              provider_name: selectedProvider?.name || '',
-                              // Reset model to provider's default when changing provider
-                              model: selectedProvider?.default_model || selectedProvider?.models?.[0] || ''
-                            }
-                          });
-                        }}
-                        disabled={loadingProviders}
-                      >
-                        {loadingProviders ? (
-                          <option value="">Loading providers...</option>
-                        ) : providers.length === 0 ? (
-                          <option value="">No providers configured</option>
-                        ) : (
-                          <>
-                            <option value="">Select a provider</option>
-                            {providers.map((provider) => (
-                              <option key={provider.id} value={provider.id}>
-                                {provider.name} ({provider.type})
-                              </option>
-                            ))}
-                          </>
-                        )}
-                      </select>
-                      {providers.length === 0 && !loadingProviders && (
-                        <p className="text-xs text-amber-600">
-                          No AI providers configured. Ask your admin to set one up.
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="model" className="text-sm">Model</Label>
-                      <select
-                        id="model"
-                        className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
-                        value={getModel()}
-                        onChange={(e) => setAgent({ 
-                          ...agent, 
-                          config: { ...agent.config, model: e.target.value, ai_model: e.target.value }
-                        })}
-                        disabled={!getProviderId() || loadingProviders}
-                      >
-                        {!getProviderId() ? (
-                          <option value="">Select a provider first</option>
-                        ) : getAvailableModels().length === 0 ? (
-                          <>
-                            <option value="">Enter model name</option>
-                            <option value={getModel()} disabled={!getModel()}>
-                              {getModel() || 'No models available'}
-                            </option>
-                          </>
-                        ) : (
-                          <>
-                            <option value="">Select a model</option>
-                            {getAvailableModels().map((model) => (
-                              <option key={model} value={model}>{model}</option>
-                            ))}
-                          </>
-                        )}
-                      </select>
-                      {getProviderId() && getAvailableModels().length === 0 && (
-                        <Input
-                          placeholder="Enter model name (e.g., gpt-4o-mini)"
-                          value={getModel()}
-                          onChange={(e) => setAgent({ 
-                            ...agent, 
-                            config: { ...agent.config, model: e.target.value, ai_model: e.target.value }
-                          })}
-                          className="mt-2"
-                        />
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="system-prompt" className="text-sm">System Prompt *</Label>
-                    <Textarea
-                      id="system-prompt"
-                      placeholder="You are a helpful customer support assistant..."
-                      rows={6}
-                      className="min-h-[120px] sm:min-h-[180px]"
-                      value={getSystemPrompt()}
-                      onChange={(e) => setAgent({ 
-                        ...agent, 
-                        config: { ...agent.config, system_prompt: e.target.value, ai_persona: e.target.value }
-                      })}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Define the agent&apos;s personality, knowledge, and behavior
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="border border-border">
-                <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="text-base sm:text-lg">Model Parameters</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">Fine-tune the agent&apos;s response generation</CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <Label htmlFor="temperature" className="text-sm">Temperature</Label>
-                      <span className="text-sm font-mono text-muted-foreground">{getTemperature()}</span>
-                    </div>
-                    <input
-                      type="range"
-                      id="temperature"
-                      min="0"
-                      max="2"
-                      step="0.1"
-                      value={getTemperature()}
-                      onChange={(e) => setAgent({ 
-                        ...agent, 
-                        config: { ...agent.config, temperature: parseFloat(e.target.value) }
-                      })}
-                      className="w-full"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Lower = more focused, Higher = more creative
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="max-tokens" className="text-sm">Max Tokens</Label>
-                    <Input
-                      type="number"
-                      id="max-tokens"
-                      value={getMaxTokens()}
-                      onChange={(e) => setAgent({ 
-                        ...agent, 
-                        config: { ...agent.config, max_tokens: parseInt(e.target.value) }
-                      })}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Maximum length of the agent&apos;s responses
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Sidebar - Moves below on mobile */}
-            <div className="space-y-4 sm:space-y-6">
-              {/* Avatar */}
-              <Card className="border border-border">
-                <CardHeader className="p-4 sm:p-6">
-                  <CardTitle className="text-base sm:text-lg">Agent Avatar</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">Visual representation of the agent</CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
-                  <div className="flex justify-center">
-                    <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-3xl sm:text-4xl">
-                      {getAvatarSrc(agent.profile_image_url) ? (
-                        <img 
-                          src={getAvatarSrc(agent.profile_image_url)} 
-                          alt={agent.name}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        agent.icon || <Bot className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
-                      )}
-                    </div>
-                  </div>
-                  
-                  {!isNew && (
-                    <>
-                      <input
-                        type="file"
-                        ref={avatarInputRef}
-                        className="hidden"
-                        accept="image/*"
-                        onChange={(e) => handleAvatarUpload(e.target.files[0])}
-                      />
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => avatarInputRef.current?.click()}
-                        disabled={uploadingAvatar}
-                      >
-                        {uploadingAvatar ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Upload className="h-4 w-4 mr-2" />
-                        )}
-                        Upload Avatar
-                      </Button>
-                    </>
-                  )}
-                  {isNew && (
-                    <p className="text-xs text-muted-foreground text-center">
-                      Save the agent first to upload an avatar
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Status & Actions */}
-              {!isNew && (
-                <Card className="border border-border">
-                  <CardHeader className="p-4 sm:p-6">
-                    <CardTitle className="text-base sm:text-lg">Agent Status</CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Power className={`h-4 w-4 ${agent.is_active ? 'text-green-500' : 'text-muted-foreground'}`} />
-                        <span className="text-sm font-medium">
-                          {agent.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </div>
-                      <Switch
-                        checked={agent.is_active}
-                        onCheckedChange={handleToggleActive}
-                      />
-                    </div>
-                    
-                    {agent.is_public && (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Globe className="h-4 w-4 text-primary" />
-                        <span>Published to Marketplace</span>
-                      </div>
-                    )}
-
-                    <Separator />
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Agent ID</span>
-                        <code className="text-xs bg-muted px-2 py-1 rounded">{agent.id?.slice(0, 8)}...</code>
-                      </div>
-                      {agent.created_at && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Created</span>
-                          <span>{new Date(agent.created_at).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Orchestration */}
-              {!isNew && (
-                <Card className="border border-border">
-                  <CardHeader className="p-4 sm:p-6">
-                    <CardTitle className="text-base sm:text-lg">Orchestration</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">Multi-agent coordination settings</CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Tag className="h-4 w-4" />
-                        <span className="text-sm">Enable Orchestration</span>
-                      </div>
-                      <Switch
-                        checked={agent.orchestration_enabled}
-                        onCheckedChange={(checked) => setAgent({ ...agent, orchestration_enabled: checked })}
-                      />
-                    </div>
-                    
-                    {agent.orchestration_enabled && (
-                      <div className="space-y-2">
-                        <Label>Tags (comma-separated)</Label>
-                        <Input
-                          placeholder="support, billing, technical"
-                          value={agent.tags?.join(', ') || ''}
-                          onChange={(e) => setAgent({ 
-                            ...agent, 
-                            tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)
-                          })}
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Tags help the mother agent route requests
-                        </p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
+          <AgentConfigurationTab
+            agent={agent}
+            setAgent={setAgent}
+            isNew={isNew}
+            providers={providers}
+            loadingProviders={loadingProviders}
+            getSystemPrompt={getSystemPrompt}
+            getTemperature={getTemperature}
+            getMaxTokens={getMaxTokens}
+            getModel={getModel}
+            getProviderId={getProviderId}
+            getAvailableModels={getAvailableModels}
+            getAvatarSrc={getAvatarSrc}
+            handleToggleActive={handleToggleActive}
+            handleAvatarUpload={handleAvatarUpload}
+            uploadingAvatar={uploadingAvatar}
+            avatarInputRef={avatarInputRef}
+            token={token}
+          />
         </TabsContent>
 
-        {/* Knowledge Tab */}
         <TabsContent value="knowledge" className="space-y-4 sm:space-y-6">
-          {/* Web Scraping Section */}
-          <Card className="border border-border">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Web Scraping Domains
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
-                Scrape websites to build knowledge context for this agent
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="scraping-domains">Domain URLs</Label>
-                <Input
-                  id="scraping-domains"
-                  placeholder="https://example.com, https://docs.example.com"
-                  value={agent.config?.scraping_domains || ''}
-                  onChange={(e) => setAgent(prev => ({
-                    ...prev,
-                    config: { ...prev.config, scraping_domains: e.target.value }
-                  }))}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Comma-separated list of domain URLs to scrape for agent context
-                </p>
-              </div>
-
-              {/* Scraping Configuration */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="max-depth" className="text-xs">Max Depth</Label>
-                  <Input
-                    id="max-depth"
-                    type="number"
-                    min="1"
-                    max="5"
-                    value={agent.config?.scraping_max_depth || 2}
-                    onChange={(e) => setAgent(prev => ({
-                      ...prev,
-                      config: { ...prev.config, scraping_max_depth: parseInt(e.target.value) || 2 }
-                    }))}
-                    className="text-sm"
-                  />
-                  <p className="text-xs text-muted-foreground">Levels to crawl (1-5)</p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="max-pages" className="text-xs">Max Pages/Domain</Label>
-                  <Input
-                    id="max-pages"
-                    type="number"
-                    min="1"
-                    max="200"
-                    value={agent.config?.scraping_max_pages || 50}
-                    onChange={(e) => setAgent(prev => ({
-                      ...prev,
-                      config: { ...prev.config, scraping_max_pages: parseInt(e.target.value) || 50 }
-                    }))}
-                    className="text-sm"
-                  />
-                  <p className="text-xs text-muted-foreground">Pages limit (1-200)</p>
-                </div>
-              </div>
-
-              {/* Scraping Status */}
-              {scrapingStatus && (
-                <div className="flex items-center justify-between p-3 bg-muted/50 border border-border rounded-md">
-                  <div className="flex items-center gap-2">
-                    {scrapingStatus.status === 'in_progress' && (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-                        <span className="text-sm">Scraping in progress...</span>
-                      </>
-                    )}
-                    {scrapingStatus.status === 'completed' && (
-                      <>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-sm">{scrapingStatus.pages_scraped || 0} pages scraped</span>
-                      </>
-                    )}
-                    {scrapingStatus.status === 'failed' && (
-                      <>
-                        <AlertCircle className="h-4 w-4 text-red-500" />
-                        <span className="text-sm">Scraping failed</span>
-                      </>
-                    )}
-                    {scrapingStatus.status === 'idle' && (
-                      <>
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">Ready to scrape</span>
-                      </>
-                    )}
-                  </div>
-                  {scrapingStatus.last_scraped_at && (
-                    <span className="text-xs text-muted-foreground">
-                      Last: {new Date(scrapingStatus.last_scraped_at).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Trigger Scraping Button */}
-              {!isNew && agent.config?.scraping_domains && (
-                <Button
-                  variant="outline"
-                  onClick={handleTriggerScraping}
-                  disabled={scraping || scrapingStatus?.status === 'in_progress'}
-                  className="w-full"
-                >
-                  {scraping ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Starting...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Trigger Web Scraping
-                    </>
-                  )}
-                </Button>
-              )}
-              
-              {isNew && agent.config?.scraping_domains && (
-                <p className="text-xs text-muted-foreground text-center py-2 border border-dashed rounded">
-                  Save the agent first, then you can trigger web scraping
-                </p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Knowledge Base Documents */}
-          <Card className="border border-border">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Knowledge Base Documents
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
-                Upload documents for this agent to reference (PDF, TXT, MD, DOCX, CSV • Max 5MB)
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4">
-              {isNew ? (
-                <div className="text-center py-8 border border-dashed rounded-md">
-                  <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">
-                    Save the agent first, then you can upload documents
-                  </p>
-                </div>
-              ) : (
-                <>
-                  {/* Upload Button */}
-                  <div>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      accept=".pdf,.txt,.md,.docx,.csv"
-                      onChange={handleFileUpload}
-                      disabled={uploading}
-                    />
-                    <Button
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                    >
-                      {uploading ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="h-4 w-4 mr-2" />
-                          Upload Document
-                        </>
-                      )}
-                    </Button>
-                  </div>
-
-                  {/* Document List */}
-                  {uploadedDocs.length > 0 ? (
-                    <div className="space-y-2">
-                      <Label>Uploaded Documents ({uploadedDocs.length})</Label>
-                      <ScrollArea className="h-[200px] border rounded-md">
-                        <div className="p-4 space-y-2">
-                          {uploadedDocs.map((doc, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between p-3 bg-muted/50 rounded-sm"
-                            >
-                              <div className="flex items-center gap-3 flex-1 min-w-0">
-                                <FileText className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium truncate">{doc.filename}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {formatFileSize(doc.file_size || 0)} • {doc.upload_date ? new Date(doc.upload_date).toLocaleDateString() : 'Unknown date'}
-                                  </p>
-                                </div>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteDocument(doc.filename)}
-                                className="text-destructive hover:text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 border border-dashed rounded-md">
-                      <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                      <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Upload PDF, TXT, MD, DOCX, or CSV files
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
-            </CardContent>
-          </Card>
+          <AgentKnowledgeTab
+            agent={agent}
+            setAgent={setAgent}
+            isNew={isNew}
+            uploadedDocs={uploadedDocs}
+            uploading={uploading}
+            scraping={scraping}
+            scrapingStatus={scrapingStatus}
+            handleFileUpload={handleFileUpload}
+            handleDeleteDocument={handleDeleteDocument}
+            handleTriggerScraping={handleTriggerScraping}
+            fileInputRef={fileInputRef}
+            formatFileSize={formatFileSize}
+          />
         </TabsContent>
 
-        {/* Language Tab */}
         <TabsContent value="language" className="space-y-4 sm:space-y-6">
-          <Card className="border border-border">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                <Languages className="h-5 w-5" />
-                Response Language
-              </CardTitle>
-              <CardDescription className="text-xs sm:text-sm">
-                Configure how this agent responds in different languages
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-6">
-              {/* Language Selector */}
-              <div className="space-y-2">
-                <Label htmlFor="response-language">Preferred Language</Label>
-                <LanguageSelector
-                  value={agent.config?.response_language || ''}
-                  onValueChange={(lang) => setAgent(prev => ({
-                    ...prev,
-                    config: { ...prev.config, response_language: lang || null }
-                  }))}
-                  placeholder="Select language..."
-                />
-                {agent.config?.response_language && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <CheckCircle className="h-3 w-3 text-green-600" />
-                    Selected: {getLanguageName(agent.config.response_language)}
-                  </div>
-                )}
-              </div>
-
-              {/* Language Mode */}
-              <div className="space-y-3">
-                <Label>Language Detection Mode</Label>
-                <div className="grid grid-cols-1 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setAgent(prev => ({
-                      ...prev,
-                      config: { ...prev.config, language_mode: 'force' }
-                    }))}
-                    className={cn(
-                      "p-4 rounded-lg border-2 text-left transition-all",
-                      agent.config?.language_mode === 'force'
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <div className="font-medium text-sm">Force Language</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Always respond in the selected language, regardless of customer&apos;s language
-                    </div>
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={() => setAgent(prev => ({
-                      ...prev,
-                      config: { ...prev.config, language_mode: 'browser' }
-                    }))}
-                    className={cn(
-                      "p-4 rounded-lg border-2 text-left transition-all",
-                      (agent.config?.language_mode === 'browser' || !agent.config?.language_mode)
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <div className="font-medium text-sm">Browser Language</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Auto-detect from user&apos;s browser settings (Accept-Language header)
-                    </div>
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={() => setAgent(prev => ({
-                      ...prev,
-                      config: { ...prev.config, language_mode: 'geo' }
-                    }))}
-                    className={cn(
-                      "p-4 rounded-lg border-2 text-left transition-all",
-                      agent.config?.language_mode === 'geo'
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <div className="font-medium text-sm">Geo Location</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Auto-detect language based on user&apos;s IP address / geographic location
-                    </div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setAgent(prev => ({
-                      ...prev,
-                      config: { ...prev.config, language_mode: 'auto' }
-                    }))}
-                    className={cn(
-                      "p-4 rounded-lg border-2 text-left transition-all",
-                      agent.config?.language_mode === 'auto'
-                        ? "border-primary bg-primary/10"
-                        : "border-border hover:border-primary/50"
-                    )}
-                  >
-                    <div className="font-medium text-sm">Auto-detect from Message</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      Respond in the same language the customer uses in their message
-                    </div>
-                  </button>
-                </div>
-              </div>
-
-              {/* Info box */}
-              <div className="bg-muted/50 rounded-lg p-4 text-sm">
-                <p className="font-medium mb-2">How it works:</p>
-                <ul className="text-muted-foreground space-y-1 text-xs">
-                  <li>• <strong>Force:</strong> Always uses the selected language (best for single-language support)</li>
-                  <li>• <strong>Browser:</strong> Uses the visitor&apos;s browser language preference</li>
-                  <li>• <strong>Geo:</strong> Detects language based on visitor&apos;s location</li>
-                  <li>• <strong>Auto-detect:</strong> Matches the language used in the customer&apos;s message</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
+          <AgentLanguageTab agent={agent} setAgent={setAgent} />
         </TabsContent>
 
-        {/* Integrations Tab */}
         <TabsContent value="integrations" className="space-y-4 sm:space-y-6">
-          <Card className="border border-border">
-            <CardHeader className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <ShoppingCart className="h-5 w-5" />
-                    WooCommerce Integration
-                  </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
-                    Connect your WooCommerce store to enable order lookups, refunds, and more
-                  </CardDescription>
-                </div>
-                <Switch
-                  checked={agent.config?.woocommerce?.enabled || false}
-                  onCheckedChange={(checked) => {
-                    setAgent(prev => ({
-                      ...prev,
-                      config: {
-                        ...prev.config,
-                        woocommerce: {
-                          ...prev.config?.woocommerce,
-                          enabled: checked
-                        }
-                      }
-                    }));
-                  }}
-                />
-              </div>
-            </CardHeader>
-            
-            {agent.config?.woocommerce?.enabled && (
-              <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="wc_store_url">Store URL</Label>
-                    <Input
-                      id="wc_store_url"
-                      placeholder="https://your-store.com"
-                      value={agent.config?.woocommerce?.store_url || ''}
-                      onChange={(e) => {
-                        setAgent(prev => ({
-                          ...prev,
-                          config: {
-                            ...prev.config,
-                            woocommerce: {
-                              ...prev.config?.woocommerce,
-                              store_url: e.target.value
-                            }
-                          }
-                        }));
-                      }}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Your WooCommerce store URL (e.g., https://mystore.com)
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="wc_consumer_key">Consumer Key</Label>
-                    <div className="relative">
-                      <Input
-                        id="wc_consumer_key"
-                        type={showWooCommerceKeys ? 'text' : 'password'}
-                        placeholder="ck_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                        value={agent.config?.woocommerce?.consumer_key || ''}
-                        onChange={(e) => {
-                          setAgent(prev => ({
-                            ...prev,
-                            config: {
-                              ...prev.config,
-                              woocommerce: {
-                                ...prev.config?.woocommerce,
-                                consumer_key: e.target.value
-                              }
-                            }
-                          }));
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7"
-                        onClick={() => setShowWooCommerceKeys(!showWooCommerceKeys)}
-                      >
-                        {showWooCommerceKeys ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="wc_consumer_secret">Consumer Secret</Label>
-                    <Input
-                      id="wc_consumer_secret"
-                      type={showWooCommerceKeys ? 'text' : 'password'}
-                      placeholder="cs_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                      value={agent.config?.woocommerce?.consumer_secret || ''}
-                      onChange={(e) => {
-                        setAgent(prev => ({
-                          ...prev,
-                          config: {
-                            ...prev.config,
-                            woocommerce: {
-                              ...prev.config?.woocommerce,
-                              consumer_secret: e.target.value
-                            }
-                          }
-                        }));
-                      }}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Find these in WooCommerce → Settings → Advanced → REST API
-                    </p>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      <p className="font-medium text-foreground">Available Capabilities</p>
-                      <ul className="mt-1 space-y-1 text-xs">
-                        <li>• Search orders by customer email</li>
-                        <li>• Get order details and status</li>
-                        <li>• Process refunds</li>
-                        <li>• Update order status</li>
-                      </ul>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        if (!agent.config?.woocommerce?.store_url || 
-                            !agent.config?.woocommerce?.consumer_key ||
-                            !agent.config?.woocommerce?.consumer_secret) {
-                          toast.error('Please fill in all WooCommerce credentials');
-                          return;
-                        }
-                        setTestingWooCommerce(true);
-                        try {
-                          const response = await axios.post(
-                            `${API}/agents/test-woocommerce`,
-                            {
-                              store_url: agent.config.woocommerce.store_url,
-                              consumer_key: agent.config.woocommerce.consumer_key,
-                              consumer_secret: agent.config.woocommerce.consumer_secret
-                            },
-                            { headers: { Authorization: `Bearer ${token}` } }
-                          );
-                          if (response.data.success) {
-                            toast.success('WooCommerce connection successful!');
-                          } else {
-                            toast.error(response.data.message || 'Connection failed');
-                          }
-                        } catch (error) {
-                          toast.error(error.response?.data?.detail || 'Failed to test connection');
-                        } finally {
-                          setTestingWooCommerce(false);
-                        }
-                      }}
-                      disabled={testingWooCommerce}
-                    >
-                      {testingWooCommerce ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <Link className="h-4 w-4 mr-2" />
-                      )}
-                      Test Connection
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            )}
-          </Card>
-          
-          {/* Shopify Integration */}
-          <Card className="border border-border">
-            <CardHeader className="p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M15.337 3.415c-.18-.036-.358-.054-.538-.054-.654 0-1.236.345-1.691 1.021-.383.571-.64 1.36-.754 2.293l-1.836.566c.127-1.254.502-2.37 1.127-3.314.756-1.146 1.745-1.727 2.963-1.727.285 0 .576.03.87.094.36.08.672.252.94.516.268.263.48.598.635 1.004.155.405.232.866.232 1.384v.004c0 .105-.004.21-.014.316l-1.285.396c.02-.236.03-.46.03-.673 0-.614-.097-1.078-.292-1.39-.195-.313-.44-.47-.734-.53l.347-.906zm-5.27 7.96l1.455-4.587 1.457.37-1.455 4.587-1.457-.37zm9.07-3.12l-1.142 3.6-1.39-.353 1.142-3.6 1.39.353zm-8.16 10.113c-.36 0-.647-.158-.862-.474-.214-.316-.322-.742-.322-1.28v-.01c0-.537.108-.963.322-1.278.215-.315.502-.473.862-.473.36 0 .647.158.862.473.214.315.322.74.322 1.278v.01c0 .538-.108.964-.322 1.28-.215.316-.502.474-.862.474zm0-4.52c-.763 0-1.375.278-1.836.833-.46.555-.69 1.288-.69 2.2v.01c0 .91.23 1.644.69 2.2.46.555 1.073.833 1.836.833.763 0 1.375-.278 1.836-.833.46-.556.69-1.29.69-2.2v-.01c0-.912-.23-1.645-.69-2.2-.46-.555-1.073-.833-1.836-.833z"/>
-                    </svg>
-                    Shopify Integration
-                  </CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
-                    Connect your Shopify store to enable order lookups, customer info, and more
-                  </CardDescription>
-                </div>
-                <Switch
-                  checked={agent.config?.shopify?.enabled || false}
-                  onCheckedChange={(checked) => {
-                    setAgent(prev => ({
-                      ...prev,
-                      config: {
-                        ...prev.config,
-                        shopify: {
-                          ...prev.config?.shopify,
-                          enabled: checked
-                        }
-                      }
-                    }));
-                  }}
-                />
-              </div>
-            </CardHeader>
-            
-            {agent.config?.shopify?.enabled && (
-              <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="shopify_store_domain">Store Domain</Label>
-                    <Input
-                      id="shopify_store_domain"
-                      placeholder="your-store.myshopify.com"
-                      value={agent.config?.shopify?.store_domain || ''}
-                      onChange={(e) => {
-                        setAgent(prev => ({
-                          ...prev,
-                          config: {
-                            ...prev.config,
-                            shopify: {
-                              ...prev.config?.shopify,
-                              store_domain: e.target.value
-                            }
-                          }
-                        }));
-                      }}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Your Shopify store domain (e.g., mystore or mystore.myshopify.com)
-                    </p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="shopify_access_token">Admin API Access Token</Label>
-                    <div className="relative">
-                      <Input
-                        id="shopify_access_token"
-                        type={showShopifyToken ? 'text' : 'password'}
-                        placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                        value={agent.config?.shopify?.access_token || ''}
-                        onChange={(e) => {
-                          setAgent(prev => ({
-                            ...prev,
-                            config: {
-                              ...prev.config,
-                              shopify: {
-                                ...prev.config?.shopify,
-                                access_token: e.target.value
-                              }
-                            }
-                          }));
-                        }}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-2 top-1/2 -translate-y-1/2 h-7 w-7"
-                        onClick={() => setShowShopifyToken(!showShopifyToken)}
-                      >
-                        {showShopifyToken ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Get this from Shopify Admin → Apps → Develop apps → Create an app → API credentials
-                    </p>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-muted-foreground">
-                      <p className="font-medium text-foreground">Available Capabilities</p>
-                      <ul className="mt-1 space-y-1 text-xs">
-                        <li>• Search orders by customer email</li>
-                        <li>• Get order details and tracking</li>
-                        <li>• Process refunds</li>
-                        <li>• Cancel orders</li>
-                        <li>• Get customer information</li>
-                      </ul>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        if (!agent.config?.shopify?.store_domain || 
-                            !agent.config?.shopify?.access_token) {
-                          toast.error('Please fill in all Shopify credentials');
-                          return;
-                        }
-                        setTestingShopify(true);
-                        try {
-                          const response = await axios.post(
-                            `${API}/agents/test-shopify`,
-                            {
-                              store_domain: agent.config.shopify.store_domain,
-                              access_token: agent.config.shopify.access_token
-                            },
-                            { headers: { Authorization: `Bearer ${token}` } }
-                          );
-                          if (response.data.success) {
-                            toast.success(`Connected to ${response.data.shop_name || 'Shopify store'}!`);
-                          } else {
-                            toast.error(response.data.message || 'Connection failed');
-                          }
-                        } catch (error) {
-                          toast.error(error.response?.data?.detail || 'Failed to test connection');
-                        } finally {
-                          setTestingShopify(false);
-                        }
-                      }}
-                      disabled={testingShopify}
-                    >
-                      {testingShopify ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <Link className="h-4 w-4 mr-2" />
-                      )}
-                      Test Connection
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            )}
-          </Card>
-          
-          {/* Future integrations placeholder */}
-          <Card className="border border-dashed border-border bg-muted/30">
-            <CardContent className="p-6 text-center">
-              <div className="text-muted-foreground">
-                <Globe className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">More integrations coming soon</p>
-                <p className="text-xs mt-1">Magento, BigCommerce, and more</p>
-              </div>
-            </CardContent>
-          </Card>
+          <AgentIntegrationsTab agent={agent} setAgent={setAgent} token={token} />
         </TabsContent>
 
-        {/* Test Tab */}
         {!isNew && (
-          <TabsContent value="test">
-            <Card className="border border-border">
-              <CardHeader className="p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div>
-                    <CardTitle className="text-base sm:text-lg">Test Conversation</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm">Chat with this agent to test its responses</CardDescription>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setConversationHistory([])}
-                    disabled={conversationHistory.length === 0}
-                    className="self-start sm:self-auto"
-                  >
-                    <RotateCcw className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Clear</span>
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0">
-                <div className="space-y-4">
-                  {/* Conversation History */}
-                  <ScrollArea className="h-[300px] sm:h-[400px] pr-2 sm:pr-4">
-                    {conversationHistory.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-12 sm:py-16 text-center">
-                        <Bot className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-3" />
-                        <p className="text-xs sm:text-sm text-muted-foreground">
-                          Start a conversation to test the agent
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {conversationHistory.map((msg, idx) => (
-                          <div key={idx} className="flex items-start gap-2 sm:gap-3">
-                            <div className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                              msg.role === 'user' 
-                                ? 'bg-primary/10' 
-                                : 'bg-primary'
-                            }`}>
-                              {msg.role === 'user' ? (
-                                <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                              ) : (
-                                <Bot className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
-                              )}
-                            </div>
-                            <div className={`flex-1 p-2.5 sm:p-3 rounded-lg ${
-                              msg.role === 'user' 
-                                ? 'bg-muted' 
-                                : 'bg-primary/10'
-                            }`}>
-                              <p className="text-xs sm:text-sm whitespace-pre-wrap">{msg.content}</p>
-                            </div>
-                          </div>
-                        ))}
-                        {testing && (
-                          <div className="flex items-start gap-2 sm:gap-3">
-                            <div className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-primary flex items-center justify-center">
-                              <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white animate-spin" />
-                            </div>
-                            <div className="flex-1 bg-primary/10 p-2.5 sm:p-3 rounded-lg">
-                              <p className="text-xs sm:text-sm text-muted-foreground">Thinking...</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </ScrollArea>
-                  
-                  {/* Input Area */}
-                  <div className="flex gap-2 pt-2 border-t">
-                    <Input
-                      placeholder="Type your test message..."
-                      value={testMessage}
-                      onChange={(e) => setTestMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleTestAgent()}
-                      disabled={testing}
-                    />
-                    <Button onClick={handleTestAgent} disabled={testing || !testMessage.trim()}>
-                      {testing ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Send className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        )}
+          <>
+            <TabsContent value="test" className="space-y-4 sm:space-y-6">
+              <AgentTestTab agent={agent} agentId={agentId} token={token} />
+            </TabsContent>
 
-        {/* Embed Code Tab */}
-        {!isNew && (
-          <TabsContent value="embed">
-            <Card className="border border-border">
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-base sm:text-lg">Agent Embed Code</CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
-                  Add this specific agent as a chat widget on your website
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0 sm:pt-0 space-y-4 sm:space-y-6">
-                <div className="space-y-2 sm:space-y-3">
-                  <Label className="text-sm">Agent ID</Label>
-                  <div className="flex gap-2">
-                    <Input
-                      value={agent.id || ''}
-                      readOnly
-                      className="h-10 font-mono text-xs sm:text-sm bg-muted flex-1"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="shrink-0"
-                      onClick={() => {
-                        navigator.clipboard.writeText(agent.id || '');
-                        toast.success('Agent ID copied!');
-                      }}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2 sm:space-y-3">
-                  <Label className="text-sm">Embed Code</Label>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Copy this code and paste it before the closing &lt;/body&gt; tag on your website.
-                    This will show the chat widget with <strong>{agent.name}</strong> as the AI agent.
-                  </p>
-                  <div className="relative">
-                    <pre className="bg-muted p-3 sm:p-4 rounded-lg overflow-x-auto text-xs sm:text-sm font-mono">
-                      <code className="break-all whitespace-pre-wrap">{getEmbedCode()}</code>
-                    </pre>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={copyEmbedCode}
-                    >
-                      {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2 sm:space-y-3">
-                  <Label className="text-sm">Test Your Widget</Label>
-                  <p className="text-xs sm:text-sm text-muted-foreground">
-                    Preview how the widget will look with this agent.
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full sm:w-auto"
-                    onClick={() => window.open(`/widget-demo?tenant=${user?.tenant_id}&agent=${agent.id}`, '_blank')}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Open Widget Preview
-                  </Button>
-                </div>
-
-                <div className="bg-muted/50 p-3 sm:p-4 rounded-lg space-y-2">
-                  <h4 className="font-medium text-xs sm:text-sm">Key Attributes</h4>
-                  <ul className="text-xs sm:text-sm text-muted-foreground space-y-1">
-                    <li><code className="bg-muted px-1 rounded text-xs">data-tenant-id</code> - Your company identifier</li>
-                    <li><code className="bg-muted px-1 rounded text-xs">data-agent-id</code> - Specifies this particular agent</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+            <TabsContent value="embed" className="space-y-4 sm:space-y-6">
+              <AgentEmbedTab agent={agent} user={user} />
+            </TabsContent>
+          </>
         )}
       </Tabs>
     </div>
