@@ -3055,14 +3055,23 @@ async def update_orchestration_config(
         from services.quota_service import check_quota_limit
         await check_quota_limit(company_id, "orchestration", increment=0)
     
-    # Validate mother agent if provided
+    # Validate admin-level mother agent if provided
     if orchestration_update.get("mother_admin_agent_id"):
         mother = await db.agents.find_one(
             {"id": orchestration_update["mother_admin_agent_id"], "is_active": True},
             {"_id": 0}
         )
         if not mother:
-            raise HTTPException(status_code=404, detail="Mother agent not found or inactive")
+            raise HTTPException(status_code=404, detail="Admin mother agent not found or inactive")
+    
+    # Validate company-level mother agent if provided
+    if orchestration_update.get("mother_user_agent_id"):
+        mother = await db.user_agents.find_one(
+            {"id": orchestration_update["mother_user_agent_id"], "tenant_id": company_id, "is_active": True},
+            {"_id": 0}
+        )
+        if not mother:
+            raise HTTPException(status_code=404, detail="Company mother agent not found, inactive, or does not belong to this company")
     
     # Validate allowed children belong to this tenant
     if orchestration_update.get("allowed_child_agent_ids"):
