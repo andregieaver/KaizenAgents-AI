@@ -126,10 +126,20 @@ const OrchestrationSettings = () => {
       // Build the full config object
       const configToSave = {
         enabled: updates.enabled ?? orchestrationConfig.enabled,
-        mother_admin_agent_id: updates.mother_admin_agent_id ?? orchestrationConfig.mother_agent_id,
+        mother_admin_agent_id: updates.mother_admin_agent_id,
+        mother_user_agent_id: updates.mother_user_agent_id,
         allowed_child_agent_ids: updates.allowed_child_agent_ids ?? selectedChildren,
         policy: updates.policy ?? orchestrationConfig.policy
       };
+      
+      // If neither is explicitly set, keep current
+      if (updates.mother_admin_agent_id === undefined && updates.mother_user_agent_id === undefined) {
+        if (orchestrationConfig.mother_agent_type === 'admin') {
+          configToSave.mother_admin_agent_id = orchestrationConfig.mother_agent_id;
+        } else if (orchestrationConfig.mother_agent_type === 'company') {
+          configToSave.mother_user_agent_id = orchestrationConfig.mother_agent_id;
+        }
+      }
       
       await axios.put(`${API}/settings/orchestration`, configToSave, {
         headers: { Authorization: `Bearer ${token}` }
@@ -148,8 +158,18 @@ const OrchestrationSettings = () => {
     await updateOrchestrationConfig({ enabled: !orchestrationConfig.enabled });
   };
 
-  const selectMotherAgent = async (agentId) => {
-    await updateOrchestrationConfig({ mother_admin_agent_id: agentId });
+  const selectMotherAgent = async (agentId, agentType) => {
+    if (agentType === 'admin') {
+      await updateOrchestrationConfig({ 
+        mother_admin_agent_id: agentId,
+        mother_user_agent_id: null 
+      });
+    } else {
+      await updateOrchestrationConfig({ 
+        mother_admin_agent_id: null,
+        mother_user_agent_id: agentId 
+      });
+    }
   };
 
   const toggleChildAgent = async (agentId) => {
