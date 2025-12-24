@@ -297,8 +297,36 @@ Current user request: {user_prompt}"""
             # Get children info
             children = await self.get_children_for_prompt(user_prompt)
             
-            # Build orchestration prompt
-            system_prompt = self.build_orchestration_prompt(user_prompt, children)
+            # Retrieve RAG context for knowledge base enforcement
+            knowledge_context = ""
+            try:
+                from services.rag_service import retrieve_relevant_chunks, format_context_for_agent
+                
+                # Get the active agent config to find which agent's knowledge to use
+                config = await db.company_agent_configs.find_one(
+                    {"company_id": self.tenant_id},
+                    {"_id": 0}
+                )
+                agent_id = config.get("agent_id") if config else None
+                
+                if agent_id:
+                    relevant_chunks = await retrieve_relevant_chunks(
+                        query=user_prompt,
+                        company_id=self.tenant_id,
+                        agent_id=agent_id,
+                        db=db,
+                        top_k=5
+                    )
+                    
+                    if relevant_chunks:
+                        knowledge_context = format_context_for_agent(relevant_chunks)
+                        logger.info(f"Retrieved {len(relevant_chunks)} chunks for orchestration")
+            except Exception as e:
+                logger.error(f"RAG retrieval in orchestration failed: {str(e)}")
+                # Continue without context
+            
+            # Build orchestration prompt WITH knowledge context
+            system_prompt = self.build_orchestration_prompt(user_prompt, children, knowledge_context)
             
             # Get provider for Mother agent
             provider = await db.providers.find_one(
