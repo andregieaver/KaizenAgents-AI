@@ -556,6 +556,10 @@ const AgentEdit = () => {
             <Settings className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Configuration</span>
           </TabsTrigger>
+          <TabsTrigger value="language" className="flex-1 sm:flex-none">
+            <Languages className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Language</span>
+          </TabsTrigger>
           <TabsTrigger value="integrations" className="flex-1 sm:flex-none">
             <ShoppingCart className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Integrations</span>
