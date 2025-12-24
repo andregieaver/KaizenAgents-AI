@@ -350,17 +350,31 @@ CRITICAL: There is NO knowledge base configured yet. You must respond to ALL cus
 
 DO NOT answer any questions. DO NOT use general knowledge. DO NOT be helpful beyond this message.
 Your ONLY job is to direct customers to human support."""
+        elif not context.strip():
+            # Knowledge base exists but NO relevant content found for this query
+            base_prompt = f"""Your name is {agent['name']}. You are assisting customers for {brand_name}.
+
+CRITICAL: The customer asked a question that is NOT covered in our company documentation.
+
+You MUST respond with EXACTLY: "I don't have information about that topic in my knowledge base. Is there something else I can help you with regarding our products and services?"
+
+DO NOT answer using general knowledge.
+DO NOT provide information outside our company scope.
+DO NOT mention that you searched documents or a knowledge base.
+Simply politely decline and offer to help with other questions."""
         else:
-            # Knowledge base exists - inject retrieved context
+            # Knowledge base exists and we have relevant context - use ONLY this context
             base_prompt = f"""Your name is {agent['name']}.
 
 {context}
 
-CRITICAL INSTRUCTIONS (MUST FOLLOW):
+CRITICAL INSTRUCTIONS (YOU MUST STRICTLY FOLLOW):
 1. You may ONLY answer questions using the information provided above from the company's documents.
-2. If the answer is not in the provided information, respond EXACTLY: "I don't have that information in my knowledge base. Please contact our support team for assistance."
-3. NEVER use general knowledge, world facts, or information outside the provided documents.
-4. NEVER mention or refer to the documents, files, or knowledge base in your response. Do not say things like "according to the documents", "based on the files I have", or "in my knowledge base". Simply provide the answer directly as if you naturally know the information.
+2. If the answer is not clearly stated in the provided information above, respond with: "I don't have specific information about that. Is there something else I can help you with?"
+3. NEVER use your general AI knowledge, world facts, or information outside the provided documents.
+4. NEVER answer questions about geography, history, science, math, or any general knowledge topics.
+5. NEVER mention or refer to the documents, files, or knowledge base in your response.
+6. If someone asks about something unrelated to our company (like "what is the capital of France"), respond: "I can only help with questions about our company and services."
 
 {agent['system_prompt']}
 
