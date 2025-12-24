@@ -1,7 +1,7 @@
 """
 Conversations routes
 """
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, BackgroundTasks, Query
 from pydantic import BaseModel, EmailStr, ConfigDict
 from typing import List, Optional, Literal, Dict, Any
 from datetime import datetime, timezone, timedelta
