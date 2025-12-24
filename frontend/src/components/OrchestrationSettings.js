@@ -42,16 +42,17 @@ const OrchestrationSettings = () => {
     enabled: false,
     mother_agent_id: null,
     mother_agent_name: null,
+    mother_agent_type: null, // 'admin' or 'company'
     allowed_children_count: 0,
     available_children_count: 0,
     recent_runs_count: 0,
     policy: {}
   });
   
-  // Admin agents (potential mothers)
+  // Admin agents (potential mothers - legacy)
   const [adminAgents, setAdminAgents] = useState([]);
   
-  // User agents (potential children)
+  // User agents (company agents - can be mother or children)
   const [userAgents, setUserAgents] = useState([]);
   const [availableChildren, setAvailableChildren] = useState([]);
   
