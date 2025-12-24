@@ -99,21 +99,57 @@ class OrchestratorService:
         
         return children_info
     
-    def build_orchestration_prompt(self, user_prompt: str, children: List[Dict[str, Any]]) -> str:
+    def build_orchestration_prompt(self, user_prompt: str, children: List[Dict[str, Any]], knowledge_context: str = "") -> str:
         """Build the system prompt for the Mother agent to decide on delegation"""
         children_json = json.dumps(children, indent=2)
         
-        return f"""You are an orchestrator AI that decides how to handle user requests.
+        # If there's knowledge context, use strict RAG mode
+        if knowledge_context:
+            return f"""You are an orchestrator AI for a customer support system.
 
-You have access to the following child agents that can execute specific tasks:
+CRITICAL RESTRICTIONS - YOU MUST FOLLOW THESE:
+1. You may ONLY answer questions using the COMPANY KNOWLEDGE provided below.
+2. You may ONLY delegate tasks to child agents for specific operations (like orders, products).
+3. If a question is NOT covered by the knowledge below AND cannot be handled by a child agent, respond: "I don't have information about that in my knowledge base. Is there something else I can help you with regarding our products and services?"
+4. NEVER answer general knowledge questions (geography, history, science, math, etc.)
+5. If someone asks "what is the capital of France" or similar general questions, respond: "I can only help with questions about our company and services."
+
+=== COMPANY KNOWLEDGE ===
+{knowledge_context}
+=== END KNOWLEDGE ===
+
+You have access to the following child agents for specific tasks:
 {children_json}
 
-When a user makes a request, analyze it and decide:
-1. If the request can be handled by one of the child agents, return a JSON response with the delegation.
-2. If you can handle the request directly with your knowledge, respond directly.
-3. If no child agent is suitable and you cannot answer, explain what capabilities would be needed.
+When processing a request:
+1. First check if the answer is in the COMPANY KNOWLEDGE above
+2. If yes, answer ONLY from that knowledge
+3. If no, check if a child agent can handle it
+4. If a child agent can handle it, delegate using this EXACT JSON format:
+{{
+  "delegate": true,
+  "child_agent_id": "<agent_id>",
+  "action_type": "<action_type>",
+  "parameters": {{}},
+  "reasoning": "<brief explanation>"
+}}
+5. If neither knowledge nor child agents can help, politely say you don't have that information
 
-For delegation, respond with EXACTLY this JSON format (no other text):
+Current user request: {user_prompt}"""
+        else:
+            # No knowledge base - very restricted mode
+            return f"""You are an orchestrator AI for a customer support system.
+
+CRITICAL: There is NO company knowledge base configured yet.
+
+You can ONLY:
+1. Delegate specific tasks to child agents (if available)
+2. For ALL other questions, respond: "I don't have access to company documentation yet. Please contact our support team for assistance."
+
+You have access to these child agents:
+{children_json}
+
+For delegation, respond with EXACTLY this JSON format:
 {{
   "delegate": true,
   "child_agent_id": "<agent_id>",
@@ -122,7 +158,7 @@ For delegation, respond with EXACTLY this JSON format (no other text):
   "reasoning": "<brief explanation>"
 }}
 
-For direct response, just respond naturally without JSON.
+DO NOT answer any general questions. DO NOT use your AI knowledge.
 
 Current user request: {user_prompt}"""
     
