@@ -126,6 +126,13 @@ const AgentEdit = () => {
   // Shopify state
   const [testingShopify, setTestingShopify] = useState(false);
   const [showShopifyToken, setShowShopifyToken] = useState(false);
+  
+  // Knowledge Base state
+  const [uploadedDocs, setUploadedDocs] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [scraping, setScraping] = useState(false);
+  const [scrapingStatus, setScrapingStatus] = useState(null);
+  const fileInputRef = useRef(null);
 
   // Helper to get system prompt (handles both new and legacy field names)
   const getSystemPrompt = () => {
