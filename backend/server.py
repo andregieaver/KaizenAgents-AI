@@ -272,10 +272,30 @@ This helps protect your privacy and ensures I'm sharing information with the rig
         if not provider:
             return "I apologize, but the AI provider is not available. Please contact support."
         
-        # Check if company has any knowledge base (documents or domains)
-        has_documents = len(agent_config.get("uploaded_docs", [])) > 0
-        has_domains = len(agent_config.get("scraping_domains", [])) > 0
-        has_knowledge_base = has_documents or has_domains
+        # Check agent-specific knowledge base (documents and scraped domains)
+        agent_documents = await db.agent_documents.find(
+            {"agent_id": agent["id"], "tenant_id": tenant_id},
+            {"_id": 0}
+        ).to_list(100)
+        
+        agent_scraping = await db.agent_scraping.find_one(
+            {"agent_id": agent["id"]},
+            {"_id": 0}
+        )
+        
+        # Get scraping domains from agent config
+        agent_scraping_domains = agent.get("config", {}).get("scraping_domains", "")
+        
+        # Determine if agent has any knowledge base
+        has_documents = len(agent_documents) > 0
+        has_scraped_content = agent_scraping and agent_scraping.get("status") == "completed" and agent_scraping.get("pages_scraped", 0) > 0
+        has_domains_configured = bool(agent_scraping_domains.strip())
+        
+        # Also check company-wide knowledge base as fallback
+        company_has_docs = len(agent_config.get("uploaded_docs", [])) > 0
+        company_has_domains = len(agent_config.get("scraping_domains", [])) > 0
+        
+        has_knowledge_base = has_documents or has_scraped_content or company_has_docs or company_has_domains
         
         # Build enhanced system prompt with STRICT knowledge base enforcement
         brand_name = settings.get("brand_name", "the company")
