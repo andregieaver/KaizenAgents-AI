@@ -1026,7 +1026,7 @@ const AgentEdit = () => {
                   >
                     <div className="font-medium text-sm">Geo Location</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Auto-detect language based on user's IP address / geographic location
+                      Auto-detect language based on user&apos;s IP address / geographic location
                     </div>
                   </button>
 
