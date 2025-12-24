@@ -932,29 +932,30 @@ async def unpublish_agent_from_marketplace(
 
 
 async def review_agent_for_marketplace(agent: Dict[str, Any]) -> Dict[str, Any]:
-    """Use AI (orchestrator mother agent) to review agent for ethical, legal, and privacy concerns"""
+    """Use AI (admin's OpenAI key) to review agent for ethical, legal, and privacy concerns"""
     
-    # Get system-wide orchestrator mother agent
-    # For now, we'll use a simple admin agent or the first available GPT model
-    system_providers = await db.providers.find({"is_active": True}, {"_id": 0}).to_list(10)
+    # Get admin settings to find the OpenAI API key
+    admin_settings = await db.admin_settings.find_one({}, {"_id": 0})
+    openai_api_key = admin_settings.get("openai_api_key") if admin_settings else None
     
-    if not system_providers:
-        # No AI available, auto-approve (or could reject)
-        logger.warning("No AI provider available for agent review, auto-approving")
+    if not openai_api_key:
+        # Try getting from providers as fallback
+        openai_provider = await db.providers.find_one(
+            {"type": "openai", "is_active": True},
+            {"_id": 0, "api_key": 1}
+        )
+        if openai_provider:
+            openai_api_key = openai_provider.get("api_key")
+    
+    if not openai_api_key:
+        logger.warning("No OpenAI API key available for agent review, auto-approving")
         return {"approved": True, "issues": [], "suggestions": []}
     
-    # Use emergentintegrations to call LLM for review
     try:
-        from emergentintegrations import UniversalLLMClient
-        import os
+        import openai
+        import json
         
-        # Get Emergent LLM key
-        emergent_key = os.environ.get("EMERGENT_LLM_KEY")
-        if not emergent_key:
-            logger.warning("No Emergent LLM key available for review, auto-approving")
-            return {"approved": True, "issues": [], "suggestions": []}
-        
-        client = UniversalLLMClient(emergent_key)
+        client = openai.OpenAI(api_key=openai_api_key)
         
         # Build review prompt
         config = agent.get("config", {})
@@ -968,6 +969,8 @@ Review the following agent for:
 3. Legal issues (illegal activities, copyright violations)
 4. Privacy concerns (requests for sensitive personal information)
 5. Company confidential information exposure
+6. Inappropriate or adult content
+7. Misleading or deceptive practices
 
 Agent Details:
 - Name: {agent['name']}
@@ -975,7 +978,7 @@ Agent Details:
 - Category: {agent['category']}
 - System Prompt: {system_prompt}
 
-Respond in JSON format:
+Respond in JSON format ONLY (no markdown):
 {{
   "approved": true/false,
   "issues": ["list of specific issues found"],
@@ -985,7 +988,7 @@ Respond in JSON format:
 If the agent is safe and appropriate for public use, return approved: true with empty issues array.
 If there are any concerns, return approved: false with detailed issues and suggestions."""
 
-        response = client.create_completion(
+        response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": review_prompt}],
             temperature=0.3,
@@ -994,12 +997,26 @@ If there are any concerns, return approved: false with detailed issues and sugge
         
         result_text = response.choices[0].message.content.strip()
         
+        # Clean up response if it has markdown code blocks
+        if result_text.startswith("```"):
+            result_text = result_text.split("```")[1]
+            if result_text.startswith("json"):
+                result_text = result_text[4:]
+        result_text = result_text.strip()
+        
         # Parse JSON response
-        import json
         result = json.loads(result_text)
         
+        logger.info(f"Agent review result for {agent['name']}: approved={result.get('approved')}")
         return result
         
+    except json.JSONDecodeError as e:
+        logger.error(f"Failed to parse AI review response: {str(e)}")
+        return {
+            "approved": False,
+            "issues": ["Unable to parse moderation response. Please try again."],
+            "suggestions": ["Contact support if this issue persists."]
+        }
     except Exception as e:
         logger.error(f"Agent review failed: {str(e)}")
         # On error, reject for safety
