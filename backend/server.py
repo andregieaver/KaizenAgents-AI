@@ -2985,14 +2985,32 @@ async def get_orchestration_config(current_user: dict = Depends(get_current_user
     config = await db.company_agent_configs.find_one({"company_id": company_id}, {"_id": 0})
     orchestration = config.get("orchestration", {}) if config else {}
     
-    # Get mother agent name if configured
+    # Determine mother agent (company-level takes priority over admin-level)
     mother_name = None
-    if orchestration.get("mother_admin_agent_id"):
+    mother_agent_id = None
+    mother_agent_type = None
+    
+    # Check for company-level mother agent first (from user_agents collection)
+    if orchestration.get("mother_user_agent_id"):
+        mother = await db.user_agents.find_one(
+            {"id": orchestration["mother_user_agent_id"], "tenant_id": company_id},
+            {"_id": 0, "name": 1}
+        )
+        if mother:
+            mother_name = mother.get("name")
+            mother_agent_id = orchestration["mother_user_agent_id"]
+            mother_agent_type = "company"
+    
+    # Fall back to admin-level mother agent (from agents collection)
+    if not mother_agent_id and orchestration.get("mother_admin_agent_id"):
         mother = await db.agents.find_one(
             {"id": orchestration["mother_admin_agent_id"]},
             {"_id": 0, "name": 1}
         )
-        mother_name = mother.get("name") if mother else None
+        if mother:
+            mother_name = mother.get("name")
+            mother_agent_id = orchestration["mother_admin_agent_id"]
+            mother_agent_type = "admin"
     
     # Get count of available children
     available_children = await db.user_agents.count_documents({
@@ -3010,8 +3028,10 @@ async def get_orchestration_config(current_user: dict = Depends(get_current_user
     
     return {
         "enabled": orchestration.get("enabled", False),
-        "mother_agent_id": orchestration.get("mother_admin_agent_id"),
+        "mother_agent_id": mother_agent_id,
         "mother_agent_name": mother_name,
+        "mother_agent_type": mother_agent_type,
+        "allowed_child_agent_ids": orchestration.get("allowed_child_agent_ids", []),
         "allowed_children_count": len(orchestration.get("allowed_child_agent_ids", [])),
         "available_children_count": available_children,
         "recent_runs_count": recent_runs,
