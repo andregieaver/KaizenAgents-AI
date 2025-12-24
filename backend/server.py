@@ -221,7 +221,9 @@ This helps protect your privacy and ensures I'm sharing information with the rig
         
         # Check if orchestration is enabled and try to use it
         orchestration = agent_config.get("orchestration", {})
-        if orchestration.get("enabled") and orchestration.get("mother_admin_agent_id"):
+        # Check for either admin or company-level mother agent
+        has_mother_agent = orchestration.get("mother_admin_agent_id") or orchestration.get("mother_user_agent_id")
+        if orchestration.get("enabled") and has_mother_agent:
             try:
                 from services.orchestrator import get_orchestrator
                 
