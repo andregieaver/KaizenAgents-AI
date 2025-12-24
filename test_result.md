@@ -46,7 +46,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "RAG System Testing"
+    - "Company-Level Mother Agent Feature"
   stuck_tasks:
     - "RAG System Testing"
   test_all: false
