@@ -988,7 +988,7 @@ const AgentEdit = () => {
                   >
                     <div className="font-medium text-sm">Force Language</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Always respond in the selected language, regardless of customer's language
+                      Always respond in the selected language, regardless of customer&apos;s language
                     </div>
                   </button>
                   
