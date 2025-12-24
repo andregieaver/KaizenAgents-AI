@@ -4140,7 +4140,34 @@ async def update_avatar_url(
 
 @api_router.get("/health")
 async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
+    """Enhanced health check with database connectivity"""
+    health_status = {
+        "status": "healthy",
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "checks": {}
+    }
+    
+    # Check database connectivity
+    try:
+        # Simple ping to check MongoDB is responsive
+        await db.command("ping")
+        health_status["checks"]["database"] = "healthy"
+    except Exception as e:
+        health_status["status"] = "degraded"
+        health_status["checks"]["database"] = f"unhealthy: {str(e)[:50]}"
+    
+    # Check error tracking stats
+    try:
+        from services.error_tracking import error_tracker
+        stats = error_tracker.get_stats()
+        health_status["checks"]["error_tracker"] = {
+            "status": "healthy",
+            "total_errors": stats["total_errors"]
+        }
+    except Exception:
+        health_status["checks"]["error_tracker"] = "not_configured"
+    
+    return health_status
 
 @api_router.get("/")
 async def root():
