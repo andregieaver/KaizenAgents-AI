@@ -96,6 +96,8 @@ const AgentEdit = () => {
       ai_model: '',  // Legacy field
       provider_id: '',
       provider_name: '',
+      response_language: null,
+      language_mode: 'browser',  // 'force', 'browser', 'geo'
       woocommerce: {
         enabled: false,
         store_url: '',
