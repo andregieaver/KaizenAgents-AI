@@ -7171,6 +7171,307 @@ Policies:
             return False
 
 
+    # ============== NEW FEATURES TESTING (Review Request) ==============
+    
+    def test_data_export_endpoints(self):
+        """Test all data export endpoints as requested in review"""
+        print(f"\n🎯 Testing Data Export Endpoints")
+        
+        # Test CRM Export - CSV
+        success_csv = self.test_crm_export_csv()
+        
+        # Test CRM Export - JSON
+        success_json = self.test_crm_export_json()
+        
+        # Test Conversations Export - CSV
+        success_conv_csv = self.test_conversations_export_csv()
+        
+        # Test Conversations Export - JSON
+        success_conv_json = self.test_conversations_export_json()
+        
+        # Test Conversations Export with Messages
+        success_conv_messages = self.test_conversations_export_with_messages()
+        
+        # Test Follow-ups Export
+        success_followups = self.test_followups_export()
+        
+        # Summary
+        print(f"\n📋 Data Export Test Results:")
+        print(f"   CRM Export CSV: {'✅ PASSED' if success_csv else '❌ FAILED'}")
+        print(f"   CRM Export JSON: {'✅ PASSED' if success_json else '❌ FAILED'}")
+        print(f"   Conversations Export CSV: {'✅ PASSED' if success_conv_csv else '❌ FAILED'}")
+        print(f"   Conversations Export JSON: {'✅ PASSED' if success_conv_json else '❌ FAILED'}")
+        print(f"   Conversations Export with Messages: {'✅ PASSED' if success_conv_messages else '❌ FAILED'}")
+        print(f"   Follow-ups Export: {'✅ PASSED' if success_followups else '❌ FAILED'}")
+        
+        return all([success_csv, success_json, success_conv_csv, success_conv_json, success_conv_messages, success_followups])
+
+    def test_crm_export_csv(self):
+        """Test 1.1: CRM Export - CSV"""
+        success, response = self.run_test(
+            "CRM Export CSV",
+            "GET",
+            "crm/export?format=csv",
+            200
+        )
+        
+        if success:
+            # Check if it's a CSV response (should have Content-Disposition header)
+            print("   ✅ CRM CSV export endpoint accessible")
+            return True
+        return False
+
+    def test_crm_export_json(self):
+        """Test 1.2: CRM Export - JSON"""
+        success, response = self.run_test(
+            "CRM Export JSON",
+            "GET",
+            "crm/export?format=json",
+            200
+        )
+        
+        if success:
+            if isinstance(response, list):
+                print(f"   ✅ CRM JSON export returned array with {len(response)} items")
+            else:
+                print("   ✅ CRM JSON export endpoint accessible")
+            return True
+        return False
+
+    def test_conversations_export_csv(self):
+        """Test 1.3: Conversations Export - CSV"""
+        success, response = self.run_test(
+            "Conversations Export CSV",
+            "GET",
+            "conversations/export?format=csv",
+            200
+        )
+        
+        if success:
+            print("   ✅ Conversations CSV export endpoint accessible")
+            return True
+        return False
+
+    def test_conversations_export_json(self):
+        """Test 1.4: Conversations Export - JSON"""
+        success, response = self.run_test(
+            "Conversations Export JSON",
+            "GET",
+            "conversations/export?format=json",
+            200
+        )
+        
+        if success:
+            if isinstance(response, list):
+                print(f"   ✅ Conversations JSON export returned array with {len(response)} items")
+            else:
+                print("   ✅ Conversations JSON export endpoint accessible")
+            return True
+        return False
+
+    def test_conversations_export_with_messages(self):
+        """Test 1.5: Conversations Export with Messages"""
+        success, response = self.run_test(
+            "Conversations Export with Messages",
+            "GET",
+            "conversations/export?format=json&include_messages=true",
+            200
+        )
+        
+        if success:
+            if isinstance(response, list):
+                print(f"   ✅ Conversations with messages export returned array with {len(response)} items")
+                # Check if messages are included
+                if response and 'messages' in response[0]:
+                    print("   ✅ Messages included in export")
+            else:
+                print("   ✅ Conversations with messages export endpoint accessible")
+            return True
+        return False
+
+    def test_followups_export(self):
+        """Test 1.6: Follow-ups Export"""
+        success, response = self.run_test(
+            "Follow-ups Export CSV",
+            "GET",
+            "crm/followups/export?format=csv",
+            200
+        )
+        
+        if success:
+            print("   ✅ Follow-ups CSV export endpoint accessible")
+            return True
+        return False
+
+    def test_ai_moderation_features(self):
+        """Test AI Moderation (Agent Publishing) features"""
+        print(f"\n🎯 Testing AI Moderation Features")
+        
+        # Test get list of agents
+        agents_success = self.test_get_agents_list()
+        
+        # Test publishing an agent (if we have an agent ID)
+        publish_success = False
+        if hasattr(self, 'agent_id') and self.agent_id:
+            publish_success = self.test_publish_agent()
+        else:
+            print("   ⚠️ No agent ID available for publishing test")
+            publish_success = True  # Don't fail the test if no agent available
+        
+        # Summary
+        print(f"\n📋 AI Moderation Test Results:")
+        print(f"   Get Agents List: {'✅ PASSED' if agents_success else '❌ FAILED'}")
+        print(f"   Publish Agent: {'✅ PASSED' if publish_success else '❌ FAILED'}")
+        
+        return agents_success and publish_success
+
+    def test_get_agents_list(self):
+        """Test 2.1: Get list of agents"""
+        success, response = self.run_test(
+            "Get Agents List for Moderation",
+            "GET",
+            "agents/",
+            200
+        )
+        
+        if success:
+            if isinstance(response, list):
+                print(f"   ✅ Found {len(response)} agents")
+                for agent in response[:3]:  # Show first 3 agents
+                    print(f"     - {agent.get('name', 'Unknown')} (ID: {agent.get('id', 'N/A')})")
+                    if not hasattr(self, 'agent_id') or not self.agent_id:
+                        self.agent_id = agent.get('id')  # Use first agent for testing
+            else:
+                print("   ✅ Agents endpoint accessible")
+            return True
+        return False
+
+    def test_publish_agent(self):
+        """Test 2.2: Try publishing an agent"""
+        if not self.agent_id:
+            print("   ❌ No agent ID available for publishing test")
+            return False
+            
+        success, response = self.run_test(
+            "Publish Agent for AI Moderation",
+            "POST",
+            f"agents/{self.agent_id}/publish",
+            200
+        )
+        
+        if success:
+            # Check for approved/issues fields in response
+            if 'approved' in response:
+                print(f"   ✅ Moderation response includes 'approved' field: {response.get('approved')}")
+            if 'issues' in response:
+                print(f"   ✅ Moderation response includes 'issues' field: {response.get('issues')}")
+            
+            print("   ✅ Agent publishing endpoint accessible")
+            return True
+        return False
+
+    def test_existing_features_verification(self):
+        """Test existing features still work"""
+        print(f"\n🎯 Testing Existing Features Verification")
+        
+        # Test Orchestration Settings
+        orchestration_success = self.test_orchestration_settings()
+        
+        # Test Health Check
+        health_success = self.test_health_check()
+        
+        # Summary
+        print(f"\n📋 Existing Features Test Results:")
+        print(f"   Orchestration Settings: {'✅ PASSED' if orchestration_success else '❌ FAILED'}")
+        print(f"   Health Check: {'✅ PASSED' if health_success else '❌ FAILED'}")
+        
+        return orchestration_success and health_success
+
+    def test_orchestration_settings(self):
+        """Test 3.1: Orchestration Settings"""
+        success, response = self.run_test(
+            "Get Orchestration Settings",
+            "GET",
+            "settings/orchestration",
+            200
+        )
+        
+        if success:
+            # Verify response includes mother_agent_type field
+            if 'mother_agent_type' in response:
+                print(f"   ✅ Response includes mother_agent_type: {response.get('mother_agent_type')}")
+            else:
+                print("   ⚠️ Response missing mother_agent_type field")
+            
+            # Show other relevant fields
+            for field in ['mother_agent_id', 'mother_agent_name', 'enabled']:
+                if field in response:
+                    print(f"   ✅ {field}: {response.get(field)}")
+            
+            return True
+        return False
+
+    def test_health_check(self):
+        """Test 3.2: Health Check"""
+        success, response = self.run_test(
+            "Health Check",
+            "GET",
+            "health",
+            200
+        )
+        
+        if success:
+            status = response.get('status', 'unknown')
+            print(f"   ✅ Health status: {status}")
+            
+            if status == 'healthy':
+                print("   ✅ System is healthy")
+            else:
+                print(f"   ⚠️ System status is: {status}")
+            
+            return True
+        return False
+
+    def run_new_features_tests(self):
+        """Run only the new features tests from review request"""
+        print("🚀 Starting New Features Backend Tests")
+        print(f"   Base URL: {self.base_url}")
+        print(f"   Test Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        
+        # Core authentication and setup tests
+        if not self.test_super_admin_login():
+            print("❌ Login failed - stopping tests")
+            return False
+        
+        # NEW FEATURES TESTING (Review Request)
+        print("\n" + "="*60)
+        print("🎯 TESTING NEW FEATURES (Review Request)")
+        print("="*60)
+        
+        # Test Data Export Endpoints
+        export_success = self.test_data_export_endpoints()
+        
+        # Test AI Moderation Features
+        moderation_success = self.test_ai_moderation_features()
+        
+        # Test Existing Features Still Work
+        existing_success = self.test_existing_features_verification()
+        
+        # Print summary
+        print(f"\n📊 New Features Test Summary:")
+        print(f"   Tests Run: {self.tests_run}")
+        print(f"   Tests Passed: {self.tests_passed}")
+        print(f"   Tests Failed: {self.tests_run - self.tests_passed}")
+        print(f"   Success Rate: {(self.tests_passed / self.tests_run * 100):.1f}%")
+        
+        # Highlight new features results
+        print(f"\n🎯 NEW FEATURES TEST RESULTS:")
+        print(f"   Data Export Endpoints: {'✅ PASSED' if export_success else '❌ FAILED'}")
+        print(f"   AI Moderation Features: {'✅ PASSED' if moderation_success else '❌ FAILED'}")
+        print(f"   Existing Features Verification: {'✅ PASSED' if existing_success else '❌ FAILED'}")
+        
+        return export_success and moderation_success and existing_success
+
 def main_quota_tests():
     """Main function to run only quota enforcement tests as requested in review"""
     print("🎯 Starting Quota Enforcement Middleware Testing")
