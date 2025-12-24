@@ -14,7 +14,8 @@ class OrchestrationPolicy(BaseModel):
 class OrchestrationConfig(BaseModel):
     """Orchestration configuration for a company"""
     enabled: bool = False
-    mother_admin_agent_id: Optional[str] = None
+    mother_admin_agent_id: Optional[str] = None  # Admin-level mother agent (system agents)
+    mother_user_agent_id: Optional[str] = None   # Company-level mother agent (user's own agents)
     allowed_child_agent_ids: List[str] = []
     policy: OrchestrationPolicy = OrchestrationPolicy()
 
@@ -22,7 +23,8 @@ class OrchestrationConfig(BaseModel):
 class OrchestrationConfigUpdate(BaseModel):
     """Update model for orchestration configuration"""
     enabled: Optional[bool] = None
-    mother_admin_agent_id: Optional[str] = None
+    mother_admin_agent_id: Optional[str] = None  # Admin-level mother agent
+    mother_user_agent_id: Optional[str] = None   # Company-level mother agent
     allowed_child_agent_ids: Optional[List[str]] = None
     policy: Optional[Dict[str, Any]] = None
 
@@ -85,6 +87,7 @@ class OrchestrationStatusResponse(BaseModel):
     enabled: bool
     mother_agent_id: Optional[str] = None
     mother_agent_name: Optional[str] = None
+    mother_agent_type: Optional[str] = None  # 'admin' or 'company'
     available_children_count: int = 0
     allowed_children_count: int = 0
     recent_runs_count: int = 0
