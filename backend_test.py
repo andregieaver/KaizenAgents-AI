@@ -7936,6 +7936,264 @@ def run_rag_enforcement_tests():
     tester = AIAgentHubTester()
     return tester.test_rag_system_enforcement_orchestration()
 
+# Add security verification methods to the AIAgentHubTester class
+def test_security_verification_suite(self):
+    """Run security verification tests after security fixes"""
+    print(f"\n🔒 SECURITY VERIFICATION TESTS")
+    print("="*60)
+    print("Testing security fixes with credentials: andre@humanweb.no")
+    
+    # Test 1: Health Check
+    health_test = self.test_health_check()
+    
+    # Test 2: Authentication
+    auth_test = self.test_authentication_security()
+    
+    # Test 3: Widget Rate Limiting
+    rate_limit_test = self.test_widget_rate_limiting()
+    
+    # Test 4: User Creation (temp_password removed)
+    user_creation_test = self.test_user_creation_security()
+    
+    # Test 5: Orchestration (verify no regression)
+    orchestration_test = self.test_orchestration_no_regression()
+    
+    # Summary
+    print(f"\n📋 Security Verification Test Results:")
+    print(f"   Health Check: {'✅ PASSED' if health_test else '❌ FAILED'}")
+    print(f"   Authentication: {'✅ PASSED' if auth_test else '❌ FAILED'}")
+    print(f"   Widget Rate Limiting: {'✅ PASSED' if rate_limit_test else '❌ FAILED'}")
+    print(f"   User Creation Security: {'✅ PASSED' if user_creation_test else '❌ FAILED'}")
+    print(f"   Orchestration No Regression: {'✅ PASSED' if orchestration_test else '❌ FAILED'}")
+    
+    return all([health_test, auth_test, rate_limit_test, user_creation_test, orchestration_test])
+
+def test_health_check(self):
+    """Test GET /api/health - Should return healthy status"""
+    print(f"\n🔧 Testing Health Check")
+    
+    success, response = self.run_test(
+        "Health Check Endpoint",
+        "GET",
+        "health",
+        200
+    )
+    
+    if success:
+        print(f"   ✅ Health check returned: {response}")
+        # Verify it returns some kind of healthy status
+        if isinstance(response, dict) and ('status' in response or 'health' in response):
+            print("   ✅ Health check response has status field")
+        else:
+            print("   ⚠️ Health check response format may be unexpected")
+    
+    return success
+
+def test_authentication_security(self):
+    """Test POST /api/auth/login with security credentials"""
+    print(f"\n🔧 Testing Authentication Security")
+    
+    login_data = {
+        "email": "andre@humanweb.no",
+        "password": "Pernilla66!"
+    }
+    
+    success, response = self.run_test(
+        "Security Authentication Test",
+        "POST",
+        "auth/login",
+        200,
+        data=login_data
+    )
+    
+    if success and 'token' in response:
+        self.token = response['token']
+        self.user_data = response['user']
+        self.tenant_id = response['user'].get('tenant_id')
+        print(f"   ✅ Authentication successful")
+        print(f"   User: {self.user_data['email']}")
+        print(f"   JWT Token received: {self.token[:20]}...")
+        print(f"   Tenant ID: {self.tenant_id}")
+        
+        # Verify JWT token structure
+        if len(self.token.split('.')) == 3:
+            print("   ✅ JWT token has correct structure (3 parts)")
+        else:
+            print("   ⚠️ JWT token structure may be incorrect")
+            
+        return True
+    else:
+        print("   ❌ Authentication failed or missing token")
+        return False
+
+def test_widget_rate_limiting(self):
+    """Test GET /api/widget/{tenant_id}/settings - Rate limiting after 60 requests per minute"""
+    print(f"\n🔧 Testing Widget Rate Limiting")
+    
+    if not self.tenant_id:
+        print("❌ No tenant ID available for rate limiting test")
+        return False
+    
+    print(f"   Testing rate limiting on tenant: {self.tenant_id}")
+    print("   Sending rapid requests to trigger rate limit...")
+    
+    # Send requests rapidly to test rate limiting
+    success_count = 0
+    rate_limited = False
+    
+    for i in range(65):  # Send 65 requests to exceed the 60/minute limit
+        try:
+            response = requests.get(
+                f"{self.base_url}/widget/{self.tenant_id}/settings",
+                timeout=5
+            )
+            
+            if response.status_code == 200:
+                success_count += 1
+            elif response.status_code == 429:
+                print(f"   ✅ Rate limit triggered after {success_count} requests")
+                print(f"   Response: {response.status_code} - Too Many Requests")
+                rate_limited = True
+                break
+            else:
+                print(f"   ⚠️ Unexpected status code: {response.status_code}")
+                
+            # Small delay to avoid overwhelming the server
+            if i % 10 == 0:
+                time.sleep(0.1)
+                
+        except Exception as e:
+            print(f"   ⚠️ Request {i+1} failed: {str(e)}")
+            break
+    
+    if rate_limited:
+        print("   ✅ Rate limiting is working correctly")
+        return True
+    elif success_count >= 60:
+        print(f"   ⚠️ Sent {success_count} requests without rate limiting")
+        print("   ⚠️ Rate limiting may not be configured or limit is higher")
+        return False
+    else:
+        print(f"   ⚠️ Only {success_count} successful requests before failure")
+        return False
+
+def test_user_creation_security(self):
+    """Test POST /api/users endpoint - Should not return temp_password field"""
+    print(f"\n🔧 Testing User Creation Security")
+    
+    if not self.token:
+        print("❌ No authentication token available")
+        return False
+    
+    # Test user creation endpoint
+    user_data = {
+        "email": "test.security@example.com",
+        "name": "Security Test User",
+        "role": "agent"
+    }
+    
+    success, response = self.run_test(
+        "User Creation Security Test",
+        "POST",
+        "users",
+        200,
+        data=user_data
+    )
+    
+    if success:
+        print(f"   ✅ User creation endpoint accessible")
+        
+        # Check if temp_password field is NOT in response
+        if 'temp_password' in response:
+            print("   ❌ SECURITY ISSUE: temp_password field found in response")
+            print(f"   temp_password: {response.get('temp_password')}")
+            return False
+        else:
+            print("   ✅ temp_password field NOT found in response (security fix working)")
+        
+        # Check for expected message about password sent via email
+        if 'message' in response:
+            message = response.get('message', '').lower()
+            if 'email' in message or 'password' in message or 'sent' in message:
+                print(f"   ✅ Appropriate message about email: {response.get('message')}")
+            else:
+                print(f"   ⚠️ Message may not mention email: {response.get('message')}")
+        else:
+            print("   ⚠️ No message field in response")
+        
+        # Verify user was created
+        if 'user' in response or 'id' in response:
+            print("   ✅ User creation successful")
+        else:
+            print("   ⚠️ User creation response format unexpected")
+        
+        return True
+    else:
+        print("   ❌ User creation endpoint failed")
+        return False
+
+def test_orchestration_no_regression(self):
+    """Test GET /api/settings/orchestration - Verify no regression"""
+    print(f"\n🔧 Testing Orchestration No Regression")
+    
+    if not self.token:
+        print("❌ No authentication token available")
+        return False
+    
+    success, response = self.run_test(
+        "Orchestration Settings - No Regression",
+        "GET",
+        "settings/orchestration",
+        200
+    )
+    
+    if success:
+        print(f"   ✅ Orchestration endpoint accessible")
+        
+        # Verify expected fields are present
+        expected_fields = ['enabled', 'mother_agent_id', 'mother_agent_name']
+        present_fields = []
+        missing_fields = []
+        
+        for field in expected_fields:
+            if field in response:
+                present_fields.append(field)
+            else:
+                missing_fields.append(field)
+        
+        if present_fields:
+            print(f"   ✅ Present fields: {present_fields}")
+        
+        if missing_fields:
+            print(f"   ⚠️ Missing fields: {missing_fields}")
+        
+        # Check for new fields that might have been added
+        all_fields = list(response.keys())
+        print(f"   ℹ️ All response fields: {all_fields}")
+        
+        # Verify configuration is valid
+        if response.get('enabled') is not None:
+            print(f"   ✅ Orchestration enabled: {response.get('enabled')}")
+        
+        if response.get('mother_agent_id'):
+            print(f"   ✅ Mother agent ID: {response.get('mother_agent_id')}")
+        
+        if response.get('mother_agent_name'):
+            print(f"   ✅ Mother agent name: {response.get('mother_agent_name')}")
+        
+        return True
+    else:
+        print("   ❌ Orchestration endpoint failed")
+        return False
+
+# Add methods to the class
+AIAgentHubTester.test_security_verification_suite = test_security_verification_suite
+AIAgentHubTester.test_health_check = test_health_check
+AIAgentHubTester.test_authentication_security = test_authentication_security
+AIAgentHubTester.test_widget_rate_limiting = test_widget_rate_limiting
+AIAgentHubTester.test_user_creation_security = test_user_creation_security
+AIAgentHubTester.test_orchestration_no_regression = test_orchestration_no_regression
+
 if __name__ == "__main__":
     import sys
     
