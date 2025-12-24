@@ -117,7 +117,7 @@ class VerificationService:
         verification = await db.verification_codes.find_one({
             "conversation_id": conversation_id,
             "verified": False
-        })
+        }, {"_id": 0})
         
         if not verification:
             return False, "No verification in progress. Please request a new code."
