@@ -47,7 +47,9 @@ import {
   List,
   Keyboard,
   GripVertical,
-  Trash2
+  Trash2,
+  Download,
+  FileText
 } from 'lucide-react';
 
 import { Button } from '../components/ui/button';
