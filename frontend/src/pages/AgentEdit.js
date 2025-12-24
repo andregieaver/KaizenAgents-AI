@@ -101,6 +101,9 @@ const AgentEdit = () => {
       provider_name: '',
       response_language: null,
       language_mode: 'browser',  // 'force', 'browser', 'geo'
+      scraping_domains: '',
+      scraping_max_depth: 2,
+      scraping_max_pages: 50,
       woocommerce: {
         enabled: false,
         store_url: '',
