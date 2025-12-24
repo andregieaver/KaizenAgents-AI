@@ -52,11 +52,9 @@ const Billing = () => {
       if (searchParams.get('success') === 'true') {
         // Get session_id from localStorage
         const sessionId = localStorage.getItem('stripe_session_id');
-        console.log('Stripe return detected. Session ID:', sessionId);
         
         if (sessionId) {
           try {
-            console.log('Calling verify-checkout endpoint...');
             // Verify and activate subscription
             const response = await axios.post(
               `${API}/subscriptions/verify-checkout`,
@@ -66,7 +64,6 @@ const Billing = () => {
                 params: { session_id: sessionId }
               }
             );
-            console.log('Verify response:', response.data);
             
             if (response.data.status === 'active') {
               toast.success('Payment successful! Your subscription is now active.');
