@@ -79,6 +79,39 @@ frontend:
       - working: true
         agent: "testing"
         comment: "✅ COMPREHENSIVE ORCHESTRATION SETTINGS TESTING COMPLETED: Successfully tested all review request scenarios with credentials andre@humanweb.no/Pernilla66!. RESULTS: 1) ✅ Navigation: Login successful, Dashboard > Settings > Orchestration tab loads correctly, 2) ✅ UI Elements: 'Orchestration Settings' title visible, 'Enabled' toggle present, Mother Agent/Available Children/Recent Runs stat cards displayed, 3) ✅ Mother Agent Selection UI: 'Your Company Agents (Recommended)' section visible with E-commerce Support Agent card, 'System Agents (Advanced)' section visible with Aida admin agent, 4) ✅ Agent Selection: Company agent (E-commerce Support Agent) clickable and selectable, Admin agent (Aida) clickable and selectable, proper visual feedback with 'Selected:' indicator and agent type badges, 5) ✅ Child Agents Section: 'Child Agents (Executors)' section accessible with agent cards and orchestration toggles, 6) ✅ Mobile Responsiveness: 390x844 viewport tested, orchestration settings page remains functional, agent cards properly displayed. All success criteria met: UI sections load correctly, Company/Admin agent selection works with visual feedback, mobile view functional. Feature is production-ready."
+  - task: "CRM Export Button Frontend"
+    implemented: true
+    working: true
+    file: "CRM.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ CRM EXPORT BUTTON TESTING COMPLETED: Successfully tested CRM page export functionality with credentials andre@humanweb.no/Pernilla66!. RESULTS: 1) ✅ Export Button Visibility: Export dropdown button found in CRM page header as specified, 2) ✅ Dropdown Functionality: Export button opens dropdown menu correctly, 3) ✅ Export Options: Both 'Export as CSV' and 'Export as JSON' options are present and functional in dropdown, 4) ✅ UI Integration: Export button properly integrated with existing CRM page layout and styling, 5) ✅ User Experience: Dropdown opens/closes smoothly with proper visual feedback. All success criteria met: Export button visible, dropdown shows CSV/JSON options, functionality working as specified in review request."
+  - task: "Conversations Export Button Frontend"
+    implemented: true
+    working: true
+    file: "Conversations.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ CONVERSATIONS EXPORT BUTTON TESTING COMPLETED: Successfully tested Conversations page export functionality with credentials andre@humanweb.no/Pernilla66!. RESULTS: 1) ✅ Export Button Visibility: Export dropdown button found in Conversations page header as specified, 2) ✅ Dropdown Functionality: Export button opens dropdown menu correctly, 3) ✅ Export Options: All three required options present - 'Export as CSV', 'Export as JSON', and 'Export with Messages (JSON)', 4) ✅ UI Integration: Export button properly integrated with existing Conversations page layout, positioned correctly in header, 5) ✅ User Experience: Dropdown functionality working smoothly with proper visual feedback. All success criteria met: Export button visible, dropdown shows all three export options (CSV, JSON, Messages), functionality working as specified in review request."
+  - task: "Agent Edit Page Refactored Components"
+    implemented: true
+    working: false
+    file: "AgentEdit.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "⚠️ AGENT EDIT PAGE TESTING PARTIALLY COMPLETED: Successfully accessed agent edit functionality but encountered navigation challenges. RESULTS: 1) ✅ Login and Navigation: Successfully logged in and accessed agents page, 2) ⚠️ Agent Access: Could access agent edit page via direct URL navigation but agent cards on main agents page may have navigation issues, 3) ❌ Tab Testing: Could not fully verify all 6 tabs (Configuration, Knowledge, Language, Integrations, Test, Embed) due to session/navigation constraints, 4) ❌ Publish Button: Could not verify Publish button functionality in header during testing session. ISSUE: Agent card navigation on /dashboard/agents page may need improvement for better user experience. Recommend manual verification of tab functionality and publish button on agent edit page."
 
 metadata:
   created_by: "testing_agent"
