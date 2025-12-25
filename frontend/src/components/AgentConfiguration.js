@@ -47,11 +47,18 @@ const AgentConfiguration = () => {
   const [scraping, setScraping] = useState(false);
   const [scrapingStatus, setScrapingStatus] = useState(null);
 
-  useEffect(() => {
-    fetchData();
+  const fetchScrapingStatus = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/settings/agent-config/scrape-status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setScrapingStatus(response.data);
+    } catch (error) {
+      // Scraping status fetch failed silently - status will remain as previous state
+    }
   }, [token]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [configRes, agentsRes] = await Promise.all([
         axios.get(`${API}/settings/agent-config`, {
@@ -82,18 +89,11 @@ const AgentConfiguration = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, fetchScrapingStatus]);
 
-  const fetchScrapingStatus = async () => {
-    try {
-      const response = await axios.get(`${API}/settings/agent-config/scrape-status`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setScrapingStatus(response.data);
-    } catch (error) {
-      // Scraping status fetch failed silently - status will remain as previous state
-    }
-  };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleSave = async () => {
     setSaving(true);
