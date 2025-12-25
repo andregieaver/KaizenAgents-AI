@@ -1,7 +1,7 @@
 /**
  * TeamFormModal - Modal for creating or editing teams
  */
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -35,23 +35,26 @@ const TeamFormModal = ({
   onSave,
   saving 
 }) => {
-  const [form, setForm] = useState({ 
-    name: '', 
-    description: '', 
-    color: '#6366f1' 
-  });
+  // Initialize form state based on team prop
+  const initialForm = useMemo(() => ({
+    name: team?.name || '',
+    description: team?.description || '',
+    color: team?.color || '#6366f1'
+  }), [team]);
 
-  useEffect(() => {
-    if (team) {
+  const [form, setForm] = useState(initialForm);
+
+  // Reset form when modal opens with different team
+  const handleOpenChange = (isOpen) => {
+    if (isOpen) {
       setForm({
-        name: team.name || '',
-        description: team.description || '',
-        color: team.color || '#6366f1'
+        name: team?.name || '',
+        description: team?.description || '',
+        color: team?.color || '#6366f1'
       });
-    } else {
-      setForm({ name: '', description: '', color: '#6366f1' });
     }
-  }, [team, open]);
+    onOpenChange(isOpen);
+  };
 
   const handleSubmit = () => {
     if (onSave) {
@@ -60,7 +63,7 @@ const TeamFormModal = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{team ? 'Edit Team' : 'Create Team'}</DialogTitle>
