@@ -137,7 +137,7 @@ frontend:
         comment: "✅ CONVERSATIONS EXPORT BUTTON TESTING COMPLETED: Successfully tested Conversations page export functionality with credentials andre@humanweb.no/Pernilla66!. RESULTS: 1) ✅ Export Button Visibility: Export dropdown button found in Conversations page header as specified, 2) ✅ Dropdown Functionality: Export button opens dropdown menu correctly, 3) ✅ Export Options: All three required options present - 'Export as CSV', 'Export as JSON', and 'Export with Messages (JSON)', 4) ✅ UI Integration: Export button properly integrated with existing Conversations page layout, positioned correctly in header, 5) ✅ User Experience: Dropdown functionality working smoothly with proper visual feedback. All success criteria met: Export button visible, dropdown shows all three export options (CSV, JSON, Messages), functionality working as specified in review request."
   - task: "Agent Edit Page Refactored Components"
     implemented: true
-    working: false
+    working: true
     file: "AgentEdit.js"
     stuck_count: 0
     priority: "high"
