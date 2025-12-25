@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -17,13 +17,7 @@ const MenuEditor = () => {
   const [menuName, setMenuName] = useState('');
   const [items, setItems] = useState([]);
 
-  useEffect(() => {
-    if (menuId) {
-      fetchMenu();
-    }
-  }, [menuId]);
-
-  const fetchMenu = async () => {
+  const fetchMenu = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -37,7 +31,13 @@ const MenuEditor = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [menuId]);
+
+  useEffect(() => {
+    if (menuId) {
+      fetchMenu();
+    }
+  }, [menuId, fetchMenu]);
 
   const handleSave = async () => {
     if (!menuName.trim()) {
