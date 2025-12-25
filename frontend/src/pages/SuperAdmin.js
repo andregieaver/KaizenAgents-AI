@@ -70,7 +70,8 @@ const SuperAdmin = () => {
       setPlatformSettings(settingsRes.data);
       setTenants(tenantsRes.data);
       setUsers(usersRes.data);
-    } catch (error) {
+    } catch {
+      // Admin data fetch failed silently
     } finally {
       setLoading(false);
     }
