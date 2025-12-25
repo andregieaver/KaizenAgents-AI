@@ -47,11 +47,7 @@ const PlanManagement = () => {
   const [editingFeatureIndex, setEditingFeatureIndex] = useState(null);
   const [newFeatureText, setNewFeatureText] = useState('');
 
-  useEffect(() => {
-    fetchPlans();
-  }, [token]);
-
-  const fetchPlans = async () => {
+  const fetchPlans = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API}/subscriptions/plans?include_hidden=true`, {
@@ -63,7 +59,11 @@ const PlanManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchPlans();
+  }, [fetchPlans]);
 
   const handleCreate = () => {
     setSelectedPlan(null);
