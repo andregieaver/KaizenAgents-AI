@@ -166,9 +166,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "CRM Export Button Frontend"
-    - "Conversations Export Button Frontend"
-    - "Agent Edit Page Refactored Components"
+    - "Pricing Page ResourceAllocationCard Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
