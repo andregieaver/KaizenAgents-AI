@@ -31,12 +31,6 @@ const ManageMembersModal = ({
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  useEffect(() => {
-    if (open && team) {
-      fetchTeamMembers();
-    }
-  }, [open, team]);
-
   const fetchTeamMembers = async () => {
     if (!team) return;
     setLoading(true);
@@ -51,6 +45,13 @@ const ManageMembersModal = ({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (open && team) {
+      fetchTeamMembers();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, team]);
 
   const handleAddMember = async (userId) => {
     setActionLoading(true);
