@@ -133,7 +133,8 @@ const AgentEdit = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUploadedDocs(response.data || []);
-    } catch (error) {
+    } catch {
+      // Documents fetch failed silently
     }
   };
 
@@ -247,7 +248,8 @@ const AgentEdit = () => {
             }
           }));
         }
-      } catch (error) {
+      } catch {
+        // Providers fetch failed silently
       } finally {
         setLoadingProviders(false);
       }
