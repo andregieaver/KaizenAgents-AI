@@ -133,6 +133,32 @@ const CustomerDetail = () => {
   });
   
   const [newNote, setNewNote] = useState('');
+  
+  // Scroll fade indicators state for tabs
+  const tabsRef = useRef(null);
+  const [tabsScroll, setTabsScroll] = useState({ canScrollLeft: false, canScrollRight: false });
+  
+  const updateTabsScrollState = useCallback(() => {
+    const el = tabsRef.current;
+    if (el) {
+      const canScrollLeft = el.scrollLeft > 5;
+      const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 5);
+      setTabsScroll({ canScrollLeft, canScrollRight });
+    }
+  }, []);
+  
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (el) {
+      updateTabsScrollState();
+      el.addEventListener('scroll', updateTabsScrollState);
+      window.addEventListener('resize', updateTabsScrollState);
+      return () => {
+        el.removeEventListener('scroll', updateTabsScrollState);
+        window.removeEventListener('resize', updateTabsScrollState);
+      };
+    }
+  }, [updateTabsScrollState, loading]);
 
   const fetchData = useCallback(async () => {
     try {
