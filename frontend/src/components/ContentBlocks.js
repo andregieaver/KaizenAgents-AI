@@ -12,19 +12,14 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  useSortable,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Card, CardContent, CardHeader } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import {
   Plus,
-  GripVertical,
-  Trash2,
   Type,
   Image as ImageIcon,
   Video,
@@ -35,9 +30,6 @@ import {
   ChevronUp,
   ChevronDown,
   Columns,
-  Monitor,
-  Tablet,
-  Smartphone,
   Palette,
   Sparkles,
   Grid3x3,
@@ -47,7 +39,6 @@ import {
   Moon,
   UserCircle,
   Menu as MenuIcon,
-  X,
   Bot
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
@@ -62,15 +53,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import axios from 'axios';
 import { toast } from 'sonner';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './ui/select';
+
+// Import extracted components
+import SortableBlockItem from './editors/SortableBlockItem';
+import { MenuBlockEditor } from './editors/MenuBlockEditor';
 
 // Menu Block Editor Component
 const MenuBlockEditor = ({ block, updateBlock }) => {
