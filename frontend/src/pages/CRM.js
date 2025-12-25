@@ -787,12 +787,12 @@ const CRM = () => {
                 {filteredCustomers.map((customer, index) => (
                   <div
                     key={customer.id}
-                    className={`flex items-center gap-2 transition-colors ${
+                    className={`flex items-start sm:items-center gap-2 transition-colors ${
                       selectedIndex === index ? 'bg-primary/10 ring-1 ring-primary/30' : ''
                     } ${selectedIds.has(customer.id) ? 'bg-primary/5' : ''}`}
                   >
                     {/* Checkbox */}
-                    <div className="pl-3 py-4">
+                    <div className="pl-3 pt-4 sm:py-4">
                       <Checkbox
                         checked={selectedIds.has(customer.id)}
                         onCheckedChange={() => toggleSelection(customer.id)}
@@ -802,35 +802,39 @@ const CRM = () => {
                     
                     <Link
                       to={`/dashboard/crm/${customer.id}`}
-                      className="flex-1 block"
+                      className="flex-1 block min-w-0"
                     >
                       <div className="p-4 pl-2 hover:bg-muted/50 transition-colors">
-                        <div className="flex items-start justify-between gap-3">
+                        {/* Mobile: Stacked layout, Desktop: Side by side */}
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-3">
+                          {/* Left: Avatar + Name + Email */}
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                               <span className="text-sm font-medium text-primary">
                                 {customer.name?.charAt(0).toUpperCase()}
                               </span>
                             </div>
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1">
                               <p className="font-medium text-sm truncate">{customer.name}</p>
                               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                                 {customer.company && (
                                   <span className="flex items-center gap-1 truncate">
-                                    <Building className="h-3 w-3" />
-                                    {customer.company}
+                                    <Building className="h-3 w-3 flex-shrink-0" />
+                                    <span className="truncate">{customer.company}</span>
                                   </span>
                                 )}
                                 {customer.email && (
                                   <span className="flex items-center gap-1 truncate">
-                                    <Mail className="h-3 w-3" />
-                                    {customer.email}
+                                    <Mail className="h-3 w-3 flex-shrink-0" />
+                                    <span className="truncate">{customer.email}</span>
                                   </span>
                                 )}
                               </div>
                             </div>
                           </div>
-                          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          
+                          {/* Right: Lead Score + Status + Time - Inline on mobile */}
+                          <div className="flex items-center gap-2 sm:flex-col sm:items-end sm:gap-1 pl-13 sm:pl-0 flex-shrink-0">
                             <div className="flex items-center gap-2">
                               {customer.lead_score !== undefined && (
                                 <LeadScoreBadge score={customer.lead_score} grade={customer.lead_grade} />
@@ -840,14 +844,16 @@ const CRM = () => {
                               </Badge>
                             </div>
                             {customer.last_contact && (
-                              <span className="text-xs text-muted-foreground">
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
                                 {formatDistanceToNow(new Date(customer.last_contact), { addSuffix: true })}
                               </span>
                             )}
                           </div>
                         </div>
+                        
+                        {/* Tags - Below content on both mobile and desktop */}
                         {customer.tags?.length > 0 && (
-                          <div className="flex gap-1 mt-2 ml-13">
+                          <div className="flex flex-wrap gap-1 mt-2 pl-13">
                             {customer.tags.slice(0, 3).map((tag, i) => (
                               <Badge key={i} variant="outline" className="text-xs">
                                 {tag}
