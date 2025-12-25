@@ -43,7 +43,6 @@ import {
   Area,
   AreaChart
 } from 'recharts';
-import { cn } from '../lib/utils';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
