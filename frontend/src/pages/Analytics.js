@@ -65,11 +65,7 @@ const Analytics = () => {
   const [agentPerformance, setAgentPerformance] = useState([]);
   const [sentimentSummary, setSentimentSummary] = useState(null);
 
-  useEffect(() => {
-    fetchAllData();
-  }, [days, token]);
-
-  const fetchAllData = async () => {
+  const fetchAllData = useCallback(async () => {
     setLoading(true);
     try {
       const [overviewRes, trendsRes, agentsRes, sentimentRes] = await Promise.all([
@@ -96,7 +92,11 @@ const Analytics = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [days, token]);
+
+  useEffect(() => {
+    fetchAllData();
+  }, [fetchAllData]);
 
   const StatCard = ({ title, value, subtitle, icon: Icon, trend, color = "primary" }) => (
     <Card className="border border-border">
