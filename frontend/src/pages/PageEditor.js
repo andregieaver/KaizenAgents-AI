@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -76,7 +76,7 @@ const PageEditor = () => {
     }
   }, [slug]);
 
-  const fetchPage = async () => {
+  const fetchPage = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/pages/${slug}`, {
         headers: { Authorization: `Bearer ${token}` }
