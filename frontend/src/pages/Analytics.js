@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -21,12 +21,11 @@ import {
   Heart,
   CheckCircle,
   Clock,
-  ArrowUpRight,
-  ArrowDownRight,
   Loader2,
   BarChart3,
   User
 } from 'lucide-react';
+import StatCard from '../components/analytics/StatCard';
 import {
   LineChart,
   Line,
