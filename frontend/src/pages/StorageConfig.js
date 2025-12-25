@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -34,11 +34,7 @@ const StorageConfig = () => {
     gcs_region: 'us-central1'
   });
 
-  useEffect(() => {
-    fetchConfig();
-  }, [token]);
-
-  const fetchConfig = async () => {
+  const fetchConfig = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/storage-config`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -55,7 +51,11 @@ const StorageConfig = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchConfig();
+  }, [fetchConfig]);
 
   const handleSave = async () => {
     if (formData.storage_type === 'gcs') {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -48,11 +48,7 @@ const RateLimits = () => {
     day: 10000
   });
 
-  useEffect(() => {
-    fetchRateLimits();
-  }, [token]);
-
-  const fetchRateLimits = async () => {
+  const fetchRateLimits = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API}/rate-limits/`, {
@@ -64,7 +60,11 @@ const RateLimits = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchRateLimits();
+  }, [fetchRateLimits]);
 
   const handleEdit = (tenant) => {
     setSelectedTenant(tenant);
