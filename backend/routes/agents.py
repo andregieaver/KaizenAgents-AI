@@ -932,7 +932,10 @@ async def unpublish_agent_from_marketplace(
 
 
 async def review_agent_for_marketplace(agent: Dict[str, Any]) -> Dict[str, Any]:
-    """Use AI (admin's OpenAI key) to review agent for ethical, legal, and privacy concerns"""
+    """
+    Use AI to review agent for ethical, legal, and privacy concerns before marketplace publishing.
+    Returns detailed feedback with approval status, issues, suggestions, and confidence score.
+    """
     
     # Get admin settings to find the OpenAI API key
     admin_settings = await db.admin_settings.find_one({}, {"_id": 0})
@@ -949,7 +952,13 @@ async def review_agent_for_marketplace(agent: Dict[str, Any]) -> Dict[str, Any]:
     
     if not openai_api_key:
         logger.warning("No OpenAI API key available for agent review, auto-approving")
-        return {"approved": True, "issues": [], "suggestions": []}
+        return {
+            "approved": True, 
+            "issues": [], 
+            "suggestions": [],
+            "confidence": 0,
+            "review_type": "auto_approved_no_key"
+        }
     
     try:
         import openai
@@ -957,49 +966,97 @@ async def review_agent_for_marketplace(agent: Dict[str, Any]) -> Dict[str, Any]:
         
         client = openai.OpenAI(api_key=openai_api_key)
         
-        # Build review prompt
+        # Build comprehensive review data
         config = agent.get("config", {})
-        system_prompt = config.get("system_prompt", "")
+        system_prompt = config.get("system_prompt", config.get("ai_persona", ""))
+        knowledge_base_summary = "Has knowledge base" if config.get("knowledge_base") else "No knowledge base"
         
-        review_prompt = f"""You are an AI content moderator reviewing a chatbot agent before it can be published to a public marketplace.
+        review_prompt = f"""You are an AI content moderator for a SaaS marketplace where businesses publish AI chatbot agents.
 
-Review the following agent for:
-1. Ethical violations (discrimination, hate speech, harmful content)
-2. Racial or identity-based bias
-3. Legal issues (illegal activities, copyright violations)
-4. Privacy concerns (requests for sensitive personal information)
-5. Company confidential information exposure
-6. Inappropriate or adult content
-7. Misleading or deceptive practices
+Your task is to review an agent BEFORE it goes public. Be thorough but reasonable - legitimate business use cases should be approved.
 
-Agent Details:
-- Name: {agent['name']}
-- Description: {agent['description']}
-- Category: {agent['category']}
-- System Prompt: {system_prompt}
+## REVIEW CRITERIA
 
-Respond in JSON format ONLY (no markdown):
+### 1. ETHICAL CONCERNS (Critical)
+- Discrimination based on race, gender, religion, nationality, disability
+- Hate speech or promotion of violence
+- Harassment or bullying enablement
+- Exploitation of vulnerable groups
+
+### 2. LEGAL ISSUES (Critical)
+- Instructions for illegal activities
+- Copyright/trademark infringement indicators
+- Medical/legal advice without proper disclaimers
+- Financial advice without disclaimers
+
+### 3. PRIVACY & SECURITY (High Priority)
+- Requests for sensitive PII (SSN, credit cards, passwords)
+- Data harvesting instructions
+- Social engineering tactics
+- Impersonation of real entities without authorization
+
+### 4. INAPPROPRIATE CONTENT (Medium Priority)
+- Adult/sexual content
+- Excessive profanity
+- Graphic violence descriptions
+- Drug/substance abuse promotion
+
+### 5. DECEPTIVE PRACTICES (Medium Priority)
+- Fake testimonials or reviews
+- Misleading claims about capabilities
+- Scam or fraud patterns
+- Hidden malicious intent
+
+## AGENT DETAILS TO REVIEW
+
+**Name:** {agent.get('name', 'Unknown')}
+**Description:** {agent.get('description', 'No description')}
+**Category:** {agent.get('category', 'general')}
+**Knowledge Base:** {knowledge_base_summary}
+
+**System Prompt/Persona:**
+```
+{system_prompt[:2000] if system_prompt else 'No system prompt configured'}
+```
+
+## RESPONSE FORMAT
+
+Respond with ONLY valid JSON (no markdown code blocks):
 {{
   "approved": true/false,
-  "issues": ["list of specific issues found"],
-  "suggestions": ["list of suggestions to fix issues"]
+  "confidence": 0.0-1.0,
+  "risk_level": "none" | "low" | "medium" | "high" | "critical",
+  "issues": [
+    {{
+      "category": "ethical|legal|privacy|content|deceptive",
+      "severity": "warning|error|critical",
+      "description": "Specific issue found",
+      "location": "Where in the prompt/config this was found"
+    }}
+  ],
+  "suggestions": ["Actionable suggestion to fix each issue"],
+  "summary": "Brief one-line summary of the review"
 }}
 
-If the agent is safe and appropriate for public use, return approved: true with empty issues array.
-If there are any concerns, return approved: false with detailed issues and suggestions."""
+IMPORTANT: 
+- Only flag genuine concerns, not hypothetical edge cases
+- Business-appropriate language and sales tactics are acceptable
+- Customer service agents with standard greetings are fine
+- Approve if no clear violations found"""
 
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": review_prompt}],
-            temperature=0.3,
-            max_tokens=500
+            temperature=0.2,
+            max_tokens=800
         )
         
         result_text = response.choices[0].message.content.strip()
         
         # Clean up response if it has markdown code blocks
         if result_text.startswith("```"):
-            result_text = result_text.split("```")[1]
+            lines = result_text.split("\n")
+            result_text = "\n".join(lines[1:-1] if lines[-1] == "```" else lines[1:])
             if result_text.startswith("json"):
                 result_text = result_text[4:]
         result_text = result_text.strip()
@@ -1007,23 +1064,49 @@ If there are any concerns, return approved: false with detailed issues and sugge
         # Parse JSON response
         result = json.loads(result_text)
         
-        logger.info(f"Agent review result for {agent['name']}: approved={result.get('approved')}")
+        # Ensure required fields exist
+        result.setdefault("approved", False)
+        result.setdefault("confidence", 0.5)
+        result.setdefault("risk_level", "medium")
+        result.setdefault("issues", [])
+        result.setdefault("suggestions", [])
+        result.setdefault("summary", "Review completed")
+        result["review_type"] = "ai_moderated"
+        
+        logger.info(f"Agent review for '{agent.get('name')}': approved={result['approved']}, risk={result['risk_level']}, confidence={result['confidence']}")
+        
+        # Log review to database for audit trail
+        await db.moderation_logs.insert_one({
+            "agent_id": agent.get("id"),
+            "agent_name": agent.get("name"),
+            "tenant_id": agent.get("tenant_id"),
+            "result": result,
+            "reviewed_at": datetime.now(timezone.utc).isoformat()
+        })
+        
         return result
         
     except json.JSONDecodeError as e:
         logger.error(f"Failed to parse AI review response: {str(e)}")
         return {
             "approved": False,
-            "issues": ["Unable to parse moderation response. Please try again."],
-            "suggestions": ["Contact support if this issue persists."]
+            "confidence": 0,
+            "risk_level": "unknown",
+            "issues": [{"category": "system", "severity": "error", "description": "Unable to parse moderation response", "location": "system"}],
+            "suggestions": ["Please try again. If this persists, contact support."],
+            "summary": "Review system error",
+            "review_type": "error"
         }
     except Exception as e:
         logger.error(f"Agent review failed: {str(e)}")
-        # On error, reject for safety
         return {
             "approved": False,
-            "issues": ["Unable to complete automated review. Please try again later."],
-            "suggestions": ["Contact support if this issue persists."]
+            "confidence": 0,
+            "risk_level": "unknown",
+            "issues": [{"category": "system", "severity": "error", "description": f"Review failed: {str(e)}", "location": "system"}],
+            "suggestions": ["Please try again later. Contact support if this persists."],
+            "summary": "Review system unavailable",
+            "review_type": "error"
         }
 
 
