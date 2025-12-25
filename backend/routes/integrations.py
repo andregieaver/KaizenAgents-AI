@@ -590,7 +590,7 @@ async def test_sendgrid_connection(admin_user: dict = Depends(get_super_admin_us
         
         sg = SendGridAPIClient(api_key)
         # Test the API key by making a simple API call
-        response = sg.client.api_keys.get()
+        sg.client.api_keys.get()
         
         return {
             "message": "Successfully connected to SendGrid",

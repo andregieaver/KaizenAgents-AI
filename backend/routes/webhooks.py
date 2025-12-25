@@ -142,8 +142,6 @@ async def handle_checkout_completed(session):
 
 async def handle_subscription_updated(subscription):
     """Handle subscription update"""
-    customer_id = subscription.get("customer")
-    
     # Find subscription by Stripe subscription ID
     db_subscription = await db.subscriptions.find_one(
         {"stripe_subscription_id": subscription["id"]},

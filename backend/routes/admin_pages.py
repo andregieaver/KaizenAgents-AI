@@ -384,8 +384,6 @@ async def upload_og_image(
         )
     
     # Validate file size (max 5MB)
-    file_size = 0
-    chunk_size = 1024 * 1024  # 1MB chunks
     temp_file = await file.read()
     file_size = len(temp_file)
     
