@@ -51,21 +51,7 @@ const FeatureGatesAdmin = () => {
   const [savingConversationPrice, setSavingConversationPrice] = useState(false);
   const [syncingConversationPricing, setSyncingConversationPricing] = useState(null);
 
-  useEffect(() => {
-    // Check if user is super admin
-    if (!user?.is_super_admin) {
-      toast.error('Access denied. Super admin only.');
-      navigate('/dashboard');
-      return;
-    }
-    
-    loadData();
-    loadSeatPricing();
-    loadAgentPricing();
-    loadConversationPricing();
-  }, [token, user, navigate]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [configRes, plansRes, categoriesRes] = await Promise.all([
@@ -89,9 +75,9 @@ const FeatureGatesAdmin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const loadSeatPricing = async () => {
+  const loadSeatPricing = useCallback(async () => {
     setLoadingSeatPricing(true);
     try {
       const response = await axios.get(`${API}/quotas/seat-pricing`, {
@@ -103,7 +89,49 @@ const FeatureGatesAdmin = () => {
     } finally {
       setLoadingSeatPricing(false);
     }
-  };
+  }, [token]);
+
+  const loadAgentPricing = useCallback(async () => {
+    setLoadingAgentPricing(true);
+    try {
+      const response = await axios.get(`${API}/quotas/agent-pricing`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAgentPricing(response.data || []);
+    } catch (error) {
+      // Agent pricing may not be configured yet - silently ignore
+    } finally {
+      setLoadingAgentPricing(false);
+    }
+  }, [token]);
+
+  const loadConversationPricing = useCallback(async () => {
+    setLoadingConversationPricing(true);
+    try {
+      const response = await axios.get(`${API}/quotas/conversation-pricing`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setConversationPricing(response.data || []);
+    } catch (error) {
+      // Conversation pricing may not be configured yet - silently ignore
+    } finally {
+      setLoadingConversationPricing(false);
+    }
+  }, [token]);
+
+  useEffect(() => {
+    // Check if user is super admin
+    if (!user?.is_super_admin) {
+      toast.error('Access denied. Super admin only.');
+      navigate('/dashboard');
+      return;
+    }
+    
+    loadData();
+    loadSeatPricing();
+    loadAgentPricing();
+    loadConversationPricing();
+  }, [user, navigate, loadData, loadSeatPricing, loadAgentPricing, loadConversationPricing]);
 
   const startEditSeatPrice = (pricing) => {
     setEditingPlan(pricing.plan_id);
