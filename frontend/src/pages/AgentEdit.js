@@ -187,6 +187,9 @@ const AgentEdit = () => {
       setLoading(false);
     }
   }, [agentId, token, navigate, fetchAgentDocuments, fetchScrapingStatus]);
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
     if (!file) return;
     
     if (file.size > 5 * 1024 * 1024) {
