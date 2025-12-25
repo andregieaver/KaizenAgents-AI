@@ -103,7 +103,7 @@ export const NoSearchResults = ({ query, onClear }) => (
     </div>
     <h3 className="font-heading text-lg font-semibold mb-2">No results found</h3>
     <p className="text-sm text-muted-foreground mb-4">
-      We couldn't find anything matching "{query}"
+      We couldn&apos;t find anything matching &quot;{query}&quot;
     </p>
     {onClear && (
       <Button variant="outline" onClick={onClear}>

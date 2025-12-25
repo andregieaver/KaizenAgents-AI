@@ -110,7 +110,7 @@ const ConversationDetail = () => {
     { id: 3, label: 'Need more info', text: "To help you better, could you please provide more details about your issue?" },
     { id: 4, label: 'Escalating', text: "I'm going to escalate this to our specialized team. They will be in touch with you shortly." },
     { id: 5, label: 'Follow-up', text: "I wanted to follow up on our previous conversation. Is there anything else I can help you with?" },
-    { id: 6, label: 'Closing', text: "Thank you for contacting us! If you have any other questions, don't hesitate to reach out. Have a great day!" },
+    { id: 6, label: 'Closing', text: "Thank you for contacting us! If you have any other questions, don&apos;t hesitate to reach out. Have a great day!" },
     { id: 7, label: 'Apology', text: "I apologize for any inconvenience this may have caused. Let me help resolve this for you." },
     { id: 8, label: 'Confirmation', text: "I've noted your request and will process it right away. You'll receive a confirmation shortly." },
   ];

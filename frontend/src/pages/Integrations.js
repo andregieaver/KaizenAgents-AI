@@ -667,7 +667,7 @@ const Integrations = () => {
               <Alert className="border-blue-500 bg-blue-500/10">
                 <Info className="h-4 w-4 text-blue-500" />
                 <AlertDescription className="text-blue-700 text-xs">
-                  <strong>Note:</strong> Syncing to Stripe will create new products/prices if they don't exist. 
+                  <strong>Note:</strong> Syncing to Stripe will create new products/prices if they don&apos;t exist. 
                   Syncing from Stripe will update your local database with Stripe's data.
                 </AlertDescription>
               </Alert>
