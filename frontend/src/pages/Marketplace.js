@@ -67,7 +67,7 @@ const Marketplace = () => {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const response = await axios.get(`${API}/marketplace/`, { headers });
       setAgents(response.data);
-    } catch {
+    } catch (error) {
       toast.error('Failed to load marketplace');
     } finally {
       setLoading(false);
@@ -114,7 +114,7 @@ const Marketplace = () => {
       setSelectedAgent(null);
       // Redirect to Settings > Agents tab
       navigate('/dashboard/settings?tab=agents');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to clone agent');
     } finally {
       setCloning(false);

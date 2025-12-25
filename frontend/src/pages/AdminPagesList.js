@@ -59,7 +59,7 @@ const AdminPagesList = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPages(response.data);
-    } catch {
+    } catch (error) {
       toast.error('Failed to load pages');
     } finally {
       setLoading(false);
@@ -76,7 +76,7 @@ const AdminPagesList = () => {
       
       setPages(pages.map(p => p.slug === page.slug ? response.data : p));
       toast.success(`Page ${!page.visible ? 'shown' : 'hidden'}`);
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to toggle visibility');
     }
   };
@@ -91,7 +91,7 @@ const AdminPagesList = () => {
       
       setPages(pages.map(p => p.slug === slug ? response.data : p));
       toast.success('Page reset to defaults');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to reset page');
     }
   };
@@ -109,7 +109,7 @@ const AdminPagesList = () => {
 
       setPages(pages.filter(p => p.slug !== slug));
       toast.success('Page deleted successfully');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to delete page');
     }
   };
@@ -141,7 +141,7 @@ const AdminPagesList = () => {
 
       setPages(pages.map(p => p.slug === slug ? response.data : p));
       toast.success('Template imported successfully');
-    } catch {
+    } catch (error) {
       if (error instanceof SyntaxError) {
         toast.error('Invalid JSON file');
       } else {

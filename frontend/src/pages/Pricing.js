@@ -96,7 +96,7 @@ const Pricing = () => {
       if (response.data?.platform_logo) {
         setPlatformLogo(response.data.platform_logo);
       }
-    } catch {
+    } catch (error) {
       console.debug('Could not fetch platform info, using defaults');
     }
   };
@@ -134,7 +134,7 @@ const Pricing = () => {
           setCurrentSubscription(null);
         }
       }
-    } catch {
+    } catch (error) {
       toast.error('Failed to load pricing information');
     } finally {
       setLoading(false);
@@ -154,7 +154,7 @@ const Pricing = () => {
       const allPricing = response.data || [];
       const currentPlanPricing = allPricing.find(p => p.plan_id === planId);
       setSeatPricingConfig(currentPlanPricing || null);
-    } catch {
+    } catch (error) {
       setSeatPricingConfig(null);
     } finally {
       setLoadingSeatConfig(false);
@@ -187,7 +187,7 @@ const Pricing = () => {
         setConversationAllocation(convRes.data);
         setConversationSliderValue(convRes.data.current_conversations);
       }
-    } catch {
+    } catch (error) {
       // Allocations may not be configured for the user's plan - silently ignore
     }
   };
@@ -220,7 +220,7 @@ const Pricing = () => {
       toast.success('Seat allocation updated successfully');
       await fetchAllocations();
       setSeatUnsavedChanges(false);
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update seat allocation');
     } finally {
       setSavingSeats(false);
@@ -238,7 +238,7 @@ const Pricing = () => {
       toast.success('Agent allocation updated successfully');
       await fetchAllocations();
       setAgentUnsavedChanges(false);
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update agent allocation');
     } finally {
       setSavingAgents(false);
@@ -256,7 +256,7 @@ const Pricing = () => {
       toast.success('Conversation allocation updated successfully');
       await fetchAllocations();
       setConversationUnsavedChanges(false);
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update conversation allocation');
     } finally {
       setSavingConversations(false);
@@ -286,7 +286,7 @@ const Pricing = () => {
       } else {
         toast.error(response.data.message);
       }
-    } catch {
+    } catch (error) {
       // Discount code may be invalid - silently ignore
     } finally {
       setApplyingDiscount(false);
@@ -325,7 +325,7 @@ const Pricing = () => {
         setAppliedDiscount(null);
         setDiscountPlanId(null);
       }
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to apply discount code');
       setAppliedDiscount(null);
       setDiscountPlanId(null);
@@ -358,7 +358,7 @@ const Pricing = () => {
         );
         toast.success('Successfully subscribed to Free plan!');
         navigate('/dashboard/billing');
-      } catch {
+      } catch (error) {
         toast.error(error.response?.data?.detail || 'Failed to subscribe');
       } finally {
         setCheckoutLoading(null);
@@ -395,7 +395,7 @@ const Pricing = () => {
       } else {
         toast.error('Could not create checkout session');
       }
-    } catch {
+    } catch (error) {
       const detail = error.response?.data?.detail;
       if (detail?.includes('not configured')) {
         toast.error('Payment system is not configured. Please contact support.');
@@ -462,7 +462,7 @@ const Pricing = () => {
       
       // Reload subscription data
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to purchase seats');
     } finally {
       setPurchasingSeats(false);

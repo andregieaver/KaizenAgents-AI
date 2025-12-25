@@ -32,7 +32,7 @@ const Register = () => {
       await register(email, password, name, referralCode);
       toast.success('Account created successfully!');
       navigate('/dashboard');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Registration failed');
     } finally {
       setLoading(false);

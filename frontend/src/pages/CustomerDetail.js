@@ -178,7 +178,7 @@ const CustomerDetail = () => {
           console.debug('Could not auto-calculate lead score:', scoreError);
         }
       }
-    } catch {
+    } catch (error) {
       toast.error('Failed to load customer');
     } finally {
       setLoading(false);
@@ -194,7 +194,7 @@ const CustomerDetail = () => {
       );
       setLeadScore(response.data);
       toast.success('Lead score updated');
-    } catch {
+    } catch (error) {
       toast.error('Failed to calculate lead score');
     } finally {
       setLoadingScore(false);
@@ -212,7 +212,7 @@ const CustomerDetail = () => {
       toast.success('Customer updated');
       setEditMode(false);
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update');
     } finally {
       setSaving(false);
@@ -227,7 +227,7 @@ const CustomerDetail = () => {
       );
       toast.success('Customer deleted');
       navigate('/dashboard/crm');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to delete');
     }
   };
@@ -249,7 +249,7 @@ const CustomerDetail = () => {
       setShowFollowupModal(false);
       setNewFollowup({ title: '', description: '', due_date: '', priority: 'medium', type: 'call' });
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to add follow-up');
     } finally {
       setSaving(false);
@@ -265,7 +265,7 @@ const CustomerDetail = () => {
       );
       toast.success('Follow-up completed');
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error('Failed to complete follow-up');
     }
   };
@@ -292,7 +292,7 @@ const CustomerDetail = () => {
       setShowEmailModal(false);
       setNewEmail({ subject: '', body: '' });
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to send email');
     } finally {
       setSaving(false);
@@ -321,7 +321,7 @@ const CustomerDetail = () => {
       setShowNoteModal(false);
       setNewNote('');
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error('Failed to add note');
     } finally {
       setSaving(false);

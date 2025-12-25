@@ -135,7 +135,7 @@ const ConversationDetail = () => {
         
         // Fetch CRM link status
         fetchCrmStatus(convRes.data.id);
-      } catch {
+      } catch (error) {
         toast.error('Failed to load conversation');
       } finally {
         setLoading(false);
@@ -169,7 +169,7 @@ const ConversationDetail = () => {
         summary: summaryRes.data,
         followup: followupRes.data
       });
-    } catch {
+    } catch (error) {
       console.debug('Error fetching AI insights:', error);
     } finally {
       setLoadingInsights(false);
@@ -189,7 +189,7 @@ const ConversationDetail = () => {
         setCrmCustomer(null);
         setLinkSuggested(false);
       }
-    } catch {
+    } catch (error) {
       console.debug('CRM lookup failed:', error);
     }
   };
@@ -205,7 +205,7 @@ const ConversationDetail = () => {
       setCrmCustomer(response.data.customer);
       setLinkSuggested(false);
       toast.success(response.data.created ? 'Customer added to CRM' : 'Linked to existing CRM customer');
-    } catch {
+    } catch (error) {
       toast.error('Failed to link to CRM');
     } finally {
       setCrmLoading(false);
@@ -248,7 +248,7 @@ const ConversationDetail = () => {
         engagement: response.data.engagement || 5,
         tone: response.data.tone || 0
       });
-    } catch {
+    } catch (error) {
     } finally {
       setAnalyzingSentiment(false);
     }
@@ -270,7 +270,7 @@ const ConversationDetail = () => {
       setMessages([...messages, response.data]);
       setNewMessage('');
       toast.success('Message sent');
-    } catch {
+    } catch (error) {
       toast.error('Failed to send message');
     } finally {
       setSending(false);
@@ -293,7 +293,7 @@ const ConversationDetail = () => {
       } else {
         setSuggestions([]);
       }
-    } catch {
+    } catch (error) {
       toast.error('Failed to change mode');
     }
   };
@@ -309,7 +309,7 @@ const ConversationDetail = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSuggestions(response.data.suggestions || []);
-    } catch {
+    } catch (error) {
       setSuggestions([]);
     } finally {
       setLoadingSuggestions(false);
@@ -329,7 +329,7 @@ const ConversationDetail = () => {
       );
       setConversation(response.data);
       toast.success(`Status changed to ${status}`);
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to change status');
     }
   };
