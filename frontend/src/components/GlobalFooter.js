@@ -28,7 +28,7 @@ const GlobalFooter = () => {
         const footerResponse = await axios.get(`${API}/global-components/public/footer`);
         setFooterBlocks(footerResponse.data.blocks || []);
       } catch {
-        console.debug('Error fetching footer data:', error);
+        // Footer fetch failed silently
       }
     };
     fetchData();

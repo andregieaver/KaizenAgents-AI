@@ -40,7 +40,7 @@ const GlobalHeader = () => {
         const headerResponse = await axios.get(`${API}/global-components/public/header`);
         setHeaderBlocks(headerResponse.data.blocks || []);
       } catch {
-        console.debug('Error fetching header data:', error);
+        // Header fetch failed silently
       } finally {
         setLoading(false);
       }
