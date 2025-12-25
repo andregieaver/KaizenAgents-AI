@@ -429,7 +429,9 @@ const AgentEdit = () => {
         if (response.data.approved) {
           toast.success('Agent published to marketplace!');
         } else {
-          toast.error(`Publishing failed: ${response.data.issues?.join(', ') || 'Review failed'}`);
+          // Show detailed moderation feedback modal
+          setModerationResult(response.data);
+          setShowModerationModal(true);
         }
       }
       fetchAgent();
