@@ -541,7 +541,8 @@ const AgentGridBlockComponent = ({ block }) => {
         const response = await axios.get(`${API}/marketplace/`);
         setAgents(response.data);
         setFilteredAgents(response.data);
-      } catch (error) {
+      } catch {
+        // Agents fetch failed silently
       } finally {
         setLoading(false);
       }
