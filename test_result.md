@@ -935,6 +935,12 @@ All requested mobile drag and drop improvements have been successfully implement
   - `SortableBlockItem` (~170 lines) - Draggable block wrapper with visibility controls
 - **Testing**: Lint passes ✅
 
+## Dead Code Cleanup (2025-12-25)
+- **Deleted**: `/app/frontend/src/components/UpgradePlanModal.js` (435 lines)
+- **Reason**: Component was not imported or used anywhere in the codebase
+- **Verification**: grep search confirmed zero imports; frontend continues working after deletion
+- **Lines Removed**: 435
+
 ## Refactoring Summary
 | File | Before | After | Reduction |
 |------|--------|-------|-----------|
