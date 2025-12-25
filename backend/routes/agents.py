@@ -1,12 +1,14 @@
 """
 User Agents management routes
 """
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, BackgroundTasks
 from pydantic import BaseModel, ConfigDict
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 import logging
 import uuid
+import asyncio
+import httpx
 
 from models import AgentCreate, AgentResponse, AgentUpdate, ConversationResponse, SettingsUpdate
 from middleware import get_current_user
