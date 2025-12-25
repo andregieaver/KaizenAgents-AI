@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -67,11 +67,7 @@ const OrchestrationSettings = () => {
   const [editingAgentTags, setEditingAgentTags] = useState(null);
   const [newTag, setNewTag] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, [token]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [configRes, adminRes, userRes, childrenRes] = await Promise.all([
@@ -103,7 +99,11 @@ const OrchestrationSettings = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const fetchOrchestrationRuns = async () => {
     setLoadingRuns(true);
