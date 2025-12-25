@@ -3,16 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { Button } from './ui/button';
-import { MessageSquare, Moon, Sun, Loader2, Menu as MenuIcon, X } from 'lucide-react';
+import { MessageSquare, Moon, Sun, Loader2 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import axios from 'axios';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from './ui/sheet';
+import MenuBlock from './header/MenuBlock';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
