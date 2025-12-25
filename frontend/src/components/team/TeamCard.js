@@ -1,120 +1,120 @@
 /**
- * TeamCard - Displays a team group card
+ * TeamCard - Displays a team group card with members and AI agent assignment
  */
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '../ui/alert-dialog';
 import { Users, Edit, Bot, UserPlus, Trash2 } from 'lucide-react';
 
 const TeamCard = ({ 
   team, 
-  members, 
-  agents, 
   canManage,
   onEdit,
-  onAddMember,
+  onManageMembers,
   onAssignAgent,
-  onDelete,
-  onRemoveMember,
-  onRemoveAgent
+  onDelete
 }) => {
-  const teamMembers = members.filter(m => team.member_ids?.includes(m.id));
-  const teamAgents = agents.filter(a => team.agent_ids?.includes(a.id));
-
   return (
-    <Card>
+    <Card className="border border-border">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
             <div 
-              className="h-10 w-10 rounded-lg flex items-center justify-center text-white"
-              style={{ backgroundColor: team.color || '#6366f1' }}
+              className="h-10 w-10 rounded-lg flex items-center justify-center"
+              style={{ backgroundColor: (team.color || '#6366f1') + '20' }}
             >
-              <Users className="h-5 w-5" />
+              <Users className="h-5 w-5" style={{ color: team.color || '#6366f1' }} />
             </div>
             <div>
               <CardTitle className="text-lg">{team.name}</CardTitle>
-              {team.description && (
-                <p className="text-sm text-muted-foreground">{team.description}</p>
-              )}
+              <CardDescription className="line-clamp-1">
+                {team.description || 'No description'}
+              </CardDescription>
             </div>
           </div>
           {canManage && (
-            <div className="flex gap-2">
-              <Button variant="ghost" size="icon" onClick={() => onEdit(team)}>
-                <Edit className="h-4 w-4" />
-              </Button>
+            <div className="flex gap-1">
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="text-destructive"
-                onClick={() => onDelete(team.id)}
+                className="h-8 w-8"
+                onClick={() => onEdit(team)}
               >
-                <Trash2 className="h-4 w-4" />
+                <Edit className="h-4 w-4" />
               </Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete team?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will delete the team &quot;{team.name}&quot; and remove all member associations.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onDelete(team.id)}
+                      className="bg-destructive text-destructive-foreground"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           )}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Team Members */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">Members ({teamMembers.length})</span>
-            {canManage && (
-              <Button variant="ghost" size="sm" onClick={() => onAddMember(team)}>
-                <UserPlus className="h-4 w-4 mr-1" />
-                Add
-              </Button>
-            )}
+        {/* AI Agent */}
+        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-2">
+            <Bot className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm">
+              {team.agent_name || 'No AI Agent assigned'}
+            </span>
           </div>
-          {teamMembers.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {teamMembers.map(member => (
-                <Badge 
-                  key={member.id} 
-                  variant="secondary"
-                  className="cursor-pointer hover:bg-destructive/10"
-                  onClick={() => canManage && onRemoveMember(team.id, member.id)}
-                >
-                  {member.name}
-                  {canManage && <span className="ml-1 text-destructive">×</span>}
-                </Badge>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No members assigned</p>
+          {canManage && (
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => onAssignAgent(team)}
+            >
+              {team.agent_id ? 'Change' : 'Assign'}
+            </Button>
           )}
         </div>
-        
-        {/* Team Agents */}
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">AI Agents ({teamAgents.length})</span>
-            {canManage && (
-              <Button variant="ghost" size="sm" onClick={() => onAssignAgent(team)}>
-                <Bot className="h-4 w-4 mr-1" />
-                Assign
-              </Button>
-            )}
-          </div>
-          {teamAgents.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {teamAgents.map(agent => (
-                <Badge 
-                  key={agent.id} 
-                  variant="outline"
-                  className="cursor-pointer hover:bg-destructive/10"
-                  onClick={() => canManage && onRemoveAgent(team.id, agent.id)}
-                >
-                  <Bot className="h-3 w-3 mr-1" />
-                  {agent.name}
-                  {canManage && <span className="ml-1 text-destructive">×</span>}
-                </Badge>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No agents assigned</p>
+
+        {/* Members count */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">
+            {team.member_count || 0} member{(team.member_count || 0) !== 1 ? 's' : ''}
+          </span>
+          {canManage && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => onManageMembers(team)}
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Manage Members
+            </Button>
           )}
         </div>
       </CardContent>
