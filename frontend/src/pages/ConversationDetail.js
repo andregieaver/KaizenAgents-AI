@@ -317,24 +317,6 @@ const ConversationDetail = () => {
     }
   };
 
-  const fetchSuggestions = async () => {
-    if (!conversation || conversation.mode !== 'assisted') return;
-    
-    setLoadingSuggestions(true);
-    try {
-      const response = await axios.post(
-        `${API}/conversations/${id}/suggestions`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setSuggestions(response.data.suggestions || []);
-    } catch (error) {
-      setSuggestions([]);
-    } finally {
-      setLoadingSuggestions(false);
-    }
-  };
-
   const handleSuggestionClick = (suggestion) => {
     setNewMessage(suggestion);
   };
