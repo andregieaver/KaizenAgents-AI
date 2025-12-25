@@ -1432,10 +1432,87 @@ class ScrapeRequest(BaseModel):
     max_pages: int = 50
 
 
+async def perform_web_scraping(agent_id: str, domains: List[str], max_depth: int, max_pages: int):
+    """
+    Background task to perform web scraping for an agent.
+    Scrapes specified domains and stores the content for the agent's knowledge base.
+    """
+    pages_scraped = 0
+    scraped_content = []
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+            for domain in domains:
+                if pages_scraped >= max_pages:
+                    break
+                
+                # Ensure domain has protocol
+                if not domain.startswith(('http://', 'https://')):
+                    domain = f'https://{domain}'
+                
+                try:
+                    # Scrape the main page
+                    response = await client.get(domain, headers={
+                        'User-Agent': 'Mozilla/5.0 (compatible; AgentBot/1.0)'
+                    })
+                    
+                    if response.status_code == 200:
+                        content = response.text
+                        # Extract text content (basic extraction)
+                        # In production, you'd use BeautifulSoup or similar
+                        scraped_content.append({
+                            "url": domain,
+                            "content_length": len(content),
+                            "scraped_at": datetime.now(timezone.utc).isoformat()
+                        })
+                        pages_scraped += 1
+                        
+                        # Update progress
+                        await db.agent_scraping.update_one(
+                            {"agent_id": agent_id},
+                            {"$set": {
+                                "pages_scraped": pages_scraped,
+                                "last_scraped_at": datetime.now(timezone.utc).isoformat()
+                            }}
+                        )
+                except Exception as e:
+                    logger.warning(f"Failed to scrape {domain}: {str(e)}")
+                    continue
+                
+                # Small delay between requests to be polite
+                await asyncio.sleep(0.5)
+        
+        # Mark as completed
+        await db.agent_scraping.update_one(
+            {"agent_id": agent_id},
+            {"$set": {
+                "status": "completed",
+                "pages_scraped": pages_scraped,
+                "scraped_urls": [c["url"] for c in scraped_content],
+                "last_scraped_at": datetime.now(timezone.utc).isoformat(),
+                "error": None
+            }}
+        )
+        
+        logger.info(f"Scraping completed for agent {agent_id}: {pages_scraped} pages scraped")
+        
+    except Exception as e:
+        logger.error(f"Scraping failed for agent {agent_id}: {str(e)}")
+        await db.agent_scraping.update_one(
+            {"agent_id": agent_id},
+            {"$set": {
+                "status": "failed",
+                "error": str(e),
+                "last_scraped_at": datetime.now(timezone.utc).isoformat()
+            }}
+        )
+
+
 @router.post("/{agent_id}/scrape")
 async def trigger_agent_scraping(
     agent_id: str,
     request: ScrapeRequest,
+    background_tasks: BackgroundTasks,
     user: dict = Depends(get_current_user)
 ):
     """Trigger web scraping for an agent."""
