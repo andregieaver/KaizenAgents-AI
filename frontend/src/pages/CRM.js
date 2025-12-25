@@ -328,6 +328,32 @@ const CRM = () => {
     }
   }, [updateKanbanScrollState, viewMode]);
   
+  // Scroll fade indicators for filter chips
+  const filtersRef = useRef(null);
+  const [filtersScroll, setFiltersScroll] = useState({ canScrollLeft: false, canScrollRight: false });
+  
+  const updateFiltersScrollState = useCallback(() => {
+    const el = filtersRef.current;
+    if (el) {
+      const canScrollLeft = el.scrollLeft > 5;
+      const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 5);
+      setFiltersScroll({ canScrollLeft, canScrollRight });
+    }
+  }, []);
+  
+  useEffect(() => {
+    const el = filtersRef.current;
+    if (el) {
+      updateFiltersScrollState();
+      el.addEventListener('scroll', updateFiltersScrollState);
+      window.addEventListener('resize', updateFiltersScrollState);
+      return () => {
+        el.removeEventListener('scroll', updateFiltersScrollState);
+        window.removeEventListener('resize', updateFiltersScrollState);
+      };
+    }
+  }, [updateFiltersScrollState, loading]);
+  
   // DnD sensors - TouchSensor for mobile, PointerSensor for desktop
   // Using distance constraint instead of delay for Android Chrome compatibility
   const sensors = useSensors(
