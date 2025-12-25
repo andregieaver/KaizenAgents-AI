@@ -112,7 +112,8 @@ const OrchestrationSettings = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setOrchestrationRuns(response.data || []);
-    } catch (error) {
+    } catch {
+      // Orchestration runs fetch failed silently
     } finally {
       setLoadingRuns(false);
     }

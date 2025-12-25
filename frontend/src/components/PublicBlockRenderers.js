@@ -270,7 +270,8 @@ export const PricingCardsBlock = ({ block }) => {
         // Filter for public plans only and sort by sort_order
         const publicPlans = data.filter(p => p.is_public).sort((a, b) => a.sort_order - b.sort_order);
         setPlans(publicPlans);
-      } catch (error) {
+      } catch {
+        // Plans fetch failed silently
       } finally {
         setLoading(false);
       }
