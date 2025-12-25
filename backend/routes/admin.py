@@ -29,19 +29,6 @@ class TenantAdminUpdate(BaseModel):
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
-class PlatformSettingsUpdate(BaseModel):
-    platform_name: Optional[str] = None
-    platform_logo: Optional[str] = None
-    maintenance_mode: Optional[bool] = None
-    max_tenants: Optional[int] = None
-    default_ai_model: Optional[str] = None
-    announcement: Optional[str] = None
-
-class TenantAdminUpdate(BaseModel):
-    is_active: Optional[bool] = None
-    max_conversations: Optional[int] = None
-    features: Optional[List[str]] = None
-
 @router.get("/check")
 async def check_super_admin(current_user: dict = Depends(get_current_user)):
     """Check if current user is super admin"""
