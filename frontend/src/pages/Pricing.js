@@ -61,6 +61,94 @@ const Pricing = () => {
   const [conversationUnsavedChanges, setConversationUnsavedChanges] = useState(false);
   const [savingConversations, setSavingConversations] = useState(false);
 
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Fetch plans - works without auth too
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
+      const plansRes = await axios.get(`${API}/subscriptions/plans`, { headers });
+      setPlans(plansRes.data);
+      
+      // Only fetch subscription if authenticated
+      if (token) {
+        try {
+          const subRes = await axios.get(`${API}/subscriptions/current`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setCurrentSubscription(subRes.data);
+        } catch (err) {
+          setCurrentSubscription(null);
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to load pricing information');
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
+
+  // Fetch allocation data for management sections
+  const fetchAllocations = useCallback(async () => {
+    if (!token) return;
+    
+    try {
+      const headers = { Authorization: `Bearer ${token}` };
+      
+      // Fetch all allocations in parallel
+      const [seatRes, agentRes, convRes] = await Promise.all([
+        axios.get(`${API}/quotas/seats/allocation`, { headers }).catch(() => null),
+        axios.get(`${API}/quotas/agents/allocation`, { headers }).catch(() => null),
+        axios.get(`${API}/quotas/conversations/allocation`, { headers }).catch(() => null)
+      ]);
+
+      if (seatRes?.data) {
+        setSeatAllocation(seatRes.data);
+        setSeatSliderValue(seatRes.data.current_seats);
+      }
+      if (agentRes?.data) {
+        setAgentAllocation(agentRes.data);
+        setAgentSliderValue(agentRes.data.current_agents);
+      }
+      if (convRes?.data) {
+        setConversationAllocation(convRes.data);
+        setConversationSliderValue(convRes.data.current_conversations);
+      }
+    } catch (error) {
+      // Allocations may not be configured for the user's plan - silently ignore
+    }
+  }, [token]);
+
+  // Helper to apply discount from localStorage (called on page load)
+  const handleApplyDiscountFromStorage = useCallback(async (code, planId) => {
+    if (!code || !planId || !token) return;
+    
+    setApplyingDiscount(true);
+    try {
+      const response = await axios.post(
+        `${API}/discounts/apply`,
+        {
+          code: code.toUpperCase(),
+          plan_id: planId,
+          billing_cycle: isYearly ? 'yearly' : 'monthly'
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.valid) {
+        setAppliedDiscount(response.data);
+        setDiscountPlanId(planId);
+        toast.success(response.data.message);
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      // Discount code may be invalid - silently ignore
+    } finally {
+      setApplyingDiscount(false);
+    }
+  }, [token, isYearly]);
+
   useEffect(() => {
     fetchData();
     fetchPlatformInfo();
@@ -85,7 +173,7 @@ const Pricing = () => {
         }, 1000);
       }
     }
-  }, [token]);
+  }, [token, fetchData, fetchAllocations, handleApplyDiscountFromStorage]);
 
   const fetchPlatformInfo = async () => {
     try {
