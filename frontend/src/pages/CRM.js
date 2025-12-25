@@ -302,6 +302,32 @@ const CRM = () => {
     tags: []
   });
   
+  // Scroll fade indicators for Kanban view
+  const kanbanRef = useRef(null);
+  const [kanbanScroll, setKanbanScroll] = useState({ canScrollLeft: false, canScrollRight: false });
+  
+  const updateKanbanScrollState = useCallback(() => {
+    const el = kanbanRef.current;
+    if (el) {
+      const canScrollLeft = el.scrollLeft > 5;
+      const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 5);
+      setKanbanScroll({ canScrollLeft, canScrollRight });
+    }
+  }, []);
+  
+  useEffect(() => {
+    const el = kanbanRef.current;
+    if (el && viewMode === 'kanban') {
+      updateKanbanScrollState();
+      el.addEventListener('scroll', updateKanbanScrollState);
+      window.addEventListener('resize', updateKanbanScrollState);
+      return () => {
+        el.removeEventListener('scroll', updateKanbanScrollState);
+        window.removeEventListener('resize', updateKanbanScrollState);
+      };
+    }
+  }, [updateKanbanScrollState, viewMode]);
+  
   // DnD sensors - TouchSensor for mobile, PointerSensor for desktop
   // Using distance constraint instead of delay for Android Chrome compatibility
   const sensors = useSensors(
