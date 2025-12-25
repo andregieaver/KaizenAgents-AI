@@ -134,11 +134,7 @@ const CustomerDetail = () => {
   
   const [newNote, setNewNote] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, [customerId, token]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [customerRes, activitiesRes, followupsRes, conversationsRes] = await Promise.all([
         axios.get(`${API}/api/crm/customers/${customerId}`, {
@@ -183,7 +179,11 @@ const CustomerDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [customerId, token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
   
   const refreshLeadScore = async () => {
     setLoadingScore(true);
