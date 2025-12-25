@@ -41,11 +41,7 @@ const Affiliates = () => {
   const [settings, setSettings] = useState(null);
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, [token]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [affiliateRes, statsRes, referralsRes, historyRes, settingsRes] = await Promise.all([
@@ -74,7 +70,11 @@ const Affiliates = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const copyToClipboard = async (text) => {
     try {

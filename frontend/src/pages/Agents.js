@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
@@ -37,11 +37,7 @@ const Agents = () => {
   const [copiedAgentId, setCopiedAgentId] = useState(null);
   const avatarInputRefs = useRef({});
 
-  useEffect(() => {
-    fetchAgents();
-  }, [token]);
-
-  const fetchAgents = async () => {
+  const fetchAgents = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/agents/`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -52,7 +48,11 @@ const Agents = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchAgents();
+  }, [fetchAgents]);
 
   const handleAvatarUpload = async (agentId, file) => {
     if (!file) return;
