@@ -158,7 +158,8 @@ const Billing = () => {
       });
       setSeatAllocation(response.data);
       setSeatSliderValue(response.data.current_seats);
-    } catch (error) {
+    } catch {
+      // Seat allocation fetch failed silently
     }
   };
 
@@ -169,7 +170,8 @@ const Billing = () => {
       });
       setAgentAllocation(response.data);
       setAgentSliderValue(response.data.current_agents);
-    } catch (error) {
+    } catch {
+      // Agent allocation fetch failed silently
     }
   };
 
@@ -180,7 +182,8 @@ const Billing = () => {
       });
       setConversationAllocation(response.data);
       setConversationSliderValue(response.data.current_conversations);
-    } catch (error) {
+    } catch {
+      // Conversation allocation fetch failed silently
     }
   };
 
@@ -190,7 +193,8 @@ const Billing = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPlans(response.data || []);
-    } catch (error) {
+    } catch {
+      // Plans fetch failed silently
     }
   };
 

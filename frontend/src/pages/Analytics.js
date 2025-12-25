@@ -92,7 +92,8 @@ const Analytics = () => {
       setTrends(trendsRes.data.trends || []);
       setAgentPerformance(agentsRes.data.agents || []);
       setSentimentSummary(sentimentRes.data);
-    } catch (error) {
+    } catch {
+      // Analytics fetch failed silently
     } finally {
       setLoading(false);
     }
