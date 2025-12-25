@@ -35,7 +35,7 @@ const HomePage = () => {
           setPlatformName(platformResponse.data.platform_name);
         }
       } catch {
-        console.debug('Error fetching homepage data:', error);
+        // Homepage data fetch failed silently
       } finally {
         setLoading(false);
       }

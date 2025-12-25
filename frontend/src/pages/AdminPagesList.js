@@ -334,7 +334,7 @@ const AdminPagesList = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Reset to defaults?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will reset all SEO settings for "{page.name}" to their default values.
+                                This will reset all SEO settings for &quot;{page.name}&quot; to their default values.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -356,7 +356,7 @@ const AdminPagesList = () => {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete page?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                This will permanently delete "{page.name}". This action cannot be undone.
+                                This will permanently delete &quot;{page.name}&quot;. This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
