@@ -64,6 +64,8 @@ import {
 import { toast } from 'sonner';
 import axios from 'axios';
 
+const API = process.env.REACT_APP_BACKEND_URL;
+
 // Import extracted components
 import SortableBlockItem from './editors/SortableBlockItem';
 import { MenuBlockEditor } from './editors/MenuBlockEditor';
