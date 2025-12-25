@@ -368,12 +368,33 @@ const CustomerDetail = () => {
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
       {/* Header - Simplified for mobile */}
       <div className="mb-6">
-        {/* Back button row */}
+        {/* Top row: Back button, Lead Score, Action icons */}
         <div className="flex items-center justify-between mb-4">
           <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/crm')} className="gap-1 -ml-2">
             <ArrowLeft className="h-4 w-4" />
             <span className="hidden sm:inline">Back</span>
           </Button>
+          
+          {/* Lead Score - Inline compact */}
+          {leadScore && (
+            <div className="flex items-center gap-2 px-2 py-1 bg-muted/50 rounded-full">
+              <span className="text-sm font-bold">{leadScore.score}</span>
+              <Badge className={`text-[10px] px-1.5 py-0 h-5 ${
+                leadScore.grade === 'A' ? 'bg-green-500' :
+                leadScore.grade === 'B' ? 'bg-blue-500' :
+                leadScore.grade === 'C' ? 'bg-yellow-500' :
+                leadScore.grade === 'D' ? 'bg-orange-500' : 'bg-gray-400'
+              }`}>
+                {leadScore.grade}
+              </Badge>
+              {leadScore.metrics && (
+                <span className="text-[10px] text-muted-foreground hidden sm:inline">
+                  {leadScore.metrics.conversation_count} conv · {leadScore.metrics.message_count} msg
+                </span>
+              )}
+            </div>
+          )}
+          
           <div className="flex items-center gap-1">
             <Button 
               variant="ghost" 
@@ -403,12 +424,7 @@ const CustomerDetail = () => {
             </span>
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="font-heading text-lg sm:text-xl font-bold truncate">{customer.name}</h1>
-              {leadScore && (
-                <LeadScoreBadge score={leadScore.score} grade={leadScore.grade} />
-              )}
-            </div>
+            <h1 className="font-heading text-lg sm:text-xl font-bold truncate">{customer.name}</h1>
             <p className="text-sm text-muted-foreground truncate">
               {customer.position && `${customer.position} at `}{customer.company || 'No company'}
             </p>
@@ -416,58 +432,32 @@ const CustomerDetail = () => {
         </div>
       </div>
 
-      {/* Lead Score Card - Compact on mobile */}
-      {leadScore && (
-        <Card className="border-0 shadow-sm mb-4 sm:mb-6">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="text-center flex-shrink-0">
-                <p className="text-2xl sm:text-3xl font-bold">{leadScore.score}</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">Lead Score</p>
-              </div>
-              <Separator orientation="vertical" className="h-10 sm:h-12" />
-              <div className="flex-1 min-w-0">
-                <Badge className={`text-xs sm:text-sm ${
-                  leadScore.grade === 'A' ? 'bg-green-500' :
-                  leadScore.grade === 'B' ? 'bg-blue-500' :
-                  leadScore.grade === 'C' ? 'bg-yellow-500' :
-                  leadScore.grade === 'D' ? 'bg-orange-500' : 'bg-gray-400'
-                }`}>
-                  {leadScore.grade_label || leadScore.grade}
-                </Badge>
-                {leadScore.metrics && (
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 truncate">
-                    {leadScore.metrics.conversation_count} conversations · {leadScore.metrics.message_count} messages
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Quick Actions - Icon only on mobile */}
-      <div className="flex gap-2 mb-4 sm:mb-6">
-        <Button size="sm" variant="outline" onClick={() => setShowEmailModal(true)} disabled={!customer.email} className="flex-1 sm:flex-none">
-          <Mail className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">Email</span>
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => setShowFollowupModal(true)} className="flex-1 sm:flex-none">
-          <Calendar className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">Follow-up</span>
-        </Button>
-        <Button size="sm" variant="outline" onClick={() => setShowNoteModal(true)} className="flex-1 sm:flex-none">
-          <FileText className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">Note</span>
-        </Button>
-        {customer.phone && (
-          <Button size="sm" variant="outline" asChild className="flex-1 sm:flex-none">
-            <a href={`tel:${customer.phone}`}>
-              <Phone className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Call</span>
-            </a>
+      {/* Quick Actions - Icon only on mobile, with blur fade indicator */}
+      <div className="relative mb-4 sm:mb-6">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <Button size="sm" variant="outline" onClick={() => setShowEmailModal(true)} disabled={!customer.email} className="flex-shrink-0">
+            <Mail className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Email</span>
           </Button>
-        )}
+          <Button size="sm" variant="outline" onClick={() => setShowFollowupModal(true)} className="flex-shrink-0">
+            <Calendar className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Follow-up</span>
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setShowNoteModal(true)} className="flex-shrink-0">
+            <FileText className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Note</span>
+          </Button>
+          {customer.phone && (
+            <Button size="sm" variant="outline" asChild className="flex-shrink-0">
+              <a href={`tel:${customer.phone}`}>
+                <Phone className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Call</span>
+              </a>
+            </Button>
+          )}
+        </div>
+        {/* Blur fade indicator on right edge */}
+        <div className="absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
