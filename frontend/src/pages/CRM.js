@@ -570,66 +570,70 @@ const CRM = () => {
           </p>
         </div>
         
-        <div className="flex items-center gap-2">
-          {/* View Toggle */}
-          <div className="flex items-center border rounded-md p-1">
+        <div className="relative">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1">
+            {/* View Toggle */}
+            <div className="flex items-center border rounded-md p-1 flex-shrink-0">
+              <Button
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="h-8"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('kanban')}
+                className="h-8"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+            </div>
+            
             <Button
-              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+              variant="ghost"
               size="sm"
-              onClick={() => setViewMode('list')}
-              className="h-8"
+              onClick={() => setShowShortcutsHelp(true)}
+              className="hidden sm:flex items-center gap-1 text-muted-foreground flex-shrink-0"
             >
-              <List className="h-4 w-4" />
+              <Keyboard className="h-4 w-4" />
             </Button>
-            <Button
-              variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => setViewMode('kanban')}
-              className="h-8"
-            >
-              <LayoutGrid className="h-4 w-4" />
+            
+            {/* Export Button */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex-shrink-0">
+                  <Download className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => {
+                  window.open(`${API}/api/crm/export?format=csv`, '_blank');
+                  toast.success('Downloading CSV...');
+                }}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => {
+                  window.open(`${API}/api/crm/export?format=json`, '_blank');
+                  toast.success('Downloading JSON...');
+                }}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Export as JSON
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Button onClick={() => setShowAddModal(true)} className="sm:w-auto flex-shrink-0">
+              <UserPlus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Add Customer</span>
             </Button>
           </div>
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowShortcutsHelp(true)}
-            className="hidden sm:flex items-center gap-1 text-muted-foreground"
-          >
-            <Keyboard className="h-4 w-4" />
-          </Button>
-          
-          {/* Export Button */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => {
-                window.open(`${API}/api/crm/export?format=csv`, '_blank');
-                toast.success('Downloading CSV...');
-              }}>
-                <FileText className="h-4 w-4 mr-2" />
-                Export as CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                window.open(`${API}/api/crm/export?format=json`, '_blank');
-                toast.success('Downloading JSON...');
-              }}>
-                <FileText className="h-4 w-4 mr-2" />
-                Export as JSON
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <Button onClick={() => setShowAddModal(true)} className="sm:w-auto">
-            <UserPlus className="h-4 w-4 mr-2" />
-            Add Customer
-          </Button>
+          {/* Fade indicator on right edge for mobile */}
+          <div className="absolute right-0 top-0 bottom-1 w-6 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
         </div>
       </div>
       
