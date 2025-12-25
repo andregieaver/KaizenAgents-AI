@@ -172,7 +172,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Pricing Page ResourceAllocationCard Testing"
+    - "Micro-Animations UI Components Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
