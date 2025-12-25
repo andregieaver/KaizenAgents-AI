@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -48,11 +48,7 @@ const AdminPagesList = () => {
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(null);
 
-  useEffect(() => {
-    fetchPages();
-  }, [token]);
-
-  const fetchPages = async () => {
+  const fetchPages = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API}/admin/pages`, {
@@ -64,7 +60,11 @@ const AdminPagesList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchPages();
+  }, [fetchPages]);
 
   const toggleVisibility = async (page) => {
     try {

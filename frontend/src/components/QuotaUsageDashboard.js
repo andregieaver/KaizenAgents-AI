@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -31,11 +31,7 @@ const QuotaUsageDashboard = () => {
   const [usage, setUsage] = useState(null);
   const [subscription, setSubscription] = useState(null);
 
-  useEffect(() => {
-    loadQuotaUsage();
-  }, [token]);
-
-  const loadQuotaUsage = async () => {
+  const loadQuotaUsage = useCallback(async () => {
     setLoading(true);
     try {
       const [usageRes, subRes] = await Promise.all([
@@ -54,7 +50,11 @@ const QuotaUsageDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    loadQuotaUsage();
+  }, [loadQuotaUsage]);
 
   const getIcon = (featureKey) => {
     const icons = {
