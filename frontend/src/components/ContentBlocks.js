@@ -39,7 +39,12 @@ import {
   Moon,
   UserCircle,
   Menu as MenuIcon,
-  Bot
+  Bot,
+  Trash2,
+  GripVertical,
+  Monitor,
+  Tablet,
+  Smartphone
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
