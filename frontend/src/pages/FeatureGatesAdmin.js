@@ -188,20 +188,6 @@ const FeatureGatesAdmin = () => {
 
   // ============== AGENT PRICING FUNCTIONS ==============
   
-  const loadAgentPricing = async () => {
-    setLoadingAgentPricing(true);
-    try {
-      const response = await axios.get(`${API}/quotas/agent-pricing`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setAgentPricing(response.data || []);
-    } catch (error) {
-      // Agent pricing may not be configured yet - silently ignore
-    } finally {
-      setLoadingAgentPricing(false);
-    }
-  };
-
   const startEditAgentPrice = (pricing) => {
     setEditingAgentPlan(pricing.plan_id);
     setAgentEditForm({
