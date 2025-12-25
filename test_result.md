@@ -1245,3 +1245,35 @@ Comprehensive useEffect dependency warnings cleanup across 25+ frontend files.
 
 ### Code Quality Achievement
 All 43 linter issues have been resolved, bringing the codebase to 100% compliance with React hooks best practices.
+
+## Backend TODO/FIXME Cleanup - December 25, 2025
+
+### Issues Addressed
+
+**1. subscriptions.py:810 - Stripe Subscription Cancellation**
+- **Before:** TODO comment with `pass` statement
+- **After:** Implemented actual Stripe subscription cancellation using `StripeService.cancel_subscription()`
+- Now properly initializes Stripe from DB and calls the cancellation API
+
+**2. agents.py:1472 - Web Scraping Background Task**
+- **Before:** TODO with simulated completion
+- **After:** Implemented proper background task using FastAPI's `BackgroundTasks`
+- Created `perform_web_scraping()` function that:
+  - Uses httpx for async HTTP requests
+  - Scrapes domains with proper error handling
+  - Updates progress in real-time
+  - Handles failures gracefully
+  - Uses polite scraping with delays between requests
+
+### Files Modified
+- `/app/backend/routes/subscriptions.py` - Added Stripe cancellation logic
+- `/app/backend/routes/agents.py` - Added background scraping implementation
+
+### Testing Status
+- ✅ Backend starts successfully
+- ✅ Python linting passes
+- ✅ Login and dashboard working
+- ✅ All TODO/FIXME comments resolved
+
+### Verification
+- `grep -rn "TODO\|FIXME" /app/backend --include="*.py"` returns no results
