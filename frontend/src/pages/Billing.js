@@ -46,6 +46,112 @@ const Billing = () => {
   
   const [plans, setPlans] = useState([]);
 
+  const fetchInvoices = useCallback(async () => {
+    setLoadingInvoices(true);
+    try {
+      const response = await axios.get(`${API}/subscriptions/invoices`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { limit: 10 }
+      });
+      setInvoices(response.data.invoices || []);
+    } catch (error) {
+      // Don't show error toast for invoices - just silently fail
+    } finally {
+      setLoadingInvoices(false);
+    }
+  }, [token]);
+
+  const fetchSeatAllocation = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/quotas/seats/allocation`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSeatAllocation(response.data);
+      setSeatSliderValue(response.data.current_seats);
+    } catch (error) {
+      // Seat allocation fetch failed silently
+    }
+  }, [token]);
+
+  const fetchAgentAllocation = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/quotas/agents/allocation`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAgentAllocation(response.data);
+      setAgentSliderValue(response.data.current_agents);
+    } catch (error) {
+      // Agent allocation fetch failed silently
+    }
+  }, [token]);
+
+  const fetchConversationAllocation = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/quotas/conversations/allocation`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setConversationAllocation(response.data);
+      setConversationSliderValue(response.data.current_conversations);
+    } catch (error) {
+      // Conversation allocation fetch failed silently
+    }
+  }, [token]);
+
+  const fetchPlans = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/subscriptions/plans`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPlans(response.data || []);
+    } catch (error) {
+      // Plans fetch failed silently
+    }
+  }, [token]);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [subRes, usageRes, quotaRes] = await Promise.all([
+        axios.get(`${API}/subscriptions/current`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API}/subscriptions/usage`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API}/quotas/usage`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(() => ({ data: null }))
+      ]);
+      
+      setSubscription(subRes.data);
+      setUsage(usageRes.data);
+      
+      // Extract seat usage from quota response
+      if (quotaRes.data) {
+        const seatQuota = quotaRes.data.quotas?.find(q => q.feature_key === 'max_seats');
+        if (seatQuota) {
+          setSeatUsage({
+            current: seatQuota.current || 0,
+            limit: seatQuota.limit || 0,
+            extraSeats: quotaRes.data.extra_seats || 0,
+            percentage: seatQuota.percentage || 0
+          });
+        }
+      }
+      
+      // Fetch invoices, allocations, and plans separately (non-blocking)
+      fetchInvoices();
+      fetchSeatAllocation();
+      fetchAgentAllocation();
+      fetchConversationAllocation();
+      fetchPlans();
+    } catch (error) {
+      toast.error('Failed to load billing information');
+    } finally {
+      setLoading(false);
+    }
+  }, [token, fetchInvoices, fetchSeatAllocation, fetchAgentAllocation, fetchConversationAllocation, fetchPlans]);
+
   useEffect(() => {
     const handleStripeReturn = async () => {
       // Handle redirect from Stripe
@@ -90,113 +196,7 @@ const Billing = () => {
     };
     
     handleStripeReturn();
-  }, [token, searchParams]);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [subRes, usageRes, quotaRes] = await Promise.all([
-        axios.get(`${API}/subscriptions/current`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${API}/subscriptions/usage`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${API}/quotas/usage`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).catch(() => ({ data: null }))
-      ]);
-      
-      setSubscription(subRes.data);
-      setUsage(usageRes.data);
-      
-      // Extract seat usage from quota response
-      if (quotaRes.data) {
-        const seatQuota = quotaRes.data.quotas?.find(q => q.feature_key === 'max_seats');
-        if (seatQuota) {
-          setSeatUsage({
-            current: seatQuota.current || 0,
-            limit: seatQuota.limit || 0,
-            extraSeats: quotaRes.data.extra_seats || 0,
-            percentage: seatQuota.percentage || 0
-          });
-        }
-      }
-      
-      // Fetch invoices, allocations, and plans separately (non-blocking)
-      fetchInvoices();
-      fetchSeatAllocation();
-      fetchAgentAllocation();
-      fetchConversationAllocation();
-      fetchPlans();
-    } catch (error) {
-      toast.error('Failed to load billing information');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchInvoices = async () => {
-    setLoadingInvoices(true);
-    try {
-      const response = await axios.get(`${API}/subscriptions/invoices`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { limit: 10 }
-      });
-      setInvoices(response.data.invoices || []);
-    } catch (error) {
-      // Don't show error toast for invoices - just silently fail
-    } finally {
-      setLoadingInvoices(false);
-    }
-  };
-
-  const fetchSeatAllocation = async () => {
-    try {
-      const response = await axios.get(`${API}/quotas/seats/allocation`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setSeatAllocation(response.data);
-      setSeatSliderValue(response.data.current_seats);
-    } catch (error) {
-      // Seat allocation fetch failed silently
-    }
-  };
-
-  const fetchAgentAllocation = async () => {
-    try {
-      const response = await axios.get(`${API}/quotas/agents/allocation`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setAgentAllocation(response.data);
-      setAgentSliderValue(response.data.current_agents);
-    } catch (error) {
-      // Agent allocation fetch failed silently
-    }
-  };
-
-  const fetchConversationAllocation = async () => {
-    try {
-      const response = await axios.get(`${API}/quotas/conversations/allocation`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setConversationAllocation(response.data);
-      setConversationSliderValue(response.data.current_conversations);
-    } catch (error) {
-      // Conversation allocation fetch failed silently
-    }
-  };
-
-  const fetchPlans = async () => {
-    try {
-      const response = await axios.get(`${API}/subscriptions/plans`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setPlans(response.data || []);
-    } catch (error) {
-      // Plans fetch failed silently
-    }
-  };
+  }, [token, searchParams, fetchData]);
 
   // Seat handlers
   const handleSeatSliderChange = (value) => {
