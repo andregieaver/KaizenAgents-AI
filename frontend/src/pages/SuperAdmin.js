@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Navigate } from 'react-router-dom';
 import axios from 'axios';
@@ -58,7 +58,7 @@ const SuperAdmin = () => {
   const [uploadingPlatformLogo, setUploadingPlatformLogo] = useState(false);
   const platformLogoInputRef = useRef(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [statsRes, settingsRes, tenantsRes, usersRes] = await Promise.all([
         axios.get(`${API}/admin/platform-stats`, { headers: { Authorization: `Bearer ${token}` } }),
@@ -75,7 +75,7 @@ const SuperAdmin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   useEffect(() => {
     if (user?.is_super_admin) {
@@ -83,7 +83,7 @@ const SuperAdmin = () => {
     } else {
       setLoading(false);
     }
-  }, [token, user?.is_super_admin]);
+  }, [user?.is_super_admin, fetchData]);
 
   // Check if user is super admin (after hooks)
   if (!loading && !user?.is_super_admin) {
