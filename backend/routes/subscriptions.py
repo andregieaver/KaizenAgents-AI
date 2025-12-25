@@ -807,8 +807,12 @@ async def cancel_subscription(current_user: dict = Depends(get_current_user)):
     
     # If has Stripe subscription, cancel it
     if subscription.get("stripe_subscription_id"):
-        # TODO: Cancel Stripe subscription via API
-        pass
+        await StripeService.initialize_from_db()
+        if StripeService.is_configured():
+            canceled = await StripeService.cancel_subscription(subscription["stripe_subscription_id"])
+            if not canceled:
+                # Log but don't fail - still update local status
+                pass
     
     # Update status
     await db.subscriptions.update_one(
