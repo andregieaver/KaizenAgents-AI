@@ -187,7 +187,8 @@ const Pricing = () => {
         setConversationAllocation(convRes.data);
         setConversationSliderValue(convRes.data.current_conversations);
       }
-    } catch (error) {
+    } catch {
+      // Allocations may not be configured for the user's plan - silently ignore
     }
   };
 
@@ -285,7 +286,8 @@ const Pricing = () => {
       } else {
         toast.error(response.data.message);
       }
-    } catch (error) {
+    } catch {
+      // Discount code may be invalid - silently ignore
     } finally {
       setApplyingDiscount(false);
     }
