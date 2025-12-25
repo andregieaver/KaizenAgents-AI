@@ -268,36 +268,6 @@ const Pricing = () => {
     }
   };
 
-  // Helper to apply discount from localStorage (called on page load)
-  const handleApplyDiscountFromStorage = async (code, planId) => {
-    if (!code || !planId || !token) return;
-    
-    setApplyingDiscount(true);
-    try {
-      const response = await axios.post(
-        `${API}/discounts/apply`,
-        {
-          code: code.toUpperCase(),
-          plan_id: planId,
-          billing_cycle: isYearly ? 'yearly' : 'monthly'
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.data.valid) {
-        setAppliedDiscount(response.data);
-        setDiscountPlanId(planId);
-        toast.success(response.data.message);
-      } else {
-        toast.error(response.data.message);
-      }
-    } catch (error) {
-      // Discount code may be invalid - silently ignore
-    } finally {
-      setApplyingDiscount(false);
-    }
-  };
-
   const handleApplyDiscount = async (planId) => {
     if (!discountCode.trim()) {
       toast.error('Please enter a discount code');
