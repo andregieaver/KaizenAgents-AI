@@ -2,8 +2,8 @@
  * Block Editor Components - Extracted from ContentBlocks.js for better maintainability
  */
 import { useState, useEffect } from 'react';
-import { Button } from './ui/button';
-import { Label } from './ui/label';
+import { Button } from '../ui/button';
+import { Label } from '../ui/label';
 import { Monitor, Tablet, Smartphone } from 'lucide-react';
 import axios from 'axios';
 import {
@@ -12,7 +12,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './ui/select';
+} from '../ui/select';
 
 /**
  * Menu Block Editor Component
