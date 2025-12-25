@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -68,11 +68,7 @@ const WaitlistAdmin = () => {
   const [saving, setSaving] = useState(false);
   const [editForm, setEditForm] = useState({ status: '', notes: '' });
 
-  useEffect(() => {
-    fetchData();
-  }, [token]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     try {
@@ -88,6 +84,11 @@ const WaitlistAdmin = () => {
     } finally {
       setLoading(false);
     }
+  }, [token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
   };
 
   const handleEdit = (entry) => {
