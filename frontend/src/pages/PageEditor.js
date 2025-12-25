@@ -70,12 +70,6 @@ const PageEditor = () => {
     }
   });
 
-  useEffect(() => {
-    if (isEditMode) {
-      fetchPage();
-    }
-  }, [slug]);
-
   const fetchPage = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/admin/pages/${slug}`, {
