@@ -1548,15 +1548,13 @@ async def trigger_agent_scraping(
         upsert=True
     )
     
-    # TODO: Trigger actual scraping job (background task)
-    # For now, we simulate completion
-    await db.agent_scraping.update_one(
-        {"agent_id": agent_id},
-        {"$set": {
-            "status": "completed",
-            "pages_scraped": len(request.domains) * 10,  # Simulated
-            "last_scraped_at": datetime.now(timezone.utc).isoformat()
-        }}
+    # Trigger background scraping task
+    background_tasks.add_task(
+        perform_web_scraping,
+        agent_id,
+        request.domains,
+        request.max_depth,
+        request.max_pages
     )
     
     return {"message": "Scraping started", "status": "in_progress"}
