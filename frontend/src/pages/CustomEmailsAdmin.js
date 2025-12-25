@@ -96,7 +96,7 @@ const CustomEmailsAdmin = () => {
       ]);
       setEmails(emailsRes.data);
       setCategories(categoriesRes.data);
-    } catch {
+    } catch (error) {
       toast.error('Failed to load data');
     } finally {
       setLoading(false);
@@ -160,7 +160,7 @@ const CustomEmailsAdmin = () => {
       await fetchData();
       setActiveTab('list');
       setEditingEmail(null);
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save email');
     } finally {
       setSaving(false);
@@ -177,7 +177,7 @@ const CustomEmailsAdmin = () => {
       toast.success('Email deleted successfully');
       setDeleteDialogOpen(false);
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to delete email');
     } finally {
       setSaving(false);
@@ -191,7 +191,7 @@ const CustomEmailsAdmin = () => {
       });
       toast.success('Email duplicated successfully');
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to duplicate email');
     }
   };
@@ -222,7 +222,7 @@ const CustomEmailsAdmin = () => {
       setSendDialogOpen(false);
       setTestEmail('');
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to send email');
     } finally {
       setSending(false);

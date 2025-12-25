@@ -71,7 +71,7 @@ const Billing = () => {
             } else {
               toast.info('Payment received. Activating your subscription...');
             }
-          } catch {
+          } catch (error) {
             const errorDetail = error.response?.data?.detail || error.message;
             toast.error(`Subscription activation failed: ${errorDetail}`, {
               description: 'Please contact support if the issue persists.'
@@ -129,7 +129,7 @@ const Billing = () => {
       fetchAgentAllocation();
       fetchConversationAllocation();
       fetchPlans();
-    } catch {
+    } catch (error) {
       toast.error('Failed to load billing information');
     } finally {
       setLoading(false);
@@ -144,7 +144,7 @@ const Billing = () => {
         params: { limit: 10 }
       });
       setInvoices(response.data.invoices || []);
-    } catch {
+    } catch (error) {
       // Don't show error toast for invoices - just silently fail
     } finally {
       setLoadingInvoices(false);
@@ -158,7 +158,7 @@ const Billing = () => {
       });
       setSeatAllocation(response.data);
       setSeatSliderValue(response.data.current_seats);
-    } catch {
+    } catch (error) {
       // Seat allocation fetch failed silently
     }
   };
@@ -170,7 +170,7 @@ const Billing = () => {
       });
       setAgentAllocation(response.data);
       setAgentSliderValue(response.data.current_agents);
-    } catch {
+    } catch (error) {
       // Agent allocation fetch failed silently
     }
   };
@@ -182,7 +182,7 @@ const Billing = () => {
       });
       setConversationAllocation(response.data);
       setConversationSliderValue(response.data.current_conversations);
-    } catch {
+    } catch (error) {
       // Conversation allocation fetch failed silently
     }
   };
@@ -193,7 +193,7 @@ const Billing = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPlans(response.data || []);
-    } catch {
+    } catch (error) {
       // Plans fetch failed silently
     }
   };
@@ -216,7 +216,7 @@ const Billing = () => {
       toast.success(response.data.message);
       setSeatUnsavedChanges(false);
       fetchSeatAllocation();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update seats');
     } finally {
       setSavingSeats(false);
@@ -241,7 +241,7 @@ const Billing = () => {
       toast.success(response.data.message);
       setAgentUnsavedChanges(false);
       fetchAgentAllocation();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update agents');
     } finally {
       setSavingAgents(false);
@@ -266,7 +266,7 @@ const Billing = () => {
       toast.success(response.data.message);
       setConversationUnsavedChanges(false);
       fetchConversationAllocation();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update conversations');
     } finally {
       setSavingConversations(false);
@@ -356,7 +356,7 @@ const Billing = () => {
       });
       toast.success('Subscription canceled. You have been moved to the Free plan.');
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to cancel subscription');
     }
   };

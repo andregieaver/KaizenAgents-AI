@@ -55,7 +55,7 @@ const DiscountCodes = () => {
       ]);
       setCodes(codesRes.data);
       setPlans(plansRes.data);
-    } catch {
+    } catch (error) {
       toast.error('Failed to load discount codes');
     } finally {
       setLoading(false);
@@ -130,7 +130,7 @@ const DiscountCodes = () => {
       }
       setEditModalOpen(false);
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save discount code');
     } finally {
       setSaving(false);
@@ -146,7 +146,7 @@ const DiscountCodes = () => {
       });
       toast.success('Discount code deleted');
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to delete discount code');
     }
   };

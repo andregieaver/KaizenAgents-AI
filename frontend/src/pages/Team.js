@@ -103,7 +103,7 @@ const Team = () => {
           } else if (response.data.status === 'already_processed') {
             toast.info('This seat purchase was already processed');
           }
-        } catch {
+        } catch (error) {
           toast.error('Failed to verify seat purchase');
         }
         setSearchParams({});
@@ -161,7 +161,7 @@ const Team = () => {
           });
         }
       }
-    } catch {
+    } catch (error) {
       toast.error('Failed to load team data');
     } finally {
       setLoading(false);
@@ -183,7 +183,7 @@ const Team = () => {
       );
       setMembers(members.map(m => m.id === userId ? { ...m, role: newRole } : m));
       toast.success('Role updated');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update role');
     }
   };
@@ -195,7 +195,7 @@ const Team = () => {
       });
       setMembers(members.filter(m => m.id !== userId));
       toast.success('User removed from team');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to remove user');
     }
   };
@@ -237,7 +237,7 @@ const Team = () => {
         toast.success('Team created');
       }
       setTeamModalOpen(false);
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save team');
     } finally {
       setSavingTeam(false);
@@ -251,7 +251,7 @@ const Team = () => {
       });
       setTeams(teams.filter(t => t.id !== teamId));
       toast.success('Team deleted');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to delete team');
     }
   };
@@ -281,7 +281,7 @@ const Team = () => {
       
       toast.success(agentId ? 'Agent assigned to team' : 'Agent removed from team');
       setAssignAgentModalOpen(false);
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to assign agent');
     } finally {
       setAssigningAgent(false);

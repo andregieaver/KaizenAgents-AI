@@ -65,7 +65,7 @@ const Profile = () => {
       setProfile(response.data);
       setEditName(response.data.name);
       setAvatarUrl(response.data.avatar_url || '');
-    } catch {
+    } catch (error) {
       toast.error('Failed to load profile');
     } finally {
       setLoading(false);
@@ -82,7 +82,7 @@ const Profile = () => {
       );
       setProfile(response.data);
       toast.success('Profile updated');
-    } catch {
+    } catch (error) {
       toast.error('Failed to update profile');
     } finally {
       setSaving(false);
@@ -115,7 +115,7 @@ const Profile = () => {
       toast.success('Password changed successfully');
       setPasswordDialogOpen(false);
       setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to change password');
     } finally {
       setChangingPassword(false);
@@ -162,7 +162,7 @@ const Profile = () => {
       // Refresh user in AuthContext so sidebar updates
       refreshUser();
       toast.success('Profile picture updated!');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to upload image');
     } finally {
       setUploadingAvatar(false);

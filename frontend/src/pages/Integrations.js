@@ -106,7 +106,7 @@ const Integrations = () => {
           api_key: response.data.sendgrid.api_key_set ? '••••••••••••••••' : ''
         }));
       }
-    } catch {
+    } catch (error) {
       toast.error('Failed to load integration settings');
     } finally {
       setLoading(false);
@@ -145,7 +145,7 @@ const Integrations = () => {
       
       toast.success('Stripe settings saved successfully');
       fetchSettings(); // Refresh to get masked values
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save Stripe settings');
     } finally {
       setSaving(false);
@@ -160,7 +160,7 @@ const Integrations = () => {
       });
       
       toast.success('Code injection settings saved successfully');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save code injection settings');
     } finally {
       setSaving(false);
@@ -179,7 +179,7 @@ const Integrations = () => {
       toast.success(response.data.message || 'Stripe connection successful!', {
         description: response.data.details ? `Account: ${response.data.details.account_id}` : undefined
       });
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to connect to Stripe');
     } finally {
       setTestingConnection(false);
@@ -198,7 +198,7 @@ const Integrations = () => {
       toast.success(response.data.message || 'Plans synced to Stripe successfully!', {
         description: response.data.synced_count ? `${response.data.synced_count} plan(s) synced` : undefined
       });
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to sync plans to Stripe');
     } finally {
       setSyncingToStripe(false);
@@ -217,7 +217,7 @@ const Integrations = () => {
       toast.success(response.data.message || 'Plans synced from Stripe successfully!', {
         description: response.data.synced_count ? `${response.data.synced_count} plan(s) synced` : undefined
       });
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to sync plans from Stripe');
     } finally {
       setSyncingFromStripe(false);
@@ -245,7 +245,7 @@ const Integrations = () => {
       
       toast.success('SendGrid settings saved successfully');
       fetchSettings();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save SendGrid settings');
     } finally {
       setSaving(false);
@@ -262,7 +262,7 @@ const Integrations = () => {
       );
       
       toast.success(response.data.message || 'SendGrid connection successful!');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'SendGrid connection failed');
     } finally {
       setTestingSendgrid(false);
@@ -285,7 +285,7 @@ const Integrations = () => {
       
       toast.success(response.data.message || 'Test email sent successfully!');
       setTestEmailAddress('');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to send test email');
     } finally {
       setSendingTestEmail(false);

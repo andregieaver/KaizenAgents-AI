@@ -94,7 +94,7 @@ const EmailTemplates = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTemplates(response.data || []);
-    } catch {
+    } catch (error) {
       toast.error('Failed to load email templates');
     } finally {
       setLoading(false);
@@ -127,7 +127,7 @@ const EmailTemplates = () => {
       toast.success('Email template saved successfully');
       setEditModalOpen(false);
       fetchTemplates();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save template');
     } finally {
       setSaving(false);
@@ -148,7 +148,7 @@ const EmailTemplates = () => {
       
       setPreviewContent(response.data);
       setPreviewModalOpen(true);
-    } catch {
+    } catch (error) {
       toast.error('Failed to generate preview');
     } finally {
       setPreviewing(false);
@@ -183,7 +183,7 @@ const EmailTemplates = () => {
       });
       
       fetchTemplates();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to reset template');
     } finally {
       setResetting(false);
@@ -210,7 +210,7 @@ const EmailTemplates = () => {
       toast.success(response.data.message || 'Test email sent successfully!');
       setShowTestEmailInput(false);
       setTestEmailAddress('');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to send test email');
     } finally {
       setSendingTest(false);

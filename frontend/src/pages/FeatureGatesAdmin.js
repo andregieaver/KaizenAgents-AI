@@ -84,7 +84,7 @@ const FeatureGatesAdmin = () => {
       setPlans(plansRes.data.plans || []);
       setCategories(['all', ...(categoriesRes.data.categories || [])]);
       setHasChanges(false);
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to load feature gates');
     } finally {
       setLoading(false);
@@ -98,7 +98,7 @@ const FeatureGatesAdmin = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSeatPricing(response.data || []);
-    } catch {
+    } catch (error) {
       // Don't show error toast - pricing might not be configured yet
     } finally {
       setLoadingSeatPricing(false);
@@ -135,7 +135,7 @@ const FeatureGatesAdmin = () => {
       toast.success('Seat pricing updated successfully');
       setEditingPlan(null);
       loadSeatPricing();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save seat pricing');
     } finally {
       setSavingSeatPrice(false);
@@ -151,7 +151,7 @@ const FeatureGatesAdmin = () => {
       
       toast.success('Seat pricing synced to Stripe successfully!');
       loadSeatPricing();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to sync to Stripe. Make sure Stripe is configured.');
     } finally {
       setSyncingSeatPricing(null);
@@ -167,7 +167,7 @@ const FeatureGatesAdmin = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAgentPricing(response.data || []);
-    } catch {
+    } catch (error) {
       // Agent pricing may not be configured yet - silently ignore
     } finally {
       setLoadingAgentPricing(false);
@@ -198,7 +198,7 @@ const FeatureGatesAdmin = () => {
       toast.success('Agent pricing updated successfully');
       setEditingAgentPlan(null);
       loadAgentPricing();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save agent pricing');
     } finally {
       setSavingAgentPrice(false);
@@ -213,7 +213,7 @@ const FeatureGatesAdmin = () => {
       });
       toast.success('Agent pricing synced to Stripe successfully!');
       loadAgentPricing();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to sync to Stripe.');
     } finally {
       setSyncingAgentPricing(null);
@@ -229,7 +229,7 @@ const FeatureGatesAdmin = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setConversationPricing(response.data || []);
-    } catch {
+    } catch (error) {
       // Conversation pricing may not be configured yet - silently ignore
     } finally {
       setLoadingConversationPricing(false);
@@ -262,7 +262,7 @@ const FeatureGatesAdmin = () => {
       toast.success('Conversation pricing updated successfully');
       setEditingConversationPlan(null);
       loadConversationPricing();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save conversation pricing');
     } finally {
       setSavingConversationPrice(false);
@@ -277,7 +277,7 @@ const FeatureGatesAdmin = () => {
       });
       toast.success('Conversation pricing synced to Stripe successfully!');
       loadConversationPricing();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to sync to Stripe.');
     } finally {
       setSyncingConversationPricing(null);
@@ -320,7 +320,7 @@ const FeatureGatesAdmin = () => {
       
       toast.success('Feature gate configuration saved!');
       setHasChanges(false);
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save configuration');
     } finally {
       setSaving(false);

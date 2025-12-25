@@ -52,7 +52,7 @@ const Providers = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setProviders(response.data);
-    } catch {
+    } catch (error) {
       toast.error('Failed to load providers');
     } finally {
       setLoading(false);
@@ -79,7 +79,7 @@ const Providers = () => {
       setShowAddDialog(false);
       setNewProvider({ name: '', type: 'openai', api_key: '' });
       fetchProviders();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to add provider');
     }
   };
@@ -98,7 +98,7 @@ const Providers = () => {
       } else {
         toast.error(response.data.message);
       }
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Connection test failed');
     } finally {
       setTestingProvider(null);
@@ -116,7 +116,7 @@ const Providers = () => {
       
       toast.success(`Found ${response.data.count} models`);
       fetchProviders();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to scan models');
     } finally {
       setScanningProvider(null);

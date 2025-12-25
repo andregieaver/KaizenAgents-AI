@@ -83,7 +83,7 @@ const WaitlistAdmin = () => {
       ]);
       setEntries(entriesRes.data);
       setStats(statsRes.data);
-    } catch {
+    } catch (error) {
       toast.error('Failed to load waitlist data');
     } finally {
       setLoading(false);
@@ -113,7 +113,7 @@ const WaitlistAdmin = () => {
       toast.success('Entry updated successfully');
       setEditDialogOpen(false);
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update entry');
     } finally {
       setSaving(false);
@@ -131,7 +131,7 @@ const WaitlistAdmin = () => {
       toast.success('Entry deleted successfully');
       setDeleteDialogOpen(false);
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to delete entry');
     } finally {
       setSaving(false);

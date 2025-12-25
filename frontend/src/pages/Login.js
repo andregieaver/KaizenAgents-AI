@@ -23,7 +23,7 @@ const Login = () => {
       toast.success('Welcome back!');
       // Use window.location for more reliable redirect
       window.location.href = '/dashboard';
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Login failed');
       setLoading(false);
     }
