@@ -330,7 +330,7 @@ async def generate_ai_response_with_tools(
                 })
                 
                 # Continue the loop with the function result
-                current_message = f"Based on the function result, provide a natural response to the customer."
+                current_message = "Based on the function result, provide a natural response to the customer."
                 continue
             else:
                 # No function call detected, return the response

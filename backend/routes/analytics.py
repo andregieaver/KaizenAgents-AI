@@ -25,7 +25,6 @@ async def get_analytics_overview(
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
     
-    from datetime import timedelta
     cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     
     # Total conversations
@@ -109,7 +108,6 @@ async def get_analytics_trends(
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
     
-    from datetime import timedelta
     
     trends = []
     for i in range(days, -1, -1):
@@ -139,7 +137,6 @@ async def get_agent_performance(
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
     
-    from datetime import timedelta
     cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     
     # Get all agents for this tenant
@@ -194,7 +191,6 @@ async def get_sentiment_summary(
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
     
-    from datetime import timedelta
     cutoff_date = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
     
     # Get conversations with sentiment data

@@ -555,11 +555,11 @@ async def verify_checkout_session(
         log_error("No tenant_id in verify-checkout", user=current_user)
         raise HTTPException(status_code=404, detail="No tenant associated")
     
-    log_info(f"Verifying checkout session", session_id=session_id, tenant_id=tenant_id)
+    log_info("Verifying checkout session", session_id=session_id, tenant_id=tenant_id)
     
     # Initialize Stripe from database
     initialized = await StripeService.initialize_from_db()
-    log_info(f"Stripe initialized from database", success=initialized)
+    log_info("Stripe initialized from database", success=initialized)
     
     if not StripeService.is_configured():
         log_error("Stripe not configured in verify-checkout")
@@ -568,9 +568,9 @@ async def verify_checkout_session(
     try:
         # Retrieve the checkout session from Stripe
         import stripe
-        log_info(f"Retrieving checkout session from Stripe", session_id=session_id)
+        log_info("Retrieving checkout session from Stripe", session_id=session_id)
         session = stripe.checkout.Session.retrieve(session_id)
-        log_info(f"Checkout session retrieved", payment_status=session.payment_status, subscription_id=session.get("subscription"))
+        log_info("Checkout session retrieved", payment_status=session.payment_status, subscription_id=session.get("subscription"))
         
         # Verify tenant_id matches
         if session.metadata.get("tenant_id") != tenant_id:
@@ -593,11 +593,11 @@ async def verify_checkout_session(
             raise HTTPException(status_code=404, detail="Plan not found")
         
         # Get subscription details from Stripe
-        log_info(f"Retrieving Stripe subscription", subscription_id=subscription_id)
+        log_info("Retrieving Stripe subscription", subscription_id=subscription_id)
         stripe_sub = stripe.Subscription.retrieve(subscription_id)
         
         # Log what we received for debugging
-        log_info(f"Stripe subscription retrieved", 
+        log_info("Stripe subscription retrieved", 
                 subscription_id=subscription_id,
                 status=stripe_sub.get('status') if isinstance(stripe_sub, dict) else getattr(stripe_sub, 'status', 'unknown'),
                 object_type=type(stripe_sub).__name__,
@@ -667,7 +667,7 @@ async def verify_checkout_session(
             upsert=True
         )
         
-        log_info(f"Subscription saved to database", tenant_id=tenant_id, matched_count=result.matched_count, modified_count=result.modified_count, upserted_id=result.upserted_id)
+        log_info("Subscription saved to database", tenant_id=tenant_id, matched_count=result.matched_count, modified_count=result.modified_count, upserted_id=result.upserted_id)
         
         # Process referral discount if user was referred
         user_email = current_user.get("email")
@@ -682,7 +682,7 @@ async def verify_checkout_session(
                 subscription_doc.get("plan_name", "Subscription"),
                 plan.get("price_monthly", 0) if billing_cycle == "monthly" else plan.get("price_yearly", 0)
             )
-            log_info(f"Referral discount used and referral converted", user_email=user_email)
+            log_info("Referral discount used and referral converted", user_email=user_email)
         
         # Send subscription activation email (non-blocking)
         import asyncio

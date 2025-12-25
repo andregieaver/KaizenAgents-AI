@@ -132,7 +132,7 @@ async def seed_plans():
         print(f"    - {plan['features']['max_conversations'] or 'Unlimited'} conversations")
         print(f"    - {plan['features']['max_agents'] or 'Unlimited'} agents")
     
-    print(f"\n✅ Platform settings configured:")
+    print("\n✅ Platform settings configured:")
     print(f"  • Trial period: {default_settings['value']['trial_days']} days")
     print(f"  • Yearly discount: {default_settings['value']['yearly_discount_percent']}%")
     print(f"  • Soft limit threshold: {default_settings['value']['soft_limit_threshold']}%")

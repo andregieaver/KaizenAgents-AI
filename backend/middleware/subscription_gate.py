@@ -122,7 +122,7 @@ def require_feature(feature: str):
         if not has_access:
             raise HTTPException(
                 status_code=403,
-                detail=f"This feature requires a premium subscription. Please upgrade your plan."
+                detail="This feature requires a premium subscription. Please upgrade your plan."
             )
     
     return check_feature

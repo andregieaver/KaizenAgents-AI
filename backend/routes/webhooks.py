@@ -135,7 +135,7 @@ async def handle_checkout_completed(session):
             upsert=True
         )
         
-        log_info(f"Subscription activated", tenant_id=tenant_id, plan_id=plan_id)
+        log_info("Subscription activated", tenant_id=tenant_id, plan_id=plan_id)
     
     except Exception as e:
         log_error("Failed to process checkout completion", error=e, tenant_id=tenant_id)
@@ -168,7 +168,7 @@ async def handle_subscription_updated(subscription):
         }}
     )
     
-    log_info(f"Subscription updated", tenant_id=db_subscription["tenant_id"])
+    log_info("Subscription updated", tenant_id=db_subscription["tenant_id"])
 
 async def handle_subscription_deleted(subscription):
     """Handle subscription cancellation"""
@@ -203,7 +203,7 @@ async def handle_subscription_deleted(subscription):
                 "updated_at": now.isoformat()
             }}
         )
-        log_info(f"Subscription downgraded to free", tenant_id=db_subscription["tenant_id"])
+        log_info("Subscription downgraded to free", tenant_id=db_subscription["tenant_id"])
     else:
         # Just mark as canceled
         await db.subscriptions.update_one(
@@ -214,7 +214,7 @@ async def handle_subscription_deleted(subscription):
                 "updated_at": datetime.now(timezone.utc).isoformat()
             }}
         )
-        log_info(f"Subscription canceled", tenant_id=db_subscription["tenant_id"])
+        log_info("Subscription canceled", tenant_id=db_subscription["tenant_id"])
 
 async def handle_payment_succeeded(invoice):
     """Handle successful payment"""
@@ -227,7 +227,7 @@ async def handle_payment_succeeded(invoice):
         )
         
         if db_subscription:
-            log_info(f"Payment succeeded", tenant_id=db_subscription["tenant_id"], amount=invoice["amount_paid"])
+            log_info("Payment succeeded", tenant_id=db_subscription["tenant_id"], amount=invoice["amount_paid"])
 
 async def handle_payment_failed(invoice):
     """Handle failed payment"""
@@ -249,4 +249,4 @@ async def handle_payment_failed(invoice):
                 }}
             )
             
-            log_error(f"Payment failed", tenant_id=db_subscription["tenant_id"])
+            log_error("Payment failed", tenant_id=db_subscription["tenant_id"])

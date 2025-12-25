@@ -2801,7 +2801,7 @@ async def upload_company_document(
     if file.content_type not in allowed_types and file_ext not in allowed_extensions:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid file type. Allowed: PDF, TXT, MD, DOCX, CSV"
+            detail="Invalid file type. Allowed: PDF, TXT, MD, DOCX, CSV"
         )
     
     # Validate file size (5MB)

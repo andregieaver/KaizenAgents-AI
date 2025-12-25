@@ -56,7 +56,6 @@ async def get_platform_stats(admin_user: dict = Depends(get_super_admin_user)):
     total_messages = await db.messages.count_documents({})
     
     # Get active tenants (with conversations in last 7 days)
-    from datetime import timedelta
     week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
     active_conversations = await db.conversations.count_documents({"updated_at": {"$gte": week_ago}})
     

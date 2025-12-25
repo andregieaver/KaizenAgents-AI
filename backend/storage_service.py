@@ -51,7 +51,7 @@ class StorageService:
         try:
             blob.make_public()
             return blob.public_url
-        except Exception as e:
+        except Exception:
             # If uniform bucket-level access is enabled, return the public URL anyway
             # The bucket should be configured for public access at the bucket level
             return f"https://storage.googleapis.com/{self.bucket_name}/{blob_name}"

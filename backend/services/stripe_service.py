@@ -68,7 +68,7 @@ class StripeService:
             log_info(f"Created Stripe product: {product.id}", plan_id=plan_id)
             return product.id
         except Exception as e:
-            log_error(f"Failed to create Stripe product", error=e, plan_id=plan_id)
+            log_error("Failed to create Stripe product", error=e, plan_id=plan_id)
             return None
     
     @staticmethod
@@ -86,7 +86,7 @@ class StripeService:
             log_info(f"Updated Stripe product: {product_id}")
             return True
         except Exception as e:
-            log_error(f"Failed to update Stripe product", error=e, product_id=product_id)
+            log_error("Failed to update Stripe product", error=e, product_id=product_id)
             return False
     
     @staticmethod
@@ -100,7 +100,7 @@ class StripeService:
             log_info(f"Archived Stripe product: {product_id}")
             return True
         except Exception as e:
-            log_error(f"Failed to archive Stripe product", error=e, product_id=product_id)
+            log_error("Failed to archive Stripe product", error=e, product_id=product_id)
             return False
     
     @staticmethod
@@ -130,7 +130,7 @@ class StripeService:
             log_info(f"Created Stripe price: {price.id}", product_id=product_id, amount=amount, interval=interval)
             return price.id
         except Exception as e:
-            log_error(f"Failed to create Stripe price", error=e, product_id=product_id)
+            log_error("Failed to create Stripe price", error=e, product_id=product_id)
             return None
     
     @staticmethod
@@ -151,7 +151,7 @@ class StripeService:
             log_info(f"Created Stripe customer: {customer.id}", tenant_id=tenant_id)
             return customer.id
         except Exception as e:
-            log_error(f"Failed to create Stripe customer", error=e, tenant_id=tenant_id)
+            log_error("Failed to create Stripe customer", error=e, tenant_id=tenant_id)
             return None
     
     @staticmethod
@@ -218,7 +218,7 @@ class StripeService:
                 "url": session.url
             }
         except Exception as e:
-            log_error(f"Failed to create Stripe checkout session", error=e, tenant_id=tenant_id)
+            log_error("Failed to create Stripe checkout session", error=e, tenant_id=tenant_id)
             return None
     
     @staticmethod
@@ -232,7 +232,7 @@ class StripeService:
             log_info(f"Canceled Stripe subscription: {subscription_id}")
             return True
         except Exception as e:
-            log_error(f"Failed to cancel Stripe subscription", error=e, subscription_id=subscription_id)
+            log_error("Failed to cancel Stripe subscription", error=e, subscription_id=subscription_id)
             return False
     
     @staticmethod
@@ -252,7 +252,7 @@ class StripeService:
                 "trial_end": subscription.trial_end
             }
         except Exception as e:
-            log_error(f"Failed to get Stripe subscription", error=e, subscription_id=subscription_id)
+            log_error("Failed to get Stripe subscription", error=e, subscription_id=subscription_id)
             return None
     
     @staticmethod
@@ -269,10 +269,10 @@ class StripeService:
                 customer=customer_id,
                 return_url=return_url
             )
-            log_info(f"Created Stripe portal session", customer_id=customer_id)
+            log_info("Created Stripe portal session", customer_id=customer_id)
             return session.url
         except Exception as e:
-            log_error(f"Failed to create Stripe portal session", error=e, customer_id=customer_id)
+            log_error("Failed to create Stripe portal session", error=e, customer_id=customer_id)
             return None
     
     @staticmethod
@@ -317,7 +317,7 @@ class StripeService:
                 "url": session.url
             }
         except Exception as e:
-            log_error(f"Failed to create seat checkout session", error=e, tenant_id=tenant_id)
+            log_error("Failed to create seat checkout session", error=e, tenant_id=tenant_id)
             return None
     
     @staticmethod
@@ -344,7 +344,7 @@ class StripeService:
             log_info(f"Created Stripe one-time price: {price.id}", product_id=product_id, amount=amount)
             return price.id
         except Exception as e:
-            log_error(f"Failed to create one-time price", error=e, product_id=product_id)
+            log_error("Failed to create one-time price", error=e, product_id=product_id)
             return None
     
     @staticmethod
@@ -364,7 +364,7 @@ class StripeService:
                 "amount_total": session.amount_total
             }
         except Exception as e:
-            log_error(f"Failed to get checkout session", error=e, session_id=session_id)
+            log_error("Failed to get checkout session", error=e, session_id=session_id)
             return None
     
     @staticmethod
@@ -407,5 +407,5 @@ class StripeService:
             log_info(f"Retrieved {len(invoice_list)} invoices for customer", customer_id=customer_id)
             return invoice_list
         except Exception as e:
-            log_error(f"Failed to get customer invoices", error=e, customer_id=customer_id)
+            log_error("Failed to get customer invoices", error=e, customer_id=customer_id)
             return None
