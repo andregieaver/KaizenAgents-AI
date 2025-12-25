@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -22,11 +22,7 @@ const FeatureGateAdmin = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [hasChanges, setHasChanges] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [token]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true);
     try {
       const [configRes, plansRes, categoriesRes] = await Promise.all([
@@ -49,7 +45,11 @@ const FeatureGateAdmin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleToggleChange = (routeIndex, planName, field, value) => {
     const newConfig = { ...config };
