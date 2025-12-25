@@ -122,7 +122,7 @@ const Team = () => {
     fetchData();
   }, [token]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [membersRes, teamsRes, agentsRes, quotaRes, seatPricingRes] = await Promise.all([
@@ -166,7 +166,7 @@ const Team = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
   // User handlers
   const handleInviteSuccess = (newUser) => {
