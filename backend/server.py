@@ -3120,12 +3120,6 @@ async def get_scraping_status(current_user: dict = Depends(get_current_user)):
             domains=[]
         )
     
-    # Count scraped pages
-    pages_count = await db.document_chunks.count_documents({
-        "company_id": company_id,
-        "source_type": "web"
-    })
-    
     # Get unique pages (by content_hash)
     unique_pages = await db.document_chunks.distinct(
         "content_hash",
