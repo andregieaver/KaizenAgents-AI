@@ -39,7 +39,7 @@ def extract_text_from_file(filepath: str, filename: str) -> str:
                     for page in pdf.pages:
                         text += page.extract_text() or ""
                     return text
-            except:
+            except Exception:
                 # Fallback to PyPDF2
                 with open(filepath, 'rb') as f:
                     pdf_reader = PyPDF2.PdfReader(f)

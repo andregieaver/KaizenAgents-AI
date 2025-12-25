@@ -69,7 +69,7 @@ async def detailed_health_check(current_user: dict = Depends(get_super_admin_use
             try:
                 count = await db[collection_name].count_documents({})
                 collections[collection_name] = count
-            except:
+            except Exception:
                 collections[collection_name] = "error"
         
         health_data["database"] = {
@@ -161,7 +161,7 @@ async def get_recent_logs(
                             continue
                         
                         logs.append(log_entry)
-                    except:
+                    except Exception:
                         # Skip malformed lines
                         continue
         
