@@ -94,6 +94,17 @@ backend:
         comment: "✅ EXISTING FEATURES VERIFICATION PASSED: Confirmed no regressions in core functionality. RESULTS: 1) ✅ Orchestration Settings - GET /api/settings/orchestration returns correct response including mother_agent_type field ('admin'), mother_agent_id (cb4928cf-907c-4ee5-8f3e-13b94334d36f), mother_agent_name ('Aida'), and enabled status (True), 2) ✅ Health Check - GET /api/health returns healthy status, confirming system is operational. All existing API endpoints continue to function correctly after new feature implementation. No breaking changes detected."
 
 frontend:
+  - task: "Micro-Animations UI Components Testing"
+    implemented: true
+    working: "NA"
+    file: "button.jsx, slider.jsx, select.jsx, checkbox.jsx, switch.jsx, tabs.jsx, card.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "Starting comprehensive micro-animations testing across UI components. Testing: 1) Buttons - hover lift effect (-translate-y-0.5) and active press effect (scale-0.98), 2) Sliders - scale animation on hover (scale-1.25) and shadow effect, 3) Dropdowns/Selects - smooth open/close animations and item hover effects, 4) Checkboxes - smooth check animation with zoom-in effect, 5) Switches/Toggles - smooth transition on state change, 6) Tabs - active tab scale effect and smooth transitions, 7) Cards - subtle hover shadow enhancement. Login credentials: andre@humanweb.no / Pernilla66!"
   - task: "Feature Gate Management Admin Page Testing"
     implemented: true
     working: true
