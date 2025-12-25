@@ -58,7 +58,8 @@ const OnboardingProgress = () => {
         if (statusRes.data?.progress >= 80) {
           setMinimized(true);
         }
-      } catch (error) {
+      } catch {
+        // Onboarding status fetch failed silently
       } finally {
         setLoading(false);
       }
@@ -75,7 +76,8 @@ const OnboardingProgress = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setDismissed(true);
-    } catch (error) {
+    } catch {
+      // Dismiss failed silently
     }
   };
 
