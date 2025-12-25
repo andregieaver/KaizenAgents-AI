@@ -248,7 +248,8 @@ const ConversationDetail = () => {
         engagement: response.data.engagement || 5,
         tone: response.data.tone || 0
       });
-    } catch (error) {
+    } catch {
+      // Sentiment analysis failed silently
     } finally {
       setAnalyzingSentiment(false);
     }

@@ -332,7 +332,8 @@ const CRM = () => {
       ]);
       setCustomers(customersRes.data);
       setStats(statsRes.data);
-    } catch (error) {
+    } catch {
+      // CRM data fetch failed silently
     } finally {
       setLoading(false);
     }
