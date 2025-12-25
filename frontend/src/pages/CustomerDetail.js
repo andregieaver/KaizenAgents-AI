@@ -488,7 +488,11 @@ const CustomerDetail = () => {
 
       <Tabs defaultValue="overview" className="space-y-4">
         <div className="relative">
-          <TabsList className="w-full justify-start overflow-x-auto scrollbar-hide">
+          <TabsList 
+            ref={tabsRef}
+            className="w-full justify-start overflow-x-auto scrollbar-hide"
+            onScroll={updateTabsScrollState}
+          >
             <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
             <TabsTrigger value="conversations" className="text-xs sm:text-sm">
               Conversations
@@ -501,8 +505,13 @@ const CustomerDetail = () => {
             <TabsTrigger value="history" className="text-xs sm:text-sm">History</TabsTrigger>
             <TabsTrigger value="followups" className="text-xs sm:text-sm">Follow-ups</TabsTrigger>
           </TabsList>
-          {/* Fade indicator for tabs overflow on mobile */}
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
+          {/* Dynamic fade indicators based on scroll position */}
+          {tabsScroll.canScrollLeft && (
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none sm:hidden" />
+          )}
+          {tabsScroll.canScrollRight && (
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
+          )}
         </div>
 
         {/* Overview Tab */}
