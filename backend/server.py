@@ -301,7 +301,6 @@ This helps protect your privacy and ensures I'm sharing information with the rig
         # Determine if agent has any knowledge base
         has_documents = len(agent_documents) > 0
         has_scraped_content = agent_scraping and agent_scraping.get("status") == "completed" and agent_scraping.get("pages_scraped", 0) > 0
-        has_domains_configured = bool(agent_scraping_domains.strip())
         
         # Also check company-wide knowledge base as fallback
         company_has_docs = len(agent_config.get("uploaded_docs", [])) > 0
@@ -2167,7 +2166,7 @@ async def test_provider_connection(
             import anthropic
             client = anthropic.Anthropic(api_key=provider["api_key"])
             # Test with a simple message
-            message = client.messages.create(
+            client.messages.create(
                 model="claude-3-haiku-20240307",
                 max_tokens=10,
                 messages=[{"role": "user", "content": "Test"}]
@@ -2768,7 +2767,7 @@ async def update_company_agent_config(
     update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
     
     # Update or create config
-    result = await db.company_agent_configs.update_one(
+    await db.company_agent_configs.update_one(
         {"company_id": company_id},
         {"$set": update_data},
         upsert=True
