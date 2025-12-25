@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -78,16 +78,7 @@ const EmailTemplates = () => {
     is_enabled: true
   });
 
-  useEffect(() => {
-    if (!user?.is_super_admin) {
-      toast.error('Access denied. Super admin only.');
-      navigate('/dashboard');
-      return;
-    }
-    fetchTemplates();
-  }, [token, user, navigate]);
-
-  const fetchTemplates = async () => {
+  const fetchTemplates = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API}/admin/email-templates`, {
@@ -99,7 +90,16 @@ const EmailTemplates = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (!user?.is_super_admin) {
+      toast.error('Access denied. Super admin only.');
+      navigate('/dashboard');
+      return;
+    }
+    fetchTemplates();
+  }, [user, navigate, fetchTemplates]);
 
   const openEditModal = (template) => {
     setSelectedTemplate(template);
