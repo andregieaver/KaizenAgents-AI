@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Helmet } from 'react-helmet';
@@ -33,11 +33,7 @@ const CustomPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchPage();
-  }, [slug, location.pathname]);
-
-  const fetchPage = async () => {
+  const fetchPage = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -57,7 +53,11 @@ const CustomPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug, location.pathname]);
+
+  useEffect(() => {
+    fetchPage();
+  }, [fetchPage]);
 
   if (loading) {
     return (
