@@ -115,6 +115,85 @@ const ConversationDetail = () => {
     { id: 8, label: 'Confirmation', text: "I've noted your request and will process it right away. You'll receive a confirmation shortly." },
   ];
 
+  // Define all async functions with useCallback first
+  const fetchCrmStatus = useCallback(async (conversationId) => {
+    try {
+      const response = await axios.get(
+        `${API}/crm/lookup-by-conversation/${conversationId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (response.data.linked) {
+        setCrmCustomer(response.data.customer);
+        setLinkSuggested(response.data.link_suggested || false);
+      } else {
+        setCrmCustomer(null);
+        setLinkSuggested(false);
+      }
+    } catch (error) {
+      console.debug('CRM lookup failed:', error);
+    }
+  }, [token]);
+
+  const fetchAiInsights = useCallback(async () => {
+    setLoadingInsights(true);
+    try {
+      const [summaryRes, followupRes] = await Promise.all([
+        axios.get(`${API}/crm/conversations/${id}/summary?use_ai=false`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API}/crm/conversations/${id}/suggest-followup`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+      setAiInsights({
+        summary: summaryRes.data,
+        followup: followupRes.data
+      });
+    } catch (error) {
+      console.debug('Error fetching AI insights:', error);
+    } finally {
+      setLoadingInsights(false);
+    }
+  }, [id, token]);
+
+  const fetchSuggestions = useCallback(async () => {
+    setLoadingSuggestions(true);
+    try {
+      const response = await axios.post(
+        `${API}/conversations/${id}/suggestions`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSuggestions(response.data.suggestions || []);
+    } catch {
+      // Suggestions failed silently
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  }, [id, token]);
+
+  const analyzeSentiment = useCallback(async () => {
+    if (analyzingSentiment) return;
+    
+    setAnalyzingSentiment(true);
+    try {
+      const response = await axios.post(
+        `${API}/conversations/${id}/analyze-sentiment`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSentiment({
+        engagement: response.data.engagement || 5,
+        tone: response.data.tone || 0
+      });
+    } catch {
+      // Sentiment analysis failed silently
+    } finally {
+      setAnalyzingSentiment(false);
+    }
+  }, [id, token, analyzingSentiment]);
+
+  // Main data fetch effect
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -145,55 +224,37 @@ const ConversationDetail = () => {
     fetchData();
     const interval = setInterval(fetchData, 5000);
     return () => clearInterval(interval);
-  }, [id, token]);
+  }, [id, token, fetchCrmStatus]);
   
   // Auto-fetch AI insights when conversation loads (only once)
   useEffect(() => {
     if (conversation && !aiInsights && !loadingInsights) {
       fetchAiInsights();
     }
-  }, [conversation?.id]);
-  
-  const fetchAiInsights = async () => {
-    setLoadingInsights(true);
-    try {
-      const [summaryRes, followupRes] = await Promise.all([
-        axios.get(`${API}/crm/conversations/${id}/summary?use_ai=false`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${API}/crm/conversations/${id}/suggest-followup`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ]);
-      setAiInsights({
-        summary: summaryRes.data,
-        followup: followupRes.data
-      });
-    } catch (error) {
-      console.debug('Error fetching AI insights:', error);
-    } finally {
-      setLoadingInsights(false);
-    }
-  };
-  
-  const fetchCrmStatus = async (conversationId) => {
-    try {
-      const response = await axios.get(
-        `${API}/crm/lookup-by-conversation/${conversationId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (response.data.linked) {
-        setCrmCustomer(response.data.customer);
-        setLinkSuggested(response.data.link_suggested || false);
-      } else {
-        setCrmCustomer(null);
-        setLinkSuggested(false);
+  }, [conversation, aiInsights, loadingInsights, fetchAiInsights]);
+
+  // Fetch suggestions when in assisted mode and messages change
+  useEffect(() => {
+    if (conversation?.mode === 'assisted' && messages.length > 0) {
+      // Check if the last message is from customer
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg?.author_type === 'customer') {
+        fetchSuggestions();
       }
-    } catch (error) {
-      console.debug('CRM lookup failed:', error);
     }
-  };
-  
+  }, [messages, conversation?.mode, fetchSuggestions]);
+
+  // Analyze sentiment when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      // Debounce sentiment analysis
+      const timer = setTimeout(() => {
+        analyzeSentiment();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [messages, analyzeSentiment]);
+
   const handleLinkToCrm = async () => {
     setCrmLoading(true);
     try {
