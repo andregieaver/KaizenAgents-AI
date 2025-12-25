@@ -121,7 +121,13 @@ const PageEditor = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug, token, navigate]);
+
+  useEffect(() => {
+    if (isEditMode) {
+      fetchPage();
+    }
+  }, [isEditMode, fetchPage]);
 
   const generateSlug = (name) => {
     return name
