@@ -35,7 +35,7 @@ const PricingPage = () => {
           setPlatformName(platformResponse.data.platform_name);
         }
       } catch {
-        console.debug('Error fetching pricing page data:', error);
+        console.debug('Error fetching pricing page data');
       } finally {
         setLoading(false);
       }
