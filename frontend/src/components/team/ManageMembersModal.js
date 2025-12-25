@@ -1,7 +1,7 @@
 /**
  * ManageMembersModal - Modal for adding/removing members from a team
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,7 @@ const ManageMembersModal = ({
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const fetchTeamMembers = async () => {
+  const fetchTeamMembers = useCallback(async () => {
     if (!team) return;
     setLoading(true);
     try {
@@ -44,14 +44,13 @@ const ManageMembersModal = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [team, token]);
 
   useEffect(() => {
     if (open && team) {
       fetchTeamMembers();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, team]);
+  }, [open, team, fetchTeamMembers]);
 
   const handleAddMember = async (userId) => {
     setActionLoading(true);
