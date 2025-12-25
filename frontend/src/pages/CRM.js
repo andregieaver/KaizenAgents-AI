@@ -316,11 +316,7 @@ const CRM = () => {
     useSensor(KeyboardSensor)
   );
 
-  useEffect(() => {
-    fetchData();
-  }, [token]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [customersRes, statsRes] = await Promise.all([
         axios.get(`${API}/api/crm/customers`, {
@@ -337,7 +333,11 @@ const CRM = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleAddCustomer = async () => {
     if (!newCustomer.name) {
