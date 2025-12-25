@@ -264,7 +264,8 @@ const GlobalHeader = () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/menus/public/${menuId}`);
         setItems(response.data.items || []);
-      } catch (error) {
+      } catch {
+        // Menu fetch failed silently - items will remain empty
       } finally {
         setLoading(false);
       }

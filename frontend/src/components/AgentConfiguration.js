@@ -90,7 +90,8 @@ const AgentConfiguration = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setScrapingStatus(response.data);
-    } catch (error) {
+    } catch {
+      // Scraping status fetch failed silently - status will remain as previous state
     }
   };
 
