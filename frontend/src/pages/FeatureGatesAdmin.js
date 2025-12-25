@@ -12,6 +12,7 @@ import { Label } from '../components/ui/label';
 import { Loader2, Save, RefreshCw, Shield, AlertCircle, ArrowLeft, Users, DollarSign, Edit2, X, Check, AlertTriangle, Bot, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '../lib/utils';
+import { ResourcePricingSection } from '../components/admin';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
