@@ -60,7 +60,7 @@ class DomainScraper:
             return True
         try:
             return self.robots_parser.can_fetch(USER_AGENT, url)
-        except:
+        except Exception:
             return True
     
     def _normalize_url(self, url: str) -> str:

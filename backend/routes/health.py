@@ -195,7 +195,7 @@ async def get_error_logs(
                         import json
                         error_entry = json.loads(line.strip())
                         errors.append(error_entry)
-                    except:
+                    except Exception:
                         continue
         
         return {

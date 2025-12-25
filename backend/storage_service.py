@@ -131,7 +131,7 @@ class StorageService:
             
             blob = self.bucket.blob(blob_name)
             return blob.exists()
-        except:
+        except Exception:
             return False
     
     def _exists_in_local(self, file_path: str) -> bool:
