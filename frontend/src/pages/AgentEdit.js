@@ -230,47 +230,7 @@ const AgentEdit = () => {
     }
   };
 
-  // Fetch providers
-  useEffect(() => {
-    const fetchProviders = async () => {
-      try {
-        const response = await axios.get(`${API}/agents/providers/available`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setProviders(response.data);
-        
-        if (isNew && response.data.length > 0 && !getProviderId()) {
-          const firstProvider = response.data[0];
-          setAgent(prev => ({
-            ...prev,
-            config: {
-              ...prev.config,
-              provider_id: firstProvider.id,
-              provider_name: firstProvider.name,
-              model: firstProvider.default_model || firstProvider.models?.[0] || ''
-            }
-          }));
-        }
-      } catch (error) {
-        // Providers fetch failed silently
-      } finally {
-        setLoadingProviders(false);
-      }
-    };
-    
-    if (token) {
-      fetchProviders();
-    }
-  }, [token]);
-
-  // Fetch agent
-  useEffect(() => {
-    if (!isNew) {
-      fetchAgent();
-    }
-  }, [agentId, token]);
-
-  const fetchAgent = async () => {
+  const fetchAgent = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/agents/${agentId}`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -304,7 +264,47 @@ const AgentEdit = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [agentId, token, navigate]);
+
+  // Fetch providers
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const response = await axios.get(`${API}/agents/providers/available`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        setProviders(response.data);
+        
+        if (isNew && response.data.length > 0 && !getProviderId()) {
+          const firstProvider = response.data[0];
+          setAgent(prev => ({
+            ...prev,
+            config: {
+              ...prev.config,
+              provider_id: firstProvider.id,
+              provider_name: firstProvider.name,
+              model: firstProvider.default_model || firstProvider.models?.[0] || ''
+            }
+          }));
+        }
+      } catch (error) {
+        // Providers fetch failed silently
+      } finally {
+        setLoadingProviders(false);
+      }
+    };
+    
+    if (token) {
+      fetchProviders();
+    }
+  }, [token, isNew, getProviderId]);
+
+  // Fetch agent
+  useEffect(() => {
+    if (!isNew) {
+      fetchAgent();
+    }
+  }, [isNew, fetchAgent]);
 
   const handleSave = async () => {
     if (!agent.name || !agent.description) {
