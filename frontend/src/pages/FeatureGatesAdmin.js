@@ -167,7 +167,8 @@ const FeatureGatesAdmin = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAgentPricing(response.data || []);
-    } catch (error) {
+    } catch {
+      // Agent pricing may not be configured yet - silently ignore
     } finally {
       setLoadingAgentPricing(false);
     }
@@ -228,7 +229,8 @@ const FeatureGatesAdmin = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setConversationPricing(response.data || []);
-    } catch (error) {
+    } catch {
+      // Conversation pricing may not be configured yet - silently ignore
     } finally {
       setLoadingConversationPricing(false);
     }
