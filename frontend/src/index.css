@@ -224,3 +224,326 @@ code {
         color: hsl(0 0% 100%) !important;
     }
 }
+
+/* ============================================
+   MICRO-ANIMATIONS FOR PROFESSIONAL UI
+   ============================================ */
+
+/* Keyframe Animations */
+@keyframes subtle-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+}
+
+@keyframes gentle-bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+@keyframes ripple {
+    0% { transform: scale(0); opacity: 0.5; }
+    100% { transform: scale(4); opacity: 0; }
+}
+
+@keyframes checkmark-draw {
+    0% { stroke-dashoffset: 24; }
+    100% { stroke-dashoffset: 0; }
+}
+
+@keyframes fade-in-up {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin-slow {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@layer components {
+    /* Button Micro-Animations */
+    .btn-animated {
+        position: relative;
+        overflow: hidden;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .btn-animated::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.4s ease, height 0.4s ease;
+    }
+
+    .btn-animated:active::before {
+        width: 200%;
+        height: 200%;
+    }
+
+    .btn-animated:hover {
+        transform: translateY(-1px);
+    }
+
+    .btn-animated:active {
+        transform: translateY(0) scale(0.98);
+    }
+
+    /* Icon Button Animation */
+    .icon-btn-animated {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .icon-btn-animated:hover {
+        transform: scale(1.05);
+    }
+
+    .icon-btn-animated:hover svg {
+        transform: scale(1.1);
+        transition: transform 0.2s ease;
+    }
+
+    .icon-btn-animated:active {
+        transform: scale(0.95);
+    }
+
+    /* Switch/Toggle Animation Enhancement */
+    .switch-animated {
+        transition: background-color 0.25s ease;
+    }
+
+    .switch-animated [data-state="checked"] {
+        animation: subtle-pulse 0.3s ease;
+    }
+
+    /* Slider Thumb Animation */
+    .slider-thumb-animated {
+        transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .slider-thumb-animated:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 0 4px hsl(var(--primary) / 0.2);
+    }
+
+    .slider-thumb-animated:active {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 6px hsl(var(--primary) / 0.3);
+    }
+
+    /* Dropdown/Select Item Hover */
+    .dropdown-item-animated {
+        transition: all 0.15s ease;
+        position: relative;
+    }
+
+    .dropdown-item-animated::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: hsl(var(--primary));
+        transform: scaleY(0);
+        transition: transform 0.15s ease;
+    }
+
+    .dropdown-item-animated:hover::before,
+    .dropdown-item-animated:focus::before {
+        transform: scaleY(1);
+    }
+
+    .dropdown-item-animated:hover {
+        padding-left: 12px;
+    }
+
+    /* Badge Animation */
+    .badge-animated {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .badge-animated:hover {
+        transform: scale(1.05);
+    }
+
+    /* Status Indicator Pulse */
+    .status-pulse {
+        position: relative;
+    }
+
+    .status-pulse::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: inherit;
+        animation: subtle-pulse 2s infinite ease-in-out;
+        background: inherit;
+        opacity: 0.5;
+        z-index: -1;
+    }
+
+    /* Online/Active Status Indicator */
+    .status-online {
+        background: #22c55e;
+        animation: subtle-pulse 2s infinite ease-in-out;
+    }
+
+    /* Card Hover Animation */
+    .card-hover-animated {
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card-hover-animated:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+
+    .dark .card-hover-animated:hover {
+        box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.4), 0 4px 10px -5px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Input Focus Animation */
+    .input-focus-animated {
+        transition: all 0.2s ease;
+    }
+
+    .input-focus-animated:focus {
+        transform: scale(1.01);
+        box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+    }
+
+    /* Checkbox Animation */
+    .checkbox-animated {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .checkbox-animated:checked {
+        animation: subtle-pulse 0.3s ease;
+    }
+
+    /* Loading Skeleton Shimmer */
+    .skeleton-shimmer {
+        background: linear-gradient(
+            90deg,
+            hsl(var(--muted)) 0%,
+            hsl(var(--muted-foreground) / 0.1) 50%,
+            hsl(var(--muted)) 100%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite;
+    }
+
+    /* Tab Animation */
+    .tab-animated {
+        position: relative;
+        transition: all 0.2s ease;
+    }
+
+    .tab-animated::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background: hsl(var(--primary));
+        transition: all 0.2s ease;
+        transform: translateX(-50%);
+    }
+
+    .tab-animated:hover::after,
+    .tab-animated[data-state="active"]::after {
+        width: 100%;
+    }
+
+    /* List Item Stagger Animation */
+    .list-item-animated {
+        animation: fade-in-up 0.3s ease forwards;
+        opacity: 0;
+    }
+
+    .list-item-animated:nth-child(1) { animation-delay: 0.05s; }
+    .list-item-animated:nth-child(2) { animation-delay: 0.1s; }
+    .list-item-animated:nth-child(3) { animation-delay: 0.15s; }
+    .list-item-animated:nth-child(4) { animation-delay: 0.2s; }
+    .list-item-animated:nth-child(5) { animation-delay: 0.25s; }
+    .list-item-animated:nth-child(6) { animation-delay: 0.3s; }
+    .list-item-animated:nth-child(7) { animation-delay: 0.35s; }
+    .list-item-animated:nth-child(8) { animation-delay: 0.4s; }
+    .list-item-animated:nth-child(9) { animation-delay: 0.45s; }
+    .list-item-animated:nth-child(10) { animation-delay: 0.5s; }
+
+    /* Toast/Notification Animation */
+    .toast-animated {
+        animation: fade-in-up 0.3s ease;
+    }
+
+    /* Progress Bar Animation */
+    .progress-animated {
+        transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Avatar Hover */
+    .avatar-animated {
+        transition: all 0.2s ease;
+    }
+
+    .avatar-animated:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+    }
+
+    /* Floating Action Button */
+    .fab-animated {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fab-animated:hover {
+        transform: scale(1.1) rotate(5deg);
+        box-shadow: 0 8px 25px -5px hsl(var(--primary) / 0.3);
+    }
+
+    .fab-animated:active {
+        transform: scale(0.95);
+    }
+
+    /* Menu Item Hover with Icon */
+    .menu-item-animated {
+        transition: all 0.15s ease;
+    }
+
+    .menu-item-animated:hover {
+        background: hsl(var(--accent));
+        padding-left: 1rem;
+    }
+
+    .menu-item-animated:hover svg {
+        transform: translateX(2px);
+        transition: transform 0.15s ease;
+    }
+
+    /* Accordion Expand Animation */
+    .accordion-content-animated {
+        overflow: hidden;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Tooltip Animation */
+    .tooltip-animated {
+        animation: fade-in-up 0.15s ease;
+    }
+}
