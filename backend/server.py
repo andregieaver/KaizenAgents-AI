@@ -3975,7 +3975,7 @@ async def update_storage_config(
         try:
             import json
             json.loads(config.gcs_service_account_json)
-        except:
+        except Exception:
             raise HTTPException(status_code=400, detail="Invalid service account JSON")
     
     # Prepare config document
@@ -4387,7 +4387,7 @@ async def set_tenant_context(request: Request, call_next):
         try:
             payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
             request.state.tenant_id = payload.get("tenant_id")
-        except:
+        except Exception:
             pass
     
     response = await call_next(request)
