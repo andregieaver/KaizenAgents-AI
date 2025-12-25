@@ -295,9 +295,6 @@ This helps protect your privacy and ensures I'm sharing information with the rig
             {"_id": 0}
         )
         
-        # Get scraping domains from agent config
-        agent_scraping_domains = agent.get("config", {}).get("scraping_domains", "")
-        
         # Determine if agent has any knowledge base
         has_documents = len(agent_documents) > 0
         has_scraped_content = agent_scraping and agent_scraping.get("status") == "completed" and agent_scraping.get("pages_scraped", 0) > 0
