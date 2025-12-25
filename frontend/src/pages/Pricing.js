@@ -728,278 +728,44 @@ const Pricing = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Seat Management */}
             {seatAllocation && (
-              <Card className="border border-border">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-lg">Seats</CardTitle>
-                    </div>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <Info className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="left" className="max-w-xs">
-                          <p className="text-sm">
-                            <strong>Billing Rules:</strong><br />
-                            • Increases locked in after 24 hours<br />
-                            • Billed for highest committed amount<br />
-                            • 24hr grace period for undo
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Status */}
-                  <div className="flex flex-wrap items-center gap-3 p-3 bg-muted/50 rounded-lg text-sm">
-                    <div><span className="text-muted-foreground">Base:</span> <span className="font-bold">{seatAllocation.base_plan_seats}</span></div>
-                    <div><span className="text-muted-foreground">Current:</span> <span className="font-bold text-green-500">{seatAllocation.current_seats}</span></div>
-                    <div><span className="text-muted-foreground">Committed:</span> <span className="font-bold text-blue-500">{seatAllocation.committed_seats}</span></div>
-                  </div>
-
-                  {/* Grace Period */}
-                  {seatAllocation.is_in_grace_period && (
-                    <Alert className="bg-blue-500/10 border-blue-500/30 py-2">
-                      <Clock className="h-4 w-4 text-blue-500" />
-                      <AlertDescription className="text-blue-700 dark:text-blue-300 text-xs">
-                        Grace: {formatTimeRemaining(seatAllocation.grace_period_ends_at)}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {/* Slider */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Total Seats</span>
-                      <span className="text-lg font-bold">{seatSliderValue}</span>
-                    </div>
-                    <Slider
-                      value={[seatSliderValue]}
-                      onValueChange={handleSeatSliderChange}
-                      min={seatAllocation.base_plan_seats}
-                      max={seatAllocation.max_seats}
-                      step={1}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{seatAllocation.base_plan_seats} (Base)</span>
-                      <span>{seatAllocation.max_seats} (Max)</span>
-                    </div>
-                  </div>
-
-                  {/* Cost */}
-                  {seatSliderValue > seatAllocation.base_plan_seats && (
-                    <div className="p-3 border border-border rounded-lg text-sm">
-                      <div className="flex justify-between">
-                        <span>Extra: {seatSliderValue - seatAllocation.base_plan_seats} × ${seatAllocation.price_per_seat?.toFixed(2)}</span>
-                        <span className="font-semibold">${((seatSliderValue - seatAllocation.base_plan_seats) * seatAllocation.price_per_seat).toFixed(2)}/mo</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Save Button */}
-                  <div className="flex gap-2">
-                    <Button onClick={saveSeatAllocation} disabled={!seatUnsavedChanges || savingSeats} className="flex-1" size="sm">
-                      {savingSeats ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
-                      {seatUnsavedChanges ? 'Save' : 'No Changes'}
-                    </Button>
-                    {seatUnsavedChanges && (
-                      <Button variant="outline" size="sm" onClick={() => { setSeatSliderValue(seatAllocation.current_seats); setSeatUnsavedChanges(false); }}>
-                        Cancel
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <ResourceAllocationCard
+                resourceType="seat"
+                allocation={seatAllocation}
+                sliderValue={seatSliderValue}
+                onSliderChange={handleSeatSliderChange}
+                hasUnsavedChanges={seatUnsavedChanges}
+                isSaving={savingSeats}
+                onSave={saveSeatAllocation}
+                onCancel={() => { setSeatSliderValue(seatAllocation.current_seats); setSeatUnsavedChanges(false); }}
+              />
             )}
 
             {/* Agent Management */}
             {agentAllocation && (
-              <Card className="border border-border">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Bot className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-lg">Agents</CardTitle>
-                    </div>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <Info className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="left" className="max-w-xs">
-                          <p className="text-sm">
-                            <strong>Billing Rules:</strong><br />
-                            • Increases locked in after 24 hours<br />
-                            • Billed for highest committed amount<br />
-                            • 24hr grace period for undo
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Status */}
-                  <div className="flex flex-wrap items-center gap-3 p-3 bg-muted/50 rounded-lg text-sm">
-                    <div><span className="text-muted-foreground">Base:</span> <span className="font-bold">{agentAllocation.base_plan_agents}</span></div>
-                    <div><span className="text-muted-foreground">Current:</span> <span className="font-bold text-green-500">{agentAllocation.current_agents}</span></div>
-                    <div><span className="text-muted-foreground">Committed:</span> <span className="font-bold text-blue-500">{agentAllocation.committed_agents}</span></div>
-                  </div>
-
-                  {/* Grace Period */}
-                  {agentAllocation.is_in_grace_period && (
-                    <Alert className="bg-blue-500/10 border-blue-500/30 py-2">
-                      <Clock className="h-4 w-4 text-blue-500" />
-                      <AlertDescription className="text-blue-700 dark:text-blue-300 text-xs">
-                        Grace: {formatTimeRemaining(agentAllocation.grace_period_ends_at)}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {/* Slider */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Total Agents</span>
-                      <span className="text-lg font-bold">{agentSliderValue}</span>
-                    </div>
-                    <Slider
-                      value={[agentSliderValue]}
-                      onValueChange={handleAgentSliderChange}
-                      min={agentAllocation.base_plan_agents}
-                      max={agentAllocation.max_agents}
-                      step={1}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{agentAllocation.base_plan_agents} (Base)</span>
-                      <span>{agentAllocation.max_agents} (Max)</span>
-                    </div>
-                  </div>
-
-                  {/* Cost */}
-                  {agentSliderValue > agentAllocation.base_plan_agents && (
-                    <div className="p-3 border border-border rounded-lg text-sm">
-                      <div className="flex justify-between">
-                        <span>Extra: {agentSliderValue - agentAllocation.base_plan_agents} × ${agentAllocation.price_per_agent?.toFixed(2)}</span>
-                        <span className="font-semibold">${((agentSliderValue - agentAllocation.base_plan_agents) * agentAllocation.price_per_agent).toFixed(2)}/mo</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Save Button */}
-                  <div className="flex gap-2">
-                    <Button onClick={saveAgentAllocation} disabled={!agentUnsavedChanges || savingAgents} className="flex-1" size="sm">
-                      {savingAgents ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
-                      {agentUnsavedChanges ? 'Save' : 'No Changes'}
-                    </Button>
-                    {agentUnsavedChanges && (
-                      <Button variant="outline" size="sm" onClick={() => { setAgentSliderValue(agentAllocation.current_agents); setAgentUnsavedChanges(false); }}>
-                        Cancel
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <ResourceAllocationCard
+                resourceType="agent"
+                allocation={agentAllocation}
+                sliderValue={agentSliderValue}
+                onSliderChange={handleAgentSliderChange}
+                hasUnsavedChanges={agentUnsavedChanges}
+                isSaving={savingAgents}
+                onSave={saveAgentAllocation}
+                onCancel={() => { setAgentSliderValue(agentAllocation.current_agents); setAgentUnsavedChanges(false); }}
+              />
             )}
 
             {/* Conversation Management */}
             {conversationAllocation && (
-              <Card className="border border-border">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <MessageSquare className="h-5 w-5 text-primary" />
-                      <CardTitle className="text-lg">Conversations</CardTitle>
-                    </div>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <Info className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="left" className="max-w-xs">
-                          <p className="text-sm">
-                            <strong>Billing Rules:</strong><br />
-                            • Billed in blocks of {conversationAllocation.block_size || 100}<br />
-                            • Increases locked in after 24 hours<br />
-                            • 24hr grace period for undo
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Status */}
-                  <div className="flex flex-wrap items-center gap-3 p-3 bg-muted/50 rounded-lg text-sm">
-                    <div><span className="text-muted-foreground">Base:</span> <span className="font-bold">{conversationAllocation.base_plan_conversations}</span></div>
-                    <div><span className="text-muted-foreground">Current:</span> <span className="font-bold text-green-500">{conversationAllocation.current_conversations}</span></div>
-                    <div><span className="text-muted-foreground">Committed:</span> <span className="font-bold text-blue-500">{conversationAllocation.committed_conversations}</span></div>
-                  </div>
-
-                  {/* Grace Period */}
-                  {conversationAllocation.is_in_grace_period && (
-                    <Alert className="bg-blue-500/10 border-blue-500/30 py-2">
-                      <Clock className="h-4 w-4 text-blue-500" />
-                      <AlertDescription className="text-blue-700 dark:text-blue-300 text-xs">
-                        Grace: {formatTimeRemaining(conversationAllocation.grace_period_ends_at)}
-                      </AlertDescription>
-                    </Alert>
-                  )}
-
-                  {/* Slider */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Total Conversations</span>
-                      <span className="text-lg font-bold">{conversationSliderValue}</span>
-                    </div>
-                    <Slider
-                      value={[conversationSliderValue]}
-                      onValueChange={handleConversationSliderChange}
-                      min={conversationAllocation.base_plan_conversations}
-                      max={conversationAllocation.max_conversations}
-                      step={conversationAllocation.block_size || 100}
-                      className="w-full"
-                    />
-                    <div className="flex justify-between text-xs text-muted-foreground">
-                      <span>{conversationAllocation.base_plan_conversations} (Base)</span>
-                      <span>{conversationAllocation.max_conversations} (Max)</span>
-                    </div>
-                  </div>
-
-                  {/* Cost */}
-                  {conversationSliderValue > conversationAllocation.base_plan_conversations && (
-                    <div className="p-3 border border-border rounded-lg text-sm">
-                      <div className="flex justify-between">
-                        <span>Extra: {Math.ceil((conversationSliderValue - conversationAllocation.base_plan_conversations) / (conversationAllocation.block_size || 100))} blocks × ${(conversationAllocation.price_per_block || 5).toFixed(2)}</span>
-                        <span className="font-semibold">${(Math.ceil((conversationSliderValue - conversationAllocation.base_plan_conversations) / (conversationAllocation.block_size || 100)) * (conversationAllocation.price_per_block || 5)).toFixed(2)}/mo</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Save Button */}
-                  <div className="flex gap-2">
-                    <Button onClick={saveConversationAllocation} disabled={!conversationUnsavedChanges || savingConversations} className="flex-1" size="sm">
-                      {savingConversations ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
-                      {conversationUnsavedChanges ? 'Save' : 'No Changes'}
-                    </Button>
-                    {conversationUnsavedChanges && (
-                      <Button variant="outline" size="sm" onClick={() => { setConversationSliderValue(conversationAllocation.current_conversations); setConversationUnsavedChanges(false); }}>
-                        Cancel
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
+              <ResourceAllocationCard
+                resourceType="conversation"
+                allocation={conversationAllocation}
+                sliderValue={conversationSliderValue}
+                onSliderChange={handleConversationSliderChange}
+                hasUnsavedChanges={conversationUnsavedChanges}
+                isSaving={savingConversations}
+                onSave={saveConversationAllocation}
+                onCancel={() => { setConversationSliderValue(conversationAllocation.current_conversations); setConversationUnsavedChanges(false); }}
+              />
             )}
           </div>
         </div>
