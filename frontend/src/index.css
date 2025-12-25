@@ -131,6 +131,15 @@ code {
     background: hsl(var(--muted-foreground) / 0.5);
 }
 
+/* Utility class to hide scrollbar while maintaining scroll functionality */
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari, Opera */
+}
+
 /* Neumorphic Button Styles */
 @layer components {
     .btn-neumorphic {
