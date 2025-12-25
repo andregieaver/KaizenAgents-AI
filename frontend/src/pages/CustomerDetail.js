@@ -434,7 +434,7 @@ const CustomerDetail = () => {
 
       {/* Quick Actions - Icon only on mobile, with blur fade indicator */}
       <div className="relative mb-4 sm:mb-6">
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
           <Button size="sm" variant="outline" onClick={() => setShowEmailModal(true)} disabled={!customer.email} className="flex-shrink-0">
             <Mail className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Email</span>
