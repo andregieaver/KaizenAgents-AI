@@ -275,11 +275,13 @@ const Conversations = () => {
         
         {/* Filter - Icon on mobile, full on desktop */}
         <Select value={statusFilter} onValueChange={handleStatusFilter}>
-          <SelectTrigger className="w-10 sm:w-48 h-10 px-0 sm:px-3" data-testid="status-filter">
-            <Filter className="h-4 w-4 sm:mr-2 mx-auto sm:mx-0" />
-            <span className="hidden sm:inline">
-              <SelectValue placeholder="Filter status" />
-            </span>
+          <SelectTrigger className="w-10 sm:w-48 h-10 justify-center sm:justify-between" data-testid="status-filter">
+            <div className="flex items-center">
+              <Filter className="h-4 w-4 flex-shrink-0" />
+              <span className="hidden sm:inline sm:ml-2">
+                <SelectValue placeholder="Filter status" />
+              </span>
+            </div>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Conversations</SelectItem>
