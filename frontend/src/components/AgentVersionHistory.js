@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import {
@@ -34,13 +34,7 @@ const AgentVersionHistory = ({ agentId, agentName, open, onOpenChange, onRollbac
   const [expandedVersions, setExpandedVersions] = useState(new Set());
   const [rollingBack, setRollingBack] = useState(null);
 
-  useEffect(() => {
-    if (open && agentId) {
-      fetchVersions();
-    }
-  }, [open, agentId]);
-
-  const fetchVersions = async () => {
+  const fetchVersions = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API}/admin/agents/${agentId}/versions`, {
@@ -52,7 +46,13 @@ const AgentVersionHistory = ({ agentId, agentName, open, onOpenChange, onRollbac
     } finally {
       setLoading(false);
     }
-  };
+  }, [agentId, token]);
+
+  useEffect(() => {
+    if (open && agentId) {
+      fetchVersions();
+    }
+  }, [open, agentId, fetchVersions]);
 
   const toggleExpanded = (versionNum) => {
     const newExpanded = new Set(expandedVersions);
