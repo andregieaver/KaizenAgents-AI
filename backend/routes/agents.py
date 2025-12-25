@@ -835,16 +835,28 @@ async def publish_agent_to_marketplace(
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     
-    # AI Review using orchestrator
+    # Check if agent is already published
+    if agent.get("is_public"):
+        raise HTTPException(status_code=400, detail="Agent is already published to marketplace")
+    
+    # Check if agent is active
+    if not agent.get("is_active"):
+        raise HTTPException(status_code=400, detail="Please activate the agent before publishing")
+    
+    # AI Review using enhanced moderation
     review_result = await review_agent_for_marketplace(agent)
     
     if not review_result["approved"]:
         return {
             "success": False,
             "approved": False,
-            "message": "Agent did not pass review",
+            "message": "Agent did not pass content review",
+            "risk_level": review_result.get("risk_level", "unknown"),
+            "confidence": review_result.get("confidence", 0),
             "issues": review_result.get("issues", []),
-            "suggestions": review_result.get("suggestions", [])
+            "suggestions": review_result.get("suggestions", []),
+            "summary": review_result.get("summary", "Review failed"),
+            "review_type": review_result.get("review_type", "unknown")
         }
     
     # Create template in marketplace
@@ -852,18 +864,30 @@ async def publish_agent_to_marketplace(
     template_id = str(uuid.uuid4())
     now = datetime.now(timezone.utc).isoformat()
     
+    # Get company name for attribution
+    company = await db.companies.find_one({"tenant_id": tenant_id}, {"_id": 0, "name": 1})
+    company_name = company.get("name", "Unknown") if company else "Unknown"
+    
     template = {
         "id": template_id,
         "source_agent_id": agent_id,
         "source_tenant_id": tenant_id,
+        "publisher_company": company_name,
         "name": agent["name"],
-        "description": agent["description"],
-        "category": agent["category"],
-        "icon": agent["icon"],
+        "description": agent.get("description", ""),
+        "category": agent.get("category", "general"),
+        "icon": agent.get("icon", "🤖"),
         "profile_image_url": agent.get("profile_image_url"),
-        "config": agent["config"],
+        "config": _sanitize_agent_config_for_marketplace(agent.get("config", {})),
         "is_public": True,
+        "is_verified": False,
         "usage_count": 0,
+        "moderation_result": {
+            "approved": True,
+            "risk_level": review_result.get("risk_level", "none"),
+            "confidence": review_result.get("confidence", 1.0),
+            "reviewed_at": now
+        },
         "created_at": now,
         "published_at": now
     }
@@ -887,8 +911,34 @@ async def publish_agent_to_marketplace(
         "success": True,
         "approved": True,
         "message": "Agent published to marketplace successfully",
-        "template_id": template_id
+        "template_id": template_id,
+        "risk_level": review_result.get("risk_level", "none"),
+        "confidence": review_result.get("confidence", 1.0),
+        "summary": review_result.get("summary", "Agent approved for marketplace"),
+        "review_type": review_result.get("review_type", "ai_moderated")
     }
+
+
+def _sanitize_agent_config_for_marketplace(config: Dict[str, Any]) -> Dict[str, Any]:
+    """Remove sensitive data from agent config before publishing to marketplace"""
+    sanitized = {}
+    
+    # Only include safe, public configuration
+    safe_keys = [
+        "system_prompt", "ai_persona", "temperature", "max_tokens", 
+        "model", "provider_name", "language", "response_style",
+        "greeting_message", "fallback_message"
+    ]
+    
+    for key in safe_keys:
+        if key in config:
+            sanitized[key] = config[key]
+    
+    # Include knowledge base flag but not actual content
+    if config.get("knowledge_base"):
+        sanitized["has_knowledge_base"] = True
+    
+    return sanitized
 
 
 @router.post("/{agent_id}/unpublish")
