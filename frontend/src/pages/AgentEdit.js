@@ -658,6 +658,18 @@ const AgentEdit = () => {
           </>
         )}
       </Tabs>
+
+      {/* Moderation Feedback Modal */}
+      <ModerationFeedbackModal
+        open={showModerationModal}
+        onOpenChange={setShowModerationModal}
+        reviewResult={moderationResult}
+        agentName={agent.name}
+        onEditAgent={() => {
+          // Scroll to configuration tab
+          document.querySelector('[value="configuration"]')?.click();
+        }}
+      />
     </div>
   );
 };
