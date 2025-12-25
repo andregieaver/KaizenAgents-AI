@@ -20,6 +20,7 @@ import {
   Database
 } from 'lucide-react';
 import { toast } from 'sonner';
+import ModerationFeedbackModal from '../components/ModerationFeedbackModal';
 
 // Import tab components
 import {
@@ -44,6 +45,8 @@ const AgentEdit = () => {
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [moderationResult, setModerationResult] = useState(null);
+  const [showModerationModal, setShowModerationModal] = useState(false);
   const avatarInputRef = useRef(null);
   const fileInputRef = useRef(null);
   
