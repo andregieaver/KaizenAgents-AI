@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Button } from '../components/ui/button';
@@ -16,11 +16,7 @@ const ComponentEditor = () => {
   const [component, setComponent] = useState(null);
   const [blocks, setBlocks] = useState([]);
 
-  useEffect(() => {
-    fetchComponent();
-  }, [componentType]);
-
-  const fetchComponent = async () => {
+  const fetchComponent = useCallback(async () => {
     setLoading(true);
     try {
       const response = await axios.get(
@@ -34,7 +30,11 @@ const ComponentEditor = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [componentType]);
+
+  useEffect(() => {
+    fetchComponent();
+  }, [fetchComponent]);
 
   const handleSave = async () => {
     setSaving(true);
