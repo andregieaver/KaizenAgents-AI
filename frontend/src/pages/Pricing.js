@@ -262,19 +262,6 @@ const Pricing = () => {
     }
   };
 
-  // Format time remaining for grace period
-  const formatTimeRemaining = (isoString) => {
-    if (!isoString) return '';
-    const endTime = new Date(isoString);
-    const now = new Date();
-    const diff = endTime - now;
-    if (diff <= 0) return 'Expired';
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    if (hours > 0) return `${hours}h ${minutes}m remaining`;
-    return `${minutes}m remaining`;
-  };
-
   // Helper to apply discount from localStorage (called on page load)
   const handleApplyDiscountFromStorage = async (code, planId) => {
     if (!code || !planId || !token) return;
