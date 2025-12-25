@@ -366,84 +366,79 @@ const CustomerDetail = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard/crm')}>
-            <ArrowLeft className="h-5 w-5" />
+      {/* Header - Simplified for mobile */}
+      <div className="mb-6">
+        {/* Back button row */}
+        <div className="flex items-center justify-between mb-4">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/crm')} className="gap-1 -ml-2">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">Back</span>
           </Button>
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-lg font-bold text-primary">
-                {customer.name?.charAt(0).toUpperCase()}
-              </span>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-heading text-xl font-bold">{customer.name}</h1>
-                {leadScore && (
-                  <LeadScoreBadge score={leadScore.score} grade={leadScore.grade} />
-                )}
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {customer.position && `${customer.position} at `}{customer.company || 'No company'}
-              </p>
-            </div>
+          <div className="flex items-center gap-1">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="h-8 w-8"
+              onClick={refreshLeadScore}
+              disabled={loadingScore}
+              title="Refresh lead score"
+            >
+              {loadingScore ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setShowDeleteDialog(true)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={refreshLeadScore}
-            disabled={loadingScore}
-            title="Refresh lead score"
-          >
-            {loadingScore ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Sparkles className="h-4 w-4" />
-            )}
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => setShowDeleteDialog(true)} className="text-destructive">
-            <Trash2 className="h-4 w-4" />
-          </Button>
+        
+        {/* Customer info row */}
+        <div className="flex items-center gap-3">
+          <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <span className="text-lg sm:text-xl font-bold text-primary">
+              {customer.name?.charAt(0).toUpperCase()}
+            </span>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="font-heading text-lg sm:text-xl font-bold truncate">{customer.name}</h1>
+              {leadScore && (
+                <LeadScoreBadge score={leadScore.score} grade={leadScore.grade} />
+              )}
+            </div>
+            <p className="text-sm text-muted-foreground truncate">
+              {customer.position && `${customer.position} at `}{customer.company || 'No company'}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* Lead Score Card (if available) */}
+      {/* Lead Score Card - Compact on mobile */}
       {leadScore && (
-        <Card className="border-0 shadow-sm mb-6">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="text-center">
-                  <p className="text-3xl font-bold">{leadScore.score}</p>
-                  <p className="text-xs text-muted-foreground">Lead Score</p>
-                </div>
-                <Separator orientation="vertical" className="h-12" />
-                <div>
-                  <Badge className={`text-sm ${
-                    leadScore.grade === 'A' ? 'bg-green-500' :
-                    leadScore.grade === 'B' ? 'bg-blue-500' :
-                    leadScore.grade === 'C' ? 'bg-yellow-500' :
-                    leadScore.grade === 'D' ? 'bg-orange-500' : 'bg-gray-400'
-                  }`}>
-                    {leadScore.grade_label || leadScore.grade}
-                  </Badge>
-                  {leadScore.recommendations?.length > 0 && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {leadScore.recommendations[0]}
-                    </p>
-                  )}
-                </div>
+        <Card className="border-0 shadow-sm mb-4 sm:mb-6">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="text-center flex-shrink-0">
+                <p className="text-2xl sm:text-3xl font-bold">{leadScore.score}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground">Lead Score</p>
               </div>
-              <div className="text-right text-xs text-muted-foreground">
+              <Separator orientation="vertical" className="h-10 sm:h-12" />
+              <div className="flex-1 min-w-0">
+                <Badge className={`text-xs sm:text-sm ${
+                  leadScore.grade === 'A' ? 'bg-green-500' :
+                  leadScore.grade === 'B' ? 'bg-blue-500' :
+                  leadScore.grade === 'C' ? 'bg-yellow-500' :
+                  leadScore.grade === 'D' ? 'bg-orange-500' : 'bg-gray-400'
+                }`}>
+                  {leadScore.grade_label || leadScore.grade}
+                </Badge>
                 {leadScore.metrics && (
-                  <>
-                    <p>{leadScore.metrics.conversation_count} conversations</p>
-                    <p>{leadScore.metrics.message_count} messages</p>
-                  </>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 truncate">
+                    {leadScore.metrics.conversation_count} conversations · {leadScore.metrics.message_count} messages
+                  </p>
                 )}
               </div>
             </div>
@@ -451,102 +446,103 @@ const CustomerDetail = () => {
         </Card>
       )}
 
-      {/* Quick Actions */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        <Button size="sm" variant="outline" onClick={() => setShowEmailModal(true)} disabled={!customer.email}>
-          <Mail className="h-4 w-4 mr-2" />
-          Email
+      {/* Quick Actions - Icon only on mobile */}
+      <div className="flex gap-2 mb-4 sm:mb-6">
+        <Button size="sm" variant="outline" onClick={() => setShowEmailModal(true)} disabled={!customer.email} className="flex-1 sm:flex-none">
+          <Mail className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Email</span>
         </Button>
-        <Button size="sm" variant="outline" onClick={() => setShowFollowupModal(true)}>
-          <Calendar className="h-4 w-4 mr-2" />
-          Follow-up
+        <Button size="sm" variant="outline" onClick={() => setShowFollowupModal(true)} className="flex-1 sm:flex-none">
+          <Calendar className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Follow-up</span>
         </Button>
-        <Button size="sm" variant="outline" onClick={() => setShowNoteModal(true)}>
-          <FileText className="h-4 w-4 mr-2" />
-          Note
+        <Button size="sm" variant="outline" onClick={() => setShowNoteModal(true)} className="flex-1 sm:flex-none">
+          <FileText className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Note</span>
         </Button>
         {customer.phone && (
-          <Button size="sm" variant="outline" asChild>
+          <Button size="sm" variant="outline" asChild className="flex-1 sm:flex-none">
             <a href={`tel:${customer.phone}`}>
-              <Phone className="h-4 w-4 mr-2" />
-              Call
+              <Phone className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Call</span>
             </a>
           </Button>
         )}
       </div>
 
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="overview" className="flex-1 sm:flex-none">Overview</TabsTrigger>
-          <TabsTrigger value="conversations" className="flex-1 sm:flex-none">
+        <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
+          <TabsTrigger value="conversations" className="text-xs sm:text-sm">
             Conversations
             {conversations.length > 0 && (
-              <Badge variant="secondary" className="ml-1.5 h-5 px-1.5 text-xs">
+              <Badge variant="secondary" className="ml-1 h-4 sm:h-5 px-1 sm:px-1.5 text-[10px] sm:text-xs">
                 {conversations.length}
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="history" className="flex-1 sm:flex-none">History</TabsTrigger>
-          <TabsTrigger value="followups" className="flex-1 sm:flex-none">Follow-ups</TabsTrigger>
+          <TabsTrigger value="history" className="text-xs sm:text-sm">History</TabsTrigger>
+          <TabsTrigger value="followups" className="text-xs sm:text-sm">Follow-ups</TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}
         <TabsContent value="overview">
           <Card className="border-0 shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between py-3">
-              <CardTitle className="text-base">Customer Information</CardTitle>
-              <Button variant="ghost" size="sm" onClick={() => setEditMode(!editMode)}>
-                <Edit className="h-4 w-4 mr-1" />
+            <CardHeader className="flex flex-row items-center justify-between py-3 px-4">
+              <CardTitle className="text-sm sm:text-base">Customer Information</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setEditMode(!editMode)} className="h-8 text-xs sm:text-sm">
+                <Edit className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                 {editMode ? 'Cancel' : 'Edit'}
               </Button>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="px-4 pb-4 pt-0">
               {editMode ? (
-                <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="space-y-2">
-                      <Label>Name</Label>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Name</Label>
                       <Input
                         value={editData.name || ''}
                         onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                        className="h-9"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label>Email</Label>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Email</Label>
                       <Input
                         value={editData.email || ''}
                         onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                        className="h-9"
                       />
                     </div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="space-y-2">
-                      <Label>Phone</Label>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Phone</Label>
                       <Input
                         value={editData.phone || ''}
                         onChange={(e) => setEditData({ ...editData, phone: e.target.value })}
+                        className="h-9"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label>Company</Label>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Company</Label>
                       <Input
                         value={editData.company || ''}
                         onChange={(e) => setEditData({ ...editData, company: e.target.value })}
+                        className="h-9"
                       />
                     </div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="space-y-2">
-                      <Label>Position</Label>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Position</Label>
                       <Input
                         value={editData.position || ''}
                         onChange={(e) => setEditData({ ...editData, position: e.target.value })}
+                        className="h-9"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label>Status</Label>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs">Status</Label>
                       <select
-                        className="flex h-10 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
+                        className="flex h-9 w-full rounded-md border border-input bg-card px-3 py-2 text-sm"
                         value={editData.status || 'active'}
                         onChange={(e) => setEditData({ ...editData, status: e.target.value })}
                       >
@@ -557,88 +553,107 @@ const CustomerDetail = () => {
                       </select>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Address</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Address</Label>
                     <Input
                       value={editData.address || ''}
                       onChange={(e) => setEditData({ ...editData, address: e.target.value })}
+                      className="h-9"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Notes</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Notes</Label>
                     <Textarea
                       value={editData.notes || ''}
                       onChange={(e) => setEditData({ ...editData, notes: e.target.value })}
                       rows={3}
                     />
                   </div>
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={() => { setEditMode(false); setEditData(customer); }}>Cancel</Button>
-                    <Button onClick={handleSave} disabled={saving}>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <Button variant="outline" size="sm" onClick={() => { setEditMode(false); setEditData(customer); }}>Cancel</Button>
+                    <Button size="sm" onClick={handleSave} disabled={saving}>
                       {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                      Save Changes
+                      Save
                     </Button>
                   </div>
-                </>
+                </div>
               ) : (
-                <>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Email</p>
-                      <p className="text-sm font-medium">{customer.email || 'Not provided'}</p>
+                <div className="space-y-3">
+                  {/* Single column on mobile, two columns on larger screens */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2 py-1.5 border-b border-border/50 sm:border-0">
+                      <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Email</p>
+                        <p className="text-sm truncate">{customer.email || 'Not provided'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Phone</p>
-                      <p className="text-sm font-medium">{customer.phone || 'Not provided'}</p>
+                    <div className="flex items-center gap-2 py-1.5 border-b border-border/50 sm:border-0">
+                      <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Phone</p>
+                        <p className="text-sm truncate">{customer.phone || 'Not provided'}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Company</p>
-                      <p className="text-sm font-medium">{customer.company || 'Not provided'}</p>
+                    <div className="flex items-center gap-2 py-1.5 border-b border-border/50 sm:border-0">
+                      <Building className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Company</p>
+                        <p className="text-sm truncate">{customer.company || 'Not provided'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Position</p>
-                      <p className="text-sm font-medium">{customer.position || 'Not provided'}</p>
+                    <div className="flex items-center gap-2 py-1.5 border-b border-border/50 sm:border-0">
+                      <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Position</p>
+                        <p className="text-sm truncate">{customer.position || 'Not provided'}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Status</p>
-                      <Badge variant={customer.status === 'active' ? 'default' : 'secondary'}>{customer.status}</Badge>
+                    <div className="flex items-center gap-2 py-1.5 border-b border-border/50 sm:border-0">
+                      <Activity className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Status</p>
+                        <Badge variant={customer.status === 'active' ? 'default' : 'secondary'} className="text-xs mt-0.5">{customer.status}</Badge>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">Last Contact</p>
-                      <p className="text-sm font-medium">
-                        {customer.last_contact
-                          ? formatDistanceToNow(new Date(customer.last_contact), { addSuffix: true })
-                          : 'Never'}
-                      </p>
+                    <div className="flex items-center gap-2 py-1.5 border-b border-border/50 sm:border-0">
+                      <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Last Contact</p>
+                        <p className="text-sm">
+                          {customer.last_contact
+                            ? formatDistanceToNow(new Date(customer.last_contact), { addSuffix: true })
+                            : 'Never'}
+                        </p>
+                      </div>
                     </div>
                   </div>
                   {customer.address && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Address</p>
-                      <p className="text-sm font-medium">{customer.address}</p>
+                    <div className="flex items-start gap-2 pt-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Address</p>
+                        <p className="text-sm">{customer.address}</p>
+                      </div>
                     </div>
                   )}
                   {customer.notes && (
-                    <div>
-                      <p className="text-xs text-muted-foreground">Notes</p>
-                      <p className="text-sm">{customer.notes}</p>
+                    <div className="pt-2">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Notes</p>
+                      <p className="text-sm text-muted-foreground bg-muted/50 rounded p-2">{customer.notes}</p>
                     </div>
                   )}
                   {customer.tags?.length > 0 && (
-                    <div>
-                      <p className="text-xs text-muted-foreground mb-2">Tags</p>
+                    <div className="pt-2">
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1.5">Tags</p>
                       <div className="flex gap-1 flex-wrap">
                         {customer.tags.map((tag, i) => (
-                          <Badge key={i} variant="outline">{tag}</Badge>
+                          <Badge key={i} variant="outline" className="text-xs">{tag}</Badge>
                         ))}
                       </div>
                     </div>
                   )}
-                </>
+                </div>
               )}
             </CardContent>
           </Card>
