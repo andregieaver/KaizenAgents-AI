@@ -844,14 +844,27 @@ const CRM = () => {
             handleDragCancel();
           }}
         >
-          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-            {PIPELINE_STAGES.map(stage => (
-              <KanbanColumn
-                key={stage.id}
-                stage={stage}
-                customers={customersByStage[stage.id] || []}
-              />
-            ))}
+          <div className="relative">
+            <div 
+              ref={kanbanRef}
+              className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 scrollbar-hide"
+              onScroll={updateKanbanScrollState}
+            >
+              {PIPELINE_STAGES.map(stage => (
+                <KanbanColumn
+                  key={stage.id}
+                  stage={stage}
+                  customers={customersByStage[stage.id] || []}
+                />
+              ))}
+            </div>
+            {/* Dynamic fade indicators based on scroll position */}
+            {kanbanScroll.canScrollLeft && (
+              <div className="absolute left-0 top-0 bottom-4 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none sm:hidden" />
+            )}
+            {kanbanScroll.canScrollRight && (
+              <div className="absolute right-0 top-0 bottom-4 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
+            )}
           </div>
           <DragOverlay dropAnimation={null}>
             {activeId ? (
