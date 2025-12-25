@@ -236,20 +236,6 @@ const FeatureGatesAdmin = () => {
 
   // ============== CONVERSATION PRICING FUNCTIONS ==============
   
-  const loadConversationPricing = async () => {
-    setLoadingConversationPricing(true);
-    try {
-      const response = await axios.get(`${API}/quotas/conversation-pricing`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setConversationPricing(response.data || []);
-    } catch (error) {
-      // Conversation pricing may not be configured yet - silently ignore
-    } finally {
-      setLoadingConversationPricing(false);
-    }
-  };
-
   const startEditConversationPrice = (pricing) => {
     setEditingConversationPlan(pricing.plan_id);
     setConversationEditForm({
