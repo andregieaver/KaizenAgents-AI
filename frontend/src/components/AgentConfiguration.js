@@ -302,7 +302,7 @@ const AgentConfiguration = () => {
                   >
                     <div className="font-medium text-sm">Browser Language</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Auto-detect from user's browser settings (Accept-Language header)
+                      Auto-detect from user&apos;s browser settings (Accept-Language header)
                     </div>
                   </button>
                   
@@ -318,7 +318,7 @@ const AgentConfiguration = () => {
                   >
                     <div className="font-medium text-sm">Geo Location</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Auto-detect from user's IP address/location
+                      Auto-detect from user&apos;s IP address/location
                     </div>
                   </button>
                 </div>
