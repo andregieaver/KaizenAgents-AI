@@ -1376,3 +1376,261 @@ async def get_agent_scraping_status(agent_id: str, user: dict = Depends(get_curr
     
     return status
 
+
+# ============================================
+# Marketplace Publishing Endpoints
+# ============================================
+
+class PublishAgentRequest(BaseModel):
+    """Request model for publishing an agent to marketplace"""
+    custom_description: Optional[str] = None  # Optional custom description for marketplace
+    tags: Optional[List[str]] = []  # Tags for discoverability
+
+
+class PublishedAgentInfo(BaseModel):
+    """Response model for published agent info"""
+    model_config = ConfigDict(extra="ignore")
+    template_id: str
+    published_at: str
+    usage_count: int
+    is_public: bool
+
+
+@router.post("/{agent_id}/publish")
+async def publish_agent_to_marketplace(
+    agent_id: str,
+    publish_data: PublishAgentRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Publish a user agent to the marketplace as a template.
+    Creates a sanitized copy in agent_templates collection.
+    """
+    tenant_id = current_user.get("tenant_id")
+    user_role = current_user.get("role", "agent")
+    
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Only owners and admins can publish
+    if user_role not in ["owner", "admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Only owners and admins can publish agents to marketplace")
+    
+    # Get the agent
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Check if agent is already published
+    if agent.get("is_published"):
+        raise HTTPException(status_code=400, detail="Agent is already published to marketplace")
+    
+    # Check if agent is active (only active agents can be published)
+    if not agent.get("is_active"):
+        raise HTTPException(status_code=400, detail="Only active agents can be published. Please activate the agent first.")
+    
+    # Get company name for attribution
+    company = await db.companies.find_one({"tenant_id": tenant_id}, {"_id": 0, "name": 1})
+    company_name = company.get("name", "Unknown") if company else "Unknown"
+    
+    now = datetime.now(timezone.utc).isoformat()
+    template_id = str(uuid.uuid4())
+    
+    # Create sanitized config (remove sensitive data)
+    sanitized_config = _sanitize_agent_config(agent.get("config", {}))
+    
+    # Create the marketplace template
+    template = {
+        "id": template_id,
+        "source_agent_id": agent_id,
+        "source_tenant_id": tenant_id,
+        "publisher_company": company_name,
+        "name": agent.get("name"),
+        "description": publish_data.custom_description or agent.get("description", ""),
+        "category": agent.get("category", "general"),
+        "icon": agent.get("icon", "🤖"),
+        "profile_image_url": agent.get("profile_image_url"),
+        "config": sanitized_config,
+        "tags": publish_data.tags or agent.get("tags", []),
+        "is_public": True,  # Published templates are public
+        "is_verified": False,  # Not verified by default (for future moderation)
+        "usage_count": 0,
+        "created_at": now,
+        "updated_at": now
+    }
+    
+    # Insert template
+    await db.agent_templates.insert_one(template)
+    
+    # Update the original agent to mark as published
+    await db.user_agents.update_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {
+            "$set": {
+                "is_published": True,
+                "published_template_id": template_id,
+                "published_at": now,
+                "updated_at": now
+            }
+        }
+    )
+    
+    logger.info(f"Agent {agent_id} published to marketplace as template {template_id} by tenant {tenant_id}")
+    
+    return {
+        "message": "Agent published to marketplace successfully",
+        "template_id": template_id,
+        "agent_id": agent_id,
+        "marketplace_url": f"/marketplace?template={template_id}"
+    }
+
+
+@router.post("/{agent_id}/unpublish")
+async def unpublish_agent_from_marketplace(
+    agent_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Remove an agent from the marketplace.
+    Deletes the template but keeps the original agent.
+    """
+    tenant_id = current_user.get("tenant_id")
+    user_role = current_user.get("role", "agent")
+    
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Only owners and admins can unpublish
+    if user_role not in ["owner", "admin", "super_admin"]:
+        raise HTTPException(status_code=403, detail="Only owners and admins can unpublish agents")
+    
+    # Get the agent
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    if not agent.get("is_published"):
+        raise HTTPException(status_code=400, detail="Agent is not published to marketplace")
+    
+    template_id = agent.get("published_template_id")
+    
+    # Delete the template from marketplace
+    if template_id:
+        await db.agent_templates.delete_one({"id": template_id})
+    
+    # Update the agent
+    await db.user_agents.update_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {
+            "$set": {
+                "is_published": False,
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            },
+            "$unset": {
+                "published_template_id": "",
+                "published_at": ""
+            }
+        }
+    )
+    
+    logger.info(f"Agent {agent_id} unpublished from marketplace by tenant {tenant_id}")
+    
+    return {
+        "message": "Agent removed from marketplace",
+        "agent_id": agent_id
+    }
+
+
+@router.get("/{agent_id}/publish-status")
+async def get_agent_publish_status(
+    agent_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get the marketplace publish status of an agent"""
+    tenant_id = current_user.get("tenant_id")
+    
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0, "is_published": 1, "published_template_id": 1, "published_at": 1}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    is_published = agent.get("is_published", False)
+    template_id = agent.get("published_template_id")
+    
+    result = {
+        "is_published": is_published,
+        "published_at": agent.get("published_at"),
+        "template_id": template_id
+    }
+    
+    # If published, get usage stats
+    if is_published and template_id:
+        template = await db.agent_templates.find_one(
+            {"id": template_id},
+            {"_id": 0, "usage_count": 1, "is_verified": 1}
+        )
+        if template:
+            result["usage_count"] = template.get("usage_count", 0)
+            result["is_verified"] = template.get("is_verified", False)
+    
+    return result
+
+
+def _sanitize_agent_config(config: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Remove sensitive data from agent config before publishing.
+    This ensures API keys, credentials, etc. are not exposed.
+    """
+    sanitized = config.copy()
+    
+    # Remove sensitive fields
+    sensitive_keys = [
+        "api_key", "api_secret", "password", "token", "secret",
+        "consumer_key", "consumer_secret", "consumer_key_encrypted", 
+        "consumer_secret_encrypted", "woocommerce", "shopify",
+        "stripe", "credentials", "auth"
+    ]
+    
+    def remove_sensitive(obj):
+        if isinstance(obj, dict):
+            return {
+                k: remove_sensitive(v) 
+                for k, v in obj.items() 
+                if k.lower() not in sensitive_keys and not any(sk in k.lower() for sk in sensitive_keys)
+            }
+        elif isinstance(obj, list):
+            return [remove_sensitive(item) for item in obj]
+        return obj
+    
+    sanitized = remove_sensitive(sanitized)
+    
+    # Keep essential config for the template
+    essential_config = {
+        "system_prompt": sanitized.get("system_prompt", ""),
+        "temperature": sanitized.get("temperature", 0.7),
+        "max_tokens": sanitized.get("max_tokens", 2000),
+        "model": sanitized.get("model", "gpt-4"),
+        "provider_name": sanitized.get("provider_name", "OpenAI"),
+        # Include knowledge base reference but not actual content
+        "has_knowledge_base": bool(sanitized.get("knowledge_base")),
+        # Include language settings
+        "language": sanitized.get("language"),
+        "response_style": sanitized.get("response_style"),
+    }
+    
+    return essential_config
+
