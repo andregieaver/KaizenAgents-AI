@@ -89,7 +89,6 @@ const WaitlistAdmin = () => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-  };
 
   const handleEdit = (entry) => {
     setSelectedEntry(entry);
