@@ -681,7 +681,16 @@ const Breadcrumb = () => {
       plans: 'Plan Management',
       integrations: 'Integrations',
       discounts: 'Discount Codes',
-      affiliates: 'Affiliates'
+      affiliates: 'Affiliates',
+      crm: 'CRM',
+      users: 'Users',
+      pages: 'Pages',
+      menus: 'Menus',
+      'feature-gates': 'Feature Gates',
+      'email-templates': 'Email Templates',
+      storage: 'Storage',
+      waitlist: 'Waitlist',
+      'custom-emails': 'Custom Emails'
     };
     
     // If previous path was 'conversations' and this looks like an ID, show 'Details'
@@ -689,23 +698,52 @@ const Breadcrumb = () => {
       return 'Details';
     }
     
+    // If previous path was 'crm' and path is 'customers', show 'Customers'
+    if (path === 'customers') return 'Customers';
+    
+    // If it looks like a UUID or ID, show appropriate label based on parent
+    if (index > 0 && !labels[path]) {
+      const parent = allPaths[index - 1];
+      if (parent === 'agents') return 'Edit Agent';
+      if (parent === 'customers') return 'Customer Details';
+      if (parent === 'pages') return 'Edit Page';
+      return 'Details';
+    }
+    
     return labels[path] || path;
   };
 
+  const getPath = (index) => {
+    // Build the path up to and including the clicked item
+    return '/' + paths.slice(0, index + 1).join('/');
+  };
+
   return (
-    <div className="flex items-center gap-1 text-sm overflow-hidden">
-      {paths.map((path, index) => (
-        <span key={path} className="flex items-center gap-1 truncate">
-          {index > 0 && <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
-          <span className={cn(
-            'truncate',
-            index === paths.length - 1 ? 'font-medium' : 'text-muted-foreground'
-          )}>
-            {getLabel(path, index, paths)}
+    <nav className="flex items-center gap-1 text-sm overflow-hidden" aria-label="Breadcrumb">
+      {paths.map((path, index) => {
+        const isLast = index === paths.length - 1;
+        const label = getLabel(path, index, paths);
+        const href = getPath(index);
+        
+        return (
+          <span key={`${path}-${index}`} className="flex items-center gap-1 truncate">
+            {index > 0 && <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />}
+            {isLast ? (
+              <span className="font-medium truncate" aria-current="page">
+                {label}
+              </span>
+            ) : (
+              <Link
+                to={href}
+                className="text-muted-foreground hover:text-foreground transition-colors truncate"
+              >
+                {label}
+              </Link>
+            )}
           </span>
-        </span>
-      ))}
-    </div>
+        );
+      })}
+    </nav>
   );
 };
 
