@@ -16,7 +16,7 @@ import time
 from datetime import datetime
 
 class ProductionReadinessTester:
-    def __init__(self, base_url="https://component-revamp.preview.emergentagent.com"):
+    def __init__(self, base_url="https://frontend-optimize-3.preview.emergentagent.com"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.token = None
@@ -193,7 +193,7 @@ class ProductionReadinessTester:
         
         # Test with allowed origin
         cors_headers = {
-            'Origin': 'https://component-revamp.preview.emergentagent.com',
+            'Origin': 'https://frontend-optimize-3.preview.emergentagent.com',
             'Access-Control-Request-Method': 'GET',
             'Access-Control-Request-Headers': 'Content-Type,Authorization'
         }
@@ -214,7 +214,7 @@ class ProductionReadinessTester:
             print(f"✅ CORS Headers: {cors_headers_allowed}")
             
             # Test actual request with Origin header
-            actual_response = requests.get(f"{self.api_url}/health", headers={'Origin': 'https://component-revamp.preview.emergentagent.com'}, timeout=30)
+            actual_response = requests.get(f"{self.api_url}/health", headers={'Origin': 'https://frontend-optimize-3.preview.emergentagent.com'}, timeout=30)
             
             if actual_response.status_code == 200:
                 print(f"✅ Actual request with CORS origin successful")
