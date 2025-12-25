@@ -118,10 +118,6 @@ const Team = () => {
     }
   }, [searchParams, token, setSearchParams]);
 
-  useEffect(() => {
-    fetchData();
-  }, [token]);
-
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -167,6 +163,10 @@ const Team = () => {
       setLoading(false);
     }
   }, [token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   // User handlers
   const handleInviteSuccess = (newUser) => {
