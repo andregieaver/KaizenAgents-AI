@@ -93,6 +93,7 @@ const Conversations = () => {
         });
         setConversations(response.data);
       } catch {
+        // Conversations fetch failed silently
       } finally {
         setLoading(false);
       }

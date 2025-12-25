@@ -24,6 +24,7 @@ const Dashboard = () => {
         });
         setStats(response.data);
       } catch {
+        // Stats fetch failed silently
       } finally {
         setLoading(false);
       }

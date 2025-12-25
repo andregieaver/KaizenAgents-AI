@@ -47,6 +47,7 @@ const WidgetDemo = () => {
           }]);
         }
       } catch {
+        // Session init failed silently
       } finally {
         setLoading(false);
       }
