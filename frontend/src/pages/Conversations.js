@@ -86,7 +86,7 @@ const Conversations = () => {
         let url = `${API}/conversations`;
         // needs_response is a client-side filter
         if (statusFilter && statusFilter !== 'all' && statusFilter !== 'needs_response') {
-          url += `?status=${statusFilter}`;
+          url += `?conversation_status=${statusFilter}`;
         }
         const response = await axios.get(url, {
           headers: { Authorization: `Bearer ${token}` }
