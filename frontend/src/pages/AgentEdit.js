@@ -266,53 +266,6 @@ const AgentEdit = () => {
     }
   };
 
-  const fetchScrapingStatus = async (agentIdToFetch) => {
-    try {
-      const response = await axios.get(`${API}/agents/${agentIdToFetch}/scraping-status`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setScrapingStatus(response.data);
-    } catch (error) {
-      // Silently fail
-    }
-  };
-
-  const fetchAgent = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API}/agents/${agentId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const agentData = response.data;
-      agentData.config = {
-        ...agentData.config,
-        scraping_domains: agentData.config?.scraping_domains || '',
-        scraping_max_depth: agentData.config?.scraping_max_depth || 2,
-        scraping_max_pages: agentData.config?.scraping_max_pages || 50,
-        woocommerce: {
-          enabled: false,
-          store_url: '',
-          consumer_key: '',
-          consumer_secret: '',
-          ...agentData.config?.woocommerce
-        },
-        shopify: {
-          enabled: false,
-          store_domain: '',
-          access_token: '',
-          ...agentData.config?.shopify
-        }
-      };
-      setAgent(agentData);
-      fetchAgentDocuments(agentId);
-      fetchScrapingStatus(agentId);
-    } catch (error) {
-      toast.error('Failed to load agent');
-      navigate('/dashboard/agents');
-    } finally {
-      setLoading(false);
-    }
-  }, [agentId, token, navigate]);
-
   // Fetch providers
   useEffect(() => {
     const fetchProviders = async () => {
