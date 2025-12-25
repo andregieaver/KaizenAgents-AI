@@ -229,50 +229,15 @@ const Conversations = () => {
           <h1 className="font-heading text-2xl lg:text-3xl font-bold tracking-tight mb-2">Conversations</h1>
           <p className="text-muted-foreground">Manage and respond to customer conversations</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowShortcutsHelp(true)}
-            className="hidden sm:flex items-center gap-1 text-muted-foreground"
-          >
-            <Keyboard className="h-4 w-4" />
-            <span className="text-xs">Press ? for shortcuts</span>
-          </Button>
-          
-          {/* Export Button */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => {
-                window.open(`${BACKEND_URL}/api/conversations/export?format=csv`, '_blank');
-                toast.success('Downloading CSV...');
-              }}>
-                <FileText className="h-4 w-4 mr-2" />
-                Export as CSV
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                window.open(`${BACKEND_URL}/api/conversations/export?format=json`, '_blank');
-                toast.success('Downloading JSON...');
-              }}>
-                <FileText className="h-4 w-4 mr-2" />
-                Export as JSON
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => {
-                window.open(`${BACKEND_URL}/api/conversations/export?format=json&include_messages=true`, '_blank');
-                toast.success('Downloading JSON with messages...');
-              }}>
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Export with Messages (JSON)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowShortcutsHelp(true)}
+          className="hidden sm:flex items-center gap-1 text-muted-foreground"
+        >
+          <Keyboard className="h-4 w-4" />
+          <span className="text-xs">Press ? for shortcuts</span>
+        </Button>
       </div>
       
       {/* Bulk Actions Toolbar */}
@@ -295,8 +260,8 @@ const Conversations = () => {
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      {/* Filters - Search and Filter inline */}
+      <div className="flex gap-2 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -307,10 +272,14 @@ const Conversations = () => {
             data-testid="search-input"
           />
         </div>
+        
+        {/* Filter - Icon on mobile, full on desktop */}
         <Select value={statusFilter} onValueChange={handleStatusFilter}>
-          <SelectTrigger className="w-full sm:w-48 h-10" data-testid="status-filter">
-            <Filter className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Filter status" />
+          <SelectTrigger className="w-10 sm:w-48 h-10 px-0 sm:px-3" data-testid="status-filter">
+            <Filter className="h-4 w-4 sm:mr-2 mx-auto sm:mx-0" />
+            <span className="hidden sm:inline">
+              <SelectValue placeholder="Filter status" />
+            </span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Conversations</SelectItem>
@@ -361,7 +330,7 @@ const Conversations = () => {
               <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full mx-auto" />
             </div>
           ) : filteredConversations.length > 0 ? (
-            <ScrollArea className="h-[calc(100vh-340px)] sm:h-[calc(100vh-380px)]">
+            <ScrollArea className="h-[calc(100vh-400px)] sm:h-[calc(100vh-440px)]">
               <div ref={listRef}>
                 {filteredConversations.map((conversation, index) => (
                   <ConversationRow 
@@ -387,6 +356,41 @@ const Conversations = () => {
           )}
         </CardContent>
       </Card>
+      
+      {/* Export Button - Below the list */}
+      <div className="mt-4 flex justify-end">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <Download className="h-4 w-4 mr-2" />
+              Export Conversations
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => {
+              window.open(`${BACKEND_URL}/api/conversations/export?format=csv`, '_blank');
+              toast.success('Downloading CSV...');
+            }}>
+              <FileText className="h-4 w-4 mr-2" />
+              Export as CSV
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {
+              window.open(`${BACKEND_URL}/api/conversations/export?format=json`, '_blank');
+              toast.success('Downloading JSON...');
+            }}>
+              <FileText className="h-4 w-4 mr-2" />
+              Export as JSON
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => {
+              window.open(`${BACKEND_URL}/api/conversations/export?format=json&include_messages=true`, '_blank');
+              toast.success('Downloading JSON with messages...');
+            }}>
+              <MessageSquare className="h-4 w-4 mr-2" />
+              Export with Messages (JSON)
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       
       {/* Keyboard Shortcuts Help Modal */}
       <KeyboardShortcutsHelp 
