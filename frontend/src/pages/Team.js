@@ -2,7 +2,7 @@
  * Team Page - Manage team members, groups, and AI agents
  * Refactored to use extracted components from /components/team/
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
