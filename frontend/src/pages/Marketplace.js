@@ -53,15 +53,7 @@ const Marketplace = () => {
     { value: 'general', label: 'General' }
   ];
 
-  useEffect(() => {
-    fetchAgents();
-  }, [token]);
-
-  useEffect(() => {
-    filterAgents();
-  }, [agents, searchQuery, selectedCategory]);
-
-  const fetchAgents = async () => {
+  const fetchAgents = useCallback(async () => {
     setLoading(true);
     try {
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
@@ -72,9 +64,9 @@ const Marketplace = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const filterAgents = () => {
+  const filterAgents = useCallback(() => {
     let filtered = agents;
 
     // Filter by category
@@ -92,7 +84,15 @@ const Marketplace = () => {
     }
 
     setFilteredAgents(filtered);
-  };
+  }, [agents, searchQuery, selectedCategory]);
+
+  useEffect(() => {
+    fetchAgents();
+  }, [fetchAgents]);
+
+  useEffect(() => {
+    filterAgents();
+  }, [filterAgents]);
 
   const handleViewDetails = (agent) => {
     setSelectedAgent(agent);
