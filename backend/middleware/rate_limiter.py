@@ -4,7 +4,7 @@ Uses sliding window algorithm with in-memory storage
 """
 from fastapi import Request, HTTPException, status
 from datetime import datetime, timezone, timedelta
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 import asyncio
 from collections import defaultdict
 
@@ -54,7 +54,7 @@ class RateLimiter:
             if ts > since
         )
     
-    async def check_rate_limit(self, tenant_id: str) -> Tuple[bool, Dict[str, 'Any']]:
+    async def check_rate_limit(self, tenant_id: str) -> Tuple[bool, Dict[str, Any]]:
         """
         Check if request is within rate limits
         Returns: (is_allowed, info_dict)
@@ -100,7 +100,7 @@ class RateLimiter:
                 "usage": usage
             }
     
-    async def get_usage_stats(self, tenant_id: str) -> Dict[str, 'Any']:
+    async def get_usage_stats(self, tenant_id: str) -> Dict[str, Any]:
         """Get current usage statistics for a tenant"""
         async with self.lock:
             now = datetime.now(timezone.utc)
