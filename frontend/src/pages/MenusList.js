@@ -24,6 +24,7 @@ const MenusList = () => {
       });
       setMenus(response.data);
     } catch {
+      // Menus fetch failed silently
     } finally {
       setLoading(false);
     }
