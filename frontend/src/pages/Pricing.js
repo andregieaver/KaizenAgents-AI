@@ -16,6 +16,7 @@ import { Alert, AlertDescription } from '../components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../components/ui/tooltip';
 import { cn } from '../lib/utils';
 import { useTheme } from '../context/ThemeContext';
+import { ResourceAllocationCard } from '../components/pricing';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
