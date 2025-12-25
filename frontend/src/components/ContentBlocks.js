@@ -62,6 +62,7 @@ import {
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
 import { toast } from 'sonner';
+import axios from 'axios';
 
 // Import extracted components
 import SortableBlockItem from './editors/SortableBlockItem';
