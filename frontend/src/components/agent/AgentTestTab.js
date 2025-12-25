@@ -50,7 +50,7 @@ const AgentTestTab = ({ agent, agentId, token }) => {
       if (conversationHistory.length === 0) {
         toast.success(`Using ${response.data.model_used} via ${response.data.provider_used}`);
       }
-    } catch {
+    } catch (error) {
       const errorMsg = error.response?.data?.detail || 'Test failed';
       toast.error(errorMsg);
     } finally {

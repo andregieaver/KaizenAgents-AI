@@ -61,7 +61,7 @@ const InviteUserModal = ({
         onSuccess(response.data);
       }
       
-    } catch {
+    } catch (error) {
       const errorDetail = error.response?.data?.detail;
       
       // Check if it's a quota error

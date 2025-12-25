@@ -47,7 +47,7 @@ const PricingWidget = () => {
           setCurrentSubscription(null);
         }
       }
-    } catch {
+    } catch (error) {
       toast.error('Failed to load pricing information');
     } finally {
       setLoading(false);
@@ -80,7 +80,7 @@ const PricingWidget = () => {
       setAppliedDiscount(response.data);
       setDiscountPlanId(planId);
       toast.success(response.data.message || 'Discount applied successfully!');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Invalid discount code');
       setAppliedDiscount(null);
       setDiscountPlanId(null);
@@ -128,7 +128,7 @@ const PricingWidget = () => {
         toast.success('Subscription created successfully!');
         fetchData();
       }
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to create subscription');
     } finally {
       setCheckoutLoading(null);

@@ -77,7 +77,7 @@ const AgentConfiguration = () => {
       
       // Fetch scraping status
       fetchScrapingStatus();
-    } catch {
+    } catch (error) {
       toast.error('Failed to load agent configuration');
     } finally {
       setLoading(false);
@@ -90,7 +90,7 @@ const AgentConfiguration = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setScrapingStatus(response.data);
-    } catch {
+    } catch (error) {
       // Scraping status fetch failed silently - status will remain as previous state
     }
   };
@@ -116,7 +116,7 @@ const AgentConfiguration = () => {
 
       toast.success('Agent configuration saved');
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to save configuration');
     } finally {
       setSaving(false);
@@ -135,7 +135,7 @@ const AgentConfiguration = () => {
       toast.success(`Successfully scraped ${response.data.pages_scraped} pages and created ${response.data.chunks_created} chunks`);
       fetchScrapingStatus();
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to trigger scraping');
     } finally {
       setScraping(false);
@@ -164,7 +164,7 @@ const AgentConfiguration = () => {
 
       toast.success('Document uploaded successfully');
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to upload document');
     } finally {
       setUploading(false);
@@ -185,7 +185,7 @@ const AgentConfiguration = () => {
 
       toast.success('Document deleted');
       fetchData();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to delete document');
     }
   };

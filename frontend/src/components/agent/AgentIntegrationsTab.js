@@ -47,7 +47,7 @@ const AgentIntegrationsTab = ({ agent, setAgent, token }) => {
       } else {
         toast.error(response.data.error || 'Connection failed');
       }
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Connection test failed');
     } finally {
       setTestingWooCommerce(false);
@@ -74,7 +74,7 @@ const AgentIntegrationsTab = ({ agent, setAgent, token }) => {
       } else {
         toast.error(response.data.error || 'Connection failed');
       }
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Connection test failed');
     } finally {
       setTestingShopify(false);

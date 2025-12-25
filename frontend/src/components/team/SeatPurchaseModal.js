@@ -53,7 +53,7 @@ const SeatPurchaseModal = ({
       if (response.data.checkout_url) {
         window.location.href = response.data.checkout_url;
       }
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to start checkout');
     } finally {
       setLoading(false);

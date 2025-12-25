@@ -56,7 +56,7 @@ const PricingConfigCard = ({
       toast.success('Pricing updated successfully');
       setEditing(null);
       if (onUpdate) onUpdate();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to update pricing');
     } finally {
       setSaving(false);
@@ -73,7 +73,7 @@ const PricingConfigCard = ({
       );
       toast.success('Synced with Stripe successfully');
       if (onUpdate) onUpdate();
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to sync with Stripe');
     } finally {
       setSyncing(null);

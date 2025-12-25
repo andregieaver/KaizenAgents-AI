@@ -41,7 +41,7 @@ const DiscountCodeInput = ({
       } else {
         toast.error(response.data.message || 'Invalid discount code');
       }
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to validate discount code');
     } finally {
       setApplying(false);

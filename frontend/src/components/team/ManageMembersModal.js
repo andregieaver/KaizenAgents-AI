@@ -39,7 +39,7 @@ const ManageMembersModal = ({
         headers: { Authorization: `Bearer ${token}` }
       });
       setTeamMembers(response.data);
-    } catch {
+    } catch (error) {
       setTeamMembers([]);
     } finally {
       setLoading(false);
@@ -69,7 +69,7 @@ const ManageMembersModal = ({
       }
       
       toast.success('Member added to team');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to add member');
     } finally {
       setActionLoading(false);
@@ -89,7 +89,7 @@ const ManageMembersModal = ({
       }
       
       toast.success('Member removed from team');
-    } catch {
+    } catch (error) {
       toast.error(error.response?.data?.detail || 'Failed to remove member');
     }
   };
