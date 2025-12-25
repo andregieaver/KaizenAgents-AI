@@ -81,11 +81,7 @@ const CustomEmailsAdmin = () => {
   const [testEmail, setTestEmail] = useState('');
   const [sending, setSending] = useState(false);
 
-  useEffect(() => {
-    fetchData();
-  }, [token]);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     try {
@@ -101,7 +97,11 @@ const CustomEmailsAdmin = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const handleNewEmail = () => {
     setEditingEmail(null);
