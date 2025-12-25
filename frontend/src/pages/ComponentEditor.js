@@ -29,7 +29,7 @@ const ComponentEditor = () => {
       );
       setComponent(response.data);
       setBlocks(response.data.blocks || []);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load component');
     } finally {
       setLoading(false);
@@ -46,7 +46,7 @@ const ComponentEditor = () => {
       );
       toast.success('Component saved successfully!');
       navigate('/dashboard/admin/components');
-    } catch (error) {
+    } catch {
       toast.error('Failed to save component');
     } finally {
       setSaving(false);

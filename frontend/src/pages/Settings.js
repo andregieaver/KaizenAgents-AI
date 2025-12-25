@@ -65,7 +65,7 @@ const Settings = () => {
         if (response.data.openai_api_key) {
           setApiKey('');
         }
-      } catch (error) {
+      } catch {
         toast.error('Failed to load settings');
       } finally {
         setLoading(false);
@@ -85,7 +85,7 @@ const Settings = () => {
       );
       setSettings(response.data);
       toast.success('Settings saved');
-    } catch (error) {
+    } catch {
       toast.error('Failed to save settings');
     } finally {
       setSaving(false);
@@ -138,7 +138,7 @@ const Settings = () => {
       const newLogoUrl = response.data.brand_logo;
       setSettings({ ...settings, brand_logo: newLogoUrl });
       toast.success('Brand logo updated!');
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to upload logo');
     } finally {
       setUploadingLogo(false);

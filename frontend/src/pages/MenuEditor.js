@@ -32,7 +32,7 @@ const MenuEditor = () => {
       });
       setMenuName(response.data.name);
       setItems(response.data.items || []);
-    } catch (error) {
+    } catch {
       alert('Failed to load menu');
     } finally {
       setLoading(false);
@@ -64,7 +64,7 @@ const MenuEditor = () => {
       }
 
       navigate('/dashboard/admin/menus');
-    } catch (error) {
+    } catch {
       alert('Failed to save menu');
     } finally {
       setSaving(false);

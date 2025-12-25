@@ -146,7 +146,7 @@ const RowEditor = ({ blockId, content, onUpdate }) => {
       });
 
       toast.success('Background image uploaded');
-    } catch (error) {
+    } catch {
       toast.error('Failed to upload image');
     } finally {
       setUploadingBg(false);

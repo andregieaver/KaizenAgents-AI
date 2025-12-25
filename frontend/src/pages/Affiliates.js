@@ -69,7 +69,7 @@ const Affiliates = () => {
       setReferrals(referralsRes.data);
       setCreditHistory(historyRes.data || []);
       setSettings(settingsRes.data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load affiliate data');
     } finally {
       setLoading(false);

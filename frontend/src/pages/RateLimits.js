@@ -59,7 +59,7 @@ const RateLimits = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setRateLimits(response.data.rate_limits || []);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load rate limits');
     } finally {
       setLoading(false);
@@ -89,7 +89,7 @@ const RateLimits = () => {
       toast.success('Rate limits updated successfully');
       setEditDialogOpen(false);
       fetchRateLimits();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to update rate limits');
     }
   };
@@ -103,7 +103,7 @@ const RateLimits = () => {
       });
       toast.success('Rate limits reset to defaults');
       fetchRateLimits();
-    } catch (error) {
+    } catch {
       toast.error('Failed to reset rate limits');
     }
   };

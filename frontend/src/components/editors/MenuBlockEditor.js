@@ -33,7 +33,7 @@ export const MenuBlockEditor = ({ block, updateBlock }) => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMenus(response.data);
-    } catch (error) {
+    } catch {
       // Silent fail - menus may not be available
     } finally {
       setLoading(false);

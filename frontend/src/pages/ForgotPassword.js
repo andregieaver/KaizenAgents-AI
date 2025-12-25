@@ -23,7 +23,7 @@ const ForgotPassword = () => {
     try {
       await axios.post(`${API}/auth/forgot-password`, { email });
       setSubmitted(true);
-    } catch (error) {
+    } catch {
       // Always show success message to prevent email enumeration
       setSubmitted(true);
     } finally {

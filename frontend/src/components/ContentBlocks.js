@@ -267,7 +267,7 @@ const ContentBlocks = ({ blocks, onChange }) => {
       });
 
       toast.success('Image uploaded successfully');
-    } catch (error) {
+    } catch {
       toast.error('Failed to upload image');
     } finally {
       setUploadingImage(null);

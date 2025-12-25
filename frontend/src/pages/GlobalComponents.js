@@ -24,7 +24,7 @@ const GlobalComponents = () => {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setComponents(response.data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load global components');
     } finally {
       setLoading(false);

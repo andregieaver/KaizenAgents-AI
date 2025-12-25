@@ -38,7 +38,7 @@ const Observability = () => {
       
       setHealth(healthRes.data);
       setMetrics(metricsRes.data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load observability data');
     } finally {
       setLoading(false);

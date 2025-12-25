@@ -92,7 +92,7 @@ const Conversations = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setConversations(response.data);
-      } catch (error) {
+      } catch {
       } finally {
         setLoading(false);
       }
@@ -195,7 +195,7 @@ const Conversations = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setConversations(response.data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to resolve some conversations');
     }
   };
@@ -216,7 +216,7 @@ const Conversations = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setConversations(response.data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to reopen some conversations');
     }
   };

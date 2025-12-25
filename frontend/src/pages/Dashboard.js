@@ -23,7 +23,7 @@ const Dashboard = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStats(response.data);
-      } catch (error) {
+      } catch {
       } finally {
         setLoading(false);
       }

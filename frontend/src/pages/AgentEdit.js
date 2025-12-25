@@ -167,7 +167,7 @@ const AgentEdit = () => {
       });
       toast.success('Document uploaded successfully');
       fetchAgentDocuments(agent.id);
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to upload document');
     } finally {
       setUploading(false);
@@ -186,7 +186,7 @@ const AgentEdit = () => {
       });
       toast.success('Document deleted');
       fetchAgentDocuments(agent.id);
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete document');
     }
   };
@@ -209,7 +209,7 @@ const AgentEdit = () => {
       });
       setScrapingStatus(response.data);
       toast.success('Scraping started. This may take a few minutes.');
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to start scraping');
     } finally {
       setScraping(false);
@@ -222,7 +222,7 @@ const AgentEdit = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setScrapingStatus(response.data);
-    } catch (error) {
+    } catch {
       // Silently fail
     }
   };
@@ -295,7 +295,7 @@ const AgentEdit = () => {
       setAgent(agentData);
       fetchAgentDocuments(agentId);
       fetchScrapingStatus(agentId);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load agent');
       navigate('/dashboard/agents');
     } finally {
@@ -360,7 +360,7 @@ const AgentEdit = () => {
         toast.success('Agent updated successfully');
         fetchAgent();
       }
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to save agent');
     } finally {
       setSaving(false);
@@ -381,7 +381,7 @@ const AgentEdit = () => {
       });
       toast.success('Agent deleted');
       navigate('/dashboard/agents');
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to delete agent');
     }
   };
@@ -400,7 +400,7 @@ const AgentEdit = () => {
         toast.success('Agent activated');
       }
       fetchAgent();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to update agent');
     }
   };
@@ -430,7 +430,7 @@ const AgentEdit = () => {
         }
       }
       fetchAgent();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to publish agent');
     } finally {
       setPublishing(false);
@@ -458,7 +458,7 @@ const AgentEdit = () => {
 
       toast.success('Avatar uploaded');
       fetchAgent();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to upload avatar');
     } finally {
       setUploadingAvatar(false);

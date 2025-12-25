@@ -23,7 +23,7 @@ const MenusList = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setMenus(response.data);
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -38,7 +38,7 @@ const MenusList = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       fetchMenus();
-    } catch (error) {
+    } catch {
       alert('Failed to delete menu');
     }
   };

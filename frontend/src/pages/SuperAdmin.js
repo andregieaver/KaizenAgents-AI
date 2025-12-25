@@ -70,7 +70,7 @@ const SuperAdmin = () => {
       setPlatformSettings(settingsRes.data);
       setTenants(tenantsRes.data);
       setUsers(usersRes.data);
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ const SuperAdmin = () => {
       );
       setPlatformSettings(response.data);
       toast.success('Platform settings updated');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update settings');
     }
   };
@@ -136,7 +136,7 @@ const SuperAdmin = () => {
 
       setPlatformSettings({ ...platformSettings, platform_logo: response.data.platform_logo });
       toast.success('Platform logo updated!');
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to upload logo');
     } finally {
       setUploadingPlatformLogo(false);
@@ -167,7 +167,7 @@ const SuperAdmin = () => {
       );
       setTenantDetails(response.data);
       setSelectedTenant(tenantId);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load tenant details');
     }
   };
@@ -182,7 +182,7 @@ const SuperAdmin = () => {
       setSelectedTenant(null);
       setTenantDetails(null);
       fetchData();
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete tenant');
     }
   };
@@ -196,7 +196,7 @@ const SuperAdmin = () => {
       await axios.post(endpoint, {}, { headers: { Authorization: `Bearer ${token}` } });
       toast.success(currentStatus ? 'Super admin revoked' : 'Super admin granted');
       fetchData();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to update user');
     }
   };

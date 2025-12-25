@@ -47,7 +47,7 @@ const AgentVersionHistory = ({ agentId, agentName, open, onOpenChange, onRollbac
         headers: { Authorization: `Bearer ${token}` }
       });
       setVersions(response.data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load version history');
     } finally {
       setLoading(false);
@@ -79,7 +79,7 @@ const AgentVersionHistory = ({ agentId, agentName, open, onOpenChange, onRollbac
       toast.success(`Successfully rolled back to version ${version}`);
       onOpenChange(false);
       if (onRollback) onRollback();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to rollback');
     } finally {
       setRollingBack(null);

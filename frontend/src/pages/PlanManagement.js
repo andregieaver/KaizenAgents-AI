@@ -58,7 +58,7 @@ const PlanManagement = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setPlans(response.data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load plans');
     } finally {
       setLoading(false);
@@ -136,7 +136,7 @@ const PlanManagement = () => {
       }
       setEditModalOpen(false);
       fetchPlans();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to save plan');
     } finally {
       setSaving(false);
@@ -152,7 +152,7 @@ const PlanManagement = () => {
       });
       toast.success('Plan deleted successfully');
       fetchPlans();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to delete plan');
     }
   };

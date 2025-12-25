@@ -79,7 +79,7 @@ const DashboardLayout = () => {
           setBrandName(response.data.brand_name || 'Support Hub');
           setBrandLogo(response.data.brand_logo || null);
         }
-      } catch (error) {
+      } catch {
         console.debug('Could not fetch brand settings, using defaults');
       }
     };
@@ -97,7 +97,7 @@ const DashboardLayout = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         setIsAvailable(response.data.available);
-      } catch (error) {
+      } catch {
         console.debug('Could not fetch availability');
       }
     };
@@ -126,7 +126,7 @@ const DashboardLayout = () => {
           setCurrentTransfer(transfers[0]);
           setShowTransferPopup(true);
         }
-      } catch (error) {
+      } catch {
         console.debug('Could not fetch transfers');
       }
     };
@@ -144,7 +144,7 @@ const DashboardLayout = () => {
       });
       setIsAvailable(newStatus);
       toast.success(newStatus ? 'You are now available' : 'You are now unavailable');
-    } catch (error) {
+    } catch {
       toast.error('Failed to update availability');
     }
   };
@@ -159,7 +159,7 @@ const DashboardLayout = () => {
       setPendingTransfers(prev => prev.filter(t => t.id !== transferId));
       toast.success('Transfer accepted');
       navigate(`/dashboard/conversations/${response.data.conversation_id}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to accept transfer');
     }
   };
@@ -172,7 +172,7 @@ const DashboardLayout = () => {
       setShowTransferPopup(false);
       setCurrentTransfer(null);
       setPendingTransfers(prev => prev.filter(t => t.id !== transferId));
-    } catch (error) {
+    } catch {
       toast.error('Failed to decline transfer');
     }
   };

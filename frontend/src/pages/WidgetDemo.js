@@ -46,7 +46,7 @@ const WidgetDemo = () => {
             created_at: new Date().toISOString()
           }]);
         }
-      } catch (error) {
+      } catch {
       } finally {
         setLoading(false);
       }
@@ -83,7 +83,7 @@ const WidgetDemo = () => {
       if (response.data.ai_message) {
         setMessages(prev => [...prev, response.data.ai_message]);
       }
-    } catch (error) {
+    } catch {
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         author_type: 'ai',

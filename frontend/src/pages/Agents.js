@@ -47,7 +47,7 @@ const Agents = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAgents(response.data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load agents');
     } finally {
       setLoading(false);
@@ -75,7 +75,7 @@ const Agents = () => {
 
       toast.success('Avatar uploaded');
       fetchAgents();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to upload avatar');
     } finally {
       setUploadingAvatar(null);
@@ -100,7 +100,7 @@ const Agents = () => {
         toast.success('Agent activated');
       }
       fetchAgents();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to update agent');
     } finally {
       setTogglingAgent(null);
@@ -119,7 +119,7 @@ const Agents = () => {
       });
       toast.success('Agent deleted');
       fetchAgents();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to delete agent');
     }
   };

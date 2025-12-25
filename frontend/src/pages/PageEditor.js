@@ -115,7 +115,7 @@ const PageEditor = () => {
           }
         }
       });
-    } catch (error) {
+    } catch {
       toast.error('Failed to load page');
       navigate('/dashboard/admin/pages');
     } finally {
@@ -183,7 +183,7 @@ const PageEditor = () => {
         toast.success('Page created successfully');
       }
       navigate('/dashboard/admin/pages');
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to save page');
     } finally {
       setSaving(false);
@@ -233,7 +233,7 @@ const PageEditor = () => {
       });
 
       toast.success('Image uploaded successfully');
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to upload image');
     } finally {
       setUploadingImage(false);
@@ -266,7 +266,7 @@ const PageEditor = () => {
       URL.revokeObjectURL(url);
 
       toast.success('Template exported successfully');
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to export template');
     } finally {
       setExporting(false);

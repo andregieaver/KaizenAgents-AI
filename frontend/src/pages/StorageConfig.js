@@ -50,7 +50,7 @@ const StorageConfig = () => {
         gcs_bucket_name: response.data.gcs_bucket_name || '',
         gcs_region: response.data.gcs_region || 'us-central1'
       });
-    } catch (error) {
+    } catch {
       toast.error('Failed to load storage configuration');
     } finally {
       setLoading(false);
@@ -82,7 +82,7 @@ const StorageConfig = () => {
       );
       toast.success('Storage configuration saved');
       fetchConfig();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to save configuration');
     } finally {
       setSaving(false);
@@ -98,7 +98,7 @@ const StorageConfig = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success(response.data.message);
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Connection test failed');
     } finally {
       setTesting(false);

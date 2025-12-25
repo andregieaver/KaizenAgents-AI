@@ -332,7 +332,7 @@ const CRM = () => {
       ]);
       setCustomers(customersRes.data);
       setStats(statsRes.data);
-    } catch (error) {
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -355,7 +355,7 @@ const CRM = () => {
       setShowAddModal(false);
       setNewCustomer({ name: '', email: '', phone: '', company: '', position: '', notes: '', tags: [] });
       fetchData();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to add customer');
     } finally {
       setSaving(false);
@@ -450,7 +450,7 @@ const CRM = () => {
       toast.success(`${selectedIds.size} customers deleted`);
       setSelectedIds(new Set());
       fetchData();
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete some customers');
     }
   };
@@ -502,7 +502,7 @@ const CRM = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success(`Moved to ${PIPELINE_STAGES.find(s => s.id === targetStage)?.label}`);
-      } catch (error) {
+      } catch {
         // Revert on error
         setCustomers(prev => prev.map(c => 
           c.id === active.id ? { ...c, pipeline_stage: currentStage } : c

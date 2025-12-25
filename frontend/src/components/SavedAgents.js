@@ -49,7 +49,7 @@ const SavedAgents = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAgents(response.data);
-    } catch (error) {
+    } catch {
       toast.error('Failed to load agents');
     } finally {
       setLoading(false);
@@ -66,7 +66,7 @@ const SavedAgents = () => {
       );
       toast.success('Agent activated successfully!');
       fetchAgents();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to activate agent');
     } finally {
       setActivating(null);
@@ -83,7 +83,7 @@ const SavedAgents = () => {
       );
       toast.success('Agent deactivated successfully');
       fetchAgents();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to deactivate agent');
     } finally {
       setDeactivating(null);
@@ -98,7 +98,7 @@ const SavedAgents = () => {
       });
       toast.success('Agent deleted successfully');
       fetchAgents();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to delete agent');
     } finally {
       setDeleting(null);
@@ -149,7 +149,7 @@ const SavedAgents = () => {
           { duration: 10000 }
         );
       }
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to publish agent');
     } finally {
       setPublishing(null);
@@ -167,7 +167,7 @@ const SavedAgents = () => {
       );
       toast.success('Agent removed from marketplace');
       fetchAgents();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to unpublish agent');
     } finally {
       setUnpublishing(null);

@@ -71,7 +71,7 @@ const Billing = () => {
             } else {
               toast.info('Payment received. Activating your subscription...');
             }
-          } catch (error) {
+          } catch {
             const errorDetail = error.response?.data?.detail || error.message;
             toast.error(`Subscription activation failed: ${errorDetail}`, {
               description: 'Please contact support if the issue persists.'
@@ -129,7 +129,7 @@ const Billing = () => {
       fetchAgentAllocation();
       fetchConversationAllocation();
       fetchPlans();
-    } catch (error) {
+    } catch {
       toast.error('Failed to load billing information');
     } finally {
       setLoading(false);
@@ -144,7 +144,7 @@ const Billing = () => {
         params: { limit: 10 }
       });
       setInvoices(response.data.invoices || []);
-    } catch (error) {
+    } catch {
       // Don't show error toast for invoices - just silently fail
     } finally {
       setLoadingInvoices(false);
@@ -216,7 +216,7 @@ const Billing = () => {
       toast.success(response.data.message);
       setSeatUnsavedChanges(false);
       fetchSeatAllocation();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to update seats');
     } finally {
       setSavingSeats(false);
@@ -241,7 +241,7 @@ const Billing = () => {
       toast.success(response.data.message);
       setAgentUnsavedChanges(false);
       fetchAgentAllocation();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to update agents');
     } finally {
       setSavingAgents(false);
@@ -266,7 +266,7 @@ const Billing = () => {
       toast.success(response.data.message);
       setConversationUnsavedChanges(false);
       fetchConversationAllocation();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to update conversations');
     } finally {
       setSavingConversations(false);
@@ -356,7 +356,7 @@ const Billing = () => {
       });
       toast.success('Subscription canceled. You have been moved to the Free plan.');
       fetchData();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to cancel subscription');
     }
   };

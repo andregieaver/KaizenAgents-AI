@@ -49,7 +49,7 @@ export const HeroBlockEditor = ({ block, updateBlock }) => {
       });
 
       toast.success('Image uploaded');
-    } catch (error) {
+    } catch {
       toast.error('Failed to upload image');
     } finally {
       setUploadingImage(false);

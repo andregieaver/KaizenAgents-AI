@@ -98,7 +98,7 @@ const OrchestrationSettings = () => {
       if (configRes.data.allowed_child_agent_ids) {
         setSelectedChildren(configRes.data.allowed_child_agent_ids);
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to load orchestration settings');
     } finally {
       setLoading(false);
@@ -146,7 +146,7 @@ const OrchestrationSettings = () => {
       
       toast.success('Orchestration settings saved');
       fetchData();
-    } catch (error) {
+    } catch {
       toast.error(error.response?.data?.detail || 'Failed to save settings');
     } finally {
       setSaving(false);
@@ -187,7 +187,7 @@ const OrchestrationSettings = () => {
       });
       toast.success('Agent settings updated');
       fetchData();
-    } catch (error) {
+    } catch {
       toast.error('Failed to update agent settings');
     }
   };
