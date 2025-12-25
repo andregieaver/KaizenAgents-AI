@@ -104,7 +104,7 @@ const AgentEdit = () => {
   const getTemperature = () => agent.config?.temperature ?? 0.7;
   const getMaxTokens = () => agent.config?.max_tokens ?? 2000;
   const getModel = () => agent.config?.model || agent.config?.ai_model || '';
-  const getProviderId = () => agent.config?.provider_id || '';
+  const getProviderId = useCallback(() => agent.config?.provider_id || '', [agent.config?.provider_id]);
   
   const getAvailableModels = () => {
     const providerId = getProviderId();
