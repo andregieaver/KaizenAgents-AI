@@ -98,7 +98,17 @@ const AgentEdit = () => {
     is_active: false,
     is_public: false,
     orchestration_enabled: false,
-    tags: []
+    tags: [],
+    channels_enabled: false,
+    channel_config: {
+      trigger_mode: 'mention',
+      response_probability: 0.3,
+      response_style: 'helpful',
+      response_length: 'medium',
+      formality: 0.5,
+      creativity: 0.5,
+      keywords: []
+    }
   });
 
   // Helper functions
