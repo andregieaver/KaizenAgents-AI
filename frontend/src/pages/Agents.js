@@ -164,6 +164,72 @@ const Agents = () => {
     setTimeout(() => setCopiedAgentId(null), 2000);
   };
 
+  // Bulk selection handlers
+  const toggleAgentSelection = (agentId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newSelected = new Set(selectedAgents);
+    if (newSelected.has(agentId)) {
+      newSelected.delete(agentId);
+    } else {
+      newSelected.add(agentId);
+    }
+    setSelectedAgents(newSelected);
+  };
+
+  const selectAllAgents = () => {
+    setSelectedAgents(new Set(agents.map(a => a.id)));
+  };
+
+  const clearSelection = () => {
+    setSelectedAgents(new Set());
+  };
+
+  const bulkUpdateAgents = async (updateData, successMessage) => {
+    if (selectedAgents.size === 0) return;
+    
+    setBulkActionLoading(true);
+    try {
+      await axios.post(`${API}/agents/bulk-update`, {
+        agent_ids: Array.from(selectedAgents),
+        ...updateData
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(successMessage);
+      fetchAgents();
+      clearSelection();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to update agents');
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
+  const bulkEnableForChannels = () => {
+    bulkUpdateAgents({ channels_enabled: true }, `${selectedAgents.size} agent(s) enabled for channels`);
+  };
+
+  const bulkDisableForChannels = () => {
+    bulkUpdateAgents({ channels_enabled: false }, `${selectedAgents.size} agent(s) disabled for channels`);
+  };
+
+  const bulkActivate = () => {
+    bulkUpdateAgents({ is_active: true }, `${selectedAgents.size} agent(s) activated`);
+  };
+
+  const bulkDeactivate = () => {
+    bulkUpdateAgents({ is_active: false }, `${selectedAgents.size} agent(s) deactivated`);
+  };
+
+  const bulkEnableOrchestration = () => {
+    bulkUpdateAgents({ orchestration_enabled: true }, `${selectedAgents.size} agent(s) enabled for orchestration`);
+  };
+
+  const bulkDisableOrchestration = () => {
+    bulkUpdateAgents({ orchestration_enabled: false }, `${selectedAgents.size} agent(s) disabled for orchestration`);
+  };
+
   return (
     <div className="p-6 lg:p-8">
       {/* Header */}
