@@ -480,6 +480,28 @@ const Messaging = () => {
     }
   }, [token]);
   
+  const fetchAvailableAgents = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API}/api/messaging/agents/available`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAvailableAgents(res.data);
+    } catch {
+      // Agents fetch failed silently
+    }
+  }, [token]);
+  
+  const fetchChannelAgents = useCallback(async (channelId) => {
+    try {
+      const res = await axios.get(`${API}/api/messaging/channels/${channelId}/agents`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setChannelAgents(res.data);
+    } catch {
+      setChannelAgents([]);
+    }
+  }, [token]);
+  
   // Initial data load
   useEffect(() => {
     const loadData = async () => {
@@ -487,11 +509,12 @@ const Messaging = () => {
         fetchChannels(),
         fetchDMs(),
         fetchUsers(),
-        fetchCustomers()
+        fetchCustomers(),
+        fetchAvailableAgents()
       ]);
     };
     loadData();
-  }, [fetchChannels, fetchDMs, fetchUsers, fetchCustomers]);
+  }, [fetchChannels, fetchDMs, fetchUsers, fetchCustomers, fetchAvailableAgents]);
   
   // Handle URL params for deep linking
   useEffect(() => {
