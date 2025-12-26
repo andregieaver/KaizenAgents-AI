@@ -369,16 +369,12 @@ class MessagingSystemTester:
             print("❌ No message ID available for reaction test")
             return False
         
-        reaction_data = {
-            "emoji": "👍"
-        }
-        
+        # Use query parameter instead of JSON body
         success, response = self.run_test(
             "Add Reaction to Message",
             "POST",
-            f"messaging/messages/{self.test_message_id}/reactions",
-            200,
-            data=reaction_data
+            f"messaging/messages/{self.test_message_id}/reactions?emoji=👍",
+            200
         )
         
         if success:
