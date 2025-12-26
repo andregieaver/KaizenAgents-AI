@@ -438,19 +438,15 @@ class MessagingSystemTester:
         """Test POST /api/messaging/dm - Create or get DM conversation"""
         print(f"\n🔧 Testing Create DM Conversation")
         
-        # Use the current user's ID as participant (this will fail but test the endpoint)
-        # In a real scenario, we'd use another user's ID
-        dm_data = {
-            "participant_id": self.user_data.get('id') if self.user_data else "test-user-id"
-        }
+        # Use query parameter instead of JSON body
+        participant_id = self.user_data.get('id') if self.user_data else "test-user-id"
         
         # This should fail with 400 since we can't DM ourselves
         success, response = self.run_test(
             "Create DM Conversation (Expected to fail)",
             "POST",
-            "messaging/dm",
-            400,  # Expecting 400 error
-            data=dm_data
+            f"messaging/dm?participant_id={participant_id}",
+            400  # Expecting 400 error
         )
         
         if success:  # Success means we got the expected 400 error
