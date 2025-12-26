@@ -837,10 +837,17 @@ const Messaging = () => {
   const currentKey = selectedChannel?.id || selectedDM?.id;
   const typingText = getTypingText();
   
+  // Determine if we should show chat on mobile (when a channel/DM is selected)
+  const showChatOnMobile = (selectedChannel || selectedDM) && !showMobileSidebar;
+  
   return (
     <div className="h-[calc(100vh-120px)] flex bg-background rounded-lg border overflow-hidden">
-      {/* Sidebar */}
-      <div className="w-64 border-r flex flex-col bg-muted/30">
+      {/* Sidebar - Hidden on mobile when chat is shown */}
+      <div className={`
+        ${showChatOnMobile ? 'hidden' : 'flex'} 
+        sm:flex
+        w-full sm:w-64 border-r flex-col bg-muted/30
+      `}>
         {/* Search */}
         <div className="p-3 border-b">
           <div className="relative">
@@ -874,7 +881,7 @@ const Messaging = () => {
                     <button
                       key={channel.id}
                       onClick={() => handleSelectChannel(channel)}
-                      className={`flex items-center gap-2 w-full px-2 py-1.5 rounded text-sm transition-colors ${
+                      className={`flex items-center gap-2 w-full px-2 py-2 sm:py-1.5 rounded text-sm transition-colors ${
                         selectedChannel?.id === channel.id 
                           ? 'bg-primary text-primary-foreground' 
                           : 'hover:bg-muted'
@@ -896,7 +903,7 @@ const Messaging = () => {
                   
                   <button
                     onClick={() => setShowCreateChannel(true)}
-                    className="flex items-center gap-2 w-full px-2 py-1.5 rounded text-sm text-muted-foreground hover:text-foreground hover:bg-muted"
+                    className="flex items-center gap-2 w-full px-2 py-2 sm:py-1.5 rounded text-sm text-muted-foreground hover:text-foreground hover:bg-muted"
                   >
                     <Plus className="h-4 w-4" />
                     Add channel
@@ -921,14 +928,14 @@ const Messaging = () => {
                     <button
                       key={dm.id}
                       onClick={() => handleSelectDM(dm)}
-                      className={`flex items-center gap-2 w-full px-2 py-1.5 rounded text-sm transition-colors ${
+                      className={`flex items-center gap-2 w-full px-2 py-2 sm:py-1.5 rounded text-sm transition-colors ${
                         selectedDM?.id === dm.id 
                           ? 'bg-primary text-primary-foreground' 
                           : 'hover:bg-muted'
                       }`}
                     >
                       <div className="relative">
-                        <Avatar className="h-5 w-5">
+                        <Avatar className="h-6 w-6 sm:h-5 sm:w-5">
                           <AvatarFallback className="text-xs">
                             {dm.other_user?.name?.charAt(0).toUpperCase()}
                           </AvatarFallback>
@@ -948,7 +955,7 @@ const Messaging = () => {
                   
                   <button
                     onClick={() => setShowNewDM(true)}
-                    className="flex items-center gap-2 w-full px-2 py-1.5 rounded text-sm text-muted-foreground hover:text-foreground hover:bg-muted"
+                    className="flex items-center gap-2 w-full px-2 py-2 sm:py-1.5 rounded text-sm text-muted-foreground hover:text-foreground hover:bg-muted"
                   >
                     <Plus className="h-4 w-4" />
                     New message
@@ -977,28 +984,46 @@ const Messaging = () => {
         )}
       </div>
       
-      {/* Main chat area */}
-      <div className="flex-1 flex flex-col">
+      {/* Main chat area - Full width on mobile when visible */}
+      <div className={`
+        ${showChatOnMobile ? 'flex' : 'hidden'} 
+        sm:flex
+        flex-1 flex-col
+      `}>
         {selectedChannel || selectedDM ? (
           <>
             {/* Header */}
-            <div className="h-14 border-b flex items-center justify-between px-4">
+            <div className="h-14 border-b flex items-center justify-between px-3 sm:px-4">
               <div className="flex items-center gap-2">
+                {/* Back button for mobile */}
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  className="sm:hidden h-8 w-8"
+                  onClick={() => setShowMobileSidebar(true)}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                
                 {selectedChannel ? (
                   <>
                     {selectedChannel.is_private ? (
-                      <Lock className="h-5 w-5 text-muted-foreground" />
+                      <Lock className="h-5 w-5 text-muted-foreground hidden sm:block" />
                     ) : (
-                      <Hash className="h-5 w-5 text-muted-foreground" />
+                      <Hash className="h-5 w-5 text-muted-foreground hidden sm:block" />
                     )}
-                    <div>
-                      <h2 className="font-semibold">{selectedChannel.display_name || selectedChannel.name}</h2>
+                    <div className="min-w-0">
+                      <h2 className="font-semibold text-sm sm:text-base truncate">
+                        {selectedChannel.is_private && <Lock className="h-3.5 w-3.5 inline mr-1 sm:hidden" />}
+                        {!selectedChannel.is_private && <span className="sm:hidden">#</span>}
+                        {selectedChannel.display_name || selectedChannel.name}
+                      </h2>
                       {selectedChannel.description && (
-                        <p className="text-xs text-muted-foreground">{selectedChannel.description}</p>
+                        <p className="text-xs text-muted-foreground truncate hidden sm:block">{selectedChannel.description}</p>
                       )}
                     </div>
                     {selectedChannel.linked_customer_name && (
-                      <Badge variant="outline" className="ml-2">
+                      <Badge variant="outline" className="ml-2 hidden sm:flex">
                         <Link2 className="h-3 w-3 mr-1" />
                         {selectedChannel.linked_customer_name}
                       </Badge>
@@ -1011,8 +1036,8 @@ const Messaging = () => {
                         {selectedDM.other_user?.name?.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <h2 className="font-semibold">{selectedDM.other_user?.name}</h2>
+                    <div className="min-w-0">
+                      <h2 className="font-semibold text-sm sm:text-base truncate">{selectedDM.other_user?.name}</h2>
                       <p className="text-xs text-muted-foreground">
                         {selectedDM.is_online ? 'Online' : 'Offline'}
                       </p>
@@ -1021,13 +1046,13 @@ const Messaging = () => {
                 )}
               </div>
               
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 {selectedChannel && (
                   <>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
                             <Users className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -1039,6 +1064,7 @@ const Messaging = () => {
                     <Button 
                       variant="ghost" 
                       size="icon"
+                      className="h-8 w-8"
                       onClick={() => setShowChannelSettings(true)}
                     >
                       <Settings className="h-4 w-4" />
