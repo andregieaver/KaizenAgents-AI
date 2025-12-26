@@ -948,7 +948,7 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
         print(f"WebSocket error: {e}")
         try:
             await websocket.close(code=4000)
-        except:
+        except Exception:
             pass
 
 # ============== UNREAD COUNTS ==============
