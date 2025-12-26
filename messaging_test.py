@@ -174,18 +174,12 @@ class MessagingSystemTester:
         """Test POST /api/messaging/channels - Create channel"""
         print(f"\n🔧 Testing Create Channel")
         
-        channel_data = {
-            "name": "sales",
-            "description": "Sales team channel",
-            "is_private": False
-        }
-        
+        # Use query parameters instead of JSON body
         success, response = self.run_test(
             "Create Channel - Sales",
             "POST",
-            "messaging/channels",
-            200,
-            data=channel_data
+            "messaging/channels?name=sales&description=Sales team channel&is_private=false",
+            200
         )
         
         if success:
