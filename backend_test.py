@@ -8505,6 +8505,18 @@ def test_get_available_agents_for_channels(self):
     """Test Step 4: Get available agents for channels"""
     print(f"\n🔧 Testing Step 4: Get Available Agents for Channels")
     
+    # First, let's check the current agent's is_active status
+    if hasattr(self, 'test_agent_id'):
+        success, agent_response = self.run_test(
+            "Check Agent Active Status",
+            "GET",
+            f"agents/{self.test_agent_id}",
+            200
+        )
+        if success:
+            print(f"   Agent is_active status: {agent_response.get('is_active', 'Unknown')}")
+            print(f"   Agent channels_enabled: {agent_response.get('channels_enabled', 'Unknown')}")
+    
     success, response = self.run_test(
         "Get Available Agents for Channels",
         "GET",
@@ -8526,6 +8538,7 @@ def test_get_available_agents_for_channels(self):
         
         if not test_agent_found and hasattr(self, 'test_agent_id'):
             print(f"   ⚠️ Test agent not found in available agents list")
+            print(f"   ℹ️ This may be because the agent is not active (is_active: False)")
         
         return True
     else:
