@@ -364,7 +364,9 @@ const AgentEdit = () => {
           model: getModel(),
           provider_id: getProviderId(),
           orchestration_enabled: agent.orchestration_enabled,
-          tags: agent.tags
+          tags: agent.tags,
+          channels_enabled: agent.channels_enabled,
+          channel_config: agent.channel_config
         };
         
         await axios.patch(
