@@ -1387,12 +1387,12 @@ const Messaging = () => {
       
       {/* Channel settings dialog */}
       <Dialog open={showChannelSettings} onOpenChange={setShowChannelSettings}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Channel Settings</DialogTitle>
           </DialogHeader>
           {selectedChannel && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
                 <Label>Channel name</Label>
                 <p className="text-sm">{selectedChannel.display_name || selectedChannel.name}</p>
@@ -1403,9 +1403,11 @@ const Messaging = () => {
                   <p className="text-sm text-muted-foreground">{selectedChannel.description}</p>
                 </div>
               )}
+              
+              {/* Members */}
               <div>
                 <Label>Members ({selectedChannel.members?.length || 0})</Label>
-                <div className="mt-2 space-y-2">
+                <div className="mt-2 space-y-2 max-h-32 overflow-y-auto">
                   {users.filter(u => selectedChannel.members?.includes(u.id)).map(user => (
                     <div key={user.id} className="flex items-center gap-2">
                       <Avatar className="h-6 w-6">
@@ -1416,6 +1418,78 @@ const Messaging = () => {
                   ))}
                 </div>
               </div>
+              
+              {/* AI Agents */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Bot className="h-4 w-4 text-primary" />
+                  <Label>AI Agents</Label>
+                </div>
+                
+                {/* Current agents in channel */}
+                {channelAgents.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    {channelAgents.map(agent => (
+                      <div key={agent.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                        <div className="flex items-center gap-2">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                            {agent.profile_image_url ? (
+                              <img src={agent.profile_image_url} alt={agent.name} className="h-8 w-8 rounded-full object-cover" />
+                            ) : (
+                              <Sparkles className="h-4 w-4 text-primary" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{agent.name}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {agent.channel_config?.trigger_mode === 'mention' && `@${agent.name.toLowerCase().replace(/\s+/g, '')}`}
+                              {agent.channel_config?.trigger_mode === 'all' && 'Auto-responds'}
+                              {agent.channel_config?.trigger_mode === 'keyword' && 'Keyword trigger'}
+                            </p>
+                          </div>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive hover:text-destructive"
+                          onClick={() => removeAgentFromChannel(agent.id)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Add new agent */}
+                {availableAgents.filter(a => !channelAgents.find(ca => ca.id === a.id)).length > 0 && (
+                  <Select onValueChange={(agentId) => addAgentToChannel(agentId)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Add an AI agent..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableAgents
+                        .filter(a => !channelAgents.find(ca => ca.id === a.id))
+                        .map(agent => (
+                          <SelectItem key={agent.id} value={agent.id}>
+                            <div className="flex items-center gap-2">
+                              <Bot className="h-4 w-4" />
+                              {agent.name}
+                            </div>
+                          </SelectItem>
+                        ))
+                      }
+                    </SelectContent>
+                  </Select>
+                )}
+                
+                {availableAgents.length === 0 && channelAgents.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No agents available. Enable agents for channels in the Agent Edit screen.
+                  </p>
+                )}
+              </div>
+              
               {selectedChannel.linked_customer_name && (
                 <div>
                   <Label>Linked Customer</Label>
