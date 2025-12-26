@@ -670,11 +670,15 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
         # Get channel with agents
         channel = await db.messaging_channels.find_one({"id": channel_id})
         if not channel:
+            print(f"[Agent Trigger] No channel found: {channel_id}")
             return
         
         agent_ids = channel.get("agents", [])
         if not agent_ids:
+            print(f"[Agent Trigger] No agents in channel: {channel_id}")
             return
+        
+        print(f"[Agent Trigger] Channel {channel_id} has agents: {agent_ids}")
         
         # Get agents that are enabled for channels
         agents = await db.user_agents.find({
@@ -683,12 +687,16 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
             "is_active": True
         }, {"_id": 0}).to_list(100)
         
+        print(f"[Agent Trigger] Found {len(agents)} enabled agents")
+        
         for agent in agents:
             channel_config = agent.get("channel_config", {})
             
             # Check if agent should respond based on trigger mode
             trigger_mode = channel_config.get("trigger_mode", "mention")
             should_respond = False
+            
+            print(f"[Agent Trigger] Agent '{agent.get('name')}' trigger_mode: {trigger_mode}")
             
             if trigger_mode == "all":
                 # Respond to all messages based on probability
@@ -698,7 +706,9 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
             elif trigger_mode == "mention":
                 # Only respond when mentioned
                 agent_mention = f"@{agent['name'].lower().replace(' ', '')}"
-                should_respond = agent_mention in message["content"].lower()
+                message_content = message["content"].lower()
+                should_respond = agent_mention in message_content
+                print(f"[Agent Trigger] Looking for '{agent_mention}' in '{message_content}': {should_respond}")
             elif trigger_mode == "keyword":
                 # Respond when keywords are mentioned
                 keywords = channel_config.get("keywords", [])
@@ -706,6 +716,7 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
                 should_respond = any(kw.lower() in content_lower for kw in keywords)
             
             if should_respond:
+                print(f"[Agent Trigger] Triggering response from agent '{agent.get('name')}'")
                 await generate_agent_response(
                     tenant_id=tenant_id,
                     channel_id=channel_id,
@@ -713,8 +724,12 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
                     trigger_message=message,
                     user_name=user_name
                 )
+            else:
+                print(f"[Agent Trigger] Agent '{agent.get('name')}' will not respond")
     except Exception as e:
         print(f"Error triggering channel agents: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 async def generate_agent_response(tenant_id: str, channel_id: str, agent: dict, trigger_message: dict, user_name: str):
