@@ -531,9 +531,11 @@ const Messaging = () => {
     }
   }, [selectedChannel, selectedDM, token]);
   
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    fetchMessages();
+    const loadMessages = async () => {
+      await fetchMessages();
+    };
+    loadMessages();
   }, [fetchMessages]);
   
   // Scroll to bottom on new messages
