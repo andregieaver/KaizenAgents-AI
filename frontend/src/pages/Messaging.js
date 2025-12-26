@@ -390,6 +390,8 @@ const Messaging = () => {
   const [users, setUsers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [customers, setCustomers] = useState([]);
+  const [availableAgents, setAvailableAgents] = useState([]);
+  const [channelAgents, setChannelAgents] = useState([]);
   
   // UI states
   const [selectedChannel, setSelectedChannel] = useState(null);
