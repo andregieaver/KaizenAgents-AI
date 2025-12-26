@@ -18,8 +18,22 @@ import {
   Copy,
   Check,
   Power,
-  Globe
+  Globe,
+  CheckSquare,
+  Square,
+  MessageSquare,
+  Network,
+  MoreHorizontal,
+  X
 } from 'lucide-react';
+import { Checkbox } from '../components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { AgentCardSkeleton } from '../components/LoadingStates';
 import { NoAgentsState } from '../components/EmptyStates';
