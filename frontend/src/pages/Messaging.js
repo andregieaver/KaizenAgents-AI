@@ -24,7 +24,9 @@ import {
   Reply,
   Settings,
   UserPlus,
-  Link2
+  Link2,
+  ArrowLeft,
+  Menu
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
