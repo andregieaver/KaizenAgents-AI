@@ -50,6 +50,10 @@ const Agents = () => {
   const [togglingAgent, setTogglingAgent] = useState(null);
   const [copiedAgentId, setCopiedAgentId] = useState(null);
   const avatarInputRefs = useRef({});
+  
+  // Bulk selection state
+  const [selectedAgents, setSelectedAgents] = useState(new Set());
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
   const fetchAgents = useCallback(async () => {
     try {
