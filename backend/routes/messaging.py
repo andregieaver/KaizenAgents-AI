@@ -483,6 +483,7 @@ async def send_message(
     }
     
     await db.messaging_messages.insert_one(message)
+    message.pop('_id', None)
     
     # Update reply count if this is a thread reply
     if parent_id:
