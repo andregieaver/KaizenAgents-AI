@@ -8800,9 +8800,13 @@ if __name__ == "__main__":
             tester = AIAgentHubTester()
             success = tester.test_security_verification_suite()
             sys.exit(0 if success else 1)
+        elif test_name == "channels":
+            tester = AIAgentHubTester()
+            success = tester.test_ai_agent_channels_integration()
+            sys.exit(0 if success else 1)
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: rag, rag_enforcement, quota, mother_agent, new_features, security")
+            print("Available tests: rag, rag_enforcement, quota, mother_agent, new_features, security, channels")
             sys.exit(1)
     else:
         sys.exit(main())
