@@ -17,7 +17,8 @@ import {
   Languages,
   TestTube,
   Code,
-  Database
+  Database,
+  MessageSquare
 } from 'lucide-react';
 import { toast } from 'sonner';
 import ModerationFeedbackModal from '../components/ModerationFeedbackModal';
