@@ -1108,12 +1108,12 @@ const Messaging = () => {
             )}
             
             {/* Message input */}
-            <div className="p-4 border-t">
-              <div className="flex items-end gap-2">
+            <div className="p-2 sm:p-4 border-t">
+              <div className="flex items-end gap-1 sm:gap-2">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="flex-shrink-0">
+                      <Button variant="ghost" size="icon" className="flex-shrink-0 h-9 w-9 sm:h-10 sm:w-10">
                         <Paperclip className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
@@ -1129,7 +1129,7 @@ const Messaging = () => {
                       handleTyping();
                     }}
                     placeholder={`Message ${selectedChannel ? `#${selectedChannel.name}` : selectedDM?.other_user?.name}`}
-                    className="min-h-[40px] max-h-[120px] pr-20 resize-none"
+                    className="min-h-[40px] max-h-[120px] pr-10 sm:pr-20 resize-none text-sm sm:text-base"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' && !e.shiftKey) {
                         e.preventDefault();
@@ -1137,7 +1137,7 @@ const Messaging = () => {
                       }
                     }}
                   />
-                  <div className="absolute right-2 bottom-2 flex items-center gap-1">
+                  <div className="absolute right-2 bottom-2 items-center gap-1 hidden sm:flex">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -1164,7 +1164,8 @@ const Messaging = () => {
                 <Button 
                   onClick={sendMessage} 
                   disabled={!newMessage.trim()}
-                  className="flex-shrink-0"
+                  className="flex-shrink-0 h-9 w-9 sm:h-10 sm:w-auto sm:px-4"
+                  size="icon"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
