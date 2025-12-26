@@ -180,6 +180,16 @@ async def get_channels(current_user: dict = Depends(get_current_user)):
         )
         channel["last_message"] = last_msg
         
+        # Get agent info for channel
+        agent_ids = channel.get("agents", [])
+        if agent_ids:
+            agents = await db.user_agents.find({
+                "id": {"$in": agent_ids}
+            }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "profile_image_url": 1}).to_list(100)
+            channel["agent_details"] = agents
+        else:
+            channel["agent_details"] = []
+        
         # Get unread count
         read_status = await db.messaging_read_status.find_one({
             "user_id": user_id,
