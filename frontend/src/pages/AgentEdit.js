@@ -652,6 +652,10 @@ const AgentEdit = () => {
           <AgentIntegrationsTab agent={agent} setAgent={setAgent} token={token} />
         </TabsContent>
 
+        <TabsContent value="channels" className="space-y-4 sm:space-y-6">
+          <AgentChannelsTab agent={agent} setAgent={setAgent} />
+        </TabsContent>
+
         {!isNew && (
           <>
             <TabsContent value="test" className="space-y-4 sm:space-y-6">
