@@ -587,6 +587,10 @@ const AgentEdit = () => {
             <ShoppingCart className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Integrations</span>
           </TabsTrigger>
+          <TabsTrigger value="channels" className="flex-1 sm:flex-none">
+            <MessageSquare className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Channels</span>
+          </TabsTrigger>
           {!isNew && (
             <>
               <TabsTrigger value="test" className="flex-1 sm:flex-none">
