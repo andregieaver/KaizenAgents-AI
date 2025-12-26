@@ -1146,7 +1146,7 @@ const Messaging = () => {
             
             {/* Messages */}
             <ScrollArea className="flex-1">
-              <div className="p-4">
+              <div className="p-2 sm:p-4">
                 {messages.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
