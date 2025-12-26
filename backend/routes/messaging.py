@@ -65,7 +65,7 @@ class ConnectionManager:
                 if user_id != exclude_user:
                     try:
                         await connection.send_json(message)
-                    except:
+                    except Exception:
                         pass
     
     async def send_to_users(self, tenant_id: str, user_ids: List[str], message: dict):
@@ -75,7 +75,7 @@ class ConnectionManager:
                 if user_id in self.active_connections[tenant_id]:
                     try:
                         await self.active_connections[tenant_id][user_id].send_json(message)
-                    except:
+                    except Exception:
                         pass
     
     async def broadcast_presence(self, tenant_id: str, user_id: str, status: str):
