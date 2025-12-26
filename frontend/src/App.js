@@ -139,6 +139,7 @@ function AppRoutes() {
         <Route path="conversations/:id" element={<ConversationDetail />} />
         <Route path="crm" element={<CRM />} />
         <Route path="crm/:customerId" element={<CustomerDetail />} />
+        <Route path="messaging" element={<Messaging />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="team" element={<Team />} />
         <Route path="settings" element={<Settings />} />
