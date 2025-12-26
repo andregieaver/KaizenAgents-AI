@@ -375,6 +375,7 @@ async def create_or_get_dm(
     }
     
     await db.messaging_dm_conversations.insert_one(dm)
+    dm.pop('_id', None)
     return dm
 
 @router.get("/dm")
