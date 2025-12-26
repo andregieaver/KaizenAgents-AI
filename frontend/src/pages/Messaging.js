@@ -855,6 +855,26 @@ const Messaging = () => {
     }
   };
   
+  // Add multiple agents to channel
+  const addMultipleAgentsToChannel = async (agentIds) => {
+    if (!selectedChannel || agentIds.length === 0) return;
+    
+    try {
+      // Add agents one by one (could be optimized with a bulk endpoint)
+      for (const agentId of agentIds) {
+        await axios.post(`${API}/api/messaging/channels/${selectedChannel.id}/agents`, null, {
+          params: { agent_id: agentId },
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      toast.success(`${agentIds.length} agent(s) added to channel`);
+      fetchChannelAgents(selectedChannel.id);
+      fetchChannels();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to add agents');
+    }
+  };
+  
   // Remove agent from channel
   const removeAgentFromChannel = async (agentId) => {
     if (!selectedChannel) return;
