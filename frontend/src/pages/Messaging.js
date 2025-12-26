@@ -487,27 +487,29 @@ const Messaging = () => {
   }, [fetchChannels, fetchDMs, fetchUsers, fetchCustomers]);
   
   // Handle URL params for deep linking
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     const channelId = searchParams.get('channel');
     const dmId = searchParams.get('dm');
     
-    if (channelId && channels.length > 0) {
-      const channel = channels.find(c => c.id === channelId);
-      if (channel) {
-        setSelectedChannel(channel);
-        setSelectedDM(null);
+    const selectFromParams = () => {
+      if (channelId && channels.length > 0) {
+        const channel = channels.find(c => c.id === channelId);
+        if (channel) {
+          setSelectedChannel(channel);
+          setSelectedDM(null);
+        }
+      } else if (dmId && dmConversations.length > 0) {
+        const dm = dmConversations.find(d => d.id === dmId);
+        if (dm) {
+          setSelectedDM(dm);
+          setSelectedChannel(null);
+        }
+      } else if (!channelId && !dmId && channels.length > 0) {
+        // Select first channel by default
+        setSelectedChannel(channels[0]);
       }
-    } else if (dmId && dmConversations.length > 0) {
-      const dm = dmConversations.find(d => d.id === dmId);
-      if (dm) {
-        setSelectedDM(dm);
-        setSelectedChannel(null);
-      }
-    } else if (!channelId && !dmId && channels.length > 0) {
-      // Select first channel by default
-      setSelectedChannel(channels[0]);
-    }
+    };
+    selectFromParams();
   }, [searchParams, channels, dmConversations]);
   
   // Fetch messages when channel/DM changes
