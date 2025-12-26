@@ -401,6 +401,7 @@ const Messaging = () => {
   const [typingUsers, setTypingUsers] = useState({});
   const [channelsExpanded, setChannelsExpanded] = useState(true);
   const [dmsExpanded, setDmsExpanded] = useState(true);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(true); // Show sidebar by default on mobile
   
   // New channel form
   const [newChannelName, setNewChannelName] = useState('');
