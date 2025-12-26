@@ -830,6 +830,39 @@ const Messaging = () => {
     }
   };
   
+  // Add agent to channel
+  const addAgentToChannel = async (agentId) => {
+    if (!selectedChannel) return;
+    
+    try {
+      await axios.post(`${API}/api/messaging/channels/${selectedChannel.id}/agents`, null, {
+        params: { agent_id: agentId },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Agent added to channel');
+      fetchChannelAgents(selectedChannel.id);
+      fetchChannels();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to add agent');
+    }
+  };
+  
+  // Remove agent from channel
+  const removeAgentFromChannel = async (agentId) => {
+    if (!selectedChannel) return;
+    
+    try {
+      await axios.delete(`${API}/api/messaging/channels/${selectedChannel.id}/agents/${agentId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Agent removed from channel');
+      fetchChannelAgents(selectedChannel.id);
+      fetchChannels();
+    } catch {
+      toast.error('Failed to remove agent');
+    }
+  };
+  
   // Get typing indicator text
   const getTypingText = () => {
     const key = selectedChannel?.id || selectedDM?.id;
