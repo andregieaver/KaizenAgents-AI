@@ -99,6 +99,7 @@ const MessageItem = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(message.content);
   const isOwn = message.author_id === currentUserId;
+  const isAgent = message.is_agent || message.author_id?.startsWith('agent_');
   
   const handleEdit = () => {
     onEdit(message.id, editContent);
@@ -106,17 +107,23 @@ const MessageItem = ({
   };
 
   return (
-    <div className={`group flex gap-3 p-3 hover:bg-muted/50 rounded-lg transition-colors ${isOwn ? '' : ''}`}>
-      <Avatar className="h-9 w-9 flex-shrink-0">
+    <div className={`group flex gap-3 p-3 hover:bg-muted/50 rounded-lg transition-colors ${isAgent ? 'bg-primary/5' : ''}`}>
+      <Avatar className={`h-9 w-9 flex-shrink-0 ${isAgent ? 'ring-2 ring-primary/30' : ''}`}>
         <AvatarImage src={message.author_avatar} />
-        <AvatarFallback className="bg-primary/10 text-primary text-sm">
-          {message.author_name?.charAt(0).toUpperCase()}
+        <AvatarFallback className={`text-sm ${isAgent ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'}`}>
+          {isAgent ? <Bot className="h-4 w-4" /> : message.author_name?.charAt(0).toUpperCase()}
         </AvatarFallback>
       </Avatar>
       
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-sm">{message.author_name}</span>
+          {isAgent && (
+            <Badge variant="secondary" className="text-xs px-1.5 py-0">
+              <Sparkles className="h-3 w-3 mr-1" />
+              AI
+            </Badge>
+          )}
           <span className="text-xs text-muted-foreground">
             {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
           </span>
