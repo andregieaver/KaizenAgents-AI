@@ -144,6 +144,9 @@ async def create_channel(
     
     await db.messaging_channels.insert_one(channel)
     
+    # Remove MongoDB _id before returning
+    channel.pop('_id', None)
+    
     # Broadcast channel creation
     await manager.broadcast_to_tenant(tenant_id, {
         "type": "channel_update",
