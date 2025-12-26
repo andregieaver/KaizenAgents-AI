@@ -473,12 +473,17 @@ const Messaging = () => {
     }
   }, [token]);
   
-  // eslint-disable-next-line react-hooks/set-state-in-effect
+  // Initial data load
   useEffect(() => {
-    fetchChannels();
-    fetchDMs();
-    fetchUsers();
-    fetchCustomers();
+    const loadData = async () => {
+      await Promise.all([
+        fetchChannels(),
+        fetchDMs(),
+        fetchUsers(),
+        fetchCustomers()
+      ]);
+    };
+    loadData();
   }, [fetchChannels, fetchDMs, fetchUsers, fetchCustomers]);
   
   // Handle URL params for deep linking
