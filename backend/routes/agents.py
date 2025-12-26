@@ -37,6 +37,9 @@ class UserAgentResponse(BaseModel):
     # Orchestration fields
     orchestration_enabled: bool = False
     tags: List[str] = []
+    # Channel integration fields
+    channels_enabled: bool = False
+    channel_config: Optional[Dict[str, Any]] = None
 
 class UserAgentCreate(BaseModel):
     name: str
