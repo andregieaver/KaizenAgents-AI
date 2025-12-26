@@ -26,7 +26,9 @@ import {
   UserPlus,
   Link2,
   ArrowLeft,
-  Menu
+  Menu,
+  Bot,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
