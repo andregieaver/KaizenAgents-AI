@@ -482,6 +482,7 @@ const Messaging = () => {
   }, [fetchChannels, fetchDMs, fetchUsers, fetchCustomers]);
   
   // Handle URL params for deep linking
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     const channelId = searchParams.get('channel');
     const dmId = searchParams.get('dm');
