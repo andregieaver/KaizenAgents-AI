@@ -7502,6 +7502,263 @@ def main_quota_tests():
         print(f"❌ Quota enforcement testing failed with error: {str(e)}")
         return 1
 
+    def test_messaging_feature_debug(self):
+        """Test messaging feature to debug 'Failed to send message' error"""
+        print(f"\n🎯 Testing Messaging Feature - Debug Mode")
+        print(f"   Testing with credentials: andre@humanweb.no / Pernilla66!")
+        
+        # Step 1: Login
+        if not self.test_super_admin_login():
+            print("❌ Login failed - cannot continue with messaging tests")
+            return False
+        
+        print(f"   ✅ Logged in successfully")
+        print(f"   User: {self.user_data.get('email')}")
+        print(f"   Tenant ID: {self.tenant_id}")
+        
+        # Step 2: Test messaging endpoints
+        messaging_tests = [
+            self.test_messaging_channels_list(),
+            self.test_messaging_channel_details(),
+            self.test_messaging_send_message(),
+            self.test_messaging_get_messages(),
+            self.test_messaging_users_list(),
+            self.test_messaging_unread_counts()
+        ]
+        
+        # Summary
+        passed_tests = sum(messaging_tests)
+        total_tests = len(messaging_tests)
+        
+        print(f"\n📋 Messaging Feature Test Results:")
+        print(f"   Tests Passed: {passed_tests}/{total_tests}")
+        print(f"   Success Rate: {(passed_tests/total_tests)*100:.1f}%")
+        
+        if passed_tests == total_tests:
+            print("   ✅ All messaging tests passed!")
+        else:
+            print(f"   ❌ {total_tests - passed_tests} messaging tests failed")
+        
+        return passed_tests == total_tests
+
+    def test_messaging_channels_list(self):
+        """Test GET /api/messaging/channels"""
+        print(f"\n🔧 Testing GET /api/messaging/channels")
+        
+        success, response = self.run_test(
+            "Get Messaging Channels",
+            "GET",
+            "messaging/channels",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Found {len(response)} channels")
+            for channel in response:
+                print(f"     - {channel.get('display_name', channel.get('name'))} (ID: {channel.get('id')})")
+                print(f"       Members: {len(channel.get('members', []))}")
+                print(f"       Unread: {channel.get('unread_count', 0)}")
+            
+            # Store first channel for testing
+            if response:
+                self.test_channel_id = response[0].get('id')
+                self.test_channel_name = response[0].get('display_name', response[0].get('name'))
+                print(f"   Using channel '{self.test_channel_name}' (ID: {self.test_channel_id}) for testing")
+        
+        return success
+
+    def test_messaging_channel_details(self):
+        """Test GET /api/messaging/channels/{channel_id}"""
+        print(f"\n🔧 Testing GET /api/messaging/channels/{{channel_id}}")
+        
+        if not hasattr(self, 'test_channel_id') or not self.test_channel_id:
+            print("❌ No channel ID available for testing")
+            return False
+        
+        success, response = self.run_test(
+            f"Get Channel Details - {self.test_channel_name}",
+            "GET",
+            f"messaging/channels/{self.test_channel_id}",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Channel: {response.get('display_name', response.get('name'))}")
+            print(f"   Description: {response.get('description', 'None')}")
+            print(f"   Private: {response.get('is_private', False)}")
+            print(f"   Members: {len(response.get('members', []))}")
+            
+            # Show member details
+            member_details = response.get('member_details', [])
+            if member_details:
+                print(f"   Member Details:")
+                for member in member_details:
+                    print(f"     - {member.get('name')} ({member.get('email')})")
+        
+        return success
+
+    def test_messaging_send_message(self):
+        """Test POST /api/messaging/messages - The core issue"""
+        print(f"\n🔧 Testing POST /api/messaging/messages - CORE ISSUE")
+        
+        if not hasattr(self, 'test_channel_id') or not self.test_channel_id:
+            print("❌ No channel ID available for testing")
+            return False
+        
+        # Test the exact format that frontend uses
+        print(f"   Testing frontend format: axios.post with query parameters")
+        
+        # Method 1: Test with query parameters (as frontend does)
+        test_message = "Hello team! This is a test message from backend testing."
+        
+        success1, response1 = self.run_test(
+            "Send Message - Query Parameters (Frontend Format)",
+            "POST",
+            f"messaging/messages?content={test_message}&channel_id={self.test_channel_id}",
+            200,
+            data=None  # No body data, using query params
+        )
+        
+        if success1:
+            print(f"   ✅ Query parameter method worked!")
+            print(f"   Message ID: {response1.get('id')}")
+            print(f"   Content: {response1.get('content')}")
+            print(f"   Author: {response1.get('author_name')}")
+            self.test_message_id = response1.get('id')
+        else:
+            print(f"   ❌ Query parameter method failed")
+        
+        # Method 2: Test with JSON body (standard REST API)
+        message_data = {
+            "content": "This is a test message using JSON body.",
+            "channel_id": self.test_channel_id
+        }
+        
+        success2, response2 = self.run_test(
+            "Send Message - JSON Body (Standard REST)",
+            "POST",
+            "messaging/messages",
+            200,
+            data=message_data
+        )
+        
+        if success2:
+            print(f"   ✅ JSON body method worked!")
+            print(f"   Message ID: {response2.get('id')}")
+            print(f"   Content: {response2.get('content')}")
+            print(f"   Author: {response2.get('author_name')}")
+        else:
+            print(f"   ❌ JSON body method failed")
+        
+        # Method 3: Test with form data (as axios might send)
+        print(f"   Testing form data format...")
+        
+        # Create form data
+        form_data = {
+            "content": "Test message with form data",
+            "channel_id": self.test_channel_id
+        }
+        
+        # Use requests with data parameter for form encoding
+        import requests
+        url = f"{self.base_url}/messaging/messages"
+        headers = {
+            'Authorization': f'Bearer {self.token}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        
+        try:
+            response = requests.post(url, data=form_data, headers=headers, timeout=30)
+            success3 = response.status_code == 200
+            
+            if success3:
+                response_data = response.json()
+                print(f"   ✅ Form data method worked!")
+                print(f"   Message ID: {response_data.get('id')}")
+                print(f"   Content: {response_data.get('content')}")
+            else:
+                print(f"   ❌ Form data method failed - Status: {response.status_code}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except:
+                    print(f"   Response: {response.text}")
+        except Exception as e:
+            print(f"   ❌ Form data method failed - Error: {str(e)}")
+            success3 = False
+        
+        # Summary
+        print(f"\n   📊 Send Message Test Results:")
+        print(f"     Query Parameters: {'✅ PASSED' if success1 else '❌ FAILED'}")
+        print(f"     JSON Body: {'✅ PASSED' if success2 else '❌ FAILED'}")
+        print(f"     Form Data: {'✅ PASSED' if success3 else '❌ FAILED'}")
+        
+        # Return true if any method worked
+        return success1 or success2 or success3
+
+    def test_messaging_get_messages(self):
+        """Test GET /api/messaging/messages"""
+        print(f"\n🔧 Testing GET /api/messaging/messages")
+        
+        if not hasattr(self, 'test_channel_id') or not self.test_channel_id:
+            print("❌ No channel ID available for testing")
+            return False
+        
+        success, response = self.run_test(
+            f"Get Messages - {self.test_channel_name}",
+            "GET",
+            f"messaging/messages?channel_id={self.test_channel_id}",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Found {len(response)} messages")
+            for i, msg in enumerate(response[-3:]):  # Show last 3 messages
+                print(f"     {i+1}. {msg.get('author_name')}: {msg.get('content')[:50]}...")
+                print(f"        Created: {msg.get('created_at')}")
+                print(f"        Reactions: {len(msg.get('reactions', {}))}")
+        
+        return success
+
+    def test_messaging_users_list(self):
+        """Test GET /api/messaging/users"""
+        print(f"\n🔧 Testing GET /api/messaging/users")
+        
+        success, response = self.run_test(
+            "Get Messaging Users",
+            "GET",
+            "messaging/users",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Found {len(response)} users")
+            online_count = sum(1 for user in response if user.get('is_online'))
+            print(f"   Online: {online_count}/{len(response)}")
+            
+            for user in response:
+                status = "🟢 Online" if user.get('is_online') else "⚫ Offline"
+                print(f"     - {user.get('name')} ({user.get('email')}) {status}")
+        
+        return success
+
+    def test_messaging_unread_counts(self):
+        """Test GET /api/messaging/unread"""
+        print(f"\n🔧 Testing GET /api/messaging/unread")
+        
+        success, response = self.run_test(
+            "Get Unread Counts",
+            "GET",
+            "messaging/unread",
+            200
+        )
+        
+        if success:
+            total_unread = response.get('total_unread', 0)
+            print(f"   ✅ Total unread messages: {total_unread}")
+        
+        return success
+
 def main():
     print("🚀 Starting AI Agent Hub Comprehensive Backend Testing")
     print("=" * 70)
