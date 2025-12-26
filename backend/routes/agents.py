@@ -65,6 +65,9 @@ class UserAgentUpdate(BaseModel):
     # Orchestration fields
     orchestration_enabled: Optional[bool] = None
     tags: Optional[List[str]] = None
+    # Channel integration fields
+    channels_enabled: Optional[bool] = None
+    channel_config: Optional[Dict[str, Any]] = None
 
 class WooCommerceConfig(BaseModel):
     store_url: str
