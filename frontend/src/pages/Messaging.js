@@ -1229,7 +1229,7 @@ const Messaging = () => {
                   <SelectValue placeholder="Select a customer" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {customers.map(customer => (
                     <SelectItem key={customer.id} value={customer.id}>
                       {customer.name}
