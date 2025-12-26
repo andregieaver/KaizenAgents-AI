@@ -396,6 +396,65 @@ async def deactivate_agent(
     
     return {"message": "Agent deactivated successfully", "agent_id": agent_id}
 
+
+class BulkUpdateRequest(BaseModel):
+    agent_ids: List[str]
+    is_active: Optional[bool] = None
+    channels_enabled: Optional[bool] = None
+    orchestration_enabled: Optional[bool] = None
+
+
+@router.post("/bulk-update")
+async def bulk_update_agents(
+    request: BulkUpdateRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Bulk update multiple agents at once"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    if not request.agent_ids:
+        raise HTTPException(status_code=400, detail="No agents specified")
+    
+    # Build update object
+    update_fields = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    
+    if request.is_active is not None:
+        update_fields["is_active"] = request.is_active
+        if request.is_active:
+            update_fields["activated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    if request.channels_enabled is not None:
+        update_fields["channels_enabled"] = request.channels_enabled
+        # Initialize channel_config if enabling
+        if request.channels_enabled:
+            update_fields["channel_config"] = {
+                "trigger_mode": "mention",
+                "response_style": "helpful",
+                "response_length": "medium",
+                "formality": 0.5,
+                "creativity": 0.5
+            }
+    
+    if request.orchestration_enabled is not None:
+        update_fields["orchestration_enabled"] = request.orchestration_enabled
+    
+    # Update all specified agents
+    result = await db.user_agents.update_many(
+        {
+            "id": {"$in": request.agent_ids},
+            "tenant_id": tenant_id
+        },
+        {"$set": update_fields}
+    )
+    
+    return {
+        "message": f"Updated {result.modified_count} agents",
+        "updated_count": result.modified_count
+    }
+
+
 @router.delete("/{agent_id}")
 async def delete_user_agent(
     agent_id: str,
