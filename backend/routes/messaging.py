@@ -523,6 +523,7 @@ async def send_message(
                     "created_at": datetime.now(timezone.utc).isoformat()
                 }
                 await db.notifications.insert_one(notification)
+                notification.pop('_id', None)
                 
                 # Send notification via WebSocket
                 await manager.send_to_users(tenant_id, [mentioned_user_id], {
