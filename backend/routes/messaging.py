@@ -342,6 +342,117 @@ async def delete_channel(channel_id: str, current_user: dict = Depends(get_curre
     
     return {"success": True, "message": "Channel deleted"}
 
+# ============== CHANNEL AGENTS ==============
+
+@router.get("/channels/{channel_id}/agents")
+async def get_channel_agents(channel_id: str, current_user: dict = Depends(get_current_user)):
+    """Get all agents assigned to a channel"""
+    tenant_id = current_user["tenant_id"]
+    
+    channel = await db.messaging_channels.find_one({
+        "id": channel_id,
+        "tenant_id": tenant_id
+    })
+    
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    agent_ids = channel.get("agents", [])
+    if not agent_ids:
+        return []
+    
+    # Get agent details
+    agents = await db.user_agents.find({
+        "id": {"$in": agent_ids},
+        "tenant_id": tenant_id
+    }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "profile_image_url": 1, "description": 1, "channels_enabled": 1, "channel_config": 1}).to_list(100)
+    
+    return agents
+
+
+@router.post("/channels/{channel_id}/agents")
+async def add_agent_to_channel(
+    channel_id: str,
+    agent_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Add an AI agent to a channel"""
+    tenant_id = current_user["tenant_id"]
+    
+    channel = await db.messaging_channels.find_one({
+        "id": channel_id,
+        "tenant_id": tenant_id
+    })
+    
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    # Check if agent exists and is enabled for channels
+    agent = await db.user_agents.find_one({
+        "id": agent_id,
+        "tenant_id": tenant_id
+    })
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    if not agent.get("channels_enabled"):
+        raise HTTPException(status_code=400, detail="Agent is not enabled for channels")
+    
+    # Add agent to channel
+    await db.messaging_channels.update_one(
+        {"id": channel_id},
+        {
+            "$addToSet": {"agents": agent_id},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    
+    return {"success": True, "message": "Agent added to channel"}
+
+
+@router.delete("/channels/{channel_id}/agents/{agent_id}")
+async def remove_agent_from_channel(
+    channel_id: str,
+    agent_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Remove an AI agent from a channel"""
+    tenant_id = current_user["tenant_id"]
+    
+    channel = await db.messaging_channels.find_one({
+        "id": channel_id,
+        "tenant_id": tenant_id
+    })
+    
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    # Remove agent from channel
+    await db.messaging_channels.update_one(
+        {"id": channel_id},
+        {
+            "$pull": {"agents": agent_id},
+            "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}
+        }
+    )
+    
+    return {"success": True, "message": "Agent removed from channel"}
+
+
+@router.get("/agents/available")
+async def get_available_agents(current_user: dict = Depends(get_current_user)):
+    """Get all agents available for channels"""
+    tenant_id = current_user["tenant_id"]
+    
+    agents = await db.user_agents.find({
+        "tenant_id": tenant_id,
+        "channels_enabled": True,
+        "is_active": True
+    }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "profile_image_url": 1, "description": 1, "channel_config": 1}).to_list(100)
+    
+    return agents
+
 # ============== DIRECT MESSAGES ==============
 
 @router.post("/dm")
