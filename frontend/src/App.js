@@ -47,6 +47,7 @@ import MenuEditor from "./pages/MenuEditor";
 import FeatureGatesAdmin from "./pages/FeatureGatesAdmin";
 import WaitlistAdmin from "./pages/WaitlistAdmin";
 import CustomEmailsAdmin from "./pages/CustomEmailsAdmin";
+import Messaging from "./pages/Messaging";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
