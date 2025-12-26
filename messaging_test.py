@@ -302,17 +302,12 @@ class MessagingSystemTester:
             print("❌ No channel ID available for message test")
             return False
         
-        message_data = {
-            "content": "Test message",
-            "channel_id": self.test_channel_id
-        }
-        
+        # Use query parameters instead of JSON body
         success, response = self.run_test(
             "Send Message to Channel",
             "POST",
-            "messaging/messages",
-            200,
-            data=message_data
+            f"messaging/messages?content=Test message&channel_id={self.test_channel_id}",
+            200
         )
         
         if success:
