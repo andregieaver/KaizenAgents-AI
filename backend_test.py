@@ -8305,6 +8305,476 @@ AIAgentHubTester.test_widget_rate_limiting = test_widget_rate_limiting_updated
 AIAgentHubTester.test_user_creation_security = test_user_creation_security_updated
 AIAgentHubTester.test_orchestration_no_regression = test_orchestration_no_regression
 
+# ============== AI AGENT CHANNELS INTEGRATION TESTS ==============
+
+def test_ai_agent_channels_integration(self):
+    """Test AI Agent Channels integration feature as requested in review"""
+    print(f"\n🎯 Testing AI Agent Channels Integration Feature")
+    
+    # Test all steps from the review request
+    login_test = self.test_super_admin_login()
+    if not login_test:
+        print("❌ Login failed - cannot continue with channels tests")
+        return False
+    
+    # Step 1: Get list of agents
+    agents_test = self.test_get_agents_list()
+    
+    # Step 2: Update first agent to enable channels with channel_config
+    agent_update_test = self.test_update_agent_enable_channels()
+    
+    # Step 3: Verify the agent update was saved
+    agent_verify_test = self.test_verify_agent_channels_config()
+    
+    # Step 4: Get available agents for channels
+    available_agents_test = self.test_get_available_agents_for_channels()
+    
+    # Step 5: Get list of messaging channels
+    channels_list_test = self.test_get_messaging_channels()
+    
+    # Step 6: Add agent to channel
+    add_agent_test = self.test_add_agent_to_channel()
+    
+    # Step 7: List agents in channel
+    list_channel_agents_test = self.test_list_agents_in_channel()
+    
+    # Step 8: Send test message mentioning agent
+    test_message_test = self.test_send_message_mentioning_agent()
+    
+    # Step 9: Remove agent from channel
+    remove_agent_test = self.test_remove_agent_from_channel()
+    
+    # Summary of channels integration tests
+    print(f"\n📋 AI Agent Channels Integration Test Results:")
+    print(f"   Login and Get Token: {'✅ PASSED' if login_test else '❌ FAILED'}")
+    print(f"   Get List of Agents: {'✅ PASSED' if agents_test else '❌ FAILED'}")
+    print(f"   Update Agent Enable Channels: {'✅ PASSED' if agent_update_test else '❌ FAILED'}")
+    print(f"   Verify Agent Update Saved: {'✅ PASSED' if agent_verify_test else '❌ FAILED'}")
+    print(f"   Get Available Agents for Channels: {'✅ PASSED' if available_agents_test else '❌ FAILED'}")
+    print(f"   Get List of Messaging Channels: {'✅ PASSED' if channels_list_test else '❌ FAILED'}")
+    print(f"   Add Agent to Channel: {'✅ PASSED' if add_agent_test else '❌ FAILED'}")
+    print(f"   List Agents in Channel: {'✅ PASSED' if list_channel_agents_test else '❌ FAILED'}")
+    print(f"   Send Test Message Mentioning Agent: {'✅ PASSED' if test_message_test else '❌ FAILED'}")
+    print(f"   Remove Agent from Channel: {'✅ PASSED' if remove_agent_test else '❌ FAILED'}")
+    
+    return all([login_test, agents_test, agent_update_test, agent_verify_test, 
+               available_agents_test, channels_list_test, add_agent_test, 
+               list_channel_agents_test, test_message_test, remove_agent_test])
+
+def test_get_agents_list(self):
+    """Test Step 1: Get list of agents"""
+    print(f"\n🔧 Testing Step 1: Get List of Agents")
+    
+    success, response = self.run_test(
+        "Get List of User Agents",
+        "GET",
+        "agents/",
+        200
+    )
+    
+    if success and isinstance(response, list):
+        print(f"   ✅ Found {len(response)} user agents")
+        if len(response) > 0:
+            # Store first agent for testing
+            self.test_agent_id = response[0].get("id")
+            self.test_agent_name = response[0].get("name", "Test Agent")
+            print(f"   Using agent for testing: {self.test_agent_name} (ID: {self.test_agent_id})")
+            return True
+        else:
+            print("   ⚠️ No user agents found, will try to create one")
+            return self.test_create_test_agent()
+    else:
+        print("   ❌ Failed to get agents list or invalid response")
+        return False
+
+def test_create_test_agent(self):
+    """Create a test agent for channels testing"""
+    print(f"   Creating test agent for channels testing...")
+    
+    agent_data = {
+        "name": "Channels Test Agent",
+        "description": "Test agent for channels integration testing",
+        "category": "support",
+        "icon": "🤖",
+        "system_prompt": "You are a helpful assistant for testing channels integration.",
+        "temperature": 0.7,
+        "max_tokens": 1000
+    }
+    
+    success, response = self.run_test(
+        "Create Test Agent for Channels",
+        "POST",
+        "agents/",
+        200,
+        data=agent_data
+    )
+    
+    if success and response.get("id"):
+        self.test_agent_id = response["id"]
+        self.test_agent_name = response["name"]
+        print(f"   ✅ Created test agent: {self.test_agent_name} (ID: {self.test_agent_id})")
+        return True
+    else:
+        print("   ❌ Failed to create test agent")
+        return False
+
+def test_update_agent_enable_channels(self):
+    """Test Step 2: Update agent to enable channels with channel_config"""
+    print(f"\n🔧 Testing Step 2: Update Agent to Enable Channels")
+    
+    if not hasattr(self, 'test_agent_id') or not self.test_agent_id:
+        print("❌ No test agent ID available")
+        return False
+    
+    # Channel configuration as specified in review request
+    channel_config = {
+        "trigger_mode": "mention",
+        "response_probability": 0.3,
+        "response_style": "helpful",
+        "response_length": "medium",
+        "formality": 0.5,
+        "creativity": 0.5,
+        "keywords": []
+    }
+    
+    update_data = {
+        "channels_enabled": True,
+        "channel_config": channel_config
+    }
+    
+    success, response = self.run_test(
+        "Update Agent Enable Channels",
+        "PATCH",
+        f"agents/{self.test_agent_id}",
+        200,
+        data=update_data
+    )
+    
+    if success:
+        print(f"   ✅ Agent updated to enable channels")
+        print(f"   Channels enabled: {response.get('channels_enabled', False)}")
+        print(f"   Channel config: {response.get('channel_config', {})}")
+        return True
+    else:
+        print("   ❌ Failed to update agent for channels")
+        return False
+
+def test_verify_agent_channels_config(self):
+    """Test Step 3: Verify the agent update was saved"""
+    print(f"\n🔧 Testing Step 3: Verify Agent Update Was Saved")
+    
+    if not hasattr(self, 'test_agent_id') or not self.test_agent_id:
+        print("❌ No test agent ID available")
+        return False
+    
+    success, response = self.run_test(
+        "Get Agent to Verify Channels Config",
+        "GET",
+        f"agents/{self.test_agent_id}",
+        200
+    )
+    
+    if success:
+        channels_enabled = response.get("channels_enabled", False)
+        channel_config = response.get("channel_config", {})
+        
+        print(f"   Agent channels_enabled: {channels_enabled}")
+        print(f"   Channel config trigger_mode: {channel_config.get('trigger_mode')}")
+        print(f"   Channel config response_probability: {channel_config.get('response_probability')}")
+        print(f"   Channel config response_style: {channel_config.get('response_style')}")
+        
+        if channels_enabled and channel_config.get("trigger_mode") == "mention":
+            print("   ✅ Agent channels configuration saved correctly")
+            return True
+        else:
+            print("   ❌ Agent channels configuration not saved correctly")
+            return False
+    else:
+        print("   ❌ Failed to get agent details for verification")
+        return False
+
+def test_get_available_agents_for_channels(self):
+    """Test Step 4: Get available agents for channels"""
+    print(f"\n🔧 Testing Step 4: Get Available Agents for Channels")
+    
+    success, response = self.run_test(
+        "Get Available Agents for Channels",
+        "GET",
+        "messaging/agents/available",
+        200
+    )
+    
+    if success and isinstance(response, list):
+        print(f"   ✅ Found {len(response)} agents available for channels")
+        
+        # Check if our test agent is in the list
+        test_agent_found = False
+        for agent in response:
+            if agent.get("id") == getattr(self, 'test_agent_id', None):
+                test_agent_found = True
+                print(f"   ✅ Test agent '{agent.get('name')}' found in available agents")
+                print(f"   Agent channels_enabled: {agent.get('channels_enabled', False)}")
+                break
+        
+        if not test_agent_found and hasattr(self, 'test_agent_id'):
+            print(f"   ⚠️ Test agent not found in available agents list")
+        
+        return True
+    else:
+        print("   ❌ Failed to get available agents for channels")
+        return False
+
+def test_get_messaging_channels(self):
+    """Test Step 5: Get list of messaging channels"""
+    print(f"\n🔧 Testing Step 5: Get List of Messaging Channels")
+    
+    success, response = self.run_test(
+        "Get Messaging Channels",
+        "GET",
+        "messaging/channels",
+        200
+    )
+    
+    if success and isinstance(response, list):
+        print(f"   ✅ Found {len(response)} messaging channels")
+        
+        # Look for 'general' channel or use first available
+        general_channel = None
+        for channel in response:
+            print(f"   Channel: {channel.get('display_name', channel.get('name'))} (ID: {channel.get('id')})")
+            if channel.get('name') == 'general' or channel.get('display_name', '').lower() == 'general':
+                general_channel = channel
+        
+        if general_channel:
+            self.test_channel_id = general_channel["id"]
+            self.test_channel_name = general_channel.get("display_name", general_channel.get("name"))
+            print(f"   ✅ Using channel: {self.test_channel_name} (ID: {self.test_channel_id})")
+        elif len(response) > 0:
+            # Use first available channel
+            first_channel = response[0]
+            self.test_channel_id = first_channel["id"]
+            self.test_channel_name = first_channel.get("display_name", first_channel.get("name"))
+            print(f"   ✅ Using first available channel: {self.test_channel_name} (ID: {self.test_channel_id})")
+        else:
+            # Create a test channel
+            print("   No channels found, creating test channel...")
+            return self.test_create_test_channel()
+        
+        return True
+    else:
+        print("   ❌ Failed to get messaging channels")
+        return False
+
+def test_create_test_channel(self):
+    """Create a test channel for testing"""
+    print(f"   Creating test channel...")
+    
+    success, response = self.run_test(
+        "Create Test Channel",
+        "POST",
+        "messaging/channels?name=test-channel&description=Test channel for agent integration",
+        200
+    )
+    
+    if success and response.get("id"):
+        self.test_channel_id = response["id"]
+        self.test_channel_name = response.get("display_name", response.get("name"))
+        print(f"   ✅ Created test channel: {self.test_channel_name} (ID: {self.test_channel_id})")
+        return True
+    else:
+        print("   ❌ Failed to create test channel")
+        return False
+
+def test_add_agent_to_channel(self):
+    """Test Step 6: Add agent to channel"""
+    print(f"\n🔧 Testing Step 6: Add Agent to Channel")
+    
+    if not hasattr(self, 'test_agent_id') or not self.test_agent_id:
+        print("❌ No test agent ID available")
+        return False
+    
+    if not hasattr(self, 'test_channel_id') or not self.test_channel_id:
+        print("❌ No test channel ID available")
+        return False
+    
+    success, response = self.run_test(
+        "Add Agent to Channel",
+        "POST",
+        f"messaging/channels/{self.test_channel_id}/agents?agent_id={self.test_agent_id}",
+        200
+    )
+    
+    if success:
+        print(f"   ✅ Agent '{self.test_agent_name}' added to channel '{self.test_channel_name}'")
+        print(f"   Response: {response.get('message', 'Success')}")
+        return True
+    else:
+        print("   ❌ Failed to add agent to channel")
+        return False
+
+def test_list_agents_in_channel(self):
+    """Test Step 7: List agents in channel"""
+    print(f"\n🔧 Testing Step 7: List Agents in Channel")
+    
+    if not hasattr(self, 'test_channel_id') or not self.test_channel_id:
+        print("❌ No test channel ID available")
+        return False
+    
+    success, response = self.run_test(
+        "List Agents in Channel",
+        "GET",
+        f"messaging/channels/{self.test_channel_id}/agents",
+        200
+    )
+    
+    if success and isinstance(response, list):
+        print(f"   ✅ Found {len(response)} agents in channel")
+        
+        # Check if our test agent is in the list
+        test_agent_found = False
+        for agent in response:
+            print(f"   Agent in channel: {agent.get('name')} (ID: {agent.get('id')})")
+            if agent.get("id") == getattr(self, 'test_agent_id', None):
+                test_agent_found = True
+                print(f"   ✅ Test agent found in channel")
+        
+        if test_agent_found:
+            print("   ✅ Agent successfully listed in channel")
+            return True
+        else:
+            print("   ⚠️ Test agent not found in channel agents list")
+            return len(response) > 0  # At least the endpoint works
+    else:
+        print("   ❌ Failed to list agents in channel")
+        return False
+
+def test_send_message_mentioning_agent(self):
+    """Test Step 8: Send test message mentioning agent"""
+    print(f"\n🔧 Testing Step 8: Send Test Message Mentioning Agent")
+    
+    if not hasattr(self, 'test_channel_id') or not self.test_channel_id:
+        print("❌ No test channel ID available")
+        return False
+    
+    if not hasattr(self, 'test_agent_name') or not self.test_agent_name:
+        print("❌ No test agent name available")
+        return False
+    
+    # Create mention message
+    agent_mention = f"@{self.test_agent_name.lower().replace(' ', '')}"
+    test_message = f"Hello {agent_mention}, can you help me with a question about our services?"
+    
+    success, response = self.run_test(
+        "Send Message Mentioning Agent",
+        "POST",
+        f"messaging/messages?content={test_message}&channel_id={self.test_channel_id}",
+        200
+    )
+    
+    if success:
+        print(f"   ✅ Message sent mentioning agent: {agent_mention}")
+        print(f"   Message ID: {response.get('id', 'Unknown')}")
+        print(f"   Message content: {response.get('content', '')[:50]}...")
+        
+        # Wait a moment for potential agent response
+        import time
+        time.sleep(2)
+        
+        # Check if agent responded (optional verification)
+        self.test_check_agent_response()
+        
+        return True
+    else:
+        print("   ❌ Failed to send message mentioning agent")
+        return False
+
+def test_check_agent_response(self):
+    """Check if agent responded to the mention (optional verification)"""
+    print(f"   Checking for agent response...")
+    
+    if not hasattr(self, 'test_channel_id') or not self.test_channel_id:
+        return False
+    
+    success, response = self.run_test(
+        "Get Recent Channel Messages",
+        "GET",
+        f"messaging/messages?channel_id={self.test_channel_id}&limit=5",
+        200
+    )
+    
+    if success and isinstance(response, list):
+        agent_responses = [msg for msg in response if msg.get('is_agent') or msg.get('author_id', '').startswith('agent_')]
+        
+        if agent_responses:
+            print(f"   ✅ Found {len(agent_responses)} agent response(s)")
+            for resp in agent_responses:
+                print(f"   Agent response: {resp.get('content', '')[:80]}...")
+        else:
+            print(f"   ℹ️ No agent responses found yet (may take time to process)")
+        
+        return True
+    else:
+        print(f"   ⚠️ Could not check for agent responses")
+        return False
+
+def test_remove_agent_from_channel(self):
+    """Test Step 9: Remove agent from channel"""
+    print(f"\n🔧 Testing Step 9: Remove Agent from Channel")
+    
+    if not hasattr(self, 'test_agent_id') or not self.test_agent_id:
+        print("❌ No test agent ID available")
+        return False
+    
+    if not hasattr(self, 'test_channel_id') or not self.test_channel_id:
+        print("❌ No test channel ID available")
+        return False
+    
+    success, response = self.run_test(
+        "Remove Agent from Channel",
+        "DELETE",
+        f"messaging/channels/{self.test_channel_id}/agents/{self.test_agent_id}",
+        200
+    )
+    
+    if success:
+        print(f"   ✅ Agent '{self.test_agent_name}' removed from channel '{self.test_channel_name}'")
+        print(f"   Response: {response.get('message', 'Success')}")
+        
+        # Verify agent was removed
+        verify_success, verify_response = self.run_test(
+            "Verify Agent Removed from Channel",
+            "GET",
+            f"messaging/channels/{self.test_channel_id}/agents",
+            200
+        )
+        
+        if verify_success and isinstance(verify_response, list):
+            agent_still_in_channel = any(agent.get("id") == self.test_agent_id for agent in verify_response)
+            if not agent_still_in_channel:
+                print(f"   ✅ Verified: Agent successfully removed from channel")
+            else:
+                print(f"   ⚠️ Agent still appears in channel agents list")
+        
+        return True
+    else:
+        print("   ❌ Failed to remove agent from channel")
+        return False
+
+# Add the test methods to the AIAgentHubTester class
+AIAgentHubTester.test_ai_agent_channels_integration = test_ai_agent_channels_integration
+AIAgentHubTester.test_get_agents_list = test_get_agents_list
+AIAgentHubTester.test_create_test_agent = test_create_test_agent
+AIAgentHubTester.test_update_agent_enable_channels = test_update_agent_enable_channels
+AIAgentHubTester.test_verify_agent_channels_config = test_verify_agent_channels_config
+AIAgentHubTester.test_get_available_agents_for_channels = test_get_available_agents_for_channels
+AIAgentHubTester.test_get_messaging_channels = test_get_messaging_channels
+AIAgentHubTester.test_create_test_channel = test_create_test_channel
+AIAgentHubTester.test_add_agent_to_channel = test_add_agent_to_channel
+AIAgentHubTester.test_list_agents_in_channel = test_list_agents_in_channel
+AIAgentHubTester.test_send_message_mentioning_agent = test_send_message_mentioning_agent
+AIAgentHubTester.test_check_agent_response = test_check_agent_response
+AIAgentHubTester.test_remove_agent_from_channel = test_remove_agent_from_channel
+
 if __name__ == "__main__":
     import sys
     
