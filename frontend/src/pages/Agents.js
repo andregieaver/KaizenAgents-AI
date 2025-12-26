@@ -257,6 +257,80 @@ const Agents = () => {
         </Button>
       </div>
 
+      {/* Bulk Action Bar */}
+      {agents.length > 0 && (
+        <div className="flex items-center gap-2 sm:gap-4 mb-4 p-3 bg-muted/50 rounded-lg flex-wrap">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={selectedAgents.size === agents.length && agents.length > 0}
+              onCheckedChange={(checked) => checked ? selectAllAgents() : clearSelection()}
+              aria-label="Select all agents"
+            />
+            <span className="text-sm text-muted-foreground hidden sm:inline">
+              {selectedAgents.size === 0 
+                ? 'Select all' 
+                : `${selectedAgents.size} of ${agents.length} selected`}
+            </span>
+            <span className="text-sm text-muted-foreground sm:hidden">
+              {selectedAgents.size > 0 ? selectedAgents.size : 'All'}
+            </span>
+          </div>
+          
+          {selectedAgents.size > 0 && (
+            <>
+              <Separator orientation="vertical" className="h-6 hidden sm:block" />
+              
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" disabled={bulkActionLoading}>
+                    {bulkActionLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <MoreHorizontal className="h-4 w-4 mr-2" />
+                    )}
+                    <span className="hidden sm:inline">Bulk Actions</span>
+                    <span className="sm:hidden">Actions</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuItem onClick={bulkActivate}>
+                    <Power className="h-4 w-4 mr-2 text-green-500" />
+                    Activate Selected
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={bulkDeactivate}>
+                    <Power className="h-4 w-4 mr-2 text-muted-foreground" />
+                    Deactivate Selected
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={bulkEnableForChannels}>
+                    <MessageSquare className="h-4 w-4 mr-2 text-blue-500" />
+                    Enable for Channels
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={bulkDisableForChannels}>
+                    <MessageSquare className="h-4 w-4 mr-2 text-muted-foreground" />
+                    Disable for Channels
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={bulkEnableOrchestration}>
+                    <Network className="h-4 w-4 mr-2 text-purple-500" />
+                    Enable for Orchestration
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={bulkDisableOrchestration}>
+                    <Network className="h-4 w-4 mr-2 text-muted-foreground" />
+                    Disable for Orchestration
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <Button variant="ghost" size="sm" onClick={clearSelection}>
+                <X className="h-4 w-4" />
+                <span className="ml-1 hidden sm:inline">Clear</span>
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+
       {/* Agents Grid */}
       {loading ? (
         <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
