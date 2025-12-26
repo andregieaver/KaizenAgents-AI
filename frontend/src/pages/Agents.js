@@ -343,46 +343,72 @@ const Agents = () => {
       ) : (
         <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
           {agents.map((agent) => (
-            <Link key={agent.id} to={`/dashboard/agents/${agent.id}`}>
-              <Card className={`border-0 shadow-sm transition-colors cursor-pointer h-full ${
-                agent.is_active 
-                  ? 'bg-primary/5 ring-1 ring-primary/30' 
-                  : 'hover:shadow-md'
-              }`}>
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-2xl">
-                        {getAvatarSrc(agent.profile_image_url) ? (
-                          <img 
-                            src={getAvatarSrc(agent.profile_image_url)} 
-                            alt={agent.name}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          agent.icon || <Bot className="h-6 w-6 text-primary" />
-                        )}
-                      </div>
-                      <div>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          {agent.name}
-                          {agent.is_active && (
-                            <Badge className="bg-green-500 text-white">Active</Badge>
+            <div key={agent.id} className="relative">
+              {/* Selection checkbox */}
+              <div 
+                className="absolute top-3 left-3 z-10"
+                onClick={(e) => toggleAgentSelection(agent.id, e)}
+              >
+                <Checkbox
+                  checked={selectedAgents.has(agent.id)}
+                  className="h-5 w-5 bg-background border-2"
+                />
+              </div>
+              
+              <Link to={`/dashboard/agents/${agent.id}`}>
+                <Card className={`border-0 shadow-sm transition-colors cursor-pointer h-full ${
+                  selectedAgents.has(agent.id)
+                    ? 'ring-2 ring-primary'
+                    : agent.is_active 
+                      ? 'bg-primary/5 ring-1 ring-primary/30' 
+                      : 'hover:shadow-md'
+                }`}>
+                  <CardHeader className="pl-10">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden text-2xl">
+                          {getAvatarSrc(agent.profile_image_url) ? (
+                            <img 
+                              src={getAvatarSrc(agent.profile_image_url)} 
+                              alt={agent.name}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            agent.icon || <Bot className="h-6 w-6 text-primary" />
                           )}
-                        </CardTitle>
-                        <CardDescription className="text-xs">
-                          {agent.category} • {agent.config?.model || agent.config?.ai_model || 'Default model'}
-                        </CardDescription>
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
+                            {agent.name}
+                            {agent.is_active && (
+                              <Badge className="bg-green-500 text-white">Active</Badge>
+                            )}
+                          </CardTitle>
+                          <CardDescription className="text-xs flex items-center gap-1 flex-wrap">
+                            {agent.category} • {agent.config?.model || agent.config?.ai_model || 'Default model'}
+                            {agent.channels_enabled && (
+                              <Badge variant="outline" className="text-[10px] h-4 px-1">
+                                <MessageSquare className="h-2.5 w-2.5 mr-0.5" />
+                                Channels
+                              </Badge>
+                            )}
+                            {agent.orchestration_enabled && (
+                              <Badge variant="outline" className="text-[10px] h-4 px-1">
+                                <Network className="h-2.5 w-2.5 mr-0.5" />
+                                Orch
+                              </Badge>
+                            )}
+                          </CardDescription>
+                        </div>
                       </div>
+                      {agent.is_public && (
+                        <Badge variant="secondary">
+                          <Globe className="h-3 w-3 mr-1" />
+                          Published
+                        </Badge>
+                      )}
                     </div>
-                    {agent.is_public && (
-                      <Badge variant="secondary">
-                        <Globe className="h-3 w-3 mr-1" />
-                        Published
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
+                  </CardHeader>
                 
                 <CardContent className="space-y-4">
                   {/* Description */}
