@@ -240,6 +240,7 @@ const DashboardLayout = () => {
   const navItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
     { path: '/dashboard/conversations', icon: Inbox, label: 'Conversations' },
+    { path: '/dashboard/messaging', icon: MessageSquare, label: 'Messaging' },
     { path: '/dashboard/crm', icon: Users, label: 'CRM' },
     { path: '/dashboard/analytics', icon: BarChart3, label: 'Analytics' },
     { path: '/marketplace', icon: Bot, label: 'Marketplace' },
