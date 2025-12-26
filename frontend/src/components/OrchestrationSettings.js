@@ -418,13 +418,47 @@ const OrchestrationSettings = () => {
           {/* Child Agents Configuration */}
           <Card className="border border-border">
             <CardHeader>
-              <CardTitle className="font-heading text-lg flex items-center gap-2">
-                <Bot className="h-5 w-5 text-primary" />
-                Child Agents (Executors)
-              </CardTitle>
-              <CardDescription>
-                Configure which agents can be delegated to and their skill tags
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="font-heading text-lg flex items-center gap-2">
+                    <Bot className="h-5 w-5 text-primary" />
+                    Child Agents (Executors)
+                  </CardTitle>
+                  <CardDescription>
+                    Configure which agents can be delegated to and their skill tags
+                  </CardDescription>
+                </div>
+                {userAgents.length > 0 && (
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        for (const agent of userAgents) {
+                          if (!agent.orchestration_enabled) {
+                            await toggleAgentOrchestrationEnabled(agent.id, true);
+                          }
+                        }
+                      }}
+                      disabled={saving}
+                    >
+                      Enable All
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        const allIds = userAgents.filter(a => a.orchestration_enabled).map(a => a.id);
+                        setSelectedChildren(allIds);
+                        await updateOrchestrationConfig({ allowed_child_agent_ids: allIds });
+                      }}
+                      disabled={saving}
+                    >
+                      Allow All
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               {userAgents.length === 0 ? (
