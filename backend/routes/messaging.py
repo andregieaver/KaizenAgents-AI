@@ -735,7 +735,8 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
 async def generate_agent_response(tenant_id: str, channel_id: str, agent: dict, trigger_message: dict, user_name: str):
     """Generate and send AI agent response"""
     try:
-        from emergentintegrations.llm.openai import chat
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        import os
         
         channel_config = agent.get("channel_config", {})
         agent_config = agent.get("config", {})
@@ -784,19 +785,26 @@ Recent conversation context:
 {context}
 """
         
-        # Adjust temperature based on creativity setting
-        temperature = 0.4 + (creativity * 0.6)  # Range: 0.4 to 1.0
+        # Initialize LlmChat with Emergent key
+        api_key = os.environ.get("EMERGENT_LLM_KEY")
+        if not api_key:
+            print("[Agent Response] EMERGENT_LLM_KEY not found in environment")
+            return
+        
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"channel_{channel_id}_{agent['id']}",
+            system_message=system_prompt
+        ).with_model("openai", "gpt-4o")
+        
+        # Create the user message
+        user_message = UserMessage(
+            text=f"{user_name} said: {trigger_message['content']}\n\nRespond as {agent['name']}:"
+        )
         
         # Generate response
-        response = await asyncio.get_event_loop().run_in_executor(
-            None,
-            lambda: chat(
-                prompt=f"{user_name} said: {trigger_message['content']}\n\nRespond as {agent['name']}:",
-                system=system_prompt,
-                temperature=temperature,
-                max_tokens=agent_config.get("max_tokens", 500)
-            )
-        )
+        response = await chat.send_message(user_message)
+        print(f"[Agent Response] Generated response: {response[:100]}..." if response else "[Agent Response] No response generated")
         
         if response:
             # Create agent message
