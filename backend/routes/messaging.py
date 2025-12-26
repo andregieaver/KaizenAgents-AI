@@ -531,7 +531,173 @@ async def send_message(
                     "payload": notification
                 })
     
+    # Trigger AI agent response if channel has agents
+    if channel_id:
+        asyncio.create_task(trigger_channel_agents(
+            tenant_id=tenant_id,
+            channel_id=channel_id,
+            message=message,
+            user_name=current_user.get("name", "User")
+        ))
+    
     return message
+
+
+async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict, user_name: str):
+    """Trigger AI agents to respond to channel messages"""
+    try:
+        # Get channel with agents
+        channel = await db.messaging_channels.find_one({"id": channel_id})
+        if not channel:
+            return
+        
+        agent_ids = channel.get("agents", [])
+        if not agent_ids:
+            return
+        
+        # Get agents that are enabled for channels
+        agents = await db.user_agents.find({
+            "id": {"$in": agent_ids},
+            "channels_enabled": True,
+            "is_active": True
+        }, {"_id": 0}).to_list(100)
+        
+        for agent in agents:
+            channel_config = agent.get("channel_config", {})
+            
+            # Check if agent should respond based on trigger mode
+            trigger_mode = channel_config.get("trigger_mode", "mention")
+            should_respond = False
+            
+            if trigger_mode == "all":
+                # Respond to all messages based on probability
+                import random
+                response_probability = channel_config.get("response_probability", 0.3)
+                should_respond = random.random() < response_probability
+            elif trigger_mode == "mention":
+                # Only respond when mentioned
+                agent_mention = f"@{agent['name'].lower().replace(' ', '')}"
+                should_respond = agent_mention in message["content"].lower()
+            elif trigger_mode == "keyword":
+                # Respond when keywords are mentioned
+                keywords = channel_config.get("keywords", [])
+                content_lower = message["content"].lower()
+                should_respond = any(kw.lower() in content_lower for kw in keywords)
+            
+            if should_respond:
+                await generate_agent_response(
+                    tenant_id=tenant_id,
+                    channel_id=channel_id,
+                    agent=agent,
+                    trigger_message=message,
+                    user_name=user_name
+                )
+    except Exception as e:
+        print(f"Error triggering channel agents: {e}")
+
+
+async def generate_agent_response(tenant_id: str, channel_id: str, agent: dict, trigger_message: dict, user_name: str):
+    """Generate and send AI agent response"""
+    try:
+        from emergentintegrations.llm.openai import chat
+        
+        channel_config = agent.get("channel_config", {})
+        agent_config = agent.get("config", {})
+        
+        # Build conversation context
+        recent_messages = await db.messaging_messages.find({
+            "channel_id": channel_id,
+            "parent_id": None
+        }, {"_id": 0}).sort("created_at", -1).limit(10).to_list(10)
+        
+        recent_messages.reverse()  # Chronological order
+        
+        # Build context string
+        context = "\n".join([
+            f"{m['author_name']}: {m['content']}" 
+            for m in recent_messages
+        ])
+        
+        # Get behavior settings
+        response_style = channel_config.get("response_style", "helpful")
+        response_length = channel_config.get("response_length", "medium")
+        formality = channel_config.get("formality", 0.5)
+        creativity = channel_config.get("creativity", 0.5)
+        
+        # Build style instructions
+        style_instructions = f"""
+Response Style: {response_style}
+Length: {response_length} (short=1-2 sentences, medium=1 paragraph, long=detailed)
+Formality: {'formal' if formality > 0.6 else 'casual' if formality < 0.4 else 'balanced'}
+Be {'creative and expressive' if creativity > 0.6 else 'straightforward and factual' if creativity < 0.4 else 'balanced between creative and factual'}.
+"""
+        
+        system_prompt = f"""You are {agent['name']}, an AI assistant participating in a team chat channel.
+
+{agent_config.get('system_prompt', 'You are a helpful assistant.')}
+
+IMPORTANT CONTEXT:
+- You are in a Slack-like messaging channel
+- Keep responses conversational and appropriate for team chat
+- Don't be overly formal unless the context requires it
+- You can use emojis sparingly if appropriate
+
+{style_instructions}
+
+Recent conversation context:
+{context}
+"""
+        
+        # Adjust temperature based on creativity setting
+        temperature = 0.4 + (creativity * 0.6)  # Range: 0.4 to 1.0
+        
+        # Generate response
+        response = await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: chat(
+                prompt=f"{user_name} said: {trigger_message['content']}\n\nRespond as {agent['name']}:",
+                system=system_prompt,
+                temperature=temperature,
+                max_tokens=agent_config.get("max_tokens", 500)
+            )
+        )
+        
+        if response:
+            # Create agent message
+            agent_message = {
+                "id": str(uuid.uuid4()),
+                "tenant_id": tenant_id,
+                "channel_id": channel_id,
+                "dm_conversation_id": None,
+                "parent_id": None,
+                "content": response,
+                "author_id": f"agent_{agent['id']}",
+                "author_name": agent["name"],
+                "author_avatar": agent.get("profile_image_url"),
+                "is_agent": True,
+                "agent_id": agent["id"],
+                "attachments": [],
+                "mentions": [],
+                "reactions": {},
+                "is_edited": False,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.messaging_messages.insert_one(agent_message)
+            agent_message.pop('_id', None)
+            
+            # Broadcast agent message
+            channel = await db.messaging_channels.find_one({"id": channel_id})
+            if channel:
+                recipients = channel.get("members", [])
+                await manager.send_to_users(tenant_id, recipients, {
+                    "type": "message",
+                    "payload": agent_message
+                })
+                
+    except Exception as e:
+        print(f"Error generating agent response: {e}")
 
 @router.get("/messages")
 async def get_messages(
