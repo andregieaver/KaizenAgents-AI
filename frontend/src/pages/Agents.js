@@ -537,6 +537,7 @@ const Agents = () => {
                 </CardContent>
               </Card>
             </Link>
+            </div>
           ))}
         </div>
       )}
