@@ -4233,6 +4233,7 @@ from routes.waitlist import router as waitlist_router_mod
 from routes.custom_emails import router as custom_emails_router_mod
 from routes.onboarding import router as onboarding_router_mod
 from routes.crm import router as crm_router_mod
+from routes.messaging import router as messaging_router_mod
 
 # Register all modularized routers under /api
 api_router.include_router(auth_router_mod)
@@ -4265,6 +4266,7 @@ api_router.include_router(waitlist_router_mod)
 api_router.include_router(custom_emails_router_mod)
 api_router.include_router(onboarding_router_mod)
 api_router.include_router(crm_router_mod)
+api_router.include_router(messaging_router_mod)
 
 # Include the admin router with providers and agents endpoints
 api_router.include_router(admin_router)
