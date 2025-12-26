@@ -820,6 +820,7 @@ const Messaging = () => {
     setSelectedDM(null);
     setThreadMessage(null);
     setSearchParams({ channel: channel.id });
+    setShowMobileSidebar(false); // Hide sidebar on mobile when selecting
   };
   
   // Select DM
@@ -828,6 +829,7 @@ const Messaging = () => {
     setSelectedChannel(null);
     setThreadMessage(null);
     setSearchParams({ dm: dm.id });
+    setShowMobileSidebar(false); // Hide sidebar on mobile when selecting
   };
   
   const currentKey = selectedChannel?.id || selectedDM?.id;
