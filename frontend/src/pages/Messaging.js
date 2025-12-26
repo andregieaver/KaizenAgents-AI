@@ -704,7 +704,7 @@ const Messaging = () => {
           name: newChannelName,
           description: newChannelDescription,
           is_private: newChannelPrivate,
-          linked_customer_id: newChannelCustomer || undefined
+          linked_customer_id: newChannelCustomer && newChannelCustomer !== 'none' ? newChannelCustomer : undefined
         },
         headers: { Authorization: `Bearer ${token}` }
       });
