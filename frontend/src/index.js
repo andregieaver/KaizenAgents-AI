@@ -6,7 +6,6 @@ import App from "@/App";
 // Suppress benign ResizeObserver loop errors that occur during normal UI rendering
 // These errors don't affect functionality and are caused by layout recalculations
 // This comprehensive fix handles both window errors and React's error overlay
-const resizeObserverErr = /^[^(ResizeObserver loop|ResizeObserver loop completed)/;
 const resizeObserverErrMessage = 'ResizeObserver loop';
 
 // Suppress in window error event
