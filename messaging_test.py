@@ -403,16 +403,12 @@ class MessagingSystemTester:
             print("❌ No message ID available for edit test")
             return False
         
-        edit_data = {
-            "content": "Edited test message"
-        }
-        
+        # Use query parameter instead of JSON body
         success, response = self.run_test(
             "Edit Message",
             "PUT",
-            f"messaging/messages/{self.test_message_id}",
-            200,
-            data=edit_data
+            f"messaging/messages/{self.test_message_id}?content=Edited test message",
+            200
         )
         
         if success:
