@@ -264,7 +264,7 @@ async def update_user_agent(
                 config_updates["provider_id"] = value
                 config_updates["provider_name"] = provider.get("name", "")
             # Fields that are direct on agent
-            elif key in ["name", "description", "category", "icon", "profile_image_url", "orchestration_enabled", "tags"]:
+            elif key in ["name", "description", "category", "icon", "profile_image_url", "orchestration_enabled", "tags", "channels_enabled", "channel_config"]:
                 update_fields[key] = value
             # Config object itself
             elif key == "config" and value:
