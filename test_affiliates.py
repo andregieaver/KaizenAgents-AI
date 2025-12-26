@@ -8,7 +8,7 @@ import time
 
 class AffiliateSystemTester:
     def __init__(self):
-        self.base_url = "https://coderefactor-6.preview.emergentagent.com/api"
+        self.base_url = "https://slackbot-saas.preview.emergentagent.com/api"
         self.token = None
         self.affiliate_code = None
         self.test_referral_id = None
