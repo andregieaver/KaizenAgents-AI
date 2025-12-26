@@ -310,7 +310,7 @@ const ThreadPanel = ({ parentMessage, currentUserId, token, onClose, onReaction 
   };
   
   return (
-    <div className="w-96 border-l flex flex-col bg-background">
+    <div className="fixed inset-0 sm:relative sm:inset-auto w-full sm:w-96 border-l flex flex-col bg-background z-50">
       <div className="p-4 border-b flex items-center justify-between">
         <h3 className="font-semibold">Thread</h3>
         <Button variant="ghost" size="icon" onClick={onClose}>
