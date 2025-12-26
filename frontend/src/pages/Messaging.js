@@ -1489,26 +1489,47 @@ const Messaging = () => {
                   </div>
                 )}
                 
-                {/* Add new agent */}
+                {/* Add new agents - Multi-select with checkboxes */}
                 {availableAgents.filter(a => !channelAgents.find(ca => ca.id === a.id)).length > 0 && (
-                  <Select onValueChange={(agentId) => addAgentToChannel(agentId)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Add an AI agent..." />
-                    </SelectTrigger>
-                    <SelectContent>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Add AI Agents</Label>
+                    <div className="border rounded-lg divide-y max-h-48 overflow-y-auto">
                       {availableAgents
                         .filter(a => !channelAgents.find(ca => ca.id === a.id))
                         .map(agent => (
-                          <SelectItem key={agent.id} value={agent.id}>
-                            <div className="flex items-center gap-2">
-                              <Bot className="h-4 w-4" />
-                              {agent.name}
+                          <div
+                            key={agent.id}
+                            className="flex items-center gap-3 p-3 hover:bg-muted/50 cursor-pointer"
+                            onClick={() => addAgentToChannel(agent.id)}
+                          >
+                            <Bot className="h-4 w-4 text-primary" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{agent.name}</p>
+                              {agent.description && (
+                                <p className="text-xs text-muted-foreground truncate">{agent.description}</p>
+                              )}
                             </div>
-                          </SelectItem>
+                            <Plus className="h-4 w-4 text-muted-foreground" />
+                          </div>
                         ))
                       }
-                    </SelectContent>
-                  </Select>
+                    </div>
+                    {availableAgents.filter(a => !channelAgents.find(ca => ca.id === a.id)).length > 1 && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => addMultipleAgentsToChannel(
+                          availableAgents
+                            .filter(a => !channelAgents.find(ca => ca.id === a.id))
+                            .map(a => a.id)
+                        )}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add All Available ({availableAgents.filter(a => !channelAgents.find(ca => ca.id === a.id)).length})
+                      </Button>
+                    )}
+                  </div>
                 )}
                 
                 {availableAgents.length === 0 && channelAgents.length === 0 && (
