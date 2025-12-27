@@ -63,19 +63,14 @@ const MemberCard = ({
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              {member.avatar_url ? (
-                <img 
-                  src={member.avatar_url} 
-                  alt={member.name}
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-              ) : (
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={resolveImageUrl(member.avatar_url)} />
+              <AvatarFallback className="bg-primary/10">
                 <span className="text-lg font-semibold text-primary">
                   {member.name?.charAt(0)?.toUpperCase() || '?'}
                 </span>
-              )}
-            </div>
+              </AvatarFallback>
+            </Avatar>
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-medium">{member.name}</span>
