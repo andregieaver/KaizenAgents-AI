@@ -1396,18 +1396,6 @@ const Messaging = () => {
               <div className="flex items-center gap-1 sm:gap-2">
                 {selectedChannel && (
                   <>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Users className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {selectedChannel.members?.length || 0} members
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
                     <Button 
                       variant="ghost" 
                       size="icon"
