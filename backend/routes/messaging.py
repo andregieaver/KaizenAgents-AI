@@ -665,7 +665,17 @@ async def send_message(
 
 
 async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict, user_name: str):
-    """Trigger AI agents to respond to channel messages"""
+    """
+    Intelligent agent trigger system with:
+    - Name detection (with or without @)
+    - Proactive responses based on expertise
+    - Collaborative discussion mode
+    - Human-like behavior variations
+    """
+    import random
+    import asyncio
+    import re
+    
     try:
         # Get channel with agents
         channel = await db.messaging_channels.find_one({"id": channel_id})
@@ -678,8 +688,6 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
             print(f"[Agent Trigger] No agents in channel: {channel_id}")
             return
         
-        print(f"[Agent Trigger] Channel {channel_id} has agents: {agent_ids}")
-        
         # Get agents that are enabled for channels
         agents = await db.user_agents.find({
             "id": {"$in": agent_ids},
@@ -687,52 +695,360 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
             "is_active": True
         }, {"_id": 0}).to_list(100)
         
-        print(f"[Agent Trigger] Found {len(agents)} enabled agents")
+        if not agents:
+            print(f"[Agent Trigger] No active agents found")
+            return
         
+        print(f"[Agent Trigger] Found {len(agents)} enabled agents: {[a['name'] for a in agents]}")
+        
+        message_content = message["content"]
+        message_lower = message_content.lower()
+        
+        # Skip if this is an agent message (prevent infinite loops)
+        if message.get("is_agent"):
+            print(f"[Agent Trigger] Skipping agent message")
+            return
+        
+        # === PHASE 1: Detect which agents are explicitly mentioned ===
+        mentioned_agents = []
         for agent in agents:
-            channel_config = agent.get("channel_config", {})
+            agent_name = agent['name']
+            agent_name_lower = agent_name.lower()
+            agent_name_no_spaces = agent_name_lower.replace(' ', '')
             
-            # Check if agent should respond based on trigger mode
-            trigger_mode = channel_config.get("trigger_mode", "mention")
-            should_respond = False
+            # Check various mention patterns
+            patterns = [
+                f"@{agent_name_no_spaces}",  # @kaia
+                f"@{agent_name_lower}",       # @kaia (with spaces preserved)
+                agent_name_lower,              # kaia (just the name)
+            ]
             
-            print(f"[Agent Trigger] Agent '{agent.get('name')}' trigger_mode: {trigger_mode}")
-            
-            if trigger_mode == "all":
-                # Respond to all messages based on probability
-                import random
-                response_probability = channel_config.get("response_probability", 0.3)
-                should_respond = random.random() < response_probability
-            elif trigger_mode == "mention":
-                # Only respond when mentioned
-                agent_mention = f"@{agent['name'].lower().replace(' ', '')}"
-                message_content = message["content"].lower()
-                should_respond = agent_mention in message_content
-                print(f"[Agent Trigger] Looking for '{agent_mention}' in '{message_content}': {should_respond}")
-            elif trigger_mode == "keyword":
-                # Respond when keywords are mentioned
-                keywords = channel_config.get("keywords", [])
-                content_lower = message["content"].lower()
-                should_respond = any(kw.lower() in content_lower for kw in keywords)
-            
-            if should_respond:
-                print(f"[Agent Trigger] Triggering response from agent '{agent.get('name')}'")
+            for pattern in patterns:
+                if pattern in message_lower:
+                    if agent not in mentioned_agents:
+                        mentioned_agents.append(agent)
+                        print(f"[Agent Trigger] Agent '{agent_name}' mentioned via pattern '{pattern}'")
+                    break
+        
+        # === PHASE 2: Detect collaborative keywords ===
+        collaborative_keywords = [
+            "you both", "both of you", "you two", "you all",
+            "together", "collaborate", "discuss", "come up with",
+            "work together", "figure out", "brainstorm", "team up",
+            "what do you think", "your thoughts", "everyone"
+        ]
+        is_collaborative = any(kw in message_lower for kw in collaborative_keywords)
+        
+        if is_collaborative and len(mentioned_agents) >= 2:
+            print(f"[Agent Trigger] Collaborative mode detected with {len(mentioned_agents)} agents")
+            await handle_collaborative_discussion(
+                tenant_id=tenant_id,
+                channel_id=channel_id,
+                agents=mentioned_agents,
+                trigger_message=message,
+                user_name=user_name
+            )
+            return
+        
+        # === PHASE 3: Handle explicit mentions ===
+        if mentioned_agents:
+            # Add slight random delays between agent responses for natural feel
+            for i, agent in enumerate(mentioned_agents):
+                if i > 0:
+                    # Random delay 1-3 seconds between responses
+                    delay = random.uniform(1.0, 3.0)
+                    await asyncio.sleep(delay)
+                
                 await generate_agent_response(
                     tenant_id=tenant_id,
                     channel_id=channel_id,
                     agent=agent,
                     trigger_message=message,
-                    user_name=user_name
+                    user_name=user_name,
+                    all_agents=agents
                 )
-            else:
-                print(f"[Agent Trigger] Agent '{agent.get('name')}' will not respond")
+            return
+        
+        # === PHASE 4: Proactive evaluation for non-mentioned agents ===
+        # Check if any agent should proactively respond based on expertise
+        for agent in agents:
+            should_respond = await evaluate_proactive_response(
+                agent=agent,
+                channel_id=channel_id,
+                message=message,
+                user_name=user_name,
+                all_agents=agents
+            )
+            
+            if should_respond:
+                # Random delay 2-5 seconds for proactive (thinking time)
+                delay = random.uniform(2.0, 5.0)
+                await asyncio.sleep(delay)
+                
+                await generate_agent_response(
+                    tenant_id=tenant_id,
+                    channel_id=channel_id,
+                    agent=agent,
+                    trigger_message=message,
+                    user_name=user_name,
+                    all_agents=agents,
+                    is_proactive=True
+                )
+                
     except Exception as e:
         print(f"Error triggering channel agents: {e}")
         import traceback
         traceback.print_exc()
 
 
-async def generate_agent_response(tenant_id: str, channel_id: str, agent: dict, trigger_message: dict, user_name: str):
+async def evaluate_proactive_response(agent: dict, channel_id: str, message: dict, user_name: str, all_agents: list) -> bool:
+    """
+    Evaluate if an agent should proactively respond based on:
+    - Their expertise/domain
+    - Conversation context
+    - Whether they can add unique value
+    """
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        import os
+        
+        api_key = os.environ.get("EMERGENT_LLM_KEY")
+        if not api_key:
+            return False
+        
+        # Get recent conversation context (50 messages for better awareness)
+        recent_messages = await db.messaging_messages.find({
+            "channel_id": channel_id,
+            "parent_id": None
+        }, {"_id": 0}).sort("created_at", -1).limit(50).to_list(50)
+        
+        recent_messages.reverse()
+        
+        # Build conversation context
+        context = "\n".join([
+            f"[{m.get('author_name', 'Unknown')}{'(AI)' if m.get('is_agent') else ''}]: {m['content']}" 
+            for m in recent_messages[-20:]  # Last 20 for evaluation
+        ])
+        
+        agent_config = agent.get("config", {})
+        other_agents = [a['name'] for a in all_agents if a['id'] != agent['id']]
+        
+        evaluation_prompt = f"""You are {agent['name']}, an AI assistant with the following expertise:
+{agent_config.get('system_prompt', 'General assistant')}
+
+Other agents in this channel: {', '.join(other_agents) if other_agents else 'None'}
+
+Recent conversation:
+{context}
+
+Latest message from {user_name}: "{message['content']}"
+
+IMPORTANT: You must decide if you should proactively join this conversation.
+
+Respond with ONLY "YES" or "NO" based on these criteria:
+- Say YES if you have relevant expertise that would genuinely help
+- Say YES if you notice a potential flaw, error, or better approach
+- Say YES if you can add unique value the other participants haven't considered
+- Say NO if another agent is already handling this well
+- Say NO if your input would be redundant or unhelpful
+- Say NO if the conversation doesn't relate to your expertise
+
+Your decision (YES or NO):"""
+
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"eval_{channel_id}_{agent['id']}",
+            system_message="You are an evaluation assistant. Respond only with YES or NO."
+        ).with_model("openai", "gpt-4o")
+        
+        response = await chat.send_message(UserMessage(text=evaluation_prompt))
+        
+        should_respond = response and response.strip().upper().startswith("YES")
+        print(f"[Proactive Eval] Agent '{agent['name']}' decision: {response.strip() if response else 'None'} -> {should_respond}")
+        
+        return should_respond
+        
+    except Exception as e:
+        print(f"Error evaluating proactive response: {e}")
+        return False
+
+
+async def handle_collaborative_discussion(tenant_id: str, channel_id: str, agents: list, trigger_message: dict, user_name: str):
+    """
+    Handle collaborative discussions where multiple agents work together.
+    Creates a natural back-and-forth discussion with 3-4 exchanges.
+    """
+    import random
+    import asyncio
+    
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        import os
+        
+        api_key = os.environ.get("EMERGENT_LLM_KEY")
+        if not api_key:
+            print("[Collaborative] EMERGENT_LLM_KEY not found")
+            return
+        
+        # Get conversation history
+        recent_messages = await db.messaging_messages.find({
+            "channel_id": channel_id,
+            "parent_id": None
+        }, {"_id": 0}).sort("created_at", -1).limit(50).to_list(50)
+        
+        recent_messages.reverse()
+        
+        context = "\n".join([
+            f"[{m.get('author_name', 'Unknown')}]: {m['content']}" 
+            for m in recent_messages
+        ])
+        
+        # Discussion state
+        discussion_history = []
+        num_exchanges = random.randint(3, 4)  # 3-4 exchanges
+        
+        # Shuffle agents to vary who speaks first
+        shuffled_agents = agents.copy()
+        random.shuffle(shuffled_agents)
+        
+        print(f"[Collaborative] Starting discussion with {len(agents)} agents, {num_exchanges} exchanges")
+        
+        for exchange in range(num_exchanges):
+            is_final = (exchange == num_exchanges - 1)
+            
+            for i, agent in enumerate(shuffled_agents):
+                # Natural delay between responses (1.5-4 seconds)
+                if exchange > 0 or i > 0:
+                    delay = random.uniform(1.5, 4.0)
+                    await asyncio.sleep(delay)
+                
+                agent_config = agent.get("config", {})
+                other_agent_names = [a['name'] for a in shuffled_agents if a['id'] != agent['id']]
+                
+                discussion_context = "\n".join(discussion_history) if discussion_history else "No discussion yet."
+                
+                if is_final and i == len(shuffled_agents) - 1:
+                    # Final summary message
+                    prompt = f"""You are {agent['name']} in a team chat.
+
+Your expertise: {agent_config.get('system_prompt', 'General assistant')[:200]}
+
+Conversation history:
+{context}
+
+User request: {user_name} asked: "{trigger_message['content']}"
+
+Discussion so far between you and {', '.join(other_agent_names)}:
+{discussion_context}
+
+IMPORTANT: This is your FINAL response. Summarize what you and {', '.join(other_agent_names)} have discussed and present your collective recommendation.
+- Start naturally (e.g., "After discussing with {other_agent_names[0]}..." or "We've talked it over and...")
+- Present 1-2 concrete recommendations
+- Be warm and collaborative in tone
+- Keep it concise (2-4 sentences)
+
+Your final summary:"""
+                else:
+                    # Regular discussion turn
+                    if exchange == 0 and i == 0:
+                        # First speaker - initial thoughts
+                        prompt = f"""You are {agent['name']} in a team chat with {', '.join(other_agent_names)}.
+
+Your expertise: {agent_config.get('system_prompt', 'General assistant')[:200]}
+
+Conversation history:
+{context}
+
+{user_name} just asked: "{trigger_message['content']}"
+
+They want you and {', '.join(other_agent_names)} to collaborate on this. Share your initial thoughts to start the discussion.
+- Be conversational and friendly
+- Offer 1-2 initial ideas
+- Invite the other agent(s) to share their thoughts
+- Keep it brief (2-3 sentences)
+- Sound human - use natural language, maybe a friendly opener
+
+Your response:"""
+                    else:
+                        # Responding to ongoing discussion
+                        prompt = f"""You are {agent['name']} in a team chat with {', '.join(other_agent_names)}.
+
+Your expertise: {agent_config.get('system_prompt', 'General assistant')[:200]}
+
+Original request from {user_name}: "{trigger_message['content']}"
+
+Discussion so far:
+{discussion_context}
+
+Continue the collaborative discussion:
+- Build on what's been said
+- Add your unique perspective
+- Agree, disagree politely, or suggest refinements
+- Be natural and human-like (use phrases like "Good point!", "I like that idea", "What about...", "Hmm, I think...")
+- Keep it conversational (2-3 sentences)
+- If you disagree, be respectful and constructive
+
+Your response:"""
+                
+                chat = LlmChat(
+                    api_key=api_key,
+                    session_id=f"collab_{channel_id}_{agent['id']}_{exchange}",
+                    system_message=f"You are {agent['name']}, a helpful AI assistant with a warm, human personality."
+                ).with_model("openai", "gpt-4o")
+                
+                response = await chat.send_message(UserMessage(text=prompt))
+                
+                if response:
+                    # Vary response length slightly
+                    response = response.strip()
+                    
+                    # Add to discussion history
+                    discussion_history.append(f"{agent['name']}: {response}")
+                    
+                    # Save and broadcast the message
+                    agent_message = {
+                        "id": str(uuid.uuid4()),
+                        "tenant_id": tenant_id,
+                        "channel_id": channel_id,
+                        "dm_conversation_id": None,
+                        "parent_id": None,
+                        "content": response,
+                        "author_id": f"agent_{agent['id']}",
+                        "author_name": agent["name"],
+                        "author_avatar": agent.get("profile_image_url"),
+                        "is_agent": True,
+                        "agent_id": agent["id"],
+                        "attachments": [],
+                        "mentions": [],
+                        "reactions": {},
+                        "is_edited": False,
+                        "created_at": datetime.now(timezone.utc).isoformat(),
+                        "updated_at": datetime.now(timezone.utc).isoformat()
+                    }
+                    
+                    await db.messaging_messages.insert_one(agent_message)
+                    agent_message.pop('_id', None)
+                    
+                    # Broadcast
+                    channel = await db.messaging_channels.find_one({"id": channel_id})
+                    if channel:
+                        recipients = channel.get("members", [])
+                        await manager.send_to_users(tenant_id, recipients, {
+                            "type": "message",
+                            "payload": agent_message
+                        })
+                    
+                    print(f"[Collaborative] {agent['name']} (exchange {exchange+1}): {response[:100]}...")
+        
+        print(f"[Collaborative] Discussion complete")
+        
+    except Exception as e:
+        print(f"Error in collaborative discussion: {e}")
+        import traceback
+        traceback.print_exc()
+
+
+async def generate_agent_response(tenant_id: str, channel_id: str, agent: dict, trigger_message: dict, user_name: str, all_agents: list = None, is_proactive: bool = False):
     """Generate and send AI agent response"""
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
