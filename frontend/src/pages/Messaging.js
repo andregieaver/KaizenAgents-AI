@@ -1185,16 +1185,32 @@ const Messaging = () => {
                       }`}
                     >
                       <div className="relative">
-                        <Avatar className="h-6 w-6 sm:h-5 sm:w-5">
-                          <AvatarFallback className="text-xs">
-                            {dm.other_user?.name?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
+                        <Avatar className={`h-6 w-6 sm:h-5 sm:w-5 ${dm.is_agent_dm ? 'ring-1 ring-primary/50' : ''}`}>
+                          {dm.agent?.profile_image_url ? (
+                            <AvatarImage src={dm.agent.profile_image_url} />
+                          ) : dm.is_agent_dm ? (
+                            <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                              <Bot className="h-3 w-3" />
+                            </AvatarFallback>
+                          ) : (
+                            <AvatarFallback className="text-xs">
+                              {dm.other_user?.name?.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          )}
                         </Avatar>
-                        {dm.is_online && (
+                        {dm.is_online && !dm.is_agent_dm && (
                           <Circle className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 fill-green-500 text-green-500" />
                         )}
+                        {dm.is_agent_dm && (
+                          <Sparkles className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 text-primary" />
+                        )}
                       </div>
-                      <span className="truncate flex-1 text-left">{dm.other_user?.name}</span>
+                      <span className="truncate flex-1 text-left">
+                        {dm.is_agent_dm ? dm.agent?.name : dm.other_user?.name}
+                      </span>
+                      {dm.is_agent_dm && (
+                        <Badge variant="secondary" className="h-4 px-1 text-[10px]">AI</Badge>
+                      )}
                       {dm.unread_count > 0 && (
                         <Badge variant="destructive" className="h-5 px-1.5 text-xs">
                           {dm.unread_count}
