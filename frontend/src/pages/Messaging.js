@@ -1559,28 +1559,77 @@ const Messaging = () => {
           <DialogHeader>
             <DialogTitle>New Message</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2">
-            {users.filter(u => u.id !== currentUser?.id).map(user => (
-              <button
-                key={user.id}
-                onClick={() => startDM(user.id)}
-                className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-muted transition-colors"
-              >
-                <div className="relative">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={user.avatar_url} />
-                    <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  {user.is_online && (
-                    <Circle className="absolute -bottom-0.5 -right-0.5 h-3 w-3 fill-green-500 text-green-500" />
-                  )}
+          <div className="space-y-4">
+            {/* Users section */}
+            <div>
+              <Label className="text-sm font-medium mb-2 block">Team Members</Label>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {users.filter(u => u.id !== currentUser?.id).map(user => (
+                  <button
+                    key={user.id}
+                    onClick={() => startDM(user.id)}
+                    className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-muted transition-colors"
+                  >
+                    <div className="relative">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage src={user.avatar_url} />
+                        <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      {user.is_online && (
+                        <Circle className="absolute -bottom-0.5 -right-0.5 h-3 w-3 fill-green-500 text-green-500" />
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium">{user.name}</p>
+                      <p className="text-sm text-muted-foreground">{user.email}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* AI Agents section */}
+            {availableAgents.length > 0 && (
+              <div>
+                <Label className="text-sm font-medium mb-2 block">
+                  <div className="flex items-center gap-2">
+                    <Bot className="h-4 w-4 text-primary" />
+                    AI Agents
+                  </div>
+                </Label>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {availableAgents.map(agent => (
+                    <button
+                      key={agent.id}
+                      onClick={() => {
+                        startAgentDM(agent.id);
+                        setShowNewDM(false);
+                      }}
+                      className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-muted transition-colors"
+                    >
+                      <Avatar className="h-10 w-10 ring-2 ring-primary/30">
+                        {agent.profile_image_url ? (
+                          <AvatarImage src={agent.profile_image_url} />
+                        ) : (
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            <Bot className="h-5 w-5" />
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="text-left">
+                        <p className="font-medium flex items-center gap-2">
+                          {agent.name}
+                          <Badge variant="secondary" className="text-xs">AI</Badge>
+                        </p>
+                        {agent.description && (
+                          <p className="text-sm text-muted-foreground truncate">{agent.description}</p>
+                        )}
+                      </div>
+                    </button>
+                  ))}
                 </div>
-                <div className="text-left">
-                  <p className="font-medium">{user.name}</p>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                </div>
-              </button>
-            ))}
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>
