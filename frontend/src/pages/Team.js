@@ -377,15 +377,18 @@ const Team = () => {
                       className="flex items-center justify-between p-4 rounded-lg border bg-card"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          {member.role === 'owner' ? (
-                            <Crown className="h-5 w-5 text-amber-500" />
-                          ) : (
-                            <span className="text-sm font-medium">
-                              {member.name?.charAt(0)?.toUpperCase()}
-                            </span>
-                          )}
-                        </div>
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={resolveImageUrl(member.avatar_url)} />
+                          <AvatarFallback className="bg-primary/10">
+                            {member.role === 'owner' ? (
+                              <Crown className="h-5 w-5 text-amber-500" />
+                            ) : (
+                              <span className="text-sm font-medium">
+                                {member.name?.charAt(0)?.toUpperCase()}
+                              </span>
+                            )}
+                          </AvatarFallback>
+                        </Avatar>
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="font-medium">{member.name}</span>
