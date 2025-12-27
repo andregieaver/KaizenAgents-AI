@@ -598,6 +598,7 @@ const Messaging = () => {
         if (channel) {
           setSelectedChannel(channel);
           setSelectedDM(null);
+          fetchChannelAgents(channel.id);
         }
       } else if (dmId && dmConversations.length > 0) {
         const dm = dmConversations.find(d => d.id === dmId);
@@ -608,10 +609,11 @@ const Messaging = () => {
       } else if (!channelId && !dmId && channels.length > 0) {
         // Select first channel by default
         setSelectedChannel(channels[0]);
+        fetchChannelAgents(channels[0].id);
       }
     };
     selectFromParams();
-  }, [searchParams, channels, dmConversations]);
+  }, [searchParams, channels, dmConversations, fetchChannelAgents]);
   
   // Fetch messages when channel/DM changes
   const fetchMessages = useCallback(async () => {
