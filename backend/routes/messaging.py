@@ -1049,7 +1049,9 @@ Your response:"""
 
 
 async def generate_agent_response(tenant_id: str, channel_id: str, agent: dict, trigger_message: dict, user_name: str, all_agents: list = None, is_proactive: bool = False):
-    """Generate and send AI agent response"""
+    """Generate and send AI agent response with human-like behavior"""
+    import random
+    
     try:
         from emergentintegrations.llm.chat import LlmChat, UserMessage
         import os
@@ -1057,47 +1059,94 @@ async def generate_agent_response(tenant_id: str, channel_id: str, agent: dict, 
         channel_config = agent.get("channel_config", {})
         agent_config = agent.get("config", {})
         
-        # Build conversation context
+        # Build conversation context (50 messages for better awareness)
         recent_messages = await db.messaging_messages.find({
             "channel_id": channel_id,
             "parent_id": None
-        }, {"_id": 0}).sort("created_at", -1).limit(10).to_list(10)
+        }, {"_id": 0}).sort("created_at", -1).limit(50).to_list(50)
         
         recent_messages.reverse()  # Chronological order
         
-        # Build context string
-        context = "\n".join([
-            f"{m['author_name']}: {m['content']}" 
-            for m in recent_messages
-        ])
+        # Build rich context string with agent indicators
+        context_lines = []
+        for m in recent_messages:
+            author = m.get('author_name', 'Unknown')
+            is_agent_msg = m.get('is_agent', False)
+            indicator = " (AI)" if is_agent_msg else ""
+            context_lines.append(f"[{author}{indicator}]: {m['content']}")
+        context = "\n".join(context_lines)
         
-        # Get behavior settings
-        response_style = channel_config.get("response_style", "helpful")
-        response_length = channel_config.get("response_length", "medium")
-        formality = channel_config.get("formality", 0.5)
-        creativity = channel_config.get("creativity", 0.5)
+        # Get other agents in channel for awareness
+        other_agents = []
+        if all_agents:
+            other_agents = [a['name'] for a in all_agents if a['id'] != agent['id']]
         
-        # Build style instructions
-        style_instructions = f"""
-Response Style: {response_style}
-Length: {response_length} (short=1-2 sentences, medium=1 paragraph, long=detailed)
-Formality: {'formal' if formality > 0.6 else 'casual' if formality < 0.4 else 'balanced'}
-Be {'creative and expressive' if creativity > 0.6 else 'straightforward and factual' if creativity < 0.4 else 'balanced between creative and factual'}.
+        # Human-like response variation
+        response_variations = {
+            "short": ["Keep it brief - 1-2 sentences.", "Be concise, just a sentence or two."],
+            "medium": ["Respond in 2-4 sentences.", "A brief paragraph is perfect."],
+            "long": ["Provide a detailed response.", "Elaborate thoughtfully."]
+        }
+        
+        length_pref = channel_config.get("response_length", "medium")
+        length_instruction = random.choice(response_variations.get(length_pref, response_variations["medium"]))
+        
+        # Build human-like system prompt
+        proactive_context = ""
+        if is_proactive:
+            proactive_context = """
+IMPORTANT: You are joining this conversation proactively because you noticed you can add value.
+- Don't just repeat what others said
+- Offer a new perspective, correction, or improvement
+- Be natural about jumping in (e.g., "I couldn't help but notice...", "Just wanted to add...", "Actually, I think...")
 """
         
-        system_prompt = f"""You are {agent['name']}, an AI assistant participating in a team chat channel.
+        other_agents_context = ""
+        if other_agents:
+            other_agents_context = f"""
+Other AI colleagues in this channel: {', '.join(other_agents)}
+- Be aware of what they've said
+- Don't repeat their points
+- Build on their ideas or offer different perspectives
+- If you agree with them, say so naturally
+- If you disagree, be respectful and constructive
+"""
 
-{agent_config.get('system_prompt', 'You are a helpful assistant.')}
+        system_prompt = f"""You are {agent['name']}, participating in a team chat channel.
 
-IMPORTANT CONTEXT:
-- You are in a Slack-like messaging channel
-- Keep responses conversational and appropriate for team chat
-- Don't be overly formal unless the context requires it
-- You can use emojis sparingly if appropriate
+YOUR PERSONALITY & EXPERTISE:
+{agent_config.get('system_prompt', 'You are a helpful team member.')}
 
-{style_instructions}
+BEHAVIORAL GUIDELINES - Act EXACTLY like a human colleague:
+1. NATURAL LANGUAGE:
+   - Use contractions (I'm, don't, can't, that's)
+   - Occasional filler words are okay (well, hmm, so, actually)
+   - Vary your sentence structure
+   - Use casual phrases (Good point!, I think..., What about...)
 
-Recent conversation context:
+2. EMOTIONAL INTELLIGENCE:
+   - Acknowledge good ideas ("Love that suggestion!", "That's a great point")
+   - Gently correct mistakes ("Hmm, I think there might be a small issue with...")
+   - Show enthusiasm when appropriate
+   - Be supportive and collaborative
+
+3. RESPONSE STYLE:
+   - {length_instruction}
+   - Match the energy of the conversation
+   - Don't be overly formal or robotic
+   - Skip unnecessary greetings in ongoing conversations
+   - Use emojis sparingly and naturally (occasional 👍, 😊, 🤔)
+
+4. AVOID:
+   - Starting with "As an AI..." or similar
+   - Being overly apologetic
+   - Excessive bullet points in casual chat
+   - Repeating exactly what someone else said
+   - Generic corporate-speak
+{proactive_context}
+{other_agents_context}
+
+CONVERSATION HISTORY:
 {context}
 """
         
@@ -1109,20 +1158,29 @@ Recent conversation context:
         
         chat = LlmChat(
             api_key=api_key,
-            session_id=f"channel_{channel_id}_{agent['id']}",
+            session_id=f"channel_{channel_id}_{agent['id']}_{random.randint(1000,9999)}",
             system_message=system_prompt
         ).with_model("openai", "gpt-4o")
         
-        # Create the user message
-        user_message = UserMessage(
-            text=f"{user_name} said: {trigger_message['content']}\n\nRespond as {agent['name']}:"
-        )
+        # Build the prompt based on context
+        if is_proactive:
+            prompt = f"""The latest message from {user_name}: "{trigger_message['content']}"
+
+You've decided to join this conversation because you can add value. Respond naturally as {agent['name']}."""
+        else:
+            prompt = f"""{user_name} said: "{trigger_message['content']}"
+
+Respond naturally as {agent['name']}."""
+        
+        user_message = UserMessage(text=prompt)
         
         # Generate response
         response = await chat.send_message(user_message)
-        print(f"[Agent Response] Generated response: {response[:100]}..." if response else "[Agent Response] No response generated")
         
         if response:
+            response = response.strip()
+            print(f"[Agent Response] {agent['name']}: {response[:100]}...")
+            
             # Create agent message
             agent_message = {
                 "id": str(uuid.uuid4()),
