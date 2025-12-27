@@ -1766,6 +1766,7 @@ const Messaging = () => {
                   {users.filter(u => selectedChannel.members?.includes(u.id)).map(user => (
                     <div key={user.id} className="flex items-center gap-2">
                       <Avatar className="h-6 w-6">
+                        <AvatarImage src={resolveImageUrl(user.avatar_url)} />
                         <AvatarFallback className="text-xs">{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <span className="text-sm">{user.name}</span>
@@ -1787,13 +1788,12 @@ const Messaging = () => {
                     {channelAgents.map(agent => (
                       <div key={agent.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
                         <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            {agent.profile_image_url ? (
-                              <img src={agent.profile_image_url} alt={agent.name} className="h-8 w-8 rounded-full object-cover" />
-                            ) : (
-                              <Sparkles className="h-4 w-4 text-primary" />
-                            )}
-                          </div>
+                          <Avatar className="h-8 w-8 ring-1 ring-primary/30">
+                            <AvatarImage src={resolveImageUrl(agent.profile_image_url)} />
+                            <AvatarFallback className="bg-primary text-primary-foreground">
+                              <Bot className="h-4 w-4" />
+                            </AvatarFallback>
+                          </Avatar>
                           <div>
                             <p className="text-sm font-medium">{agent.name}</p>
                             <p className="text-xs text-muted-foreground">
