@@ -70,6 +70,24 @@ import {
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
+// Helper to resolve image URLs (handles relative and absolute URLs)
+const resolveImageUrl = (url) => {
+  if (!url || url === 'None' || url === 'null') return null;
+  // If it's already an absolute URL, return as is
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  // If it's a relative URL starting with /api, prepend the API base URL
+  if (url.startsWith('/api/')) {
+    return `${API}${url}`;
+  }
+  // If it starts with /, prepend API base
+  if (url.startsWith('/')) {
+    return `${API}${url}`;
+  }
+  return url;
+};
+
 // Emoji picker component
 const EMOJI_LIST = ['👍', '❤️', '😂', '😮', '😢', '🎉', '🔥', '👀', '✅', '❌'];
 
