@@ -542,6 +542,19 @@ const Agents = () => {
                     <Button
                       variant="ghost"
                       size="icon"
+                      className={`h-10 w-10 ${agent.is_mother_agent ? 'text-amber-500' : ''}`}
+                      onClick={(e) => agent.is_mother_agent 
+                        ? unsetMotherAgent(agent.id, agent.name, e) 
+                        : setMotherAgent(agent.id, agent.name, e)
+                      }
+                      title={agent.is_mother_agent ? "Remove as Mother Agent" : "Set as Mother Agent"}
+                    >
+                      <Crown className="h-5 w-5" />
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       className="h-10 w-10 text-destructive hover:text-destructive"
                       onClick={(e) => handleDeleteAgent(agent.id, e)}
                       title="Delete Agent"
