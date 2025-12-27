@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 
 class MessagingSystemTester:
-    def __init__(self, base_url="https://slackbot-saas.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://slack-clone-fix.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.user_data = None

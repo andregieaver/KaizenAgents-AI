@@ -6,7 +6,7 @@ import json
 from datetime import datetime
 
 class PricingTester:
-    def __init__(self, base_url="https://slackbot-saas.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://slack-clone-fix.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.tests_run = 0
