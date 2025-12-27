@@ -162,7 +162,7 @@ const MessageItem = ({
   return (
     <div className={`group flex gap-2 sm:gap-3 px-1 py-2 sm:p-3 hover:bg-muted/50 rounded-lg transition-colors ${isAgent ? 'bg-primary/5' : ''}`}>
       <Avatar className={`h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0 ${isAgent ? 'ring-2 ring-primary/30' : ''}`}>
-        <AvatarImage src={message.author_avatar} />
+        <AvatarImage src={resolveImageUrl(message.author_avatar)} />
         <AvatarFallback className={`text-sm ${isAgent ? 'bg-primary text-primary-foreground' : 'bg-primary/10 text-primary'}`}>
           {isAgent ? <Bot className="h-4 w-4" /> : message.author_name?.charAt(0).toUpperCase()}
         </AvatarFallback>
