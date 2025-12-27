@@ -751,6 +751,7 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
             return
         
         # === PHASE 3: Handle explicit mentions ===
+        responded_agent_ids = set()
         if mentioned_agents:
             # Add slight random delays between agent responses for natural feel
             for i, agent in enumerate(mentioned_agents):
@@ -767,7 +768,7 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
                     user_name=user_name,
                     all_agents=agents
                 )
-            return
+                responded_agent_ids.add(agent['id'])
         
         # === PHASE 4: Proactive evaluation for non-mentioned agents ===
         # Check if any agent should proactively respond based on expertise
