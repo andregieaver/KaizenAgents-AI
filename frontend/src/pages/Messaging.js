@@ -1091,6 +1091,8 @@ const Messaging = () => {
     setThreadMessage(null);
     setSearchParams({ channel: channel.id });
     setShowMobileSidebar(false); // Hide sidebar on mobile when selecting
+    // Fetch channel agents for header display
+    fetchChannelAgents(channel.id);
   };
   
   // Select DM
