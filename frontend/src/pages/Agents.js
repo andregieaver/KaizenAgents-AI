@@ -24,7 +24,8 @@ import {
   MessageSquare,
   Network,
   MoreHorizontal,
-  X
+  X,
+  Crown
 } from 'lucide-react';
 import { Checkbox } from '../components/ui/checkbox';
 import {
