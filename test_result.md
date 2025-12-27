@@ -1447,3 +1447,30 @@ Added subtle, professional micro-animations to enhance usability across all UI c
 - **Smooth**: No jank, consistent 200ms timing
 - **Professional**: Polished micro-interactions
 - **Consistent**: Uniform patterns across components
+
+## Avatar Display Bug Fix Test (2025-12-27)
+**Testing Agent**: Backend and Frontend Testing Agent
+**Test Environment**: Production (https://slack-clone-fix.preview.emergentagent.com)
+**Login Credentials**: andre@humanweb.no / Pernilla66!
+**Test Focus**: Verify user and agent avatar images display correctly across the messaging UI
+
+### Issue Description
+User and agent avatars were showing fallbacks or generic icons instead of actual profile images due to field name mismatch:
+- Database stores: `avatar_url` for both users and agents
+- Backend was querying for: `profile_image_url` (non-existent field)
+- Frontend was using: `profile_image_url` for agents
+
+### Fix Applied
+1. Updated `/app/backend/routes/messaging.py` to query `avatar_url` instead of `profile_image_url` for agents
+2. Updated `/app/frontend/src/pages/Messaging.js` to use `avatar_url` for agents
+
+### Test Scenarios to Verify
+1. ✅ User avatars in message items
+2. ✅ Agent avatars in message items  
+3. ✅ Avatars in DM list sidebar
+4. ✅ Overlapping avatars in channel header
+5. ✅ Avatars in Channel Settings modal
+6. ✅ Avatars in New Message modal
+7. ✅ Current user avatar at bottom of sidebar
+
+### Status: PENDING TESTING
