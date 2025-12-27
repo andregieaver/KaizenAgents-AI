@@ -604,14 +604,16 @@ async def get_dm_conversations(current_user: dict = Depends(get_current_user)):
             agent_id = dm.get("agent_id") or other_participant.replace("agent_", "")
             agent = await db.user_agents.find_one(
                 {"id": agent_id},
-                {"_id": 0, "id": 1, "name": 1, "avatar_url": 1}
+                {"_id": 0, "id": 1, "name": 1, "avatar_url": 1, "profile_image_url": 1}
             )
+            if agent:
+                agent["avatar_url"] = get_agent_image_url(agent)
             dm["agent"] = agent
             dm["is_agent_dm"] = True
             dm["other_user"] = {
                 "id": f"agent_{agent_id}",
                 "name": agent.get("name") if agent else "AI Agent",
-                "avatar_url": agent.get("avatar_url") if agent else None
+                "avatar_url": get_agent_image_url(agent) if agent else None
             }
             dm["is_online"] = True  # Agents are always online
         else:
