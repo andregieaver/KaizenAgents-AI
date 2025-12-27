@@ -334,9 +334,9 @@ const Analytics = () => {
               {agentPerformance.length > 0 ? (
                 agentPerformance.slice(0, 5).map((agent, index) => (
                   <div key={agent.id} className="flex items-center gap-3">
-                    <div className="flex-shrink-0 h-8 w-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
+                    <div className="flex-shrink-0 h-8 w-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium overflow-hidden">
                       {agent.avatar_url ? (
-                        <img src={agent.avatar_url} alt={agent.name} className="h-full w-full rounded-full object-cover" />
+                        <img src={resolveImageUrl(agent.avatar_url)} alt={agent.name} className="h-full w-full rounded-full object-cover" />
                       ) : (
                         agent.name?.charAt(0).toUpperCase()
                       )}
