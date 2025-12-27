@@ -608,10 +608,12 @@ const Messaging = () => {
       
       switch (data.type) {
         case 'message':
-          // Add new message if it belongs to current channel/DM
+          // Add new message if it belongs to current channel/DM (use refs for current values)
+          const currentChannel = selectedChannelRef.current;
+          const currentDM = selectedDMRef.current;
           if (
-            (selectedChannel && data.payload.channel_id === selectedChannel.id) ||
-            (selectedDM && data.payload.dm_conversation_id === selectedDM.id)
+            (currentChannel && data.payload.channel_id === currentChannel.id) ||
+            (currentDM && data.payload.dm_conversation_id === currentDM.id)
           ) {
             setMessages(prev => [...prev, data.payload]);
           }
