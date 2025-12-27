@@ -1205,15 +1205,18 @@ const Messaging = () => {
                       <div className="relative">
                         <Avatar className={`h-6 w-6 sm:h-5 sm:w-5 ${dm.is_agent_dm ? 'ring-1 ring-primary/50' : ''}`}>
                           {dm.agent?.profile_image_url ? (
-                            <AvatarImage src={dm.agent.profile_image_url} />
+                            <AvatarImage src={resolveImageUrl(dm.agent.profile_image_url)} />
                           ) : dm.is_agent_dm ? (
                             <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                               <Bot className="h-3 w-3" />
                             </AvatarFallback>
                           ) : (
-                            <AvatarFallback className="text-xs">
-                              {dm.other_user?.name?.charAt(0).toUpperCase()}
-                            </AvatarFallback>
+                            <>
+                              <AvatarImage src={resolveImageUrl(dm.other_user?.avatar_url)} />
+                              <AvatarFallback className="text-xs">
+                                {dm.other_user?.name?.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </>
                           )}
                         </Avatar>
                         {dm.is_online && !dm.is_agent_dm && (
