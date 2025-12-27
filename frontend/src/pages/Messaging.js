@@ -695,7 +695,7 @@ const Messaging = () => {
     return () => {
       ws.close();
     };
-  }, [token, selectedChannel, selectedDM, fetchChannels, fetchDMs]);
+  }, [token, fetchChannels, fetchDMs]); // Removed selectedChannel/selectedDM - using refs instead
   
   // Send message
   const sendMessage = async () => {
