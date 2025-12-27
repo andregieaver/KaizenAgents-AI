@@ -514,35 +514,52 @@ async def get_available_agents(current_user: dict = Depends(get_current_user)):
 @router.post("/dm")
 async def create_or_get_dm(
     participant_id: str,
+    is_agent: bool = False,
     current_user: dict = Depends(get_current_user)
 ):
-    """Create or get existing DM conversation"""
+    """Create or get existing DM conversation (with user or agent)"""
     tenant_id = current_user["tenant_id"]
     user_id = current_user["id"]
     
     if participant_id == user_id:
         raise HTTPException(status_code=400, detail="Cannot create DM with yourself")
     
+    # If DM with agent, use agent prefix
+    dm_participant = f"agent_{participant_id}" if is_agent else participant_id
+    
     # Check if DM already exists
     existing = await db.messaging_dm_conversations.find_one({
         "tenant_id": tenant_id,
-        "participants": {"$all": [user_id, participant_id]}
+        "participants": {"$all": [user_id, dm_participant]}
     }, {"_id": 0})
     
     if existing:
+        # Add agent info if applicable
+        if is_agent:
+            agent = await db.user_agents.find_one({"id": participant_id}, {"_id": 0})
+            existing["agent"] = agent
+            existing["is_agent_dm"] = True
         return existing
     
     # Create new DM conversation
     dm = {
         "id": str(uuid.uuid4()),
         "tenant_id": tenant_id,
-        "participants": [user_id, participant_id],
+        "participants": [user_id, dm_participant],
+        "is_agent_dm": is_agent,
+        "agent_id": participant_id if is_agent else None,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat()
     }
     
     await db.messaging_dm_conversations.insert_one(dm)
     dm.pop('_id', None)
+    
+    # Add agent info if applicable
+    if is_agent:
+        agent = await db.user_agents.find_one({"id": participant_id}, {"_id": 0})
+        dm["agent"] = agent
+    
     return dm
 
 @router.get("/dm")
