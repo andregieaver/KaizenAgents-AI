@@ -4,6 +4,7 @@
 import { Card, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,6 +12,16 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu';
 import { Crown, Shield, Users, MoreHorizontal, Mail, Trash2 } from 'lucide-react';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+// Helper to resolve image URLs
+const resolveImageUrl = (url) => {
+  if (!url || url === 'None' || url === 'null' || url === 'undefined') return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/')) return `${BACKEND_URL}${url}`;
+  return url;
+};
 
 const getRoleBadge = (role) => {
   switch (role) {
