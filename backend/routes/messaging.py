@@ -696,7 +696,7 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
         }, {"_id": 0}).to_list(100)
         
         if not agents:
-            print(f"[Agent Trigger] No active agents found")
+            print("[Agent Trigger] No active agents found")
             return
         
         print(f"[Agent Trigger] Found {len(agents)} enabled agents: {[a['name'] for a in agents]}")
@@ -706,7 +706,7 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
         
         # Skip if this is an agent message (prevent infinite loops)
         if message.get("is_agent"):
-            print(f"[Agent Trigger] Skipping agent message")
+            print("[Agent Trigger] Skipping agent message")
             return
         
         # === PHASE 1: Detect which agents are explicitly mentioned ===
@@ -1040,7 +1040,7 @@ Your response:"""
                     
                     print(f"[Collaborative] {agent['name']} (exchange {exchange+1}): {response[:100]}...")
         
-        print(f"[Collaborative] Discussion complete")
+        print("[Collaborative] Discussion complete")
         
     except Exception as e:
         print(f"Error in collaborative discussion: {e}")
