@@ -267,6 +267,32 @@ async def update_user_agent(
                     raise HTTPException(status_code=400, detail="Provider not found or not active")
                 config_updates["provider_id"] = value
                 config_updates["provider_name"] = provider.get("name", "")
+            # Mother agent - special handling
+            elif key == "is_mother_agent" and value:
+                # Check if there's already a mother agent
+                existing_mother = await db.user_agents.find_one({
+                    "tenant_id": tenant_id,
+                    "is_mother_agent": True,
+                    "id": {"$ne": agent_id}
+                })
+                if existing_mother:
+                    raise HTTPException(
+                        status_code=400, 
+                        detail=f"'{existing_mother.get('name')}' is already set as the Mother Agent. Only one Mother Agent is allowed."
+                    )
+                # Disable orchestration when setting as mother agent
+                update_fields["is_mother_agent"] = True
+                update_fields["orchestration_enabled"] = False
+            elif key == "is_mother_agent" and not value:
+                update_fields["is_mother_agent"] = False
+            # Orchestration - prevent enabling if agent is mother
+            elif key == "orchestration_enabled" and value:
+                if agent.get("is_mother_agent"):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Cannot enable orchestration for the Mother Agent. The Mother Agent orchestrates other agents and cannot be orchestrated."
+                    )
+                update_fields["orchestration_enabled"] = value
             # Fields that are direct on agent
             elif key in ["name", "description", "category", "icon", "profile_image_url", "orchestration_enabled", "tags", "channels_enabled", "channel_config"]:
                 update_fields[key] = value
