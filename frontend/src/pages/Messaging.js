@@ -1593,16 +1593,36 @@ const Messaging = () => {
           </DialogHeader>
           {selectedChannel && (
             <div className="space-y-6">
+              {/* Editable channel name */}
               <div>
                 <Label>Channel name</Label>
-                <p className="text-sm">{selectedChannel.display_name || selectedChannel.name}</p>
-              </div>
-              {selectedChannel.description && (
-                <div>
-                  <Label>Description</Label>
-                  <p className="text-sm text-muted-foreground">{selectedChannel.description}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <Input 
+                    defaultValue={selectedChannel.name}
+                    onBlur={(e) => {
+                      if (e.target.value !== selectedChannel.name) {
+                        updateChannel(selectedChannel.id, { name: e.target.value });
+                      }
+                    }}
+                    className="flex-1"
+                  />
                 </div>
-              )}
+              </div>
+              
+              {/* Editable description */}
+              <div>
+                <Label>Description</Label>
+                <Textarea
+                  defaultValue={selectedChannel.description || ''}
+                  placeholder="Add a description..."
+                  onBlur={(e) => {
+                    if (e.target.value !== (selectedChannel.description || '')) {
+                      updateChannel(selectedChannel.id, { description: e.target.value });
+                    }
+                  }}
+                  className="mt-1"
+                />
+              </div>
               
               {/* Members */}
               <div>
