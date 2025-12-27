@@ -501,6 +501,97 @@ async def bulk_update_agents(
     }
 
 
+@router.post("/{agent_id}/set-mother")
+async def set_mother_agent(
+    agent_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Set an agent as the Mother Agent (orchestrator). Only one can exist per tenant."""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Check agent exists
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    # Check if this agent is already the mother
+    if agent.get("is_mother_agent"):
+        raise HTTPException(status_code=400, detail="This agent is already the Mother Agent")
+    
+    # First, unset any existing mother agent
+    await db.user_agents.update_many(
+        {"tenant_id": tenant_id, "is_mother_agent": True},
+        {"$set": {"is_mother_agent": False, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Set this agent as mother and disable orchestration
+    await db.user_agents.update_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"$set": {
+            "is_mother_agent": True,
+            "orchestration_enabled": False,  # Mother agent cannot be orchestrated
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": f"'{agent.get('name')}' is now the Mother Agent", "agent_id": agent_id}
+
+
+@router.post("/{agent_id}/unset-mother")
+async def unset_mother_agent(
+    agent_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Remove an agent from being the Mother Agent"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Check agent exists and is mother
+    agent = await db.user_agents.find_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not agent:
+        raise HTTPException(status_code=404, detail="Agent not found")
+    
+    if not agent.get("is_mother_agent"):
+        raise HTTPException(status_code=400, detail="This agent is not the Mother Agent")
+    
+    # Unset mother agent
+    await db.user_agents.update_one(
+        {"id": agent_id, "tenant_id": tenant_id},
+        {"$set": {
+            "is_mother_agent": False,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {"message": f"'{agent.get('name')}' is no longer the Mother Agent", "agent_id": agent_id}
+
+
+@router.get("/mother-agent")
+async def get_mother_agent(current_user: dict = Depends(get_current_user)):
+    """Get the current Mother Agent for the tenant"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    mother = await db.user_agents.find_one(
+        {"tenant_id": tenant_id, "is_mother_agent": True},
+        {"_id": 0}
+    )
+    
+    return mother
+
+
 @router.delete("/{agent_id}")
 async def delete_user_agent(
     agent_id: str,
