@@ -45,6 +45,15 @@ import {
 } from 'recharts';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+// Helper to resolve image URLs
+const resolveImageUrl = (url) => {
+  if (!url || url === 'None' || url === 'null' || url === 'undefined') return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/')) return `${BACKEND_URL}${url}`;
+  return url;
+};
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 const SENTIMENT_COLORS = {
