@@ -1285,17 +1285,28 @@ const Messaging = () => {
                     <p className="text-sm">Start the conversation!</p>
                   </div>
                 ) : (
-                  messages.map(msg => (
-                    <MessageItem
-                      key={msg.id}
-                      message={msg}
-                      currentUserId={currentUser?.id}
-                      onReaction={addReaction}
-                      onReply={(msg) => setThreadMessage(msg)}
-                      onEdit={editMessage}
-                      onDelete={deleteMessage}
-                    />
-                  ))
+                  messages.map((msg, index) => {
+                    // Check if we need a date separator
+                    const showDateSeparator = index === 0 || 
+                      new Date(msg.created_at).toDateString() !== 
+                      new Date(messages[index - 1].created_at).toDateString();
+                    
+                    return (
+                      <div key={msg.id}>
+                        {showDateSeparator && (
+                          <DateSeparator date={msg.created_at} />
+                        )}
+                        <MessageItem
+                          message={msg}
+                          currentUserId={currentUser?.id}
+                          onReaction={addReaction}
+                          onReply={(msg) => setThreadMessage(msg)}
+                          onEdit={editMessage}
+                          onDelete={deleteMessage}
+                        />
+                      </div>
+                    );
+                  })
                 )}
                 <div ref={messagesEndRef} />
               </div>
