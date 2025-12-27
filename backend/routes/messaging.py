@@ -185,7 +185,7 @@ async def get_channels(current_user: dict = Depends(get_current_user)):
         if agent_ids:
             agents = await db.user_agents.find({
                 "id": {"$in": agent_ids}
-            }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "profile_image_url": 1}).to_list(100)
+            }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "avatar_url": 1}).to_list(100)
             channel["agent_details"] = agents
         else:
             channel["agent_details"] = []
@@ -421,7 +421,7 @@ async def get_channel_agents(channel_id: str, current_user: dict = Depends(get_c
     agents = await db.user_agents.find({
         "id": {"$in": agent_ids},
         "tenant_id": tenant_id
-    }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "profile_image_url": 1, "description": 1, "channels_enabled": 1, "channel_config": 1}).to_list(100)
+    }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "avatar_url": 1, "description": 1, "channels_enabled": 1, "channel_config": 1}).to_list(100)
     
     return agents
 
@@ -505,7 +505,7 @@ async def get_available_agents(current_user: dict = Depends(get_current_user)):
         "tenant_id": tenant_id,
         "channels_enabled": True,
         "is_active": True
-    }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "profile_image_url": 1, "description": 1, "channel_config": 1}).to_list(100)
+    }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "avatar_url": 1, "description": 1, "channel_config": 1}).to_list(100)
     
     return agents
 
@@ -582,14 +582,14 @@ async def get_dm_conversations(current_user: dict = Depends(get_current_user)):
             agent_id = dm.get("agent_id") or other_participant.replace("agent_", "")
             agent = await db.user_agents.find_one(
                 {"id": agent_id},
-                {"_id": 0, "id": 1, "name": 1, "profile_image_url": 1}
+                {"_id": 0, "id": 1, "name": 1, "avatar_url": 1}
             )
             dm["agent"] = agent
             dm["is_agent_dm"] = True
             dm["other_user"] = {
                 "id": f"agent_{agent_id}",
                 "name": agent.get("name") if agent else "AI Agent",
-                "avatar_url": agent.get("profile_image_url") if agent else None
+                "avatar_url": agent.get("avatar_url") if agent else None
             }
             dm["is_online"] = True  # Agents are always online
         else:
@@ -837,7 +837,7 @@ CONVERSATION HISTORY:
                 "content": response,
                 "author_id": f"agent_{agent['id']}",
                 "author_name": agent["name"],
-                "author_avatar": agent.get("profile_image_url"),
+                "author_avatar": agent.get("avatar_url"),
                 "is_agent": True,
                 "agent_id": agent["id"],
                 "attachments": [],
@@ -1222,7 +1222,7 @@ Your response:"""
                         "content": response,
                         "author_id": f"agent_{agent['id']}",
                         "author_name": agent["name"],
-                        "author_avatar": agent.get("profile_image_url"),
+                        "author_avatar": agent.get("avatar_url"),
                         "is_agent": True,
                         "agent_id": agent["id"],
                         "attachments": [],
@@ -1398,7 +1398,7 @@ Respond naturally as {agent['name']}."""
                 "content": response,
                 "author_id": f"agent_{agent['id']}",
                 "author_name": agent["name"],
-                "author_avatar": agent.get("profile_image_url"),
+                "author_avatar": agent.get("avatar_url"),
                 "is_agent": True,
                 "agent_id": agent["id"],
                 "attachments": [],
