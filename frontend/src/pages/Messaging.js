@@ -1740,6 +1740,27 @@ const Messaging = () => {
                   </Badge>
                 </div>
               )}
+              
+              {/* Danger zone */}
+              <div className="pt-4 border-t">
+                <Label className="text-destructive">Danger Zone</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Deleting a channel will remove all messages permanently.
+                </p>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  onClick={() => {
+                    if (window.confirm(`Are you sure you want to delete #${selectedChannel.name}? This cannot be undone.`)) {
+                      deleteChannel(selectedChannel.id);
+                      setShowChannelSettings(false);
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Channel
+                </Button>
+              </div>
             </div>
           )}
           <DialogFooter>
