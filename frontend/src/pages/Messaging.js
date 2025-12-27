@@ -715,6 +715,52 @@ const Messaging = () => {
     };
   }, [token, fetchChannels, fetchDMs]);
   
+  // Polling fallback for real-time updates (when WebSocket is unreliable)
+  useEffect(() => {
+    const pollInterval = setInterval(() => {
+      const currentChannel = selectedChannelRef.current;
+      const currentDM = selectedDMRef.current;
+      
+      // Only poll if we have a selected channel/DM
+      if (currentChannel || currentDM) {
+        // Fetch latest messages
+        const fetchLatest = async () => {
+          try {
+            const params = {};
+            if (currentChannel) params.channel_id = currentChannel.id;
+            if (currentDM) params.dm_conversation_id = currentDM.id;
+            params.limit = 50;
+            
+            const response = await axios.get(`${API}/api/messaging/messages`, {
+              params,
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            
+            if (response.data) {
+              setMessages(prev => {
+                // Merge new messages, avoiding duplicates
+                const existingIds = new Set(prev.map(m => m.id));
+                const newMessages = response.data.filter(m => !existingIds.has(m.id));
+                if (newMessages.length > 0) {
+                  return [...prev, ...newMessages].sort((a, b) => 
+                    new Date(a.created_at) - new Date(b.created_at)
+                  );
+                }
+                return prev;
+              });
+            }
+          } catch (err) {
+            // Silent fail for polling
+          }
+        };
+        
+        fetchLatest();
+      }
+    }, 5000); // Poll every 5 seconds
+    
+    return () => clearInterval(pollInterval);
+  }, [token]);
+
   // Send message
   const sendMessage = async () => {
     if (!newMessage.trim()) return;
