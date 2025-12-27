@@ -409,6 +409,12 @@ const Agents = () => {
                         <div>
                           <CardTitle className="text-lg flex items-center gap-2 flex-wrap">
                             {agent.name}
+                            {agent.is_mother_agent && (
+                              <Badge className="bg-amber-500 text-white">
+                                <Crown className="h-3 w-3 mr-1" />
+                                Mother
+                              </Badge>
+                            )}
                             {agent.is_active && (
                               <Badge className="bg-green-500 text-white">Active</Badge>
                             )}
