@@ -1658,7 +1658,7 @@ const Messaging = () => {
                   >
                     <div className="relative">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={user.avatar_url} />
+                        <AvatarImage src={resolveImageUrl(user.avatar_url)} />
                         <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       {user.is_online && (
