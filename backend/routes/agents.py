@@ -73,6 +73,8 @@ class UserAgentUpdate(BaseModel):
     # Channel integration fields
     channels_enabled: Optional[bool] = None
     channel_config: Optional[Dict[str, Any]] = None
+    # Mother agent field
+    is_mother_agent: Optional[bool] = None
 
 class WooCommerceConfig(BaseModel):
     store_url: str
