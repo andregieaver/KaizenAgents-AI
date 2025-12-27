@@ -143,6 +143,34 @@ const Agents = () => {
     }
   };
 
+  const setMotherAgent = async (agentId, agentName, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await axios.post(`${API}/agents/${agentId}/set-mother`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(`${agentName} is now the Mother Agent`);
+      fetchAgents();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to set Mother Agent');
+    }
+  };
+
+  const unsetMotherAgent = async (agentId, agentName, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      await axios.post(`${API}/agents/${agentId}/unset-mother`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(`${agentName} is no longer the Mother Agent`);
+      fetchAgents();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to remove Mother Agent');
+    }
+  };
+
   const getAvatarSrc = (url) => {
     if (!url) return null;
     if (url.startsWith('/api/')) {
