@@ -1208,8 +1208,8 @@ const Messaging = () => {
                     >
                       <div className="relative">
                         <Avatar className={`h-6 w-6 sm:h-5 sm:w-5 ${dm.is_agent_dm ? 'ring-1 ring-primary/50' : ''}`}>
-                          {dm.agent?.profile_image_url ? (
-                            <AvatarImage src={resolveImageUrl(dm.agent.profile_image_url)} />
+                          {dm.agent?.avatar_url ? (
+                            <AvatarImage src={resolveImageUrl(dm.agent.avatar_url)} />
                           ) : dm.is_agent_dm ? (
                             <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                               <Bot className="h-3 w-3" />
@@ -1347,7 +1347,7 @@ const Messaging = () => {
                             className="h-7 w-7 border-2 border-background ring-1 ring-primary/30"
                             style={{ zIndex: 7 - idx }}
                           >
-                            <AvatarImage src={resolveImageUrl(agent.profile_image_url)} />
+                            <AvatarImage src={resolveImageUrl(agent.avatar_url)} />
                             <AvatarFallback className="text-xs bg-primary text-primary-foreground">
                               <Bot className="h-3 w-3" />
                             </AvatarFallback>
@@ -1370,7 +1370,7 @@ const Messaging = () => {
                     <Avatar className="h-8 w-8">
                       {selectedDM.is_agent_dm ? (
                         <>
-                          <AvatarImage src={resolveImageUrl(selectedDM.agent?.profile_image_url)} />
+                          <AvatarImage src={resolveImageUrl(selectedDM.agent?.avatar_url)} />
                           <AvatarFallback className="bg-primary text-primary-foreground">
                             <Bot className="h-4 w-4" />
                           </AvatarFallback>
@@ -1698,8 +1698,8 @@ const Messaging = () => {
                       className="flex items-center gap-3 w-full p-3 rounded-lg hover:bg-muted transition-colors"
                     >
                       <Avatar className="h-10 w-10 ring-2 ring-primary/30">
-                        {agent.profile_image_url ? (
-                          <AvatarImage src={resolveImageUrl(agent.profile_image_url)} />
+                        {agent.avatar_url ? (
+                          <AvatarImage src={resolveImageUrl(agent.avatar_url)} />
                         ) : (
                           <AvatarFallback className="bg-primary text-primary-foreground">
                             <Bot className="h-5 w-5" />
@@ -1793,7 +1793,7 @@ const Messaging = () => {
                       <div key={agent.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
                         <div className="flex items-center gap-2">
                           <Avatar className="h-8 w-8 ring-1 ring-primary/30">
-                            <AvatarImage src={resolveImageUrl(agent.profile_image_url)} />
+                            <AvatarImage src={resolveImageUrl(agent.avatar_url)} />
                             <AvatarFallback className="bg-primary text-primary-foreground">
                               <Bot className="h-4 w-4" />
                             </AvatarFallback>
