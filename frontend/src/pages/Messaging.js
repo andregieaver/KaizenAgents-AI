@@ -592,110 +592,128 @@ const Messaging = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
   
-  // WebSocket connection
+  // WebSocket connection with reconnection
   useEffect(() => {
     if (!token) return;
     
-    const wsUrl = API.replace('http', 'ws') + `/api/messaging/ws?token=${token}`;
-    const ws = new WebSocket(wsUrl);
+    let ws = null;
+    let reconnectTimeout = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
     
-    ws.onopen = () => {
-      console.log('WebSocket connected');
-    };
-    
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+    const connect = () => {
+      const wsUrl = API.replace('http', 'ws').replace('https', 'wss') + `/api/messaging/ws?token=${token}`;
+      ws = new WebSocket(wsUrl);
       
-      switch (data.type) {
-        case 'message':
-          // Add new message if it belongs to current channel/DM (use refs for current values)
-          const currentChannel = selectedChannelRef.current;
-          const currentDM = selectedDMRef.current;
-          if (
-            (currentChannel && data.payload.channel_id === currentChannel.id) ||
-            (currentDM && data.payload.dm_conversation_id === currentDM.id)
-          ) {
-            setMessages(prev => [...prev, data.payload]);
-          }
-          // Update unread counts
-          fetchChannels();
-          fetchDMs();
-          break;
-          
-        case 'message_update':
-          setMessages(prev => prev.map(m => 
-            m.id === data.payload.id ? data.payload : m
-          ));
-          break;
-          
-        case 'message_delete':
-          setMessages(prev => prev.filter(m => m.id !== data.payload.message_id));
-          break;
-          
-        case 'reaction_add':
-        case 'reaction_remove':
-          setMessages(prev => prev.map(m => 
-            m.id === data.payload.message_id 
-              ? { ...m, reactions: data.payload.reactions }
-              : m
-          ));
-          break;
-          
-        case 'typing':
-          const key = data.payload.channel_id || data.payload.dm_conversation_id;
-          if (data.payload.is_typing) {
-            setTypingUsers(prev => ({
-              ...prev,
-              [key]: { ...prev[key], [data.payload.user_id]: data.payload.user_name }
-            }));
-          } else {
-            setTypingUsers(prev => {
-              const newState = { ...prev };
-              if (newState[key]) {
-                delete newState[key][data.payload.user_id];
-              }
-              return newState;
+      ws.onopen = () => {
+        console.log('WebSocket connected');
+        reconnectAttempts = 0;
+      };
+      
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        
+        switch (data.type) {
+          case 'message':
+            // Add new message if it belongs to current channel/DM (use refs for current values)
+            const currentChannel = selectedChannelRef.current;
+            const currentDM = selectedDMRef.current;
+            if (
+              (currentChannel && data.payload.channel_id === currentChannel.id) ||
+              (currentDM && data.payload.dm_conversation_id === currentDM.id)
+            ) {
+              setMessages(prev => [...prev, data.payload]);
+            }
+            // Update unread counts
+            fetchChannels();
+            fetchDMs();
+            break;
+            
+          case 'message_update':
+            setMessages(prev => prev.map(m => 
+              m.id === data.payload.id ? data.payload : m
+            ));
+            break;
+            
+          case 'message_delete':
+            setMessages(prev => prev.filter(m => m.id !== data.payload.message_id));
+            break;
+            
+          case 'reaction_add':
+          case 'reaction_remove':
+            setMessages(prev => prev.map(m => 
+              m.id === data.payload.message_id 
+                ? { ...m, reactions: data.payload.reactions }
+                : m
+            ));
+            break;
+            
+          case 'typing':
+            const key = data.payload.channel_id || data.payload.dm_conversation_id;
+            if (data.payload.is_typing) {
+              setTypingUsers(prev => ({
+                ...prev,
+                [key]: { ...prev[key], [data.payload.user_id]: data.payload.user_name }
+              }));
+            } else {
+              setTypingUsers(prev => {
+                const newState = { ...prev };
+                if (newState[key]) {
+                  delete newState[key][data.payload.user_id];
+                }
+                return newState;
+              });
+            }
+            break;
+            
+          case 'presence':
+            setUsers(prev => prev.map(u => 
+              u.id === data.payload.user_id 
+                ? { ...u, is_online: data.payload.status === 'online' }
+                : u
+            ));
+            break;
+            
+          case 'channel_update':
+            fetchChannels();
+            break;
+            
+          case 'notification':
+            toast.info(data.payload.title, {
+              description: data.payload.message
             });
-          }
-          break;
-          
-        case 'presence':
-          setUsers(prev => prev.map(u => 
-            u.id === data.payload.user_id 
-              ? { ...u, is_online: data.payload.status === 'online' }
-              : u
-          ));
-          break;
-          
-        case 'channel_update':
-          fetchChannels();
-          break;
-          
-        case 'notification':
-          toast.info(data.payload.title, {
-            description: data.payload.message
-          });
-          break;
-          
-        default:
-          break;
-      }
+            break;
+            
+          default:
+            break;
+        }
+      };
+      
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+      
+      ws.onclose = () => {
+        console.log('WebSocket disconnected');
+        // Attempt to reconnect with exponential backoff
+        if (reconnectAttempts < maxReconnectAttempts) {
+          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+          reconnectAttempts++;
+          console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts})`);
+          reconnectTimeout = setTimeout(connect, delay);
+        }
+      };
+      
+      wsRef.current = ws;
     };
     
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-    
-    ws.onclose = () => {
-      console.log('WebSocket disconnected');
-    };
-    
-    wsRef.current = ws;
+    connect();
     
     return () => {
-      ws.close();
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      if (ws) ws.close();
     };
-  }, [token, fetchChannels, fetchDMs]); // Removed selectedChannel/selectedDM - using refs instead
+  }, [token, fetchChannels, fetchDMs]);
   
   // Send message
   const sendMessage = async () => {
