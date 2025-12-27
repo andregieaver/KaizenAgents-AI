@@ -433,7 +433,12 @@ async def get_channel_agents(channel_id: str, current_user: dict = Depends(get_c
     agents = await db.user_agents.find({
         "id": {"$in": agent_ids},
         "tenant_id": tenant_id
-    }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "avatar_url": 1, "description": 1, "channels_enabled": 1, "channel_config": 1}).to_list(100)
+    }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "avatar_url": 1, "profile_image_url": 1, "description": 1, "channels_enabled": 1, "channel_config": 1}).to_list(100)
+    
+    # Normalize avatar field
+    for agent in agents:
+        agent["avatar_url"] = get_agent_image_url(agent)
+        agent.pop("profile_image_url", None)
     
     return agents
 
