@@ -1001,6 +1001,57 @@ const Messaging = () => {
     }
   };
   
+  // Update channel
+  const updateChannel = async (channelId, updates) => {
+    try {
+      const response = await axios.patch(`${API}/api/messaging/channels/${channelId}`, null, {
+        params: updates,
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Channel updated');
+      fetchChannels();
+      if (selectedChannel?.id === channelId) {
+        setSelectedChannel(response.data);
+      }
+      return response.data;
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to update channel');
+      return null;
+    }
+  };
+  
+  // Delete channel
+  const deleteChannel = async (channelId) => {
+    try {
+      await axios.delete(`${API}/api/messaging/channels/${channelId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Channel deleted');
+      fetchChannels();
+      if (selectedChannel?.id === channelId) {
+        setSelectedChannel(null);
+        setSearchParams({});
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to delete channel');
+    }
+  };
+  
+  // Start DM with agent
+  const startAgentDM = async (agentId) => {
+    try {
+      const response = await axios.post(`${API}/api/messaging/dm`, null, {
+        params: { participant_id: agentId, is_agent: true },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      await fetchDMs();
+      handleSelectDM(response.data);
+      toast.success('Started conversation with agent');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to start DM');
+    }
+  };
+  
   // Get typing indicator text
   const getTypingText = () => {
     const key = selectedChannel?.id || selectedDM?.id;
