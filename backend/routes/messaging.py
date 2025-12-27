@@ -575,15 +575,30 @@ async def get_dm_conversations(current_user: dict = Depends(get_current_user)):
     
     # Get participant details and unread counts
     for dm in dms:
-        other_user_id = [p for p in dm["participants"] if p != user_id][0]
-        other_user = await db.users.find_one(
-            {"id": other_user_id},
-            {"_id": 0, "id": 1, "name": 1, "email": 1, "avatar_url": 1}
-        )
-        dm["other_user"] = other_user
+        other_participant = [p for p in dm["participants"] if p != user_id][0]
         
-        # Check if online
-        dm["is_online"] = other_user_id in manager.get_online_users(tenant_id)
+        # Check if it's an agent DM
+        if dm.get("is_agent_dm") or other_participant.startswith("agent_"):
+            agent_id = dm.get("agent_id") or other_participant.replace("agent_", "")
+            agent = await db.user_agents.find_one(
+                {"id": agent_id},
+                {"_id": 0, "id": 1, "name": 1, "profile_image_url": 1}
+            )
+            dm["agent"] = agent
+            dm["is_agent_dm"] = True
+            dm["other_user"] = {
+                "id": f"agent_{agent_id}",
+                "name": agent.get("name") if agent else "AI Agent",
+                "avatar_url": agent.get("profile_image_url") if agent else None
+            }
+            dm["is_online"] = True  # Agents are always online
+        else:
+            other_user = await db.users.find_one(
+                {"id": other_participant},
+                {"_id": 0, "id": 1, "name": 1, "email": 1, "avatar_url": 1}
+            )
+            dm["other_user"] = other_user
+            dm["is_online"] = other_participant in manager.get_online_users(tenant_id)
         
         # Get last message
         last_msg = await db.messaging_messages.find_one(
