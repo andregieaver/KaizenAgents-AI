@@ -1315,18 +1315,78 @@ const Messaging = () => {
                         {selectedChannel.linked_customer_name}
                       </Badge>
                     )}
+                    
+                    {/* Overlapping member avatars */}
+                    <div className="hidden sm:flex items-center ml-3">
+                      <div className="flex -space-x-2">
+                        {/* Show channel members (up to 3) */}
+                        {users
+                          .filter(u => selectedChannel.members?.includes(u.id))
+                          .slice(0, 3)
+                          .map((user, idx) => (
+                            <Avatar 
+                              key={user.id} 
+                              className="h-7 w-7 border-2 border-background"
+                              style={{ zIndex: 10 - idx }}
+                            >
+                              <AvatarImage src={resolveImageUrl(user.avatar_url)} />
+                              <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                                {user.name?.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          ))
+                        }
+                        {/* Show channel agents */}
+                        {channelAgents.slice(0, Math.max(0, 3 - (selectedChannel.members?.length || 0))).map((agent, idx) => (
+                          <Avatar 
+                            key={agent.id} 
+                            className="h-7 w-7 border-2 border-background ring-1 ring-primary/30"
+                            style={{ zIndex: 7 - idx }}
+                          >
+                            <AvatarImage src={resolveImageUrl(agent.profile_image_url)} />
+                            <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                              <Bot className="h-3 w-3" />
+                            </AvatarFallback>
+                          </Avatar>
+                        ))}
+                        {/* Show +X if more than 3 total */}
+                        {((selectedChannel.members?.length || 0) + channelAgents.length) > 3 && (
+                          <div 
+                            className="h-7 w-7 rounded-full border-2 border-background bg-muted flex items-center justify-center text-xs font-medium"
+                            style={{ zIndex: 1 }}
+                          >
+                            +{(selectedChannel.members?.length || 0) + channelAgents.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </>
                 ) : (
                   <>
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback>
-                        {selectedDM.other_user?.name?.charAt(0).toUpperCase()}
-                      </AvatarFallback>
+                      {selectedDM.is_agent_dm ? (
+                        <>
+                          <AvatarImage src={resolveImageUrl(selectedDM.agent?.profile_image_url)} />
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            <Bot className="h-4 w-4" />
+                          </AvatarFallback>
+                        </>
+                      ) : (
+                        <>
+                          <AvatarImage src={resolveImageUrl(selectedDM.other_user?.avatar_url)} />
+                          <AvatarFallback>
+                            {selectedDM.other_user?.name?.charAt(0).toUpperCase()}
+                          </AvatarFallback>
+                        </>
+                      )}
                     </Avatar>
                     <div className="min-w-0">
-                      <h2 className="font-semibold text-sm sm:text-base truncate">{selectedDM.other_user?.name}</h2>
+                      <h2 className="font-semibold text-sm sm:text-base truncate flex items-center gap-2">
+                        {selectedDM.is_agent_dm ? selectedDM.agent?.name : selectedDM.other_user?.name}
+                        {selectedDM.is_agent_dm && <Badge variant="secondary" className="text-xs">AI</Badge>}
+                      </h2>
                       <p className="text-xs text-muted-foreground">
-                        {selectedDM.is_online ? 'Online' : 'Offline'}
+                        {selectedDM.is_agent_dm ? 'AI Agent • Always Online' : (selectedDM.is_online ? 'Online' : 'Offline')}
                       </p>
                     </div>
                   </>
