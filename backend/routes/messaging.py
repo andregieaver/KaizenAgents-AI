@@ -193,7 +193,11 @@ async def get_channels(current_user: dict = Depends(get_current_user)):
         if agent_ids:
             agents = await db.user_agents.find({
                 "id": {"$in": agent_ids}
-            }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "avatar_url": 1}).to_list(100)
+            }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "avatar_url": 1, "profile_image_url": 1}).to_list(100)
+            # Normalize avatar field for each agent
+            for agent in agents:
+                agent["avatar_url"] = get_agent_image_url(agent)
+                agent.pop("profile_image_url", None)
             channel["agent_details"] = agents
         else:
             channel["agent_details"] = []
