@@ -1258,7 +1258,7 @@ const Messaging = () => {
           <div className="p-3 border-t flex items-center gap-2">
             <div className="relative">
               <Avatar className="h-8 w-8">
-                <AvatarImage src={currentUser.avatar_url} />
+                <AvatarImage src={resolveImageUrl(currentUser.avatar_url)} />
                 <AvatarFallback>{currentUser.name?.charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <Circle className="absolute -bottom-0.5 -right-0.5 h-3 w-3 fill-green-500 text-green-500" />
