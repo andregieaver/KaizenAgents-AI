@@ -1246,7 +1246,7 @@ Your response:"""
                         "content": response,
                         "author_id": f"agent_{agent['id']}",
                         "author_name": agent["name"],
-                        "author_avatar": agent.get("avatar_url"),
+                        "author_avatar": get_agent_image_url(agent),
                         "is_agent": True,
                         "agent_id": agent["id"],
                         "attachments": [],
