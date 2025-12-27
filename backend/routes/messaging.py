@@ -522,7 +522,12 @@ async def get_available_agents(current_user: dict = Depends(get_current_user)):
         "tenant_id": tenant_id,
         "channels_enabled": True,
         "is_active": True
-    }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "avatar_url": 1, "description": 1, "channel_config": 1}).to_list(100)
+    }, {"_id": 0, "id": 1, "name": 1, "icon": 1, "avatar_url": 1, "profile_image_url": 1, "description": 1, "channel_config": 1}).to_list(100)
+    
+    # Normalize avatar field
+    for agent in agents:
+        agent["avatar_url"] = get_agent_image_url(agent)
+        agent.pop("profile_image_url", None)
     
     return agents
 
