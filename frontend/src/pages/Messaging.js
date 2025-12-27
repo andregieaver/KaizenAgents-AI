@@ -86,6 +86,39 @@ const EmojiPicker = ({ onSelect, onClose }) => (
   </div>
 );
 
+// Date separator component
+const DateSeparator = ({ date }) => {
+  const formatDate = (dateStr) => {
+    const d = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (d.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (d.toDateString() === yesterday.toDateString()) {
+      return 'Yesterday';
+    } else {
+      return d.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'long', 
+        day: 'numeric',
+        year: d.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+      });
+    }
+  };
+  
+  return (
+    <div className="flex items-center gap-4 py-4">
+      <Separator className="flex-1" />
+      <span className="text-xs font-medium text-muted-foreground px-2 bg-background">
+        {formatDate(date)}
+      </span>
+      <Separator className="flex-1" />
+    </div>
+  );
+};
+
 // Message component
 const MessageItem = ({ 
   message, 
