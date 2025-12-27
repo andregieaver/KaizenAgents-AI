@@ -773,6 +773,10 @@ async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict,
         # === PHASE 4: Proactive evaluation for non-mentioned agents ===
         # Check if any agent should proactively respond based on expertise
         for agent in agents:
+            # Skip agents that already responded via explicit mention
+            if agent['id'] in responded_agent_ids:
+                continue
+                
             should_respond = await evaluate_proactive_response(
                 agent=agent,
                 channel_id=channel_id,
