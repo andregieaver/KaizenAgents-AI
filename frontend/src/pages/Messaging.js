@@ -427,6 +427,17 @@ const Messaging = () => {
   const messagesEndRef = useRef(null);
   const wsRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const selectedChannelRef = useRef(null);
+  const selectedDMRef = useRef(null);
+  
+  // Keep refs in sync with state
+  useEffect(() => {
+    selectedChannelRef.current = selectedChannel;
+  }, [selectedChannel]);
+  
+  useEffect(() => {
+    selectedDMRef.current = selectedDM;
+  }, [selectedDM]);
   
   // Fetch current user
   useEffect(() => {
