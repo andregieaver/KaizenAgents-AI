@@ -322,6 +322,52 @@ async def add_channel_member(
     
     return {"success": True, "message": "Member added"}
 
+
+@router.patch("/channels/{channel_id}")
+async def update_channel(
+    channel_id: str,
+    name: Optional[str] = None,
+    description: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update channel name or description (creator/owner only)"""
+    tenant_id = current_user["tenant_id"]
+    user_id = current_user["id"]
+    
+    channel = await db.messaging_channels.find_one({
+        "id": channel_id,
+        "tenant_id": tenant_id
+    })
+    
+    if not channel:
+        raise HTTPException(status_code=404, detail="Channel not found")
+    
+    if channel.get("created_by") != user_id and current_user.get("role") != "owner":
+        raise HTTPException(status_code=403, detail="Only creator or owner can update channel")
+    
+    update_fields = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    if name:
+        update_fields["name"] = name
+    if description is not None:
+        update_fields["description"] = description
+    
+    await db.messaging_channels.update_one(
+        {"id": channel_id},
+        {"$set": update_fields}
+    )
+    
+    # Get updated channel
+    updated_channel = await db.messaging_channels.find_one({"id": channel_id}, {"_id": 0})
+    
+    # Broadcast update
+    await manager.broadcast_to_tenant(tenant_id, {
+        "type": "channel_update",
+        "payload": {"action": "updated", "channel": updated_channel}
+    })
+    
+    return updated_channel
+
+
 @router.delete("/channels/{channel_id}")
 async def delete_channel(channel_id: str, current_user: dict = Depends(get_current_user)):
     """Delete a channel (creator only)"""
