@@ -19,6 +19,14 @@ import jwt
 
 router = APIRouter(prefix="/messaging", tags=["messaging"])
 
+# Helper function to get agent image URL (handles inconsistent field names in DB)
+def get_agent_image_url(agent: dict) -> str:
+    """Get the agent's image URL, checking both avatar_url and profile_image_url fields"""
+    if not agent:
+        return None
+    # Check avatar_url first, then profile_image_url as fallback
+    return agent.get("avatar_url") or agent.get("profile_image_url")
+
 # WebSocket Connection Manager
 class ConnectionManager:
     def __init__(self):
