@@ -739,7 +739,131 @@ async def send_message(
             user_name=current_user.get("name", "User")
         ))
     
+    # Trigger AI agent response if DM is with an agent
+    if dm_conversation_id:
+        dm = await db.messaging_dm_conversations.find_one({"id": dm_conversation_id})
+        if dm and dm.get("is_agent_dm"):
+            asyncio.create_task(trigger_dm_agent_response(
+                tenant_id=tenant_id,
+                dm_conversation_id=dm_conversation_id,
+                agent_id=dm.get("agent_id"),
+                message=message,
+                user_name=current_user.get("name", "User")
+            ))
+    
     return message
+
+
+async def trigger_dm_agent_response(tenant_id: str, dm_conversation_id: str, agent_id: str, message: dict, user_name: str):
+    """Handle agent response in DM conversations"""
+    import random
+    import asyncio
+    
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+        import os
+        
+        # Get agent
+        agent = await db.user_agents.find_one({
+            "id": agent_id,
+            "is_active": True
+        }, {"_id": 0})
+        
+        if not agent:
+            print(f"[DM Agent] Agent not found or inactive: {agent_id}")
+            return
+        
+        agent_config = agent.get("config", {})
+        
+        # Get conversation history
+        recent_messages = await db.messaging_messages.find({
+            "dm_conversation_id": dm_conversation_id,
+            "parent_id": None
+        }, {"_id": 0}).sort("created_at", -1).limit(50).to_list(50)
+        
+        recent_messages.reverse()
+        
+        context = "\n".join([
+            f"[{m.get('author_name', 'Unknown')}]: {m['content']}" 
+            for m in recent_messages
+        ])
+        
+        system_prompt = f"""You are {agent['name']}, having a private conversation.
+
+YOUR PERSONALITY & EXPERTISE:
+{agent_config.get('system_prompt', 'You are a helpful assistant.')}
+
+BEHAVIORAL GUIDELINES - Act like a human colleague in a private chat:
+1. Be more personal and direct since this is a 1-on-1 conversation
+2. Use natural language with contractions
+3. Show personality - be warm, helpful, and engaged
+4. Keep responses focused and relevant
+5. Don't be overly formal
+
+CONVERSATION HISTORY:
+{context}
+"""
+        
+        api_key = os.environ.get("EMERGENT_LLM_KEY")
+        if not api_key:
+            print("[DM Agent] EMERGENT_LLM_KEY not found")
+            return
+        
+        # Add slight delay for natural feel
+        delay = random.uniform(1.0, 2.5)
+        await asyncio.sleep(delay)
+        
+        chat = LlmChat(
+            api_key=api_key,
+            session_id=f"dm_{dm_conversation_id}_{agent['id']}_{random.randint(1000,9999)}",
+            system_message=system_prompt
+        ).with_model("openai", "gpt-4o")
+        
+        response = await chat.send_message(UserMessage(
+            text=f'{user_name}: "{message["content"]}"\n\nRespond naturally:'
+        ))
+        
+        if response:
+            response = response.strip()
+            print(f"[DM Agent] {agent['name']}: {response[:100]}...")
+            
+            # Create agent message
+            agent_message = {
+                "id": str(uuid.uuid4()),
+                "tenant_id": tenant_id,
+                "channel_id": None,
+                "dm_conversation_id": dm_conversation_id,
+                "parent_id": None,
+                "content": response,
+                "author_id": f"agent_{agent['id']}",
+                "author_name": agent["name"],
+                "author_avatar": agent.get("profile_image_url"),
+                "is_agent": True,
+                "agent_id": agent["id"],
+                "attachments": [],
+                "mentions": [],
+                "reactions": {},
+                "is_edited": False,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat()
+            }
+            
+            await db.messaging_messages.insert_one(agent_message)
+            agent_message.pop('_id', None)
+            
+            # Broadcast
+            dm = await db.messaging_dm_conversations.find_one({"id": dm_conversation_id})
+            if dm:
+                recipients = dm.get("participants", [])
+                await manager.send_to_users(tenant_id, recipients, {
+                    "type": "message",
+                    "payload": agent_message
+                })
+    
+    except Exception as e:
+        print(f"Error in DM agent response: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 async def trigger_channel_agents(tenant_id: str, channel_id: str, message: dict, user_name: str):
