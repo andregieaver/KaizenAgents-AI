@@ -468,7 +468,23 @@ async def bulk_update_agents(
             }
     
     if request.orchestration_enabled is not None:
-        update_fields["orchestration_enabled"] = request.orchestration_enabled
+        # Exclude mother agent from orchestration updates
+        if request.orchestration_enabled:
+            # Don't enable orchestration for mother agent
+            result = await db.user_agents.update_many(
+                {
+                    "id": {"$in": request.agent_ids},
+                    "tenant_id": tenant_id,
+                    "is_mother_agent": {"$ne": True}  # Exclude mother agent
+                },
+                {"$set": {**update_fields, "orchestration_enabled": request.orchestration_enabled}}
+            )
+            return {
+                "message": f"Updated {result.modified_count} agents (Mother Agent excluded from orchestration)",
+                "updated_count": result.modified_count
+            }
+        else:
+            update_fields["orchestration_enabled"] = request.orchestration_enabled
     
     # Update all specified agents
     result = await db.user_agents.update_many(
