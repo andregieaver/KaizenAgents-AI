@@ -40,6 +40,8 @@ class UserAgentResponse(BaseModel):
     # Channel integration fields
     channels_enabled: bool = False
     channel_config: Optional[Dict[str, Any]] = None
+    # Mother agent field
+    is_mother_agent: bool = False
 
 class UserAgentCreate(BaseModel):
     name: str
