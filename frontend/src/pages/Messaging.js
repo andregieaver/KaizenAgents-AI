@@ -1695,7 +1695,7 @@ const Messaging = () => {
                     >
                       <Avatar className="h-10 w-10 ring-2 ring-primary/30">
                         {agent.profile_image_url ? (
-                          <AvatarImage src={agent.profile_image_url} />
+                          <AvatarImage src={resolveImageUrl(agent.profile_image_url)} />
                         ) : (
                           <AvatarFallback className="bg-primary text-primary-foreground">
                             <Bot className="h-5 w-5" />
