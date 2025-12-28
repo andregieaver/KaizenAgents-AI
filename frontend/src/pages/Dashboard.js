@@ -219,12 +219,25 @@ const Dashboard = () => {
   const filtersRef = useRef(null);
   const [filtersScroll, setFiltersScroll] = useState({ canScrollLeft: false, canScrollRight: false });
 
+  // Scroll fade indicators for footer sources bar
+  const footerRef = useRef(null);
+  const [footerScroll, setFooterScroll] = useState({ canScrollLeft: false, canScrollRight: false });
+
   const updateFiltersScrollState = useCallback(() => {
     const el = filtersRef.current;
     if (el) {
       const canScrollLeft = el.scrollLeft > 5;
       const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 5);
       setFiltersScroll({ canScrollLeft, canScrollRight });
+    }
+  }, []);
+
+  const updateFooterScrollState = useCallback(() => {
+    const el = footerRef.current;
+    if (el) {
+      const canScrollLeft = el.scrollLeft > 5;
+      const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 5);
+      setFooterScroll({ canScrollLeft, canScrollRight });
     }
   }, []);
 
@@ -240,6 +253,19 @@ const Dashboard = () => {
       };
     }
   }, [updateFiltersScrollState, loading]);
+
+  useEffect(() => {
+    const el = footerRef.current;
+    if (el) {
+      updateFooterScrollState();
+      el.addEventListener('scroll', updateFooterScrollState);
+      window.addEventListener('resize', updateFooterScrollState);
+      return () => {
+        el.removeEventListener('scroll', updateFooterScrollState);
+        window.removeEventListener('resize', updateFooterScrollState);
+      };
+    }
+  }, [updateFooterScrollState, loading]);
 
   const fetchData = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
