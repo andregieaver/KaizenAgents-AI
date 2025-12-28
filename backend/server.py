@@ -2231,7 +2231,7 @@ async def refresh_social_integration(
                         "grant_type": "refresh_token",
                         "refresh_token": refresh_token,
                         "client_id": app_id,
-                        "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET')
+                        "client_secret": app_secret
                     }
                 )
                 token_data = response.json()
@@ -2249,7 +2249,7 @@ async def refresh_social_integration(
                 "access_token": new_token,
                 "expires_at": expires_at
             }
-            if 'new_refresh' in dir() and new_refresh:
+            if new_refresh:
                 update_data["refresh_token"] = new_refresh
             
             await db.social_integrations.update_one(
