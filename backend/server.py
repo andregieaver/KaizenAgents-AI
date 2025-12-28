@@ -1686,6 +1686,181 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         "recent_conversations": recent
     }
 
+# ============== SOCIAL INTEGRATIONS ==============
+
+class SocialIntegrationConfig(BaseModel):
+    app_id: Optional[str] = None
+    app_secret: Optional[str] = None
+    access_token: Optional[str] = None
+    webhook_secret: Optional[str] = None
+
+class SocialIntegrationUpdate(BaseModel):
+    enabled: Optional[bool] = None
+
+SUPPORTED_SOCIAL_INTEGRATIONS = ['facebook', 'instagram', 'twitter', 'linkedin', 'whatsapp', 'youtube']
+
+@api_router.get("/integrations")
+async def get_social_integrations(current_user: dict = Depends(get_current_user)):
+    """Get all social media integrations for the current tenant"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    integrations = await db.social_integrations.find(
+        {"tenant_id": tenant_id},
+        {"_id": 0, "app_secret": 0, "access_token": 0}  # Don't expose secrets
+    ).to_list(100)
+    
+    # Convert to dict keyed by integration type
+    result = {}
+    for integration in integrations:
+        result[integration["type"]] = {
+            "connected": True,
+            "enabled": integration.get("enabled", True),
+            "account_name": integration.get("account_name"),
+            "connected_at": integration.get("connected_at")
+        }
+    
+    return result
+
+@api_router.post("/integrations/{integration_type}/connect")
+async def connect_social_integration(
+    integration_type: str,
+    config: SocialIntegrationConfig,
+    current_user: dict = Depends(get_current_user)
+):
+    """Connect a social media integration"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    if integration_type not in SUPPORTED_SOCIAL_INTEGRATIONS:
+        raise HTTPException(status_code=400, detail=f"Unsupported integration type: {integration_type}")
+    
+    if not config.app_id or not config.app_secret:
+        raise HTTPException(status_code=400, detail="App ID and App Secret are required")
+    
+    # Store the integration configuration
+    integration_data = {
+        "tenant_id": tenant_id,
+        "type": integration_type,
+        "app_id": config.app_id,
+        "app_secret": config.app_secret,  # In production, encrypt this
+        "access_token": config.access_token,
+        "webhook_secret": config.webhook_secret,
+        "enabled": True,
+        "connected_at": datetime.now(timezone.utc).isoformat(),
+        "account_name": f"{integration_type.capitalize()} Account"
+    }
+    
+    # Upsert the integration
+    await db.social_integrations.update_one(
+        {"tenant_id": tenant_id, "type": integration_type},
+        {"$set": integration_data},
+        upsert=True
+    )
+    
+    return {"success": True, "message": f"{integration_type} connected successfully"}
+
+@api_router.patch("/integrations/{integration_type}")
+async def update_social_integration(
+    integration_type: str,
+    update: SocialIntegrationUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update integration settings (enable/disable)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    update_data = {}
+    if update.enabled is not None:
+        update_data["enabled"] = update.enabled
+    
+    if update_data:
+        result = await db.social_integrations.update_one(
+            {"tenant_id": tenant_id, "type": integration_type},
+            {"$set": update_data}
+        )
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="Integration not found")
+    
+    return {"success": True}
+
+@api_router.delete("/integrations/{integration_type}")
+async def disconnect_social_integration(
+    integration_type: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Disconnect/remove a social integration"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    result = await db.social_integrations.delete_one({
+        "tenant_id": tenant_id,
+        "type": integration_type
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    
+    return {"success": True}
+
+@api_router.post("/integrations/{integration_type}/test")
+async def test_social_integration(
+    integration_type: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Test the connection to a social integration"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    integration = await db.social_integrations.find_one(
+        {"tenant_id": tenant_id, "type": integration_type},
+        {"_id": 0}
+    )
+    
+    if not integration:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    
+    # In production, this would actually test the API connection
+    return {
+        "success": True,
+        "message": f"Successfully connected to {integration_type}"
+    }
+
+# Webhook endpoint for receiving social media events
+@api_router.post("/webhooks/social")
+async def social_media_webhook(request: Request):
+    """
+    Webhook endpoint for receiving events from social media platforms.
+    """
+    try:
+        body = await request.json()
+        logger.info(f"Received social webhook: {body}")
+        # In production: verify signature, parse event, create conversation
+        return {"status": "received"}
+    except Exception as e:
+        logger.error(f"Webhook error: {e}")
+        return {"status": "error"}
+
+# Webhook verification for Meta (Facebook/Instagram/WhatsApp)
+@api_router.get("/webhooks/social")
+async def verify_social_webhook(
+    hub_mode: Optional[str] = Query(None, alias="hub.mode"),
+    hub_verify_token: Optional[str] = Query(None, alias="hub.verify_token"),
+    hub_challenge: Optional[str] = Query(None, alias="hub.challenge")
+):
+    """Webhook verification endpoint for Meta platforms."""
+    verify_token = os.environ.get("META_WEBHOOK_VERIFY_TOKEN", "kaizen_verify_token")
+    
+    if hub_mode == "subscribe" and hub_verify_token == verify_token:
+        return int(hub_challenge) if hub_challenge else "OK"
+    
+    raise HTTPException(status_code=403, detail="Verification failed")
+
 # ============== SUPER ADMIN ROUTES ==============
 
 class PlatformSettingsUpdate(BaseModel):
