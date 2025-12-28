@@ -246,11 +246,23 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  // Filter conversations based on tab and search
+  // Filter conversations based on tab, status filter, and search
   const filteredConversations = conversations.filter(conv => {
     // Tab filter
     if (activeTab === 'me' && conv.assigned_to !== user?.id) return false;
     if (activeTab === 'team' && conv.assigned_to === user?.id) return false;
+    
+    // Status filter from Quick Stats Bar
+    if (activeStatusFilter) {
+      if (activeStatusFilter === 'needs_response' && conv.status !== 'needs_response' && conv.status !== 'waiting') return false;
+      if (activeStatusFilter === 'open' && conv.status !== 'open') return false;
+      if (activeStatusFilter === 'resolved_today') {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const convDate = new Date(conv.resolved_at || conv.updated_at);
+        if (conv.status !== 'resolved' || convDate < today) return false;
+      }
+    }
     
     // Search filter
     if (searchQuery) {
@@ -269,6 +281,11 @@ const Dashboard = () => {
     all: conversations.length,
     team: conversations.filter(c => c.assigned_to !== user?.id).length,
     me: conversations.filter(c => c.assigned_to === user?.id).length
+  };
+
+  // Toggle status filter
+  const toggleStatusFilter = (filter) => {
+    setActiveStatusFilter(activeStatusFilter === filter ? null : filter);
   };
 
   const handleConversationClick = (conversation) => {
