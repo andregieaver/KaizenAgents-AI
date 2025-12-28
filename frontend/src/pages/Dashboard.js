@@ -365,8 +365,8 @@ const Dashboard = () => {
 
   return (
     <div className="h-full flex flex-col bg-background" data-testid="dashboard-inbox">
-      {/* Header */}
-      <div className="p-4 border-b border-border bg-card">
+      {/* Header - Fixed at top */}
+      <div className="p-4 pb-0 border-b border-border bg-card">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="font-heading text-xl font-bold tracking-tight">Inbox</h1>
@@ -424,54 +424,58 @@ const Dashboard = () => {
             className="pl-9"
           />
         </div>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full justify-start bg-transparent p-0 h-auto gap-1">
-            <TabsTrigger
-              value="all"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm"
-            >
-              <Inbox className="h-4 w-4 mr-2" />
-              All
-              {tabCounts.all > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
-                  {tabCounts.all}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value="team"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Team
-              {tabCounts.team > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
-                  {tabCounts.team}
-                </Badge>
-              )}
-            </TabsTrigger>
-            <TabsTrigger
-              value="me"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm"
-            >
-              <User className="h-4 w-4 mr-2" />
-              Me
-              {tabCounts.me > 0 && (
-                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
-                  {tabCounts.me}
-                </Badge>
-              )}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
       </div>
 
-      {/* Scrollable content area with sticky Quick Stats */}
+      {/* Scrollable content area */}
       <div className="flex-1 overflow-y-auto scrollbar-hide relative">
-        {/* Quick Stats Bar - Clickable Filters - Sticky on scroll */}
-        <div className="relative border-b border-border sticky top-0 z-10 backdrop-blur-md bg-background/95">
+        {/* Tabs - Sticky on scroll */}
+        <div className="sticky top-0 z-20 bg-card border-b border-border backdrop-blur-md bg-background/95">
+          <div className="px-4 py-3">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="w-full justify-start bg-transparent p-0 h-auto gap-1 overflow-x-auto scrollbar-hide">
+                <TabsTrigger
+                  value="all"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm flex-shrink-0"
+                >
+                  <Inbox className="h-4 w-4 mr-2" />
+                  All
+                  {tabCounts.all > 0 && (
+                    <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                      {tabCounts.all}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="team"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm flex-shrink-0"
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Team
+                  {tabCounts.team > 0 && (
+                    <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                      {tabCounts.team}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="me"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm flex-shrink-0"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Me
+                  {tabCounts.me > 0 && (
+                    <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                      {tabCounts.me}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </div>
+
+        {/* Quick Stats Bar - Clickable Filters - Sticky below tabs */}
+        <div className="relative border-b border-border sticky top-[52px] z-10 backdrop-blur-md bg-background/95">
           <div 
             ref={filtersRef}
             className="flex items-center gap-2 px-4 py-3 overflow-x-auto scrollbar-hide"
