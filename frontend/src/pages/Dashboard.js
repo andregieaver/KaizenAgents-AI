@@ -463,7 +463,7 @@ const Dashboard = () => {
             <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'waiting' ? 'bg-white' : 'bg-amber-500'}`} />
             <span>Waiting</span>
             <span className={`font-semibold ${activeStatusFilter === 'waiting' ? 'text-white' : 'text-foreground'}`}>
-              {stats?.waiting_count || 0}
+              {stats?.waiting_conversations || 0}
             </span>
           </button>
           
