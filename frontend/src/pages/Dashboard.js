@@ -495,7 +495,7 @@ const Dashboard = () => {
       </div>
 
       {/* Conversation List */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 scrollbar-hide">
         {filteredConversations.length > 0 ? (
           <div className="divide-y divide-border">
             {filteredConversations.map((conversation) => (
@@ -513,28 +513,32 @@ const Dashboard = () => {
       </ScrollArea>
 
       {/* Source Legend - Footer */}
-      <div className="p-3 border-t border-border bg-muted/30">
-        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
+      <div className="relative border-t border-border bg-muted/30">
+        <div className="flex items-center justify-center gap-4 p-3 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
             <MessageCircle className="h-3.5 w-3.5" />
             <span>Chat Widget</span>
           </div>
-          <div className="flex items-center gap-1 opacity-50">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground opacity-50 whitespace-nowrap">
             <Facebook className="h-3.5 w-3.5" />
             <span>Facebook</span>
             <Badge variant="outline" className="text-[10px] h-4 px-1">Soon</Badge>
           </div>
-          <div className="flex items-center gap-1 opacity-50">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground opacity-50 whitespace-nowrap">
             <Instagram className="h-3.5 w-3.5" />
             <span>Instagram</span>
             <Badge variant="outline" className="text-[10px] h-4 px-1">Soon</Badge>
           </div>
-          <div className="flex items-center gap-1 opacity-50">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground opacity-50 whitespace-nowrap">
             <Mail className="h-3.5 w-3.5" />
             <span>Email</span>
             <Badge variant="outline" className="text-[10px] h-4 px-1">Soon</Badge>
           </div>
         </div>
+        {/* Gradient fade on left edge */}
+        <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-muted/30 to-transparent pointer-events-none sm:hidden" />
+        {/* Gradient fade on right edge */}
+        <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-muted/30 to-transparent pointer-events-none sm:hidden" />
       </div>
     </div>
   );
