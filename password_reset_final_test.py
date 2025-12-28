@@ -12,7 +12,7 @@ from datetime import datetime
 def test_password_reset_endpoints():
     """Test all password reset endpoints as specified in the review request"""
     
-    base_url = "https://slack-clone-fix.preview.emergentagent.com/api"
+    base_url = "https://sticky-header-2.preview.emergentagent.com/api"
     
     print("🚀 Testing Password Reset Flow API Endpoints")
     print(f"   Base URL: {base_url}")

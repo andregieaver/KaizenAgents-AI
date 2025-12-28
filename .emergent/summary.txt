@@ -1,158 +1,152 @@
 <analysis>**original_problem_statement:**
-The initial request was to refactor the frontend, clean up the codebase, and perform a full audit. During this session, the user added several new requests:
-1.  Improve the UI/UX of the CRM Customer Detail and CRM List pages, specifically for mobile view, by fixing horizontal overflow and scrollbar issues.
-2.  Implement a custom, Slack-inspired instant messaging system for internal team communication. This system should support real-time messaging, channels (public/private), direct messages, file attachments, emoji reactions, @mentions, search, and unread indicators.
-3.  Integrate AI agents into the new messaging system, allowing them to be added to channels.
-4.  Add an Enable for channels option in the agent edit screen, along with sliders to modify agent behavior within channel chats.
-5.  Fix a bug where the agent's channel settings were not being saved correctly.
-6.  Address benign  errors appearing in the browser console.
+The user initially requested a fix for ongoing avatar display issues across the application, which were failing in production on a custom domain. This led to a series of feature requests and bug fixes:
+1.  **Avatar Display:** Fix user and agent profile images not showing up in messaging, on the team page, and elsewhere. This was a persistent bug from the previous session.
+2.  **Production Image Uploads:** Resolve an issue where image uploads work in the preview environment but fail on the user's custom domain (), and clarify image upload size limitations.
+3.  **Mother Agent Feature:**
+    *   Create a Mother Agent role. Only one agent can be the Mother Agent.
+    *   The Mother Agent cannot have orchestration enabled (it orchestrates others) and cannot be added to messaging channels.
+    *   Provide a high-quality system prompt for this Mother Agent.
+4.  **Dashboard Refactor to Unified Inbox:**
+    *   Transform the main dashboard into a Company Inbox with a tabbed UI (All, Team, Me).
+    *   The Quick Stats bar should function as clickable filters for the conversation list.
+    *   Implement a zero-width scrollbar with blurred ends for horizontal scrolling elements, matching the style of the existing CRM page.
+    *   Make the filter bars sticky at the top of the page on scroll.
 
 **User's preferred language**: English
 
 **what currently exists?**
-The application is a full-stack SaaS platform with a React frontend, FastAPI backend, and MongoDB database. Key accomplishments in this session include:
-- **CRM UI/UX Overhaul:** The CRM list and detail pages have been significantly improved for mobile. Horizontally overflowing elements now scroll cleanly with hidden scrollbars and dynamic fade indicators to show scrollability. The customer list uses a stacked layout on mobile to prevent content from being cut off.
-- **Slack-Inspired Messaging System:** A complete, real-time messaging feature has been built from the ground up.
-    - **Backend:** A new  route () was created with WebSocket support for real-time communication. New Pydantic models () and MongoDB collections for , , and  were established.
-    - **Frontend:** A new page at  () provides a Slack-like interface. The UI is fully mobile-responsive, featuring a collapsible sidebar that reveals the chat view upon selection.
-- **AI Agent Integration in Messaging:** The messaging system now supports AI agents.
-    - **Backend:** The agent model was extended to include channel-specific configurations (, ). The messaging backend now triggers agent responses when they are  in a channel.
-    - **Frontend:** The agent edit page () has a new Channels tab containing a UI () to enable agents for channels and configure their behavior (e.g., trigger mode, response style). The messaging UI allows users to add/remove these configured agents from channels.
-- **Bug Fix:** A critical bug preventing agent channel settings from being saved has been resolved. The frontend was not including the new channel configuration fields in the  request payload.
+The application is a full-stack SaaS platform (React/FastAPI/MongoDB). The session successfully addressed several major issues and introduced new features.
+
+-   **Avatar Display Fixed:** All user and agent avatar display issues have been resolved across the application (, ,  pages). The fix involved correcting inconsistent database field names ( vs. ) and proxying Google Cloud Storage URLs that were not publicly accessible.
+-   **CORS for Custom Domain:** The backend's CORS configuration has been updated to include the user's custom domain (), which is a necessary step for enabling image uploads in production. The  setting was also added.
+-   **Mother Agent Feature:** A Mother Agent role has been fully implemented. The backend prevents the Mother Agent from being added to channels or having orchestration enabled. The frontend UI on the  and  pages reflects these rules, displaying a badge and disabling relevant controls for the designated Mother Agent. A system prompt for this role was created and provided to the user.
+-   **Unified Inbox:** The  page has been completely refactored into a Unified Inbox. It features a tabbed UI, a conversation list, and a Quick Stats bar that functions as a set of clickable filters.
 
 **Last working item**:
-The agent was addressing a user report of  errors flooding the browser console.
-    - Last item agent was working: Investigating and planning to suppress the harmless  errors that appear during UI rendering. The agent concluded they are benign and proposed adding a global error handler to ignore them.
-    - Status: NOT STARTED
+The agent was implementing the final UI polish for the new Unified Inbox on the dashboard. The user requested that both the Tabs bar (All, Team, Me) and the Quick Stats filter bar become sticky at the top of the page when the user scrolls down, mimicking the behavior of a modern inbox. The agent was in the middle of restructuring the  JSX to achieve this stacked sticky header effect.
+
+    - Last item agent was working: Refactoring the layout of  to make two separate components ( and the Quick Stats bar) sticky on scroll.
+    - Status: IN PROGRESS
     - Agent Testing Done: N
-    - Which testing method agent to use? screenshot tool. The next agent should check the browser console output in the screenshot log to confirm the errors are gone.
+    - Which testing method agent to use? screenshot tool. The agent needs to take screenshots while scrolling down the  page on a mobile viewport to verify that both the All/Team/Me tabs and the Quick Stats filter bar become sticky at the top of the screen.
     - User Testing Done: N
 
 **All Pending/In progress Issue list**:
-  - Issue 1: Suppress  console errors. (P0)
-  - Issue 2: Automated testing sometimes fails on login due to  errors. This is a known environmental issue from the previous session. (P2)
-  
+  - Issue 1: The sticky header implementation for the new Unified Inbox is incomplete. (P0)
+
   Issues Detail:
   - Issue 1: 
-     - Attempted fixes: None. The previous agent identified the cause and proposed a solution.
-     - Next debug checklist: 
-        1. Edit a high-level frontend file like  or .
-        2. Implement a global  to catch the specific  error message and prevent it from being logged to the console, without affecting other legitimate errors.
-        3. Take a screenshot of any page and verify from the tool's console output that the  errors no longer appear.
-     - Why fix this issue and what will be achieved with the fix?: To clean up the browser console for a better development and debugging experience by hiding distracting, non-critical error messages.
-     - Status:  NOT STARTED
-     - Is recurring issue? Y
-     - Should Test frontend/backend/both after fix?: Frontend
-     - Blocked on other issue: None
-  - Issue 2: 
-     - Attempted fixes: None in this session.
-     - Next debug checklist: Monitor if the issue persists and blocks testing. If so, investigate platform rate-limiting strategies.
-     - Why fix this issue and what will be achieved with the fix?: Would improve the reliability of automated UI testing.
-     - Status:  NOT STARTED
-     - Is recurring issue? Y
+     - Attempted fixes: The agent started refactoring the JSX in , wrapping components in divs with  classes. However, the user corrected the agent, indicating the initial attempt was wrong and that *both* bars needed to become sticky as the user scrolls. The last action was an attempt to correct this structure.
+     - Next debug checklist:
+        1. View .
+        2. Analyze the current JSX structure. The main container should have  and .
+        3. The main header (Inbox) should scroll away.
+        4. The  component should have .
+        5. The Quick Stats filter bar should have , where  is the height of the  component above it.
+        6. Ensure both sticky components have a  and a background color to prevent content from showing through.
+        7. Use the  with scrolling on the  page to verify the visual behavior.
+     - Why fix this issue and what will be achieved with the fix?: This will complete the user's requested UI/UX for the new Unified Inbox, making it more professional and easier to navigate.
+     - Status:  IN PROGRESS
+     - Is recurring issue? N
      - Should Test frontend/backend/both after fix?: Frontend
      - Blocked on other issue: None
 
 **In progress Task List**:
-  - None
+  - Task 1: Complete the Unified Inbox Dashboard Refactor (P0)
+
+ Task Detail:
+  - Task 1: 
+     - Where to resume: . The agent must fix the JSX structure to correctly implement the stacked sticky headers for the tabs and the filter bar.
+     - What will be achieved with this?: Fulfills the final requirement for the new Unified Inbox feature.
+     - Status:  IN PROGRESS
+     - Should Test frontend/backend/both after fix?: Frontend
+     - Blocked on something: None
 
 **Upcoming and Future Tasks**
 *   **Upcoming Tasks:**
-    *   (P1) Address SendGrid Click Tracking: Awaiting user decision on whether to disable the feature or configure a branded domain.
+    *   (P1) Confirm with the user if the  and  changes fixed the image upload issue in their production environment after they redeploy.
+    *   (P1) Finalize and apply a new universal file upload size limit, as requested by the user. The agent identified varying limits (2MB, 5MB) but was interrupted before getting user confirmation on a new standard.
 *   **Future Tasks:**
-    *   (P3) Refactor large components:  (887 lines) and  (1038 lines) could be broken down for better maintainability.
-    *   (P3) Investigate and remove potentially orphaned components (, ) flagged in a previous audit.
+    *   (P3) Refactor large components: , , and  (>2000 lines) should be broken down for better maintainability.
+    *   (P3) Investigate and remove potentially orphaned components (, ).
 
 **Completed work in this session**
-- **CRM Mobile UI/UX Refinements (DONE):**
-  - **Customer Detail Page:** Fixed scrollbar visibility and added dynamic scroll-based fade indicators for the tabs section in .
-  - **CRM List Page:** Implemented responsive, horizontally scrollable containers with fade effects for header actions and filter chips in . Refactored the customer list to a mobile-friendly stacked layout.
-- **Slack-Inspired Messaging System (DONE):**
-  - **Backend:** Implemented WebSocket support, new API endpoints (), and MongoDB models () for real-time chat, channels, and DMs.
-  - **Frontend:** Built the  page () with a responsive, mobile-first design featuring a collapsible sidebar. Added the link to .
-- **AI Agent Integration in Messaging (DONE):**
-  - **Backend:** Extended the agent model in  with channel configs and updated  to trigger agent responses on .
-  - **Frontend:** Created a Channels tab () in  for configuration. Updated  to manage agents within channels.
-- **Bug Fix: Agent Channel Settings Not Saving (DONE):**
-  - Resolved an issue in  where  and  were missing from the save request payload, causing UI state to reset.
+- **Bug Fix: All Avatar Display Issues (DONE):** Fixed a persistent and complex bug preventing user and agent avatars from displaying. Corrected inconsistent database fields ( vs. ) and implemented a backend proxy for non-public Google Cloud Storage image URLs. The fix was applied across , , and .
+- **Feature: Mother Agent (DONE):** Implemented a Mother Agent role with backend enforcement (cannot be orchestrated, cannot be added to channels) and corresponding UI updates in  and  to disable controls.
+- **Content: Mother Agent System Prompt (DONE):** Created a detailed system prompt for the new Mother Agent role and saved it to .
+- **Config: CORS for Custom Domain (DONE):** Updated backend CORS settings in  and  to allow requests from the user's custom domain (), a critical step for fixing production image uploads.
+- **Feature: Unified Inbox Refactor (IN PROGRESS):**
+    - Overhauled  into a multi-tabbed Unified Inbox.
+    - Implemented a Quick Stats bar that functions as clickable conversation filters.
+    - Implemented CRM-style zero-width scrollbars with conditional gradient fades on the filter bars.
 
 **Earlier issues found/mentioned but not fixed**
-   - **Issue 1: SendGrid Click Tracking Decision (P1)**
-     - **Debug checklist**: Awaiting user decision. The task is to either disable the feature in SendGrid settings or configure a branded domain.
-     - **Why to solve this issue and what will be achieved with this?**: Prevents links in emails from being rewritten, which can improve user trust and brand consistency.
-     - **Should Test frontend/backend/both after fix**: NA (configuration change)
-     - **Is recurring issue?**: N
+   - None in this session. The agent addressed all issues raised by the user.
 
 **Known issue recurrence from previous fork**
-  - **Issue recurrence in previous fork**:  during automated testing.
-  - **Recurrence count**: High.
-  - **Status**: NOT STARTED
+  - None. The  issue was not encountered, and the  error was previously fixed.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
-- **Real-time Communication:** Implemented using FastAPI's native WebSocket support to provide an instant messaging experience.
-- **Advanced Responsive Design:** Utilized Tailwind CSS (, , , ) and React state hooks to create complex, mobile-first layouts, including collapsible sidebars and horizontally scrolling sections with dynamic fade indicators.
-- **Dynamic UI with State Hooks:** Leveraged , , and  extensively to manage scroll positions (, ) for dynamic fade effects and to control UI visibility based on user interaction and device size.
-- **API-Driven State Management:** Frontend components fetch initial state from the backend via  on load and use API calls to persist user-initiated changes, ensuring data consistency.
-- **Component-Based Feature Extension:** Added major new features by creating new, isolated components (, ) and integrating them into the existing application structure (, ).
+-   **Complex State-Driven UI:** The new  uses multiple  hooks to manage active tabs, filters, and scroll states for conditional rendering.
+-   **Advanced CSS & Layout:**
+    -   **Sticky Positioning:** Using  with  (and calculated offsets) inside a flex container with an  child to create complex sticky headers.
+    -   **Conditional Gradients:** Creating a faded edge effect for scrollable content that only appears when scrolling is possible, achieved with absolutely positioned gradient divs whose visibility is tied to React state.
+    -   **Hidden Scrollbars:** Using a global CSS utility () to hide scrollbar UI while preserving scroll functionality.
+-   **Robust Backend Validation:** Adding checks in API endpoints (, ) to enforce business rules, such as preventing a Mother Agent from being orchestrated or added to a channel.
+-   **CORS Configuration:** Modifying FastAPI's  to include a user's custom domain and  to allow cross-origin resource sharing, which is essential for frontend applications on different domains.
 
 **key DB schema**
-  - **channels**: 
-  - **messages**: 
-  - **direct_messages**: 
+-   **user_agents** collection: A new boolean field  was conceptually added and is now managed through the API. No migration script was run, but the application logic now handles its presence or absence.
 
 **changes in tech stack**
-  - No changes were made to the core tech stack.
+  - No changes to the tech stack.
 
 **All files of reference**
--   **/app/frontend/src/index.js**: Potential target for fixing the  error.
--   **/app/frontend/src/pages/Messaging.js**: The primary file for the new chat feature, including mobile-responsive logic.
--   **/app/frontend/src/pages/AgentEdit.js**: Modified to integrate agent-channel configuration. Contains the fix for the save bug.
--   **/app/frontend/src/components/agent/AgentChannelsTab.js**: New UI component for agent channel settings.
--   **/app/frontend/src/pages/CRM.js**: Contains significant mobile UI/UX improvements for the CRM list.
--   **/app/frontend/src/pages/CustomerDetail.js**: Contains UI improvements for horizontally scrolling tabs.
--   **/app/backend/routes/messaging.py**: New backend route handling all real-time chat logic.
--   **/app/backend/models/messaging.py**: New file defining the database models for the messaging system.
--   **/app/backend/routes/agents.py**: Modified to support channel configurations for agents.
+-   **/app/frontend/src/pages/Dashboard.js**: The primary file for the new Unified Inbox feature. Contains all the logic for tabs, filters, sticky headers, and conditional scroll effects.
+-   **/app/backend/routes/agents.py**: Contains all backend logic for the Mother Agent feature, including validation and new API endpoints.
+-   **/app/frontend/src/components/OrchestrationSettings.js**: The UI component where orchestration rules for the Mother Agent are enforced.
+-   **/app/backend/server.py**: Contains the updated CORS configuration.
+-   **/app/frontend/src/pages/Team.js**: Location of a key avatar fix.
+-   **/app/MOTHER_AGENT_SYSTEM_PROMPT.md**: The text file containing the user-requested system prompt.
 
 **Areas that need refactoring**:
--    (887 lines) and  (1038 lines) remain large and could benefit from being broken down into smaller components.
+-    has grown significantly in complexity due to the new features and state management for the UI effects. It could be broken down into smaller components (e.g., , ).
 
 **key api endpoints**
--   : The primary WebSocket endpoint for real-time messaging.
--   : Creates a new messaging channel.
--   : Fetches channels for the current user.
--   : Sends a message to a specific channel and triggers agent responses if applicable.
--   : Adds a configured AI agent to a channel.
--   : Removes an AI agent from a channel.
--   : Updated to correctly save  and  fields.
+-   : **NEW.** Sets a specific agent as the Mother Agent, ensuring only one exists.
+-   : **MODIFIED.** Backend logic updated to ignore orchestration changes for the Mother Agent.
+-   : **MODIFIED.** Backend validation added to block the Mother Agent from being added to channels.
+-   : **MODIFIED.** Backend validation added to prevent enabling orchestration on the Mother Agent.
+-   : Endpoint used by the Team page, which now returns  correctly.
 
 **Critical Info for New Agent**
-- Your immediate priority is to resolve the  console errors reported by the user. The proposed solution is to add a global error handler in the frontend to suppress this specific, non-critical error.
-- A large, complex feature (Slack-like messaging) was just implemented and tested. It is mobile-responsive and integrated with AI agents. Be mindful of this new functionality when making changes.
-- The user is highly focused on mobile UI/UX. Double-check all visual changes on mobile viewports.
-- A bug where agent channel settings failed to save was fixed by ensuring the  and  fields were included in the  request from the frontend (). This context is important if related issues arise.
+-   Your first task is to fix the stacked sticky header on the new Unified Inbox (). The user wants both the All/Team/Me tabs and the Quick Stats filter bar below it to stick to the top as the conversation list scrolls. You need to create a layout where the main page header scrolls away, but these two bars remain fixed at the top, one under the other.
+-   The CORS configuration for the user's custom domain () has been updated in  and , but the user has not yet confirmed if this fixed their production image upload issue. They will need to redeploy their application to test this change.
+-   The logic for the conditional scrollbar gradients in  is copied from  and is complex. It uses  to track the scroll container and  to toggle the visibility of the gradient s. Be careful when modifying this part of the code.
 
 **documents and test reports created in this job**
-  -  was updated to define and track testing for the new messaging system.
+  - 
 
 **Last 10 User Messages and any pending HUMAN messages** 
-- User reported  runtime errors. (PENDING FIX)
-- User confirmed the agent channel settings save functionality is working.
-- User reported the agent channel settings save functionality was broken (it disabled automatically). (FIXED)
-- User confirmed AI agent integration works and requested a summary.
-- User confirmed mobile responsiveness of the messaging page is perfect.
-- User requested the messaging page be made mobile-friendly and provided a screenshot showing the broken layout. (FIXED)
-- User confirmed all tests passed for the messaging system and requested a summary.
-- User confirmed the plan to build the messaging system and its integrations.
-- User provided detailed requirements for the messaging system.
-- User requested the implementation of a custom instant messaging system.
+ - **User:** No! This bar needs to become sticky on scroll when reaching the top of the page - User correcting the agent's sticky header implementation. (PENDING FIX)
+ - **Agent:** Implemented sticky header incorrectly.
+ - **User:** Now do the same for the conversations filter bar on scrolldown on mobile aswell - Requesting the All/Team/Me bar to be sticky. (IN PROGRESS)
+ - **Agent:** Confirmed completion of conditional blur effect.
+ - **User:** Take at the look at the blurred effect on the similar bar on the crm page again for reference. The blur is only visible if there are anything to scroll on either side... - Clarifying the scroll gradient behavior. (DONE)
+ - **Agent:** Implemented stronger blur and basic sticky behavior.
+ - **User:** Make the blurred effect stronger and set the bar as sticky on top on scroll (DONE)
+ - **Agent:** Confirmed implementation of hidden scrollbar.
+ - **User:** Perfect! Use the same zero width scrollbar and blurred ends as in the crm page (DONE)
+ - **Agent:** Confirmed completion of clickable filters.
 
 **Project Health Check:**
--   **Broken**: None. The  errors are benign and do not break functionality.
--   **Mocked**: Stripe, SendGrid.
+-   **Broken**:
+    -   The sticky header functionality on the new Unified Inbox () is not implemented correctly per the user's latest request.
+-   **Mocked**:
+    -   The conversation data in the new Unified Inbox is currently mocked with placeholder content.
 
 **3rd Party Integrations**
 -   OpenAI (via ) — uses Emergent LLM Key.
@@ -163,11 +157,12 @@ The agent was addressing a user report of  errors flooding the browser console.
 -   Tiptap (Rich text editor).
 -   @dnd-kit (Drag-and-drop UI).
 -   DOMPurify (Frontend XSS protection).
+-   **Google Cloud Storage:** Used for file storage. The application now proxies access to GCS files via the  endpoint to handle non-public buckets.
 
 **Testing status**
-  - Testing agent used after significant changes: YES (for messaging system backend and agent integration fix).
-  - Troubleshoot agent used after agent stuck in loop: NO
-  - Test files created: None.
+  - Testing agent used after significant changes: YES
+  - Troubleshoot agent used after agent stuck in loop: YES
+  - Test files created: None
   - Known regressions: None.
 
 **Credentials to test flow:**
@@ -175,4 +170,4 @@ The agent was addressing a user report of  errors flooding the browser console.
 -   **Company User**:  / 
 
 **What agent forgot to execute**
--   The task to investigate and remove potentially orphaned components (, ), which was noted in the previous session's audit, has not yet been started.</analysis>
+-   The agent was interrupted while addressing the user's query about upload size limits. The agent identified varying limits (2MB, 5MB) but did not get confirmation from the user on what the new unified limit should be or implement the change.</analysis>
