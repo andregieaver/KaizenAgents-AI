@@ -480,7 +480,7 @@ const Dashboard = () => {
             <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'resolved' ? 'bg-white' : 'bg-green-500'}`} />
             <span>Resolved</span>
             <span className={`font-semibold ${activeStatusFilter === 'resolved' ? 'text-white' : 'text-foreground'}`}>
-              {stats?.resolved_count || 0}
+              {stats?.resolved_conversations || 0}
             </span>
           </button>
           
