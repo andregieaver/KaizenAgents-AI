@@ -1862,10 +1862,6 @@ async def get_oauth_url(
         )
     
     elif provider == 'twitter':
-        client_id = os.environ.get('TWITTER_CLIENT_ID')
-        if not client_id:
-            return {"not_configured": True}
-        
         # Twitter OAuth 2.0 with PKCE
         import hashlib
         import base64
@@ -1883,7 +1879,7 @@ async def get_oauth_url(
         oauth_url = (
             f"https://twitter.com/i/oauth2/authorize?"
             f"response_type=code"
-            f"&client_id={client_id}"
+            f"&client_id={app_id}"
             f"&redirect_uri={callback_url}"
             f"&scope={scopes}"
             f"&state={state}"
@@ -1892,28 +1888,20 @@ async def get_oauth_url(
         )
     
     elif provider == 'linkedin':
-        client_id = os.environ.get('LINKEDIN_CLIENT_ID')
-        if not client_id:
-            return {"not_configured": True}
-        
         oauth_url = (
             f"https://www.linkedin.com/oauth/v2/authorization?"
             f"response_type=code"
-            f"&client_id={client_id}"
+            f"&client_id={app_id}"
             f"&redirect_uri={callback_url}"
             f"&scope={scopes}"
             f"&state={state}"
         )
     
     elif provider == 'google':
-        client_id = os.environ.get('GOOGLE_CLIENT_ID')
-        if not client_id:
-            return {"not_configured": True}
-        
         oauth_url = (
             f"https://accounts.google.com/o/oauth2/v2/auth?"
             f"response_type=code"
-            f"&client_id={client_id}"
+            f"&client_id={app_id}"
             f"&redirect_uri={callback_url}"
             f"&scope={scopes}"
             f"&state={state}"
