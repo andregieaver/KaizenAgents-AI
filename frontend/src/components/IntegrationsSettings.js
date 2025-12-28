@@ -3,20 +3,39 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Badge } from './ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from './ui/accordion';
 import {
   Facebook,
   Instagram,
   Youtube,
   Linkedin,
-  MessageCircle,
   Check,
   ExternalLink,
   Loader2,
   Trash2,
   RefreshCw,
-  Copy
+  Copy,
+  Settings,
+  Eye,
+  EyeOff,
+  AlertCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -45,8 +64,9 @@ const INTEGRATIONS = [
     iconColor: 'text-blue-600',
     bgColor: 'bg-blue-50 dark:bg-blue-950/30',
     features: ['Page comments', 'Direct messages', 'Post mentions'],
-    oauthProvider: 'meta',
-    scopes: ['pages_read_engagement', 'pages_manage_posts', 'pages_messaging', 'pages_show_list']
+    provider: 'meta',
+    docsUrl: 'https://developers.facebook.com/docs/development/create-an-app',
+    scopes: 'pages_read_engagement,pages_manage_posts,pages_messaging,pages_show_list'
   },
   {
     id: 'instagram',
@@ -56,8 +76,9 @@ const INTEGRATIONS = [
     iconColor: 'text-pink-600',
     bgColor: 'bg-pink-50 dark:bg-pink-950/30',
     features: ['Post comments', 'Story mentions', 'Direct messages'],
-    oauthProvider: 'meta',
-    scopes: ['instagram_basic', 'instagram_manage_comments', 'instagram_manage_messages', 'pages_show_list']
+    provider: 'meta',
+    docsUrl: 'https://developers.facebook.com/docs/instagram-api/getting-started',
+    scopes: 'instagram_basic,instagram_manage_comments,instagram_manage_messages,pages_show_list'
   },
   {
     id: 'twitter',
@@ -67,8 +88,9 @@ const INTEGRATIONS = [
     iconColor: 'text-foreground',
     bgColor: 'bg-gray-100 dark:bg-gray-800/50',
     features: ['Tweet replies', 'Mentions', 'Direct messages'],
-    oauthProvider: 'twitter',
-    scopes: ['tweet.read', 'tweet.write', 'users.read', 'dm.read', 'dm.write']
+    provider: 'twitter',
+    docsUrl: 'https://developer.twitter.com/en/portal/dashboard',
+    scopes: 'tweet.read tweet.write users.read dm.read dm.write offline.access'
   },
   {
     id: 'linkedin',
@@ -78,8 +100,9 @@ const INTEGRATIONS = [
     iconColor: 'text-blue-700',
     bgColor: 'bg-blue-50 dark:bg-blue-950/30',
     features: ['Post comments', 'Company mentions', 'Messages'],
-    oauthProvider: 'linkedin',
-    scopes: ['r_organization_social', 'w_organization_social', 'rw_organization_admin']
+    provider: 'linkedin',
+    docsUrl: 'https://www.linkedin.com/developers/apps',
+    scopes: 'r_organization_social,w_organization_social,rw_organization_admin'
   },
   {
     id: 'whatsapp',
@@ -89,8 +112,9 @@ const INTEGRATIONS = [
     iconColor: 'text-green-600',
     bgColor: 'bg-green-50 dark:bg-green-950/30',
     features: ['Customer messages', 'Template messages', 'Media sharing'],
-    oauthProvider: 'meta',
-    scopes: ['whatsapp_business_management', 'whatsapp_business_messaging']
+    provider: 'meta',
+    docsUrl: 'https://developers.facebook.com/docs/whatsapp/cloud-api/get-started',
+    scopes: 'whatsapp_business_management,whatsapp_business_messaging'
   },
   {
     id: 'youtube',
@@ -100,21 +124,25 @@ const INTEGRATIONS = [
     iconColor: 'text-red-600',
     bgColor: 'bg-red-50 dark:bg-red-950/30',
     features: ['Video comments', 'Community posts', 'Live chat'],
-    oauthProvider: 'google',
-    scopes: ['https://www.googleapis.com/auth/youtube.force-ssl']
+    provider: 'google',
+    docsUrl: 'https://console.cloud.google.com/apis/credentials',
+    scopes: 'https://www.googleapis.com/auth/youtube.force-ssl'
   }
 ];
 
 const IntegrationsSettings = () => {
   const { token } = useAuth();
   const [integrations, setIntegrations] = useState({});
+  const [configs, setConfigs] = useState({});
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(null);
-  const [platformStatus, setPlatformStatus] = useState({});
+  const [configDialog, setConfigDialog] = useState(null);
+  const [configValues, setConfigValues] = useState({ app_id: '', app_secret: '' });
+  const [showSecrets, setShowSecrets] = useState({});
+  const [savingConfig, setSavingConfig] = useState(false);
 
   useEffect(() => {
-    fetchIntegrations();
-    fetchPlatformStatus();
+    fetchData();
     
     // Handle OAuth callback
     const urlParams = new URLSearchParams(window.location.search);
@@ -124,57 +152,80 @@ const IntegrationsSettings = () => {
     
     if (oauthSuccess === 'true' && integration) {
       toast.success(`${integration} connected successfully!`);
-      fetchIntegrations();
-      // Clean URL
-      window.history.replaceState({}, document.title, window.location.pathname);
+      fetchData();
+      window.history.replaceState({}, document.title, window.location.pathname + '?tab=integrations');
     } else if (oauthError) {
       toast.error(`Failed to connect: ${oauthError}`);
-      window.history.replaceState({}, document.title, window.location.pathname);
+      window.history.replaceState({}, document.title, window.location.pathname + '?tab=integrations');
     }
   }, [token]);
 
-  const fetchIntegrations = async () => {
+  const fetchData = async () => {
     try {
-      const response = await axios.get(`${API}/integrations`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setIntegrations(response.data || {});
+      const [integrationsRes, configsRes] = await Promise.all([
+        axios.get(`${API}/integrations`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/integrations/configs`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+      setIntegrations(integrationsRes.data || {});
+      setConfigs(configsRes.data || {});
     } catch (error) {
-      console.error('Failed to fetch integrations:', error);
-      setIntegrations({});
+      console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchPlatformStatus = async () => {
+  const handleConfigureApp = (integration) => {
+    const existingConfig = configs[integration.provider] || {};
+    setConfigValues({
+      app_id: existingConfig.app_id || '',
+      app_secret: '' // Never show existing secret
+    });
+    setConfigDialog(integration);
+  };
+
+  const handleSaveConfig = async () => {
+    if (!configDialog) return;
+    
+    setSavingConfig(true);
     try {
-      const response = await axios.get(`${API}/integrations/platform-status`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setPlatformStatus(response.data || {});
+      await axios.post(
+        `${API}/integrations/configs/${configDialog.provider}`,
+        configValues,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`${configDialog.provider} app configured successfully!`);
+      setConfigDialog(null);
+      fetchData();
     } catch (error) {
-      console.error('Failed to fetch platform status:', error);
+      toast.error(error.response?.data?.detail || 'Failed to save configuration');
+    } finally {
+      setSavingConfig(false);
     }
   };
 
   const handleConnect = async (integration) => {
+    // Check if OAuth app is configured for this provider
+    if (!configs[integration.provider]?.configured) {
+      toast.error(`Please configure your ${integration.provider} app credentials first`);
+      handleConfigureApp(integration);
+      return;
+    }
+    
     setConnecting(integration.id);
     try {
-      // Get OAuth URL from backend
       const response = await axios.get(
         `${API}/integrations/${integration.id}/oauth-url`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
       if (response.data.oauth_url) {
-        // Redirect to OAuth provider
         window.location.href = response.data.oauth_url;
-      } else if (response.data.not_configured) {
-        toast.error(`${integration.name} integration is not configured by the platform administrator yet.`);
+      } else {
+        toast.error('Failed to generate authorization URL');
       }
     } catch (error) {
-      toast.error(error.response?.data?.detail || `Failed to initiate ${integration.name} connection`);
+      toast.error(error.response?.data?.detail || `Failed to initiate connection`);
     } finally {
       setConnecting(null);
     }
@@ -186,7 +237,7 @@ const IntegrationsSettings = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       toast.success('Integration disconnected');
-      fetchIntegrations();
+      fetchData();
     } catch (error) {
       toast.error('Failed to disconnect integration');
     }
@@ -218,7 +269,7 @@ const IntegrationsSettings = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       toast.success('Token refreshed successfully');
-      fetchIntegrations();
+      fetchData();
     } catch (error) {
       toast.error('Failed to refresh token. You may need to reconnect.');
     } finally {
@@ -230,6 +281,14 @@ const IntegrationsSettings = () => {
     const url = `${process.env.REACT_APP_BACKEND_URL}/api/webhooks/social`;
     navigator.clipboard.writeText(url);
     toast.success('Webhook URL copied!');
+  };
+
+  // Group integrations by provider
+  const providers = {
+    meta: { name: 'Meta (Facebook, Instagram, WhatsApp)', integrations: INTEGRATIONS.filter(i => i.provider === 'meta') },
+    twitter: { name: 'X (Twitter)', integrations: INTEGRATIONS.filter(i => i.provider === 'twitter') },
+    linkedin: { name: 'LinkedIn', integrations: INTEGRATIONS.filter(i => i.provider === 'linkedin') },
+    google: { name: 'Google (YouTube)', integrations: INTEGRATIONS.filter(i => i.provider === 'google') }
   };
 
   if (loading) {
@@ -246,191 +305,289 @@ const IntegrationsSettings = () => {
 
   return (
     <div className="space-y-6">
+      {/* Main Integrations Card */}
       <Card className="border border-border">
         <CardHeader>
           <CardTitle className="font-heading">Social Media Integrations</CardTitle>
           <CardDescription>
-            Connect your social media accounts with one click to receive and respond to comments, 
-            messages, and mentions directly from your unified inbox.
+            Connect your social media accounts to receive and respond to comments and messages in your unified inbox.
+            Each integration requires you to first configure your own OAuth app credentials.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
-            {INTEGRATIONS.map((integration) => {
-              const isConnected = integrations[integration.id]?.connected;
-              const isEnabled = integrations[integration.id]?.enabled;
-              const isPlatformConfigured = platformStatus[integration.oauthProvider];
-              const Icon = integration.icon;
+          <Accordion type="multiple" className="space-y-4">
+            {Object.entries(providers).map(([providerId, provider]) => {
+              const isConfigured = configs[providerId]?.configured;
               
               return (
-                <div
-                  key={integration.id}
-                  className={`
-                    relative rounded-lg border border-border p-4 transition-all
-                    ${isConnected ? 'bg-card' : 'bg-muted/30'}
-                  `}
-                >
-                  <div className="flex items-start gap-4">
-                    {/* Icon */}
-                    <div className={`
-                      flex-shrink-0 h-12 w-12 rounded-lg flex items-center justify-center
-                      ${integration.bgColor}
-                    `}>
-                      <Icon className={`h-6 w-6 ${integration.iconColor}`} />
-                    </div>
-                    
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-base">{integration.name}</h3>
-                        {isConnected && (
-                          <Badge variant="outline" className="text-green-600 border-green-600/30 bg-green-50 dark:bg-green-950/30">
-                            <Check className="h-3 w-3 mr-1" />
-                            Connected
-                          </Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {integration.description}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {integration.features.map((feature) => (
-                          <Badge key={feature} variant="secondary" className="text-xs">
-                            {feature}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    {/* Actions */}
-                    <div className="flex-shrink-0 flex items-center gap-2">
-                      {isConnected ? (
-                        <>
-                          <Switch
-                            checked={isEnabled}
-                            onCheckedChange={(checked) => handleToggle(integration.id, checked)}
-                          />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleRefresh(integration.id)}
-                            disabled={connecting === integration.id}
-                            title="Refresh token"
-                          >
-                            {connecting === integration.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <RefreshCw className="h-4 w-4" />
-                            )}
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive hover:text-destructive"
-                            onClick={() => handleDisconnect(integration.id)}
-                            title="Disconnect"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
+                <AccordionItem key={providerId} value={providerId} className="border rounded-lg px-4">
+                  <AccordionTrigger className="hover:no-underline py-4">
+                    <div className="flex items-center gap-3">
+                      <span className="font-semibold">{provider.name}</span>
+                      {isConfigured ? (
+                        <Badge variant="outline" className="text-green-600 border-green-600/30 bg-green-50 dark:bg-green-950/30">
+                          <Check className="h-3 w-3 mr-1" />
+                          App Configured
+                        </Badge>
                       ) : (
-                        <Button
-                          onClick={() => handleConnect(integration)}
-                          disabled={connecting === integration.id}
-                        >
-                          {connecting === integration.id ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Connecting...
-                            </>
-                          ) : (
-                            <>
-                              <ExternalLink className="h-4 w-4 mr-2" />
-                              Connect
-                            </>
-                          )}
-                        </Button>
+                        <Badge variant="outline" className="text-amber-600 border-amber-600/30 bg-amber-50 dark:bg-amber-950/30">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Setup Required
+                        </Badge>
                       )}
                     </div>
-                  </div>
-                  
-                  {/* Connected account info */}
-                  {isConnected && integrations[integration.id]?.account_name && (
-                    <div className="mt-3 pt-3 border-t border-border">
-                      <p className="text-sm text-muted-foreground">
-                        Connected as: <span className="font-medium text-foreground">{integrations[integration.id].account_name}</span>
-                        {integrations[integration.id]?.expires_at && (
-                          <span className="ml-2 text-xs">
-                            (Token expires: {new Date(integrations[integration.id].expires_at).toLocaleDateString()})
-                          </span>
-                        )}
-                      </p>
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-4">
+                    {/* App Configuration Section */}
+                    <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">OAuth App Credentials</p>
+                          <p className="text-xs text-muted-foreground">
+                            {isConfigured 
+                              ? `App ID: ${configs[providerId]?.app_id_masked || '••••••••'}`
+                              : 'Configure your app credentials to enable connections'
+                            }
+                          </p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleConfigureApp(provider.integrations[0])}
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          {isConfigured ? 'Update' : 'Configure'}
+                        </Button>
+                      </div>
                     </div>
-                  )}
-                </div>
+                    
+                    {/* Individual Integrations */}
+                    <div className="space-y-3">
+                      {provider.integrations.map((integration) => {
+                        const isConnected = integrations[integration.id]?.connected;
+                        const isEnabled = integrations[integration.id]?.enabled;
+                        const Icon = integration.icon;
+                        
+                        return (
+                          <div
+                            key={integration.id}
+                            className={`
+                              rounded-lg border border-border p-4 transition-all
+                              ${isConnected ? 'bg-card' : 'bg-muted/30'}
+                              ${!isConfigured ? 'opacity-60' : ''}
+                            `}
+                          >
+                            <div className="flex items-start gap-4">
+                              <div className={`
+                                flex-shrink-0 h-10 w-10 rounded-lg flex items-center justify-center
+                                ${integration.bgColor}
+                              `}>
+                                <Icon className={`h-5 w-5 ${integration.iconColor}`} />
+                              </div>
+                              
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <h4 className="font-medium text-sm">{integration.name}</h4>
+                                  {isConnected && (
+                                    <Badge variant="outline" className="text-green-600 border-green-600/30 text-xs">
+                                      Connected
+                                    </Badge>
+                                  )}
+                                </div>
+                                <p className="text-xs text-muted-foreground mb-2">
+                                  {integration.description}
+                                </p>
+                                <div className="flex flex-wrap gap-1">
+                                  {integration.features.map((feature) => (
+                                    <Badge key={feature} variant="secondary" className="text-xs py-0">
+                                      {feature}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
+                              
+                              <div className="flex-shrink-0 flex items-center gap-2">
+                                {isConnected ? (
+                                  <>
+                                    <Switch
+                                      checked={isEnabled}
+                                      onCheckedChange={(checked) => handleToggle(integration.id, checked)}
+                                      disabled={!isConfigured}
+                                    />
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleRefresh(integration.id)}
+                                      disabled={connecting === integration.id}
+                                      title="Refresh token"
+                                    >
+                                      {connecting === integration.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <RefreshCw className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="text-destructive hover:text-destructive"
+                                      onClick={() => handleDisconnect(integration.id)}
+                                      title="Disconnect"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleConnect(integration)}
+                                    disabled={connecting === integration.id || !isConfigured}
+                                  >
+                                    {connecting === integration.id ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <>
+                                        <ExternalLink className="h-4 w-4 mr-2" />
+                                        Connect
+                                      </>
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {isConnected && integrations[integration.id]?.account_name && (
+                              <div className="mt-3 pt-3 border-t border-border">
+                                <p className="text-xs text-muted-foreground">
+                                  Connected: <span className="font-medium text-foreground">{integrations[integration.id].account_name}</span>
+                                  {integrations[integration.id]?.expires_at && (
+                                    <span className="ml-2">
+                                      (Expires: {new Date(integrations[integration.id].expires_at).toLocaleDateString()})
+                                    </span>
+                                  )}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
               );
             })}
-          </div>
+          </Accordion>
         </CardContent>
       </Card>
 
       {/* Webhook Info Card */}
       <Card className="border border-border">
         <CardHeader>
-          <CardTitle className="font-heading text-lg">Webhook Configuration</CardTitle>
+          <CardTitle className="font-heading text-lg">Webhook URL</CardTitle>
           <CardDescription>
-            This webhook URL receives real-time updates from your connected social media accounts.
-            It's automatically configured when you connect an integration.
+            Add this URL to your OAuth app's webhook/callback settings to receive real-time notifications.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
-              <code className="flex-1 text-sm break-all">
-                {process.env.REACT_APP_BACKEND_URL}/api/webhooks/social
-              </code>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={copyWebhookUrl}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              When you connect an account via OAuth, webhooks are automatically registered with the platform.
-              New comments, messages, and mentions will appear in your unified inbox in real-time.
-            </p>
+          <div className="flex items-center gap-2 p-3 bg-muted rounded-lg">
+            <code className="flex-1 text-sm break-all">
+              {process.env.REACT_APP_BACKEND_URL}/api/webhooks/social
+            </code>
+            <Button variant="ghost" size="sm" onClick={copyWebhookUrl}>
+              <Copy className="h-4 w-4" />
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* How It Works Card */}
-      <Card className="border border-border bg-muted/30">
-        <CardHeader>
-          <CardTitle className="font-heading text-lg">How It Works</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ol className="space-y-3 text-sm text-muted-foreground">
-            <li className="flex gap-3">
-              <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">1</span>
-              <span>Click <strong>Connect</strong> on any platform above</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">2</span>
-              <span>You'll be redirected to authorize access to your account</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">3</span>
-              <span>Grant the requested permissions (we only ask for what's needed)</span>
-            </li>
-            <li className="flex gap-3">
-              <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">4</span>
-              <span>You're done! Comments and messages will flow into your inbox automatically</span>
-            </li>
-          </ol>
-        </CardContent>
-      </Card>
+      {/* Configuration Dialog */}
+      <Dialog open={!!configDialog} onOpenChange={() => setConfigDialog(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Configure {configDialog?.provider} App</DialogTitle>
+            <DialogDescription>
+              Enter your OAuth app credentials. You can create an app at:
+              <a 
+                href={configDialog?.docsUrl} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex items-center gap-1 mt-1 text-primary hover:underline"
+              >
+                {configDialog?.provider === 'meta' && 'Meta for Developers'}
+                {configDialog?.provider === 'twitter' && 'Twitter Developer Portal'}
+                {configDialog?.provider === 'linkedin' && 'LinkedIn Developer Portal'}
+                {configDialog?.provider === 'google' && 'Google Cloud Console'}
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="app_id">App ID / Client ID</Label>
+              <Input
+                id="app_id"
+                placeholder="Enter your app ID"
+                value={configValues.app_id}
+                onChange={(e) => setConfigValues(prev => ({ ...prev, app_id: e.target.value }))}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="app_secret">App Secret / Client Secret</Label>
+              <div className="relative">
+                <Input
+                  id="app_secret"
+                  type={showSecrets[configDialog?.provider] ? 'text' : 'password'}
+                  placeholder={configs[configDialog?.provider]?.configured ? '••••••••••••••••' : 'Enter your app secret'}
+                  value={configValues.app_secret}
+                  onChange={(e) => setConfigValues(prev => ({ ...prev, app_secret: e.target.value }))}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full"
+                  onClick={() => setShowSecrets(prev => ({ ...prev, [configDialog?.provider]: !prev[configDialog?.provider] }))}
+                >
+                  {showSecrets[configDialog?.provider] ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {configs[configDialog?.provider]?.configured 
+                  ? 'Leave empty to keep the existing secret'
+                  : 'This will be encrypted and stored securely'
+                }
+              </p>
+            </div>
+
+            <div className="p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">
+                <strong>Redirect URI:</strong> Add this to your app's allowed redirect URIs:
+              </p>
+              <code className="text-xs break-all">
+                {process.env.REACT_APP_BACKEND_URL}/api/integrations/oauth/callback
+              </code>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfigDialog(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveConfig} disabled={savingConfig || !configValues.app_id}>
+              {savingConfig ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                'Save Configuration'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
