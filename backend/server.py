@@ -1808,8 +1808,6 @@ async def save_oauth_config(
     )
     
     return {"success": True}
-    }
-    return status
 
 @api_router.get("/integrations/{integration_type}/oauth-url")
 async def get_oauth_url(
@@ -1827,6 +1825,16 @@ async def get_oauth_url(
     provider = OAUTH_PROVIDERS.get(integration_type)
     scopes = OAUTH_SCOPES.get(integration_type, '')
     
+    # Get tenant's OAuth config for this provider
+    oauth_config = await db.oauth_configs.find_one(
+        {"tenant_id": tenant_id, "provider": provider}
+    )
+    
+    if not oauth_config or not oauth_config.get("app_id") or not oauth_config.get("app_secret"):
+        raise HTTPException(status_code=400, detail=f"Please configure your {provider} app credentials first")
+    
+    app_id = oauth_config.get("app_id")
+    
     # Get the callback URL
     callback_url = f"{os.environ.get('REACT_APP_BACKEND_URL', '')}/api/integrations/oauth/callback"
     
@@ -1838,15 +1846,12 @@ async def get_oauth_url(
         "tenant_id": tenant_id,
         "user_id": current_user.get("id"),
         "integration_type": integration_type,
+        "provider": provider,
         "created_at": datetime.now(timezone.utc).isoformat()
     })
     
     # Build OAuth URL based on provider
     if provider == 'meta':
-        app_id = os.environ.get('META_APP_ID')
-        if not app_id:
-            return {"not_configured": True}
-        
         oauth_url = (
             f"https://www.facebook.com/v18.0/dialog/oauth?"
             f"client_id={app_id}"
