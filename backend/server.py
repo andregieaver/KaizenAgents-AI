@@ -2176,11 +2176,24 @@ async def refresh_social_integration(
     provider = integration.get("provider")
     refresh_token = integration.get("refresh_token")
     
+    # Get tenant's OAuth config
+    oauth_config = await db.oauth_configs.find_one(
+        {"tenant_id": tenant_id, "provider": provider}
+    )
+    
+    if not oauth_config:
+        raise HTTPException(status_code=400, detail="OAuth app not configured. Please reconnect.")
+    
+    app_id = oauth_config.get("app_id")
+    app_secret = oauth_config.get("app_secret")
+    
     if not refresh_token and provider not in ['meta']:
         raise HTTPException(status_code=400, detail="No refresh token available. Please reconnect.")
     
     try:
         async with httpx.AsyncClient() as client:
+            new_refresh = None
+            
             if provider == 'meta':
                 # Meta tokens can be refreshed with a valid access token
                 current_token = integration.get("access_token")
@@ -2188,8 +2201,8 @@ async def refresh_social_integration(
                     "https://graph.facebook.com/v18.0/oauth/access_token",
                     params={
                         "grant_type": "fb_exchange_token",
-                        "client_id": os.environ.get('META_APP_ID'),
-                        "client_secret": os.environ.get('META_APP_SECRET'),
+                        "client_id": app_id,
+                        "client_secret": app_secret,
                         "fb_exchange_token": current_token
                     }
                 )
@@ -2204,7 +2217,7 @@ async def refresh_social_integration(
                         "grant_type": "refresh_token",
                         "refresh_token": refresh_token
                     },
-                    auth=(os.environ.get('TWITTER_CLIENT_ID'), os.environ.get('TWITTER_CLIENT_SECRET'))
+                    auth=(app_id, app_secret)
                 )
                 token_data = response.json()
                 new_token = token_data.get('access_token')
@@ -2217,7 +2230,7 @@ async def refresh_social_integration(
                     data={
                         "grant_type": "refresh_token",
                         "refresh_token": refresh_token,
-                        "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+                        "client_id": app_id,
                         "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET')
                     }
                 )
