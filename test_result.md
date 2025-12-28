@@ -339,7 +339,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Dashboard Inbox UI Changes Testing"
+    - "Social Media Integrations Tab Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
