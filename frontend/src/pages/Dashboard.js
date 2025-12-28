@@ -252,8 +252,7 @@ const Dashboard = () => {
     }
   }, [updateFooterScrollState, loading]);
 
-  const fetchData = useCallback(async (showRefresh = false) => {
-    if (showRefresh) setRefreshing(true);
+  const fetchData = useCallback(async () => {
     try {
       const [statsRes, conversationsRes] = await Promise.all([
         axios.get(`${API}/stats`, {
@@ -269,14 +268,13 @@ const Dashboard = () => {
       console.error('Failed to fetch data:', error);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   }, [token]);
 
   useEffect(() => {
     fetchData();
-    // Auto-refresh every 30 seconds
-    const interval = setInterval(() => fetchData(false), 30000);
+    // Auto-refresh every 10 seconds for real-time updates
+    const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
