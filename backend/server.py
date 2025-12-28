@@ -2076,6 +2076,102 @@ async def update_social_integration(
     
     return {"success": True}
 
+@api_router.post("/integrations/{integration_type}/refresh")
+async def refresh_social_integration(
+    integration_type: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Refresh the access token for a social integration"""
+    import httpx
+    
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    integration = await db.social_integrations.find_one(
+        {"tenant_id": tenant_id, "type": integration_type}
+    )
+    
+    if not integration:
+        raise HTTPException(status_code=404, detail="Integration not found")
+    
+    provider = integration.get("provider")
+    refresh_token = integration.get("refresh_token")
+    
+    if not refresh_token and provider not in ['meta']:
+        raise HTTPException(status_code=400, detail="No refresh token available. Please reconnect.")
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            if provider == 'meta':
+                # Meta tokens can be refreshed with a valid access token
+                current_token = integration.get("access_token")
+                response = await client.get(
+                    "https://graph.facebook.com/v18.0/oauth/access_token",
+                    params={
+                        "grant_type": "fb_exchange_token",
+                        "client_id": os.environ.get('META_APP_ID'),
+                        "client_secret": os.environ.get('META_APP_SECRET'),
+                        "fb_exchange_token": current_token
+                    }
+                )
+                token_data = response.json()
+                new_token = token_data.get('access_token')
+                expires_in = token_data.get('expires_in', 5184000)
+                
+            elif provider == 'twitter':
+                response = await client.post(
+                    "https://api.twitter.com/2/oauth2/token",
+                    data={
+                        "grant_type": "refresh_token",
+                        "refresh_token": refresh_token
+                    },
+                    auth=(os.environ.get('TWITTER_CLIENT_ID'), os.environ.get('TWITTER_CLIENT_SECRET'))
+                )
+                token_data = response.json()
+                new_token = token_data.get('access_token')
+                new_refresh = token_data.get('refresh_token', refresh_token)
+                expires_in = token_data.get('expires_in', 7200)
+                
+            elif provider == 'google':
+                response = await client.post(
+                    "https://oauth2.googleapis.com/token",
+                    data={
+                        "grant_type": "refresh_token",
+                        "refresh_token": refresh_token,
+                        "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+                        "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET')
+                    }
+                )
+                token_data = response.json()
+                new_token = token_data.get('access_token')
+                expires_in = token_data.get('expires_in', 3600)
+                
+            else:
+                raise HTTPException(status_code=400, detail="Token refresh not supported for this provider")
+            
+            # Update the integration
+            from datetime import timedelta
+            expires_at = (datetime.now(timezone.utc) + timedelta(seconds=expires_in)).isoformat()
+            
+            update_data = {
+                "access_token": new_token,
+                "expires_at": expires_at
+            }
+            if 'new_refresh' in dir() and new_refresh:
+                update_data["refresh_token"] = new_refresh
+            
+            await db.social_integrations.update_one(
+                {"tenant_id": tenant_id, "type": integration_type},
+                {"$set": update_data}
+            )
+            
+            return {"success": True, "message": "Token refreshed successfully"}
+            
+    except Exception as e:
+        logger.error(f"Token refresh error: {e}")
+        raise HTTPException(status_code=500, detail="Failed to refresh token. Please reconnect.")
+
 @api_router.delete("/integrations/{integration_type}")
 async def disconnect_social_integration(
     integration_type: str,
