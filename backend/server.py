@@ -1691,6 +1691,10 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
 class SocialIntegrationUpdate(BaseModel):
     enabled: Optional[bool] = None
 
+class OAuthAppConfig(BaseModel):
+    app_id: str
+    app_secret: Optional[str] = None  # Optional for updates (keep existing)
+
 SUPPORTED_SOCIAL_INTEGRATIONS = ['facebook', 'instagram', 'twitter', 'linkedin', 'whatsapp', 'youtube']
 
 # OAuth provider mapping
@@ -1709,7 +1713,7 @@ OAUTH_SCOPES = {
     'instagram': 'instagram_basic,instagram_manage_comments,instagram_manage_messages,pages_show_list',
     'whatsapp': 'whatsapp_business_management,whatsapp_business_messaging',
     'twitter': 'tweet.read tweet.write users.read dm.read dm.write offline.access',
-    'linkedin': 'r_organization_social w_organization_social rw_organization_admin',
+    'linkedin': 'r_organization_social,w_organization_social,rw_organization_admin',
     'youtube': 'https://www.googleapis.com/auth/youtube.force-ssl'
 }
 
@@ -1739,15 +1743,71 @@ async def get_social_integrations(current_user: dict = Depends(get_current_user)
     
     return result
 
-@api_router.get("/integrations/platform-status")
-async def get_platform_oauth_status(current_user: dict = Depends(get_current_user)):
-    """Check which OAuth providers are configured by the platform admin"""
-    # Check environment variables for OAuth credentials
-    status = {
-        'meta': bool(os.environ.get('META_APP_ID') and os.environ.get('META_APP_SECRET')),
-        'twitter': bool(os.environ.get('TWITTER_CLIENT_ID') and os.environ.get('TWITTER_CLIENT_SECRET')),
-        'linkedin': bool(os.environ.get('LINKEDIN_CLIENT_ID') and os.environ.get('LINKEDIN_CLIENT_SECRET')),
-        'google': bool(os.environ.get('GOOGLE_CLIENT_ID') and os.environ.get('GOOGLE_CLIENT_SECRET'))
+@api_router.get("/integrations/configs")
+async def get_oauth_configs(current_user: dict = Depends(get_current_user)):
+    """Get OAuth app configurations for the current tenant (without secrets)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    configs = await db.oauth_configs.find(
+        {"tenant_id": tenant_id},
+        {"_id": 0}
+    ).to_list(10)
+    
+    # Convert to dict keyed by provider, mask secrets
+    result = {}
+    for config in configs:
+        provider = config.get("provider")
+        app_id = config.get("app_id", "")
+        result[provider] = {
+            "configured": bool(config.get("app_id") and config.get("app_secret")),
+            "app_id_masked": f"{app_id[:4]}...{app_id[-4:]}" if len(app_id) > 8 else "••••••••"
+        }
+    
+    return result
+
+@api_router.post("/integrations/configs/{provider}")
+async def save_oauth_config(
+    provider: str,
+    config: OAuthAppConfig,
+    current_user: dict = Depends(get_current_user)
+):
+    """Save OAuth app credentials for a provider (per tenant)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    if provider not in ['meta', 'twitter', 'linkedin', 'google']:
+        raise HTTPException(status_code=400, detail="Invalid provider")
+    
+    # Get existing config to preserve secret if not provided
+    existing = await db.oauth_configs.find_one(
+        {"tenant_id": tenant_id, "provider": provider}
+    )
+    
+    config_data = {
+        "tenant_id": tenant_id,
+        "provider": provider,
+        "app_id": config.app_id,
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    # Only update secret if provided
+    if config.app_secret:
+        config_data["app_secret"] = config.app_secret  # In production, encrypt this
+    elif existing:
+        config_data["app_secret"] = existing.get("app_secret")
+    else:
+        raise HTTPException(status_code=400, detail="App secret is required for new configurations")
+    
+    await db.oauth_configs.update_one(
+        {"tenant_id": tenant_id, "provider": provider},
+        {"$set": config_data},
+        upsert=True
+    )
+    
+    return {"success": True}
     }
     return status
 
