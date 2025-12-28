@@ -445,7 +445,10 @@ const Dashboard = () => {
       <div className="flex-1 overflow-y-auto scrollbar-hide relative">
         {/* Quick Stats Bar - Clickable Filters - Sticky on scroll */}
         <div className="relative border-b border-border sticky top-0 z-10 backdrop-blur-md bg-background/95">
-          <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
+          <div 
+            ref={filtersRef}
+            className="flex items-center gap-2 px-4 py-3 overflow-x-auto scrollbar-hide"
+          >
             <button
               onClick={() => toggleStatusFilter('needs_response')}
               className={`
@@ -513,10 +516,13 @@ const Dashboard = () => {
               </button>
             )}
           </div>
-          {/* Stronger gradient fade on left edge */}
-          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background via-background/90 to-transparent pointer-events-none" />
-          {/* Stronger gradient fade on right edge */}
-          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background via-background/90 to-transparent pointer-events-none" />
+          {/* Dynamic fade indicators based on scroll position */}
+          {filtersScroll.canScrollLeft && (
+            <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+          )}
+          {filtersScroll.canScrollRight && (
+            <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+          )}
         </div>
 
         {/* Conversation List */}
