@@ -210,6 +210,7 @@ const Dashboard = () => {
   const { token, user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('all');
+  const [activeStatusFilter, setActiveStatusFilter] = useState(null);
   const [conversations, setConversations] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
