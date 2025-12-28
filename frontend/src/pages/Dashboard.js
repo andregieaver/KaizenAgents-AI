@@ -15,6 +15,7 @@ import {
   Facebook,
   Instagram,
   Mail,
+  Phone,
   Inbox,
   Star,
   StarOff,
