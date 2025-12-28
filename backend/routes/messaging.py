@@ -469,6 +469,13 @@ async def add_agent_to_channel(
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     
+    # Prevent Mother Agent from being added to channels
+    if agent.get("is_mother_agent"):
+        raise HTTPException(
+            status_code=400, 
+            detail="The Mother Agent cannot be added to messaging channels. The Mother Agent orchestrates other agents and should not participate directly in channel conversations."
+        )
+    
     if not agent.get("channels_enabled"):
         raise HTTPException(status_code=400, detail="Agent is not enabled for channels")
     
