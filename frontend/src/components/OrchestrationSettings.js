@@ -441,6 +441,8 @@ const OrchestrationSettings = () => {
                       size="sm"
                       onClick={async () => {
                         for (const agent of userAgents) {
+                          // Skip the Mother Agent - cannot be orchestrated
+                          if (agent.is_mother_agent) continue;
                           if (!agent.orchestration_enabled) {
                             await toggleAgentOrchestrationEnabled(agent.id, true);
                           }
@@ -454,7 +456,10 @@ const OrchestrationSettings = () => {
                       variant="outline"
                       size="sm"
                       onClick={async () => {
-                        const allIds = userAgents.filter(a => a.orchestration_enabled).map(a => a.id);
+                        // Exclude Mother Agent from child selection
+                        const allIds = userAgents
+                          .filter(a => a.orchestration_enabled && !a.is_mother_agent)
+                          .map(a => a.id);
                         setSelectedChildren(allIds);
                         await updateOrchestrationConfig({ allowed_child_agent_ids: allIds });
                       }}
