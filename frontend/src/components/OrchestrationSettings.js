@@ -193,6 +193,12 @@ const OrchestrationSettings = () => {
   };
 
   const toggleAgentOrchestrationEnabled = async (agentId, enabled) => {
+    // Check if trying to enable orchestration on the Mother Agent
+    const agent = userAgents.find(a => a.id === agentId);
+    if (enabled && agent?.is_mother_agent) {
+      toast.error('Cannot enable orchestration for the Mother Agent. The Mother Agent orchestrates other agents.');
+      return;
+    }
     await updateAgentOrchestrationSettings(agentId, { orchestration_enabled: enabled });
   };
 
