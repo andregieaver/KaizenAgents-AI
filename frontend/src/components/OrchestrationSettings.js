@@ -597,8 +597,10 @@ const OrchestrationSettings = () => {
                                     id={`agent-${agent.id}-allowed`}
                                     checked={selectedChildren.includes(agent.id)}
                                     onCheckedChange={() => toggleChildAgent(agent.id)}
-                              />
-                            </div>
+                                  />
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
