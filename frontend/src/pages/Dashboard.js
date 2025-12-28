@@ -364,11 +364,9 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="h-full flex flex-col bg-background overflow-hidden" data-testid="dashboard-inbox">
-      {/* Main scrollable container */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide">
-        {/* Header - Scrolls away */}
-        <div className="p-4 pb-0 bg-card">
+    <div className="min-h-full bg-background" data-testid="dashboard-inbox">
+      {/* Header - Scrolls away with page */}
+      <div className="p-4 pb-0 bg-card">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="font-heading text-xl font-bold tracking-tight">Inbox</h1>
