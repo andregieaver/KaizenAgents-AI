@@ -364,72 +364,72 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="h-full flex flex-col bg-background" data-testid="dashboard-inbox">
-      {/* Header - Fixed at top */}
-      <div className="p-4 pb-0 border-b border-border bg-card">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="font-heading text-xl font-bold tracking-tight">Inbox</h1>
-            <p className="text-sm text-muted-foreground">
-              {stats?.waiting_conversations || 0} conversations need attention
-            </p>
+    <div className="h-full flex flex-col bg-background overflow-hidden" data-testid="dashboard-inbox">
+      {/* Main scrollable container */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide">
+        {/* Header - Scrolls away */}
+        <div className="p-4 pb-0 bg-card">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="font-heading text-xl font-bold tracking-tight">Inbox</h1>
+              <p className="text-sm text-muted-foreground">
+                {stats?.waiting_conversations || 0} conversations need attention
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchData(true)}
+                disabled={refreshing}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Filter className="h-4 w-4 mr-2" />
+                    Filter
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem>
+                    <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
+                    Needs Response
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Clock className="h-4 w-4 mr-2 text-amber-500" />
+                    Waiting
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                    Resolved
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
+                    <Archive className="h-4 w-4 mr-2" />
+                    Show Archived
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchData(true)}
-              disabled={refreshing}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
-                  Filter
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem>
-                  <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
-                  Needs Response
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Clock className="h-4 w-4 mr-2 text-amber-500" />
-                  Waiting
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
-                  Resolved
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Archive className="h-4 w-4 mr-2" />
-                  Show Archived
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+
+          {/* Search */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search conversations..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-      </div>
-
-      {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide relative">
         {/* Tabs - Sticky on scroll */}
-        <div className="sticky top-0 z-20 bg-card border-b border-border backdrop-blur-md bg-background/95">
+        <div className="sticky top-0 z-20 border-b border-border backdrop-blur-md bg-background/95">
           <div className="px-4 py-3">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="w-full justify-start bg-transparent p-0 h-auto gap-1 overflow-x-auto scrollbar-hide">
