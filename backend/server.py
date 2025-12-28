@@ -2004,6 +2004,7 @@ async def oauth_callback(
                 long_token_data = long_token_response.json()
                 access_token = long_token_data.get('access_token', access_token)
                 expires_in = long_token_data.get('expires_in', 5184000)  # ~60 days
+                refresh_token = None
                 
             elif provider == 'twitter':
                 token_response = await client.post(
@@ -2014,12 +2015,15 @@ async def oauth_callback(
                         "redirect_uri": callback_url,
                         "code_verifier": oauth_state.get("code_verifier")
                     },
-                    auth=(os.environ.get('TWITTER_CLIENT_ID'), os.environ.get('TWITTER_CLIENT_SECRET'))
+                    auth=(app_id, app_secret)
                 )
                 token_data = token_response.json()
                 access_token = token_data.get('access_token')
                 refresh_token = token_data.get('refresh_token')
                 expires_in = token_data.get('expires_in', 7200)
+                
+                if not access_token:
+                    return RedirectResponse(f"{settings_url}&oauth_error={token_data.get('error_description', 'Failed to get access token')}")
                 
                 # Get user info
                 me_response = await client.get(
@@ -2037,13 +2041,17 @@ async def oauth_callback(
                         "grant_type": "authorization_code",
                         "code": code,
                         "redirect_uri": callback_url,
-                        "client_id": os.environ.get('LINKEDIN_CLIENT_ID'),
-                        "client_secret": os.environ.get('LINKEDIN_CLIENT_SECRET')
+                        "client_id": app_id,
+                        "client_secret": app_secret
                     }
                 )
                 token_data = token_response.json()
                 access_token = token_data.get('access_token')
                 expires_in = token_data.get('expires_in', 5184000)
+                refresh_token = None
+                
+                if not access_token:
+                    return RedirectResponse(f"{settings_url}&oauth_error={token_data.get('error_description', 'Failed to get access token')}")
                 
                 # Get user info
                 me_response = await client.get(
