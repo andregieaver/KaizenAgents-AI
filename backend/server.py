@@ -1944,7 +1944,19 @@ async def oauth_callback(
     
     tenant_id = oauth_state.get("tenant_id")
     integration_type = oauth_state.get("integration_type")
-    provider = OAUTH_PROVIDERS.get(integration_type)
+    provider = oauth_state.get("provider") or OAUTH_PROVIDERS.get(integration_type)
+    
+    # Get tenant's OAuth config
+    oauth_config = await db.oauth_configs.find_one(
+        {"tenant_id": tenant_id, "provider": provider}
+    )
+    
+    if not oauth_config:
+        await db.oauth_states.delete_one({"state": state})
+        return RedirectResponse(f"{settings_url}&oauth_error=OAuth app not configured")
+    
+    app_id = oauth_config.get("app_id")
+    app_secret = oauth_config.get("app_secret")
     
     # Delete used state
     await db.oauth_states.delete_one({"state": state})
@@ -1958,14 +1970,17 @@ async def oauth_callback(
                 token_response = await client.get(
                     "https://graph.facebook.com/v18.0/oauth/access_token",
                     params={
-                        "client_id": os.environ.get('META_APP_ID'),
-                        "client_secret": os.environ.get('META_APP_SECRET'),
+                        "client_id": app_id,
+                        "client_secret": app_secret,
                         "redirect_uri": callback_url,
                         "code": code
                     }
                 )
                 token_data = token_response.json()
                 access_token = token_data.get('access_token')
+                
+                if not access_token:
+                    return RedirectResponse(f"{settings_url}&oauth_error={token_data.get('error', {}).get('message', 'Failed to get access token')}")
                 
                 # Get user/page info
                 me_response = await client.get(
@@ -1981,8 +1996,8 @@ async def oauth_callback(
                     "https://graph.facebook.com/v18.0/oauth/access_token",
                     params={
                         "grant_type": "fb_exchange_token",
-                        "client_id": os.environ.get('META_APP_ID'),
-                        "client_secret": os.environ.get('META_APP_SECRET'),
+                        "client_id": app_id,
+                        "client_secret": app_secret,
                         "fb_exchange_token": access_token
                     }
                 )
