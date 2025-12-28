@@ -15,6 +15,7 @@ import { ScrollArea, ScrollBar } from '../components/ui/scroll-area';
 import AgentConfiguration from '../components/AgentConfiguration';
 import OrchestrationSettings from '../components/OrchestrationSettings';
 import QuotaUsageDashboard from '../components/QuotaUsageDashboard';
+import IntegrationsSettings from '../components/IntegrationsSettings';
 import {
   Settings as SettingsIcon,
   Palette,
