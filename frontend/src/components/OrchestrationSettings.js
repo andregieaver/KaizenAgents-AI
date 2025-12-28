@@ -568,6 +568,8 @@ const OrchestrationSettings = () => {
                         
                         {/* Enable/Disable Toggle */}
                         <div className="flex flex-col items-end gap-2">
+                          {/* Debug: Log is_mother_agent value */}
+                          {console.log(`Agent ${agent.name}: is_mother_agent = ${agent.is_mother_agent}`)}
                           {agent.is_mother_agent ? (
                             <div className="flex items-center gap-2 text-amber-500">
                               <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">
