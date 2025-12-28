@@ -1686,18 +1686,32 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         "recent_conversations": recent
     }
 
-# ============== SOCIAL INTEGRATIONS ==============
-
-class SocialIntegrationConfig(BaseModel):
-    app_id: Optional[str] = None
-    app_secret: Optional[str] = None
-    access_token: Optional[str] = None
-    webhook_secret: Optional[str] = None
+# ============== SOCIAL INTEGRATIONS (OAuth) ==============
 
 class SocialIntegrationUpdate(BaseModel):
     enabled: Optional[bool] = None
 
 SUPPORTED_SOCIAL_INTEGRATIONS = ['facebook', 'instagram', 'twitter', 'linkedin', 'whatsapp', 'youtube']
+
+# OAuth provider mapping
+OAUTH_PROVIDERS = {
+    'facebook': 'meta',
+    'instagram': 'meta',
+    'whatsapp': 'meta',
+    'twitter': 'twitter',
+    'linkedin': 'linkedin',
+    'youtube': 'google'
+}
+
+# OAuth scopes per integration
+OAUTH_SCOPES = {
+    'facebook': 'pages_read_engagement,pages_manage_posts,pages_messaging,pages_show_list',
+    'instagram': 'instagram_basic,instagram_manage_comments,instagram_manage_messages,pages_show_list',
+    'whatsapp': 'whatsapp_business_management,whatsapp_business_messaging',
+    'twitter': 'tweet.read tweet.write users.read dm.read dm.write offline.access',
+    'linkedin': 'r_organization_social w_organization_social rw_organization_admin',
+    'youtube': 'https://www.googleapis.com/auth/youtube.force-ssl'
+}
 
 @api_router.get("/integrations")
 async def get_social_integrations(current_user: dict = Depends(get_current_user)):
@@ -1708,7 +1722,7 @@ async def get_social_integrations(current_user: dict = Depends(get_current_user)
     
     integrations = await db.social_integrations.find(
         {"tenant_id": tenant_id},
-        {"_id": 0, "app_secret": 0, "access_token": 0}  # Don't expose secrets
+        {"_id": 0, "access_token": 0, "refresh_token": 0}  # Don't expose tokens
     ).to_list(100)
     
     # Convert to dict keyed by integration type
@@ -1718,36 +1732,324 @@ async def get_social_integrations(current_user: dict = Depends(get_current_user)
             "connected": True,
             "enabled": integration.get("enabled", True),
             "account_name": integration.get("account_name"),
-            "connected_at": integration.get("connected_at")
+            "account_id": integration.get("account_id"),
+            "connected_at": integration.get("connected_at"),
+            "expires_at": integration.get("expires_at")
         }
     
     return result
 
-@api_router.post("/integrations/{integration_type}/connect")
-async def connect_social_integration(
+@api_router.get("/integrations/platform-status")
+async def get_platform_oauth_status(current_user: dict = Depends(get_current_user)):
+    """Check which OAuth providers are configured by the platform admin"""
+    # Check environment variables for OAuth credentials
+    status = {
+        'meta': bool(os.environ.get('META_APP_ID') and os.environ.get('META_APP_SECRET')),
+        'twitter': bool(os.environ.get('TWITTER_CLIENT_ID') and os.environ.get('TWITTER_CLIENT_SECRET')),
+        'linkedin': bool(os.environ.get('LINKEDIN_CLIENT_ID') and os.environ.get('LINKEDIN_CLIENT_SECRET')),
+        'google': bool(os.environ.get('GOOGLE_CLIENT_ID') and os.environ.get('GOOGLE_CLIENT_SECRET'))
+    }
+    return status
+
+@api_router.get("/integrations/{integration_type}/oauth-url")
+async def get_oauth_url(
     integration_type: str,
-    config: SocialIntegrationConfig,
     current_user: dict = Depends(get_current_user)
 ):
-    """Connect a social media integration"""
+    """Generate OAuth authorization URL for a social platform"""
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
     
     if integration_type not in SUPPORTED_SOCIAL_INTEGRATIONS:
-        raise HTTPException(status_code=400, detail=f"Unsupported integration type: {integration_type}")
+        raise HTTPException(status_code=400, detail=f"Unsupported integration: {integration_type}")
     
-    if not config.app_id or not config.app_secret:
-        raise HTTPException(status_code=400, detail="App ID and App Secret are required")
+    provider = OAUTH_PROVIDERS.get(integration_type)
+    scopes = OAUTH_SCOPES.get(integration_type, '')
     
-    # Store the integration configuration
-    integration_data = {
+    # Get the callback URL
+    callback_url = f"{os.environ.get('REACT_APP_BACKEND_URL', '')}/api/integrations/oauth/callback"
+    
+    # Store state for security (includes tenant_id and integration_type)
+    import secrets
+    state = secrets.token_urlsafe(32)
+    await db.oauth_states.insert_one({
+        "state": state,
         "tenant_id": tenant_id,
-        "type": integration_type,
-        "app_id": config.app_id,
-        "app_secret": config.app_secret,  # In production, encrypt this
-        "access_token": config.access_token,
-        "webhook_secret": config.webhook_secret,
+        "user_id": current_user.get("id"),
+        "integration_type": integration_type,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    
+    # Build OAuth URL based on provider
+    if provider == 'meta':
+        app_id = os.environ.get('META_APP_ID')
+        if not app_id:
+            return {"not_configured": True}
+        
+        oauth_url = (
+            f"https://www.facebook.com/v18.0/dialog/oauth?"
+            f"client_id={app_id}"
+            f"&redirect_uri={callback_url}"
+            f"&state={state}"
+            f"&scope={scopes}"
+            f"&response_type=code"
+        )
+    
+    elif provider == 'twitter':
+        client_id = os.environ.get('TWITTER_CLIENT_ID')
+        if not client_id:
+            return {"not_configured": True}
+        
+        # Twitter OAuth 2.0 with PKCE
+        import hashlib
+        import base64
+        code_verifier = secrets.token_urlsafe(64)
+        code_challenge = base64.urlsafe_b64encode(
+            hashlib.sha256(code_verifier.encode()).digest()
+        ).decode().rstrip('=')
+        
+        # Store code_verifier
+        await db.oauth_states.update_one(
+            {"state": state},
+            {"$set": {"code_verifier": code_verifier}}
+        )
+        
+        oauth_url = (
+            f"https://twitter.com/i/oauth2/authorize?"
+            f"response_type=code"
+            f"&client_id={client_id}"
+            f"&redirect_uri={callback_url}"
+            f"&scope={scopes}"
+            f"&state={state}"
+            f"&code_challenge={code_challenge}"
+            f"&code_challenge_method=S256"
+        )
+    
+    elif provider == 'linkedin':
+        client_id = os.environ.get('LINKEDIN_CLIENT_ID')
+        if not client_id:
+            return {"not_configured": True}
+        
+        oauth_url = (
+            f"https://www.linkedin.com/oauth/v2/authorization?"
+            f"response_type=code"
+            f"&client_id={client_id}"
+            f"&redirect_uri={callback_url}"
+            f"&scope={scopes}"
+            f"&state={state}"
+        )
+    
+    elif provider == 'google':
+        client_id = os.environ.get('GOOGLE_CLIENT_ID')
+        if not client_id:
+            return {"not_configured": True}
+        
+        oauth_url = (
+            f"https://accounts.google.com/o/oauth2/v2/auth?"
+            f"response_type=code"
+            f"&client_id={client_id}"
+            f"&redirect_uri={callback_url}"
+            f"&scope={scopes}"
+            f"&state={state}"
+            f"&access_type=offline"
+            f"&prompt=consent"
+        )
+    
+    else:
+        return {"not_configured": True}
+    
+    return {"oauth_url": oauth_url}
+
+@api_router.get("/integrations/oauth/callback")
+async def oauth_callback(
+    code: Optional[str] = None,
+    state: Optional[str] = None,
+    error: Optional[str] = None,
+    error_description: Optional[str] = None
+):
+    """Handle OAuth callback from social platforms"""
+    from fastapi.responses import RedirectResponse
+    import httpx
+    
+    frontend_url = os.environ.get('REACT_APP_BACKEND_URL', '').replace('/api', '').replace(':8001', ':3000')
+    if not frontend_url or frontend_url == '/api':
+        frontend_url = 'http://localhost:3000'
+    
+    settings_url = f"{frontend_url}/settings?tab=integrations"
+    
+    if error:
+        return RedirectResponse(f"{settings_url}&oauth_error={error_description or error}")
+    
+    if not code or not state:
+        return RedirectResponse(f"{settings_url}&oauth_error=Missing code or state")
+    
+    # Verify state and get stored data
+    oauth_state = await db.oauth_states.find_one({"state": state})
+    if not oauth_state:
+        return RedirectResponse(f"{settings_url}&oauth_error=Invalid state")
+    
+    tenant_id = oauth_state.get("tenant_id")
+    integration_type = oauth_state.get("integration_type")
+    provider = OAUTH_PROVIDERS.get(integration_type)
+    
+    # Delete used state
+    await db.oauth_states.delete_one({"state": state})
+    
+    callback_url = f"{os.environ.get('REACT_APP_BACKEND_URL', '')}/api/integrations/oauth/callback"
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            # Exchange code for tokens
+            if provider == 'meta':
+                token_response = await client.get(
+                    "https://graph.facebook.com/v18.0/oauth/access_token",
+                    params={
+                        "client_id": os.environ.get('META_APP_ID'),
+                        "client_secret": os.environ.get('META_APP_SECRET'),
+                        "redirect_uri": callback_url,
+                        "code": code
+                    }
+                )
+                token_data = token_response.json()
+                access_token = token_data.get('access_token')
+                
+                # Get user/page info
+                me_response = await client.get(
+                    "https://graph.facebook.com/v18.0/me",
+                    params={"access_token": access_token, "fields": "id,name"}
+                )
+                me_data = me_response.json()
+                account_name = me_data.get('name', 'Facebook Account')
+                account_id = me_data.get('id')
+                
+                # Get long-lived token
+                long_token_response = await client.get(
+                    "https://graph.facebook.com/v18.0/oauth/access_token",
+                    params={
+                        "grant_type": "fb_exchange_token",
+                        "client_id": os.environ.get('META_APP_ID'),
+                        "client_secret": os.environ.get('META_APP_SECRET'),
+                        "fb_exchange_token": access_token
+                    }
+                )
+                long_token_data = long_token_response.json()
+                access_token = long_token_data.get('access_token', access_token)
+                expires_in = long_token_data.get('expires_in', 5184000)  # ~60 days
+                
+            elif provider == 'twitter':
+                token_response = await client.post(
+                    "https://api.twitter.com/2/oauth2/token",
+                    data={
+                        "grant_type": "authorization_code",
+                        "code": code,
+                        "redirect_uri": callback_url,
+                        "code_verifier": oauth_state.get("code_verifier")
+                    },
+                    auth=(os.environ.get('TWITTER_CLIENT_ID'), os.environ.get('TWITTER_CLIENT_SECRET'))
+                )
+                token_data = token_response.json()
+                access_token = token_data.get('access_token')
+                refresh_token = token_data.get('refresh_token')
+                expires_in = token_data.get('expires_in', 7200)
+                
+                # Get user info
+                me_response = await client.get(
+                    "https://api.twitter.com/2/users/me",
+                    headers={"Authorization": f"Bearer {access_token}"}
+                )
+                me_data = me_response.json()
+                account_name = me_data.get('data', {}).get('username', 'X Account')
+                account_id = me_data.get('data', {}).get('id')
+                
+            elif provider == 'linkedin':
+                token_response = await client.post(
+                    "https://www.linkedin.com/oauth/v2/accessToken",
+                    data={
+                        "grant_type": "authorization_code",
+                        "code": code,
+                        "redirect_uri": callback_url,
+                        "client_id": os.environ.get('LINKEDIN_CLIENT_ID'),
+                        "client_secret": os.environ.get('LINKEDIN_CLIENT_SECRET')
+                    }
+                )
+                token_data = token_response.json()
+                access_token = token_data.get('access_token')
+                expires_in = token_data.get('expires_in', 5184000)
+                
+                # Get user info
+                me_response = await client.get(
+                    "https://api.linkedin.com/v2/me",
+                    headers={"Authorization": f"Bearer {access_token}"}
+                )
+                me_data = me_response.json()
+                account_name = f"{me_data.get('localizedFirstName', '')} {me_data.get('localizedLastName', '')}".strip() or 'LinkedIn Account'
+                account_id = me_data.get('id')
+                refresh_token = None
+                
+            elif provider == 'google':
+                token_response = await client.post(
+                    "https://oauth2.googleapis.com/token",
+                    data={
+                        "grant_type": "authorization_code",
+                        "code": code,
+                        "redirect_uri": callback_url,
+                        "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
+                        "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET')
+                    }
+                )
+                token_data = token_response.json()
+                access_token = token_data.get('access_token')
+                refresh_token = token_data.get('refresh_token')
+                expires_in = token_data.get('expires_in', 3600)
+                
+                # Get YouTube channel info
+                channel_response = await client.get(
+                    "https://www.googleapis.com/youtube/v3/channels",
+                    params={"part": "snippet", "mine": "true"},
+                    headers={"Authorization": f"Bearer {access_token}"}
+                )
+                channel_data = channel_response.json()
+                items = channel_data.get('items', [])
+                if items:
+                    account_name = items[0].get('snippet', {}).get('title', 'YouTube Channel')
+                    account_id = items[0].get('id')
+                else:
+                    account_name = 'YouTube Account'
+                    account_id = None
+            
+            else:
+                return RedirectResponse(f"{settings_url}&oauth_error=Unknown provider")
+            
+            # Calculate expiration
+            from datetime import timedelta
+            expires_at = (datetime.now(timezone.utc) + timedelta(seconds=expires_in)).isoformat()
+            
+            # Store the integration
+            integration_data = {
+                "tenant_id": tenant_id,
+                "type": integration_type,
+                "provider": provider,
+                "access_token": access_token,
+                "refresh_token": refresh_token if 'refresh_token' in dir() else None,
+                "account_name": account_name,
+                "account_id": account_id,
+                "enabled": True,
+                "connected_at": datetime.now(timezone.utc).isoformat(),
+                "expires_at": expires_at
+            }
+            
+            await db.social_integrations.update_one(
+                {"tenant_id": tenant_id, "type": integration_type},
+                {"$set": integration_data},
+                upsert=True
+            )
+            
+            return RedirectResponse(f"{settings_url}&oauth_success=true&integration={integration_type}")
+            
+    except Exception as e:
+        logger.error(f"OAuth callback error: {e}")
+        return RedirectResponse(f"{settings_url}&oauth_error=Failed to complete authorization")
         "enabled": True,
         "connected_at": datetime.now(timezone.utc).isoformat(),
         "account_name": f"{integration_type.capitalize()} Account"
