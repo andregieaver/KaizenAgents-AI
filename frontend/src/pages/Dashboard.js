@@ -418,84 +418,85 @@ const Dashboard = () => {
         </Tabs>
       </div>
 
-      {/* Quick Stats Bar - Clickable Filters - Sticky on scroll */}
-      <div className="relative border-b border-border bg-muted/30 sticky top-0 z-10 backdrop-blur-sm bg-background/95">
-        <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
-          <button
-            onClick={() => toggleStatusFilter('needs_response')}
-            className={`
-              flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
-              ${activeStatusFilter === 'needs_response' 
-                ? 'bg-red-500 text-white shadow-sm' 
-                : 'hover:bg-red-500/10 text-muted-foreground hover:text-red-600'
-              }
-            `}
-          >
-            <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'needs_response' ? 'bg-white' : 'bg-red-500'}`} />
-            <span>Needs Response</span>
-            <span className={`font-semibold ${activeStatusFilter === 'needs_response' ? 'text-white' : 'text-foreground'}`}>
-              {stats?.waiting_conversations || 0}
-            </span>
-          </button>
-          
-          <button
-            onClick={() => toggleStatusFilter('open')}
-            className={`
-              flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
-              ${activeStatusFilter === 'open' 
-                ? 'bg-blue-500 text-white shadow-sm' 
-                : 'hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600'
-              }
-            `}
-          >
-            <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'open' ? 'bg-white' : 'bg-blue-500'}`} />
-            <span>Open</span>
-            <span className={`font-semibold ${activeStatusFilter === 'open' ? 'text-white' : 'text-foreground'}`}>
-              {stats?.open_conversations || 0}
-            </span>
-          </button>
-          
-          <button
-            onClick={() => toggleStatusFilter('resolved_today')}
-            className={`
-              flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
-              ${activeStatusFilter === 'resolved_today' 
-                ? 'bg-green-500 text-white shadow-sm' 
-                : 'hover:bg-green-500/10 text-muted-foreground hover:text-green-600'
-              }
-            `}
-          >
-            <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'resolved_today' ? 'bg-white' : 'bg-green-500'}`} />
-            <span>Resolved Today</span>
-            <span className={`font-semibold ${activeStatusFilter === 'resolved_today' ? 'text-white' : 'text-foreground'}`}>
-              {stats?.resolved_today || 0}
-            </span>
-          </button>
-          
-          <div className="flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 text-muted-foreground flex-shrink-0">
-            <div className="h-2 w-2 rounded-full bg-purple-500" />
-            <span>Avg Response:</span>
-            <span className="font-semibold text-foreground">{stats?.avg_response_time || '< 1m'}</span>
-          </div>
-          
-          {activeStatusFilter && (
+      {/* Scrollable content area with sticky Quick Stats */}
+      <div className="flex-1 overflow-y-auto scrollbar-hide relative">
+        {/* Quick Stats Bar - Clickable Filters - Sticky on scroll */}
+        <div className="relative border-b border-border sticky top-0 z-10 backdrop-blur-md bg-background/95">
+          <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
             <button
-              onClick={() => setActiveStatusFilter(null)}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors ml-auto flex-shrink-0"
+              onClick={() => toggleStatusFilter('needs_response')}
+              className={`
+                flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
+                ${activeStatusFilter === 'needs_response' 
+                  ? 'bg-red-500 text-white shadow-sm' 
+                  : 'hover:bg-red-500/10 text-muted-foreground hover:text-red-600'
+                }
+              `}
             >
-              <X className="h-3 w-3" />
-              Clear filter
+              <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'needs_response' ? 'bg-white' : 'bg-red-500'}`} />
+              <span>Needs Response</span>
+              <span className={`font-semibold ${activeStatusFilter === 'needs_response' ? 'text-white' : 'text-foreground'}`}>
+                {stats?.waiting_conversations || 0}
+              </span>
             </button>
-          )}
+            
+            <button
+              onClick={() => toggleStatusFilter('open')}
+              className={`
+                flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
+                ${activeStatusFilter === 'open' 
+                  ? 'bg-blue-500 text-white shadow-sm' 
+                  : 'hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600'
+                }
+              `}
+            >
+              <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'open' ? 'bg-white' : 'bg-blue-500'}`} />
+              <span>Open</span>
+              <span className={`font-semibold ${activeStatusFilter === 'open' ? 'text-white' : 'text-foreground'}`}>
+                {stats?.open_conversations || 0}
+              </span>
+            </button>
+            
+            <button
+              onClick={() => toggleStatusFilter('resolved_today')}
+              className={`
+                flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
+                ${activeStatusFilter === 'resolved_today' 
+                  ? 'bg-green-500 text-white shadow-sm' 
+                  : 'hover:bg-green-500/10 text-muted-foreground hover:text-green-600'
+                }
+              `}
+            >
+              <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'resolved_today' ? 'bg-white' : 'bg-green-500'}`} />
+              <span>Resolved Today</span>
+              <span className={`font-semibold ${activeStatusFilter === 'resolved_today' ? 'text-white' : 'text-foreground'}`}>
+                {stats?.resolved_today || 0}
+              </span>
+            </button>
+            
+            <div className="flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 text-muted-foreground flex-shrink-0">
+              <div className="h-2 w-2 rounded-full bg-purple-500" />
+              <span>Avg Response:</span>
+              <span className="font-semibold text-foreground">{stats?.avg_response_time || '< 1m'}</span>
+            </div>
+            
+            {activeStatusFilter && (
+              <button
+                onClick={() => setActiveStatusFilter(null)}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors ml-auto flex-shrink-0"
+              >
+                <X className="h-3 w-3" />
+                Clear filter
+              </button>
+            )}
+          </div>
+          {/* Stronger gradient fade on left edge */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-background via-background/90 to-transparent pointer-events-none" />
+          {/* Stronger gradient fade on right edge */}
+          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-background via-background/90 to-transparent pointer-events-none" />
         </div>
-        {/* Stronger gradient fade on left edge */}
-        <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background via-background/80 to-transparent pointer-events-none" />
-        {/* Stronger gradient fade on right edge */}
-        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background via-background/80 to-transparent pointer-events-none" />
-      </div>
 
-      {/* Conversation List */}
-      <ScrollArea className="flex-1 scrollbar-hide">
+        {/* Conversation List */}
         {filteredConversations.length > 0 ? (
           <div className="divide-y divide-border">
             {filteredConversations.map((conversation) => (
@@ -510,7 +511,7 @@ const Dashboard = () => {
         ) : (
           <EmptyState tab={activeTab} />
         )}
-      </ScrollArea>
+      </div>
 
       {/* Source Legend - Footer */}
       <div className="relative border-t border-border bg-muted/30">
