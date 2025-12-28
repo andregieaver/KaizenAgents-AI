@@ -1823,12 +1823,12 @@ const Messaging = () => {
                 )}
                 
                 {/* Add new agents - Multi-select with checkboxes */}
-                {availableAgents.filter(a => !channelAgents.find(ca => ca.id === a.id)).length > 0 && (
+                {availableAgents.filter(a => !channelAgents.find(ca => ca.id === a.id) && !a.is_mother_agent).length > 0 && (
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Add AI Agents</Label>
                     <div className="border rounded-lg divide-y max-h-48 overflow-y-auto">
                       {availableAgents
-                        .filter(a => !channelAgents.find(ca => ca.id === a.id))
+                        .filter(a => !channelAgents.find(ca => ca.id === a.id) && !a.is_mother_agent)
                         .map(agent => (
                           <div
                             key={agent.id}
@@ -1847,19 +1847,19 @@ const Messaging = () => {
                         ))
                       }
                     </div>
-                    {availableAgents.filter(a => !channelAgents.find(ca => ca.id === a.id)).length > 1 && (
+                    {availableAgents.filter(a => !channelAgents.find(ca => ca.id === a.id) && !a.is_mother_agent).length > 1 && (
                       <Button 
                         variant="outline" 
                         size="sm" 
                         className="w-full"
                         onClick={() => addMultipleAgentsToChannel(
                           availableAgents
-                            .filter(a => !channelAgents.find(ca => ca.id === a.id))
+                            .filter(a => !channelAgents.find(ca => ca.id === a.id) && !a.is_mother_agent)
                             .map(a => a.id)
                         )}
                       >
                         <Plus className="h-4 w-4 mr-2" />
-                        Add All Available ({availableAgents.filter(a => !channelAgents.find(ca => ca.id === a.id)).length})
+                        Add All Available ({availableAgents.filter(a => !channelAgents.find(ca => ca.id === a.id) && !a.is_mother_agent).length})
                       </Button>
                     )}
                   </div>
