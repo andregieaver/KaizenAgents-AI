@@ -535,10 +535,10 @@ const Dashboard = () => {
             <Badge variant="outline" className="text-[10px] h-4 px-1">Soon</Badge>
           </div>
         </div>
-        {/* Gradient fade on left edge */}
-        <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-muted/30 to-transparent pointer-events-none sm:hidden" />
-        {/* Gradient fade on right edge */}
-        <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-muted/30 to-transparent pointer-events-none sm:hidden" />
+        {/* Stronger gradient fade on left edge */}
+        <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background via-background/80 to-transparent pointer-events-none sm:hidden" />
+        {/* Stronger gradient fade on right edge */}
+        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background via-background/80 to-transparent pointer-events-none sm:hidden" />
       </div>
     </div>
   );
