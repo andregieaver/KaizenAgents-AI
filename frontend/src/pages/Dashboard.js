@@ -571,9 +571,9 @@ const Dashboard = () => {
         ) : (
           <EmptyState tab={activeTab} />
         )}
-      </div>
+      </div>{/* End of main scrollable container */}
 
-      {/* Source Legend - Footer */}
+      {/* Source Legend - Footer - Fixed at bottom */}
       <div className="relative border-t border-border bg-muted/30">
         <div 
           ref={footerRef}
