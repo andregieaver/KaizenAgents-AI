@@ -2061,7 +2061,6 @@ async def oauth_callback(
                 me_data = me_response.json()
                 account_name = f"{me_data.get('localizedFirstName', '')} {me_data.get('localizedLastName', '')}".strip() or 'LinkedIn Account'
                 account_id = me_data.get('id')
-                refresh_token = None
                 
             elif provider == 'google':
                 token_response = await client.post(
@@ -2070,14 +2069,17 @@ async def oauth_callback(
                         "grant_type": "authorization_code",
                         "code": code,
                         "redirect_uri": callback_url,
-                        "client_id": os.environ.get('GOOGLE_CLIENT_ID'),
-                        "client_secret": os.environ.get('GOOGLE_CLIENT_SECRET')
+                        "client_id": app_id,
+                        "client_secret": app_secret
                     }
                 )
                 token_data = token_response.json()
                 access_token = token_data.get('access_token')
                 refresh_token = token_data.get('refresh_token')
                 expires_in = token_data.get('expires_in', 3600)
+                
+                if not access_token:
+                    return RedirectResponse(f"{settings_url}&oauth_error={token_data.get('error_description', 'Failed to get access token')}")
                 
                 # Get YouTube channel info
                 channel_response = await client.get(
