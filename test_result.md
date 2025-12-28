@@ -1554,3 +1554,21 @@ User and agent avatars were showing fallbacks or generic icons instead of actual
 7. ✅ Current user avatar at bottom of sidebar
 
 ### Status: ✅ VERIFIED - ALL TESTS PASSED
+
+  - task: "Unified Inbox Dashboard - Sticky Headers"
+    implemented: true
+    working: needs_verification
+    file: "frontend/src/pages/Dashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history: []
+    test_focus: |
+      - Verify Tabs bar (All/Team/Me) becomes sticky at top when scrolling
+      - Verify Quick Stats filter bar becomes sticky below tabs when scrolling
+      - Verify the main header (Inbox, Refresh, Filter, Search) scrolls away
+      - Verify both sticky bars stack correctly with proper z-index
+      - Test on mobile viewport (400x800)
+      - Verify conversation list scrolls properly under sticky headers
+      - Verify footer remains at bottom
+    credentials: "andre@humanweb.no / Pernilla66!"
