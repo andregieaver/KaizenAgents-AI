@@ -23,12 +23,12 @@ import {
   Instagram,
   Mail,
   Phone,
-  MoreHorizontal,
   RefreshCw,
   Inbox,
   Archive,
   Star,
-  StarOff
+  StarOff,
+  X
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import {
