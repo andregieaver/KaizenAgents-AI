@@ -1687,13 +1687,11 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     }
 
 # ============== SOCIAL INTEGRATIONS (OAuth) ==============
+# Platform-level OAuth: Kaizen registers apps with each provider
+# Users just click "Connect" and authorize - no credential entry needed
 
 class SocialIntegrationUpdate(BaseModel):
     enabled: Optional[bool] = None
-
-class OAuthAppConfig(BaseModel):
-    app_id: str
-    app_secret: Optional[str] = None  # Optional for updates (keep existing)
 
 SUPPORTED_SOCIAL_INTEGRATIONS = ['facebook', 'instagram', 'twitter', 'linkedin', 'whatsapp', 'youtube']
 
@@ -1717,6 +1715,18 @@ OAUTH_SCOPES = {
     'youtube': 'https://www.googleapis.com/auth/youtube.force-ssl'
 }
 
+def get_platform_oauth_credentials(provider: str):
+    """Get platform-level OAuth credentials from environment variables"""
+    if provider == 'meta':
+        return os.environ.get('META_APP_ID'), os.environ.get('META_APP_SECRET')
+    elif provider == 'twitter':
+        return os.environ.get('TWITTER_CLIENT_ID'), os.environ.get('TWITTER_CLIENT_SECRET')
+    elif provider == 'linkedin':
+        return os.environ.get('LINKEDIN_CLIENT_ID'), os.environ.get('LINKEDIN_CLIENT_SECRET')
+    elif provider == 'google':
+        return os.environ.get('GOOGLE_CLIENT_ID'), os.environ.get('GOOGLE_CLIENT_SECRET')
+    return None, None
+
 @api_router.get("/integrations")
 async def get_social_integrations(current_user: dict = Depends(get_current_user)):
     """Get all social media integrations for the current tenant"""
@@ -1726,10 +1736,9 @@ async def get_social_integrations(current_user: dict = Depends(get_current_user)
     
     integrations = await db.social_integrations.find(
         {"tenant_id": tenant_id},
-        {"_id": 0, "access_token": 0, "refresh_token": 0}  # Don't expose tokens
+        {"_id": 0, "access_token": 0, "refresh_token": 0}
     ).to_list(100)
     
-    # Convert to dict keyed by integration type
     result = {}
     for integration in integrations:
         result[integration["type"]] = {
@@ -1742,41 +1751,6 @@ async def get_social_integrations(current_user: dict = Depends(get_current_user)
         }
     
     return result
-
-@api_router.get("/integrations/configs")
-async def get_oauth_configs(current_user: dict = Depends(get_current_user)):
-    """Get OAuth app configurations for the current tenant (without secrets)"""
-    tenant_id = current_user.get("tenant_id")
-    if not tenant_id:
-        raise HTTPException(status_code=404, detail="No tenant associated")
-    
-    configs = await db.oauth_configs.find(
-        {"tenant_id": tenant_id},
-        {"_id": 0}
-    ).to_list(10)
-    
-    # Convert to dict keyed by provider, mask secrets
-    result = {}
-    for config in configs:
-        provider = config.get("provider")
-        app_id = config.get("app_id", "")
-        result[provider] = {
-            "configured": bool(config.get("app_id") and config.get("app_secret")),
-            "app_id_masked": f"{app_id[:4]}...{app_id[-4:]}" if len(app_id) > 8 else "••••••••"
-        }
-    
-    return result
-
-@api_router.post("/integrations/configs/{provider}")
-async def save_oauth_config(
-    provider: str,
-    config: OAuthAppConfig,
-    current_user: dict = Depends(get_current_user)
-):
-    """Save OAuth app credentials for a provider (per tenant)"""
-    tenant_id = current_user.get("tenant_id")
-    if not tenant_id:
-        raise HTTPException(status_code=404, detail="No tenant associated")
     
     if provider not in ['meta', 'twitter', 'linkedin', 'google']:
         raise HTTPException(status_code=400, detail="Invalid provider")
