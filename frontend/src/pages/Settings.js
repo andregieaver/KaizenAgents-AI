@@ -250,6 +250,10 @@ const Settings = () => {
               <TrendingUp className="h-4 w-4" />
               <span className="hidden sm:inline">Usage</span>
             </TabsTrigger>
+            <TabsTrigger value="integrations" className="gap-2 px-3" data-testid="tab-integrations">
+              <Share2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Integrations</span>
+            </TabsTrigger>
           </TabsList>
           <ScrollBar orientation="horizontal" className="invisible" />
         </ScrollArea>
