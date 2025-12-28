@@ -424,10 +424,10 @@ const Dashboard = () => {
               className="pl-9"
             />
           </div>
-        </div>
+      </div>{/* End of header bg-card */}
 
-        {/* Tabs - Sticky on scroll */}
-        <div className="sticky top-0 z-20 border-b border-border backdrop-blur-md bg-background/95">
+      {/* Tabs - Sticky on scroll */}
+      <div className="sticky top-0 z-20 border-b border-border backdrop-blur-md bg-background/95">
           <div className="px-4 py-3">
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="w-full justify-start bg-transparent p-0 h-auto gap-1 overflow-x-auto scrollbar-hide">
