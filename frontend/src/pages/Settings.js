@@ -31,7 +31,8 @@ import {
   Loader2,
   Sparkles,
   Network,
-  TrendingUp
+  TrendingUp,
+  Share2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
