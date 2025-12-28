@@ -353,8 +353,8 @@ const Dashboard = () => {
       {/* Scrollable container */}
       <div className="flex-1 overflow-y-auto">
         {/* Header - Scrolls away */}
-        <div className="p-4 pb-0 bg-card">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="p-4 bg-card">
+          <div className="flex items-center gap-4">
             <h1 className="font-heading text-xl font-bold tracking-tight flex-shrink-0">Inbox</h1>
             {/* Search - inline with heading */}
             <div className="relative flex-1">
@@ -367,7 +367,7 @@ const Dashboard = () => {
               />
             </div>
           </div>
-      </div>{/* End of header bg-card */}
+        </div>{/* End of header bg-card */}
 
       {/* Tabs - Sticky on scroll */}
       <div className="sticky top-0 z-20 border-b border-border backdrop-blur-md bg-background/95">
