@@ -1664,6 +1664,7 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
     open_conversations = await db.conversations.count_documents({"tenant_id": tenant_id, "status": "open"})
     waiting_conversations = await db.conversations.count_documents({"tenant_id": tenant_id, "status": "waiting"})
     resolved_conversations = await db.conversations.count_documents({"tenant_id": tenant_id, "status": "resolved"})
+    archived_conversations = await db.conversations.count_documents({"tenant_id": tenant_id, "status": "archived"})
     
     # Get CRM stats
     total_customers = await db.crm_customers.count_documents({"tenant_id": tenant_id})
@@ -1678,6 +1679,7 @@ async def get_dashboard_stats(current_user: dict = Depends(get_current_user)):
         "open_conversations": open_conversations,
         "waiting_conversations": waiting_conversations,
         "resolved_conversations": resolved_conversations,
+        "archived_conversations": archived_conversations,
         "total_customers": total_customers,
         "ai_handled_rate": 85,  # Placeholder
         "avg_response_time": "< 1 min",
