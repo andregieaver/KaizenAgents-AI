@@ -2050,19 +2050,6 @@ async def oauth_callback(
     except Exception as e:
         logger.error(f"OAuth callback error: {e}")
         return RedirectResponse(f"{settings_url}&oauth_error=Failed to complete authorization")
-        "enabled": True,
-        "connected_at": datetime.now(timezone.utc).isoformat(),
-        "account_name": f"{integration_type.capitalize()} Account"
-    }
-    
-    # Upsert the integration
-    await db.social_integrations.update_one(
-        {"tenant_id": tenant_id, "type": integration_type},
-        {"$set": integration_data},
-        upsert=True
-    )
-    
-    return {"success": True, "message": f"{integration_type} connected successfully"}
 
 @api_router.patch("/integrations/{integration_type}")
 async def update_social_integration(
