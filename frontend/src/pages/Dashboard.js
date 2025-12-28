@@ -291,12 +291,7 @@ const Dashboard = () => {
       if (activeStatusFilter === 'open' && conv.status !== 'open') return false;
       if (activeStatusFilter === 'waiting' && conv.status !== 'waiting') return false;
       if (activeStatusFilter === 'archived' && conv.status !== 'archived') return false;
-      if (activeStatusFilter === 'resolved_today') {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const convDate = new Date(conv.resolved_at || conv.updated_at);
-        if (conv.status !== 'resolved' || convDate < today) return false;
-      }
+      if (activeStatusFilter === 'resolved' && conv.status !== 'resolved') return false;
     }
     
     // Search filter
