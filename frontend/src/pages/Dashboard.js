@@ -215,6 +215,32 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedConversation, setSelectedConversation] = useState(null);
 
+  // Scroll fade indicators for Quick Stats filter bar
+  const filtersRef = useRef(null);
+  const [filtersScroll, setFiltersScroll] = useState({ canScrollLeft: false, canScrollRight: false });
+
+  const updateFiltersScrollState = useCallback(() => {
+    const el = filtersRef.current;
+    if (el) {
+      const canScrollLeft = el.scrollLeft > 5;
+      const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 5);
+      setFiltersScroll({ canScrollLeft, canScrollRight });
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = filtersRef.current;
+    if (el) {
+      updateFiltersScrollState();
+      el.addEventListener('scroll', updateFiltersScrollState);
+      window.addEventListener('resize', updateFiltersScrollState);
+      return () => {
+        el.removeEventListener('scroll', updateFiltersScrollState);
+        window.removeEventListener('resize', updateFiltersScrollState);
+      };
+    }
+  }, [updateFiltersScrollState, loading]);
+
   const fetchData = useCallback(async (showRefresh = false) => {
     if (showRefresh) setRefreshing(true);
     try {
