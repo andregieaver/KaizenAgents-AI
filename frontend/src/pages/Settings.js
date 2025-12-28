@@ -263,6 +263,11 @@ const Settings = () => {
           <QuotaUsageDashboard />
         </TabsContent>
 
+        {/* Integrations Tab */}
+        <TabsContent value="integrations">
+          <IntegrationsSettings />
+        </TabsContent>
+
         {/* General Settings */}
         <TabsContent value="general">
           <Card className="border border-border">
