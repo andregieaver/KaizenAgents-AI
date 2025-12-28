@@ -558,18 +558,17 @@ const Dashboard = () => {
       {filteredConversations.length > 0 ? (
         <div className="divide-y divide-border">
           {filteredConversations.map((conversation) => (
-              <ConversationItem
-                key={conversation.id}
-                conversation={conversation}
-                onClick={() => handleConversationClick(conversation)}
-                isSelected={selectedConversation === conversation.id}
-              />
-            ))}
-          </div>
-        ) : (
-          <EmptyState tab={activeTab} />
-        )}
-      </div>{/* End of main scrollable container */}
+            <ConversationItem
+              key={conversation.id}
+              conversation={conversation}
+              onClick={() => handleConversationClick(conversation)}
+              isSelected={selectedConversation === conversation.id}
+            />
+          ))}
+        </div>
+      ) : (
+        <EmptyState tab={activeTab} />
+      )}
 
       {/* Source Legend - Footer - Fixed at bottom */}
       <div className="relative border-t border-border bg-muted/30">
