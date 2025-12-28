@@ -1392,6 +1392,13 @@ async def update_agent_orchestration_settings(
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     
+    # Prevent enabling orchestration for Mother Agent
+    if settings.orchestration_enabled and agent.get("is_mother_agent"):
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot enable orchestration for the Mother Agent. The Mother Agent orchestrates other agents and cannot be orchestrated."
+        )
+    
     # Build update
     update_fields = {}
     if settings.orchestration_enabled is not None:
