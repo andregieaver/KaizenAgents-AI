@@ -2109,16 +2109,11 @@ async def refresh_social_integration(
     provider = integration.get("provider")
     refresh_token = integration.get("refresh_token")
     
-    # Get tenant's OAuth config
-    oauth_config = await db.oauth_configs.find_one(
-        {"tenant_id": tenant_id, "provider": provider}
-    )
+    # Get platform-level OAuth credentials
+    app_id, app_secret = get_platform_oauth_credentials(provider)
     
-    if not oauth_config:
-        raise HTTPException(status_code=400, detail="OAuth app not configured. Please reconnect.")
-    
-    app_id = oauth_config.get("app_id")
-    app_secret = oauth_config.get("app_secret")
+    if not app_id or not app_secret:
+        raise HTTPException(status_code=400, detail="Integration not available. Contact support.")
     
     if not refresh_token and provider not in ['meta']:
         raise HTTPException(status_code=400, detail="No refresh token available. Please reconnect.")
@@ -2128,7 +2123,6 @@ async def refresh_social_integration(
             new_refresh = None
             
             if provider == 'meta':
-                # Meta tokens can be refreshed with a valid access token
                 current_token = integration.get("access_token")
                 response = await client.get(
                     "https://graph.facebook.com/v18.0/oauth/access_token",
