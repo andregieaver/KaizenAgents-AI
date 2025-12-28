@@ -1751,44 +1751,13 @@ async def get_social_integrations(current_user: dict = Depends(get_current_user)
         }
     
     return result
-    
-    if provider not in ['meta', 'twitter', 'linkedin', 'google']:
-        raise HTTPException(status_code=400, detail="Invalid provider")
-    
-    # Get existing config to preserve secret if not provided
-    existing = await db.oauth_configs.find_one(
-        {"tenant_id": tenant_id, "provider": provider}
-    )
-    
-    config_data = {
-        "tenant_id": tenant_id,
-        "provider": provider,
-        "app_id": config.app_id,
-        "updated_at": datetime.now(timezone.utc).isoformat()
-    }
-    
-    # Only update secret if provided
-    if config.app_secret:
-        config_data["app_secret"] = config.app_secret  # In production, encrypt this
-    elif existing:
-        config_data["app_secret"] = existing.get("app_secret")
-    else:
-        raise HTTPException(status_code=400, detail="App secret is required for new configurations")
-    
-    await db.oauth_configs.update_one(
-        {"tenant_id": tenant_id, "provider": provider},
-        {"$set": config_data},
-        upsert=True
-    )
-    
-    return {"success": True}
 
 @api_router.get("/integrations/{integration_type}/oauth-url")
 async def get_oauth_url(
     integration_type: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Generate OAuth authorization URL for a social platform"""
+    """Generate OAuth authorization URL using platform credentials"""
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
@@ -1799,20 +1768,15 @@ async def get_oauth_url(
     provider = OAUTH_PROVIDERS.get(integration_type)
     scopes = OAUTH_SCOPES.get(integration_type, '')
     
-    # Get tenant's OAuth config for this provider
-    oauth_config = await db.oauth_configs.find_one(
-        {"tenant_id": tenant_id, "provider": provider}
-    )
+    # Get platform-level OAuth credentials
+    app_id, app_secret = get_platform_oauth_credentials(provider)
     
-    if not oauth_config or not oauth_config.get("app_id") or not oauth_config.get("app_secret"):
-        raise HTTPException(status_code=400, detail=f"Please configure your {provider} app credentials first")
+    if not app_id or not app_secret:
+        return {"not_configured": True}
     
-    app_id = oauth_config.get("app_id")
-    
-    # Get the callback URL
     callback_url = f"{os.environ.get('REACT_APP_BACKEND_URL', '')}/api/integrations/oauth/callback"
     
-    # Store state for security (includes tenant_id and integration_type)
+    # Store state for security
     import secrets
     state = secrets.token_urlsafe(32)
     await db.oauth_states.insert_one({
