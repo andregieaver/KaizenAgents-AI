@@ -4397,6 +4397,7 @@ app.add_middleware(
     allow_origins=[origin.strip() for origin in cors_origins.split(',') if origin.strip()],
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Content-Type", "Content-Length", "Content-Disposition", "X-Request-ID"],
 )
 
 @app.on_event("startup")
