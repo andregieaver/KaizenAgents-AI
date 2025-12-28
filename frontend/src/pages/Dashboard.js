@@ -418,8 +418,8 @@ const Dashboard = () => {
         </Tabs>
       </div>
 
-      {/* Quick Stats Bar - Clickable Filters */}
-      <div className="relative border-b border-border bg-muted/30">
+      {/* Quick Stats Bar - Clickable Filters - Sticky on scroll */}
+      <div className="relative border-b border-border bg-muted/30 sticky top-0 z-10 backdrop-blur-sm bg-background/95">
         <div className="flex items-center gap-2 px-4 py-3 overflow-x-auto scrollbar-hide">
           <button
             onClick={() => toggleStatusFilter('needs_response')}
@@ -488,10 +488,10 @@ const Dashboard = () => {
             </button>
           )}
         </div>
-        {/* Gradient fade on left edge */}
-        <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-muted/30 to-transparent pointer-events-none" />
-        {/* Gradient fade on right edge */}
-        <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-muted/30 to-transparent pointer-events-none" />
+        {/* Stronger gradient fade on left edge */}
+        <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background via-background/80 to-transparent pointer-events-none" />
+        {/* Stronger gradient fade on right edge */}
+        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background via-background/80 to-transparent pointer-events-none" />
       </div>
 
       {/* Conversation List */}
