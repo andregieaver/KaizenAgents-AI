@@ -3,18 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Badge } from './ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
 import {
   Facebook,
   Instagram,
@@ -22,12 +12,11 @@ import {
   Linkedin,
   MessageCircle,
   Check,
-  X,
   ExternalLink,
   Loader2,
-  Settings,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -56,8 +45,8 @@ const INTEGRATIONS = [
     iconColor: 'text-blue-600',
     bgColor: 'bg-blue-50 dark:bg-blue-950/30',
     features: ['Page comments', 'Direct messages', 'Post mentions'],
-    authUrl: 'https://www.facebook.com/v18.0/dialog/oauth',
-    requiredScopes: ['pages_read_engagement', 'pages_manage_posts', 'pages_messaging']
+    oauthProvider: 'meta',
+    scopes: ['pages_read_engagement', 'pages_manage_posts', 'pages_messaging', 'pages_show_list']
   },
   {
     id: 'instagram',
@@ -67,8 +56,8 @@ const INTEGRATIONS = [
     iconColor: 'text-pink-600',
     bgColor: 'bg-pink-50 dark:bg-pink-950/30',
     features: ['Post comments', 'Story mentions', 'Direct messages'],
-    authUrl: 'https://api.instagram.com/oauth/authorize',
-    requiredScopes: ['instagram_basic', 'instagram_manage_comments', 'instagram_manage_messages']
+    oauthProvider: 'meta',
+    scopes: ['instagram_basic', 'instagram_manage_comments', 'instagram_manage_messages', 'pages_show_list']
   },
   {
     id: 'twitter',
@@ -78,8 +67,8 @@ const INTEGRATIONS = [
     iconColor: 'text-foreground',
     bgColor: 'bg-gray-100 dark:bg-gray-800/50',
     features: ['Tweet replies', 'Mentions', 'Direct messages'],
-    authUrl: 'https://twitter.com/i/oauth2/authorize',
-    requiredScopes: ['tweet.read', 'tweet.write', 'dm.read', 'dm.write']
+    oauthProvider: 'twitter',
+    scopes: ['tweet.read', 'tweet.write', 'users.read', 'dm.read', 'dm.write']
   },
   {
     id: 'linkedin',
@@ -89,8 +78,8 @@ const INTEGRATIONS = [
     iconColor: 'text-blue-700',
     bgColor: 'bg-blue-50 dark:bg-blue-950/30',
     features: ['Post comments', 'Company mentions', 'Messages'],
-    authUrl: 'https://www.linkedin.com/oauth/v2/authorization',
-    requiredScopes: ['r_organization_social', 'w_organization_social', 'rw_organization_admin']
+    oauthProvider: 'linkedin',
+    scopes: ['r_organization_social', 'w_organization_social', 'rw_organization_admin']
   },
   {
     id: 'whatsapp',
@@ -100,8 +89,8 @@ const INTEGRATIONS = [
     iconColor: 'text-green-600',
     bgColor: 'bg-green-50 dark:bg-green-950/30',
     features: ['Customer messages', 'Template messages', 'Media sharing'],
-    authUrl: 'https://www.facebook.com/v18.0/dialog/oauth', // WhatsApp uses Meta's OAuth
-    requiredScopes: ['whatsapp_business_management', 'whatsapp_business_messaging']
+    oauthProvider: 'meta',
+    scopes: ['whatsapp_business_management', 'whatsapp_business_messaging']
   },
   {
     id: 'youtube',
@@ -111,8 +100,8 @@ const INTEGRATIONS = [
     iconColor: 'text-red-600',
     bgColor: 'bg-red-50 dark:bg-red-950/30',
     features: ['Video comments', 'Community posts', 'Live chat'],
-    authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
-    requiredScopes: ['youtube.force-ssl', 'youtube.readonly']
+    oauthProvider: 'google',
+    scopes: ['https://www.googleapis.com/auth/youtube.force-ssl']
   }
 ];
 
@@ -121,11 +110,27 @@ const IntegrationsSettings = () => {
   const [integrations, setIntegrations] = useState({});
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(null);
-  const [configDialog, setConfigDialog] = useState(null);
-  const [configValues, setConfigValues] = useState({});
+  const [platformStatus, setPlatformStatus] = useState({});
 
   useEffect(() => {
     fetchIntegrations();
+    fetchPlatformStatus();
+    
+    // Handle OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const oauthSuccess = urlParams.get('oauth_success');
+    const oauthError = urlParams.get('oauth_error');
+    const integration = urlParams.get('integration');
+    
+    if (oauthSuccess === 'true' && integration) {
+      toast.success(`${integration} connected successfully!`);
+      fetchIntegrations();
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (oauthError) {
+      toast.error(`Failed to connect: ${oauthError}`);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, [token]);
 
   const fetchIntegrations = async () => {
@@ -136,40 +141,40 @@ const IntegrationsSettings = () => {
       setIntegrations(response.data || {});
     } catch (error) {
       console.error('Failed to fetch integrations:', error);
-      // Initialize with empty state if endpoint doesn't exist yet
       setIntegrations({});
     } finally {
       setLoading(false);
     }
   };
 
-  const handleConnect = async (integration) => {
-    // Open config dialog to collect API credentials
-    setConfigDialog(integration);
-    setConfigValues({
-      app_id: '',
-      app_secret: '',
-      access_token: '',
-      webhook_secret: ''
-    });
+  const fetchPlatformStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/integrations/platform-status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPlatformStatus(response.data || {});
+    } catch (error) {
+      console.error('Failed to fetch platform status:', error);
+    }
   };
 
-  const handleSaveConfig = async () => {
-    if (!configDialog) return;
-    
-    setConnecting(configDialog.id);
+  const handleConnect = async (integration) => {
+    setConnecting(integration.id);
     try {
-      await axios.post(
-        `${API}/integrations/${configDialog.id}/connect`,
-        configValues,
+      // Get OAuth URL from backend
+      const response = await axios.get(
+        `${API}/integrations/${integration.id}/oauth-url`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
-      toast.success(`${configDialog.name} connected successfully!`);
-      setConfigDialog(null);
-      fetchIntegrations();
+      if (response.data.oauth_url) {
+        // Redirect to OAuth provider
+        window.location.href = response.data.oauth_url;
+      } else if (response.data.not_configured) {
+        toast.error(`${integration.name} integration is not configured by the platform administrator yet.`);
+      }
     } catch (error) {
-      toast.error(error.response?.data?.detail || `Failed to connect ${configDialog.name}`);
+      toast.error(error.response?.data?.detail || `Failed to initiate ${integration.name} connection`);
     } finally {
       setConnecting(null);
     }
@@ -204,24 +209,27 @@ const IntegrationsSettings = () => {
     }
   };
 
-  const handleTestConnection = async (integrationId) => {
+  const handleRefresh = async (integrationId) => {
     setConnecting(integrationId);
     try {
-      const response = await axios.post(
-        `${API}/integrations/${integrationId}/test`,
+      await axios.post(
+        `${API}/integrations/${integrationId}/refresh`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      if (response.data.success) {
-        toast.success('Connection test successful!');
-      } else {
-        toast.error(response.data.message || 'Connection test failed');
-      }
+      toast.success('Token refreshed successfully');
+      fetchIntegrations();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Connection test failed');
+      toast.error('Failed to refresh token. You may need to reconnect.');
     } finally {
       setConnecting(null);
     }
+  };
+
+  const copyWebhookUrl = () => {
+    const url = `${process.env.REACT_APP_BACKEND_URL}/api/webhooks/social`;
+    navigator.clipboard.writeText(url);
+    toast.success('Webhook URL copied!');
   };
 
   if (loading) {
@@ -242,7 +250,7 @@ const IntegrationsSettings = () => {
         <CardHeader>
           <CardTitle className="font-heading">Social Media Integrations</CardTitle>
           <CardDescription>
-            Connect your social media accounts to receive and respond to comments, 
+            Connect your social media accounts with one click to receive and respond to comments, 
             messages, and mentions directly from your unified inbox.
           </CardDescription>
         </CardHeader>
@@ -251,6 +259,7 @@ const IntegrationsSettings = () => {
             {INTEGRATIONS.map((integration) => {
               const isConnected = integrations[integration.id]?.connected;
               const isEnabled = integrations[integration.id]?.enabled;
+              const isPlatformConfigured = platformStatus[integration.oauthProvider];
               const Icon = integration.icon;
               
               return (
@@ -304,8 +313,9 @@ const IntegrationsSettings = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleTestConnection(integration.id)}
+                            onClick={() => handleRefresh(integration.id)}
                             disabled={connecting === integration.id}
+                            title="Refresh token"
                           >
                             {connecting === integration.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -316,15 +326,9 @@ const IntegrationsSettings = () => {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => handleConnect(integration)}
-                          >
-                            <Settings className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
                             className="text-destructive hover:text-destructive"
                             onClick={() => handleDisconnect(integration.id)}
+                            title="Disconnect"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -340,7 +344,10 @@ const IntegrationsSettings = () => {
                               Connecting...
                             </>
                           ) : (
-                            'Connect'
+                            <>
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Connect
+                            </>
                           )}
                         </Button>
                       )}
@@ -352,6 +359,11 @@ const IntegrationsSettings = () => {
                     <div className="mt-3 pt-3 border-t border-border">
                       <p className="text-sm text-muted-foreground">
                         Connected as: <span className="font-medium text-foreground">{integrations[integration.id].account_name}</span>
+                        {integrations[integration.id]?.expires_at && (
+                          <span className="ml-2 text-xs">
+                            (Token expires: {new Date(integrations[integration.id].expires_at).toLocaleDateString()})
+                          </span>
+                        )}
                       </p>
                     </div>
                   )}
@@ -367,7 +379,8 @@ const IntegrationsSettings = () => {
         <CardHeader>
           <CardTitle className="font-heading text-lg">Webhook Configuration</CardTitle>
           <CardDescription>
-            Configure these webhook URLs in your social media developer portals to receive real-time updates.
+            This webhook URL receives real-time updates from your connected social media accounts.
+            It's automatically configured when you connect an integration.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -379,121 +392,47 @@ const IntegrationsSettings = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => {
-                  navigator.clipboard.writeText(`${process.env.REACT_APP_BACKEND_URL}/api/webhooks/social`);
-                  toast.success('Webhook URL copied!');
-                }}
+                onClick={copyWebhookUrl}
               >
-                <MessageCircle className="h-4 w-4" />
+                <Copy className="h-4 w-4" />
               </Button>
             </div>
             <p className="text-xs text-muted-foreground">
-              Use this URL as the callback/webhook endpoint when setting up your integrations in Facebook Developer Portal, 
-              Twitter Developer Portal, LinkedIn Developer Portal, Google Cloud Console, etc.
+              When you connect an account via OAuth, webhooks are automatically registered with the platform.
+              New comments, messages, and mentions will appear in your unified inbox in real-time.
             </p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Configuration Dialog */}
-      <Dialog open={!!configDialog} onOpenChange={() => setConfigDialog(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Configure {configDialog?.name}</DialogTitle>
-            <DialogDescription>
-              Enter your API credentials from the {configDialog?.name} developer portal.
-              <a 
-                href={getDocsUrl(configDialog?.id)} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 ml-1 text-primary hover:underline"
-              >
-                View setup guide <ExternalLink className="h-3 w-3" />
-              </a>
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="app_id">App ID / Client ID</Label>
-              <Input
-                id="app_id"
-                placeholder="Enter your app ID"
-                value={configValues.app_id}
-                onChange={(e) => setConfigValues(prev => ({ ...prev, app_id: e.target.value }))}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="app_secret">App Secret / Client Secret</Label>
-              <Input
-                id="app_secret"
-                type="password"
-                placeholder="Enter your app secret"
-                value={configValues.app_secret}
-                onChange={(e) => setConfigValues(prev => ({ ...prev, app_secret: e.target.value }))}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="access_token">Access Token (Optional)</Label>
-              <Input
-                id="access_token"
-                type="password"
-                placeholder="Enter access token if available"
-                value={configValues.access_token}
-                onChange={(e) => setConfigValues(prev => ({ ...prev, access_token: e.target.value }))}
-              />
-              <p className="text-xs text-muted-foreground">
-                If you have a long-lived access token, enter it here. Otherwise, you'll be prompted to authenticate.
-              </p>
-            </div>
-            
-            {(configDialog?.id === 'facebook' || configDialog?.id === 'instagram' || configDialog?.id === 'whatsapp') && (
-              <div className="space-y-2">
-                <Label htmlFor="webhook_secret">Webhook Verify Token</Label>
-                <Input
-                  id="webhook_secret"
-                  placeholder="Enter your webhook verify token"
-                  value={configValues.webhook_secret}
-                  onChange={(e) => setConfigValues(prev => ({ ...prev, webhook_secret: e.target.value }))}
-                />
-              </div>
-            )}
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setConfigDialog(null)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveConfig} disabled={connecting}>
-              {connecting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save & Connect'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* How It Works Card */}
+      <Card className="border border-border bg-muted/30">
+        <CardHeader>
+          <CardTitle className="font-heading text-lg">How It Works</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ol className="space-y-3 text-sm text-muted-foreground">
+            <li className="flex gap-3">
+              <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">1</span>
+              <span>Click <strong>Connect</strong> on any platform above</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">2</span>
+              <span>You'll be redirected to authorize access to your account</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">3</span>
+              <span>Grant the requested permissions (we only ask for what's needed)</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="flex-shrink-0 h-6 w-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xs font-bold">4</span>
+              <span>You're done! Comments and messages will flow into your inbox automatically</span>
+            </li>
+          </ol>
+        </CardContent>
+      </Card>
     </div>
   );
 };
-
-// Helper function to get documentation URLs
-function getDocsUrl(integrationId) {
-  const docs = {
-    facebook: 'https://developers.facebook.com/docs/pages/getting-started',
-    instagram: 'https://developers.facebook.com/docs/instagram-api/getting-started',
-    twitter: 'https://developer.twitter.com/en/docs/twitter-api/getting-started',
-    linkedin: 'https://learn.microsoft.com/en-us/linkedin/marketing/getting-started',
-    whatsapp: 'https://developers.facebook.com/docs/whatsapp/cloud-api/get-started',
-    youtube: 'https://developers.google.com/youtube/v3/getting-started'
-  };
-  return docs[integrationId] || '#';
-}
 
 export default IntegrationsSettings;
