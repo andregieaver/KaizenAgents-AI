@@ -1,187 +1,473 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Card, CardContent } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
-import { MessageSquare, Bot, Clock, CheckCircle, ArrowRight, Users } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
+import { ScrollArea } from '../components/ui/scroll-area';
+import { Input } from '../components/ui/input';
+import {
+  MessageSquare,
+  Users,
+  User,
+  Search,
+  Filter,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  MessageCircle,
+  Facebook,
+  Instagram,
+  Mail,
+  Phone,
+  MoreHorizontal,
+  RefreshCw,
+  Inbox,
+  Archive,
+  Star,
+  StarOff
+} from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import OnboardingProgress from '../components/OnboardingProgress';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '../components/ui/dropdown-menu';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
+// Helper to resolve image URLs
+const resolveImageUrl = (url) => {
+  if (!url || url === 'None' || url === 'null' || url === 'undefined') return null;
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (url.startsWith('/')) return `${BACKEND_URL}${url}`;
+  return url;
+};
+
+// Source icon mapping
+const SourceIcon = ({ source, className = "h-4 w-4" }) => {
+  const icons = {
+    chat: <MessageCircle className={className} />,
+    widget: <MessageSquare className={className} />,
+    facebook: <Facebook className={className} />,
+    instagram: <Instagram className={className} />,
+    email: <Mail className={className} />,
+    phone: <Phone className={className} />,
+  };
+  return icons[source?.toLowerCase()] || <MessageSquare className={className} />;
+};
+
+// Status badge component
+const StatusBadge = ({ status }) => {
+  const configs = {
+    open: { variant: 'default', label: 'Open', className: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
+    waiting: { variant: 'secondary', label: 'Waiting', className: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
+    needs_response: { variant: 'destructive', label: 'Needs Response', className: 'bg-red-500/10 text-red-600 border-red-500/20' },
+    resolved: { variant: 'outline', label: 'Resolved', className: 'bg-green-500/10 text-green-600 border-green-500/20' },
+    archived: { variant: 'outline', label: 'Archived', className: 'bg-gray-500/10 text-gray-500 border-gray-500/20' }
+  };
+  const config = configs[status] || configs.open;
+  return (
+    <Badge variant="outline" className={`text-xs ${config.className}`}>
+      {config.label}
+    </Badge>
+  );
+};
+
+// Priority indicator
+const PriorityIndicator = ({ priority }) => {
+  if (!priority || priority === 'normal') return null;
+  const colors = {
+    high: 'bg-red-500',
+    urgent: 'bg-red-600 animate-pulse',
+    low: 'bg-gray-400'
+  };
+  return <div className={`h-2 w-2 rounded-full ${colors[priority] || ''}`} />;
+};
+
+// Conversation item component
+const ConversationItem = ({ conversation, onClick, isSelected }) => {
+  const [starred, setStarred] = useState(conversation.starred || false);
+
+  const toggleStar = (e) => {
+    e.stopPropagation();
+    setStarred(!starred);
+    // TODO: API call to update starred status
+  };
+
+  return (
+    <div
+      onClick={onClick}
+      className={`
+        flex items-start gap-3 p-4 border-b border-border cursor-pointer transition-colors
+        hover:bg-muted/50
+        ${isSelected ? 'bg-primary/5 border-l-2 border-l-primary' : ''}
+        ${conversation.unread ? 'bg-primary/5' : ''}
+      `}
+    >
+      {/* Avatar */}
+      <Avatar className="h-10 w-10 flex-shrink-0">
+        <AvatarImage src={resolveImageUrl(conversation.customer_avatar)} />
+        <AvatarFallback className="bg-primary/10 text-primary">
+          {conversation.customer_name?.charAt(0)?.toUpperCase() || '?'}
+        </AvatarFallback>
+      </Avatar>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className={`font-medium text-sm truncate ${conversation.unread ? 'font-semibold' : ''}`}>
+              {conversation.customer_name || 'Anonymous'}
+            </span>
+            <PriorityIndicator priority={conversation.priority} />
+          </div>
+          <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+            {conversation.updated_at && formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: false })}
+          </span>
+        </div>
+        
+        <p className={`text-sm truncate mb-2 ${conversation.unread ? 'text-foreground' : 'text-muted-foreground'}`}>
+          {conversation.last_message || 'No messages yet'}
+        </p>
+        
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <SourceIcon source={conversation.source} className="h-3.5 w-3.5" />
+              <span className="text-xs capitalize">{conversation.source || 'Chat'}</span>
+            </div>
+            <StatusBadge status={conversation.status} />
+          </div>
+          
+          <div className="flex items-center gap-1">
+            {conversation.assigned_agent && (
+              <Avatar className="h-5 w-5">
+                <AvatarImage src={resolveImageUrl(conversation.assigned_agent.avatar_url)} />
+                <AvatarFallback className="text-xs bg-muted">
+                  {conversation.assigned_agent.name?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            )}
+            <button
+              onClick={toggleStar}
+              className="p-1 hover:bg-muted rounded transition-colors"
+            >
+              {starred ? (
+                <Star className="h-4 w-4 text-amber-500 fill-amber-500" />
+              ) : (
+                <StarOff className="h-4 w-4 text-muted-foreground" />
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Empty state component
+const EmptyState = ({ tab }) => {
+  const messages = {
+    all: {
+      icon: Inbox,
+      title: 'Your inbox is empty',
+      description: 'Conversations from all channels will appear here when customers reach out.'
+    },
+    team: {
+      icon: Users,
+      title: 'No team conversations',
+      description: 'Conversations assigned to your team will appear here.'
+    },
+    me: {
+      icon: User,
+      title: 'No conversations assigned to you',
+      description: 'Conversations specifically assigned to you will appear here.'
+    }
+  };
+  
+  const config = messages[tab] || messages.all;
+  const Icon = config.icon;
+  
+  return (
+    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+      <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+        <Icon className="h-8 w-8 text-muted-foreground" />
+      </div>
+      <h3 className="font-medium text-lg mb-2">{config.title}</h3>
+      <p className="text-sm text-muted-foreground max-w-sm">{config.description}</p>
+    </div>
+  );
+};
 
 const Dashboard = () => {
   const { token, user } = useAuth();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('all');
+  const [conversations, setConversations] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedConversation, setSelectedConversation] = useState(null);
+
+  const fetchData = useCallback(async (showRefresh = false) => {
+    if (showRefresh) setRefreshing(true);
+    try {
+      const [statsRes, conversationsRes] = await Promise.all([
+        axios.get(`${API}/stats`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API}/conversations`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+      setStats(statsRes.data);
+      setConversations(conversationsRes.data || []);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [token]);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await axios.get(`${API}/stats`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setStats(response.data);
-      } catch {
-        // Stats fetch failed silently
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchData();
+    // Auto-refresh every 30 seconds
+    const interval = setInterval(() => fetchData(false), 30000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
-    fetchStats();
-  }, [token]);
+  // Filter conversations based on tab and search
+  const filteredConversations = conversations.filter(conv => {
+    // Tab filter
+    if (activeTab === 'me' && conv.assigned_to !== user?.id) return false;
+    if (activeTab === 'team' && conv.assigned_to === user?.id) return false;
+    
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      return (
+        conv.customer_name?.toLowerCase().includes(query) ||
+        conv.customer_email?.toLowerCase().includes(query) ||
+        conv.last_message?.toLowerCase().includes(query)
+      );
+    }
+    return true;
+  });
+
+  // Calculate tab counts
+  const tabCounts = {
+    all: conversations.length,
+    team: conversations.filter(c => c.assigned_to !== user?.id).length,
+    me: conversations.filter(c => c.assigned_to === user?.id).length
+  };
+
+  const handleConversationClick = (conversation) => {
+    setSelectedConversation(conversation.id);
+    navigate(`/dashboard/conversations/${conversation.id}`);
+  };
 
   if (loading) {
     return (
-      <div className="p-6 lg:p-8 page-transition">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 w-48 bg-muted rounded" />
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-32 bg-muted rounded-sm" />
-            ))}
+      <div className="h-full flex flex-col">
+        <div className="p-4 border-b border-border animate-pulse">
+          <div className="h-6 w-32 bg-muted rounded mb-4" />
+          <div className="flex gap-2">
+            <div className="h-8 w-20 bg-muted rounded" />
+            <div className="h-8 w-20 bg-muted rounded" />
+            <div className="h-8 w-20 bg-muted rounded" />
           </div>
+        </div>
+        <div className="flex-1 p-4 space-y-3">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-24 bg-muted rounded animate-pulse" />
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 lg:p-8 page-transition" data-testid="dashboard-overview">
-      {/* Onboarding Progress Tracker */}
-      <OnboardingProgress />
-      
-      <div className="mb-8">
-        <h1 className="font-heading text-2xl lg:text-3xl font-bold tracking-tight mb-2">
-          Welcome back, {user?.name?.split(' ')[0]}
-        </h1>
-        <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your support today.</p>
-      </div>
-
-      {/* Stats Grid - 2 cols mobile, 4 cols desktop */}
-      <div 
-        className="stats-grid gap-3 sm:gap-4 mb-8"
-      >
-        <Link to="/dashboard/conversations">
-          <StatCard
-            label="Total Conversations"
-            value={stats?.total_conversations || 0}
-            trend="all time"
-            clickable
-          />
-        </Link>
-        <Link to="/dashboard/conversations?status=needs_response">
-          <StatCard
-            label="Needs Response"
-            value={stats?.waiting_conversations || stats?.open_conversations || 0}
-            trend="need attention"
-            highlight
-            clickable
-          />
-        </Link>
-        <Link to="/dashboard/conversations?status=resolved">
-          <StatCard
-            label="Resolved"
-            value={stats?.resolved_conversations || 0}
-            trend="completed"
-            clickable
-          />
-        </Link>
-        <Link to="/dashboard/crm">
-          <StatCard
-            label="CRM Customers"
-            value={stats?.total_customers || 0}
-            trend="total"
-            clickable
-          />
-        </Link>
-      </div>
-
-      {/* Recent Conversations */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6">
-          <CardTitle className="font-heading text-base sm:text-lg">Recent Conversations</CardTitle>
-          <Link to="/dashboard/conversations">
-            <Button variant="ghost" size="sm" data-testid="view-all-conversations" className="text-xs sm:text-sm">
-              View all
-              <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
+    <div className="h-full flex flex-col bg-background" data-testid="dashboard-inbox">
+      {/* Header */}
+      <div className="p-4 border-b border-border bg-card">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="font-heading text-xl font-bold tracking-tight">Inbox</h1>
+            <p className="text-sm text-muted-foreground">
+              {stats?.waiting_conversations || 0} conversations need attention
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchData(true)}
+              disabled={refreshing}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+              Refresh
             </Button>
-          </Link>
-        </CardHeader>
-        <CardContent className="p-4 sm:p-6 pt-0">
-          {stats?.recent_conversations?.length > 0 ? (
-            <div className="space-y-2 sm:space-y-3">
-              {stats.recent_conversations.map((conversation) => (
-                <Link
-                  key={conversation.id}
-                  to={`/dashboard/conversations/${conversation.id}`}
-                  className="block"
-                >
-                  <div className="flex items-start sm:items-center justify-between p-2 sm:p-3 rounded-sm border border-border hover:bg-muted/50 transition-colors gap-2">
-                    <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                      <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                        <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-xs sm:text-sm truncate">
-                          {conversation.customer_name || 'Anonymous'}
-                        </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {conversation.last_message || 'No messages yet'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-3 flex-shrink-0">
-                      <StatusBadge status={conversation.status} />
-                      <span className="text-[10px] sm:text-xs text-muted-foreground whitespace-nowrap">
-                        {conversation.updated_at && formatDistanceToNow(new Date(conversation.updated_at), { addSuffix: true })}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-6 sm:py-8">
-              <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground mb-2 sm:mb-4 text-sm">No conversations yet</p>
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Conversations will appear here when customers start chatting.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Filter
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem>
+                  <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
+                  Needs Response
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Clock className="h-4 w-4 mr-2 text-amber-500" />
+                  Waiting
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
+                  Resolved
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <Archive className="h-4 w-4 mr-2" />
+                  Show Archived
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="relative mb-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search conversations..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full justify-start bg-transparent p-0 h-auto gap-1">
+            <TabsTrigger
+              value="all"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm"
+            >
+              <Inbox className="h-4 w-4 mr-2" />
+              All
+              {tabCounts.all > 0 && (
+                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                  {tabCounts.all}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              value="team"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Team
+              {tabCounts.team > 0 && (
+                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                  {tabCounts.team}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              value="me"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm"
+            >
+              <User className="h-4 w-4 mr-2" />
+              Me
+              {tabCounts.me > 0 && (
+                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                  {tabCounts.me}
+                </Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Quick Stats Bar */}
+      <div className="flex items-center gap-4 px-4 py-3 border-b border-border bg-muted/30 overflow-x-auto">
+        <div className="flex items-center gap-2 text-sm whitespace-nowrap">
+          <div className="h-2 w-2 rounded-full bg-red-500" />
+          <span className="text-muted-foreground">Needs Response:</span>
+          <span className="font-semibold">{stats?.waiting_conversations || 0}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm whitespace-nowrap">
+          <div className="h-2 w-2 rounded-full bg-blue-500" />
+          <span className="text-muted-foreground">Open:</span>
+          <span className="font-semibold">{stats?.open_conversations || 0}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm whitespace-nowrap">
+          <div className="h-2 w-2 rounded-full bg-green-500" />
+          <span className="text-muted-foreground">Resolved Today:</span>
+          <span className="font-semibold">{stats?.resolved_today || 0}</span>
+        </div>
+        <div className="flex items-center gap-2 text-sm whitespace-nowrap">
+          <div className="h-2 w-2 rounded-full bg-purple-500" />
+          <span className="text-muted-foreground">Avg Response:</span>
+          <span className="font-semibold">{stats?.avg_response_time || '< 1m'}</span>
+        </div>
+      </div>
+
+      {/* Conversation List */}
+      <ScrollArea className="flex-1">
+        {filteredConversations.length > 0 ? (
+          <div className="divide-y divide-border">
+            {filteredConversations.map((conversation) => (
+              <ConversationItem
+                key={conversation.id}
+                conversation={conversation}
+                onClick={() => handleConversationClick(conversation)}
+                isSelected={selectedConversation === conversation.id}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyState tab={activeTab} />
+        )}
+      </ScrollArea>
+
+      {/* Source Legend - Footer */}
+      <div className="p-3 border-t border-border bg-muted/30">
+        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <MessageCircle className="h-3.5 w-3.5" />
+            <span>Chat Widget</span>
+          </div>
+          <div className="flex items-center gap-1 opacity-50">
+            <Facebook className="h-3.5 w-3.5" />
+            <span>Facebook</span>
+            <Badge variant="outline" className="text-[10px] h-4 px-1">Soon</Badge>
+          </div>
+          <div className="flex items-center gap-1 opacity-50">
+            <Instagram className="h-3.5 w-3.5" />
+            <span>Instagram</span>
+            <Badge variant="outline" className="text-[10px] h-4 px-1">Soon</Badge>
+          </div>
+          <div className="flex items-center gap-1 opacity-50">
+            <Mail className="h-3.5 w-3.5" />
+            <span>Email</span>
+            <Badge variant="outline" className="text-[10px] h-4 px-1">Soon</Badge>
+          </div>
+        </div>
+      </div>
     </div>
   );
-};
-
-const StatCard = ({ label, value, trend, highlight, clickable }) => (
-  <Card className={`
-    border-0 btn-neumorphic !bg-card 
-    ${highlight ? 'ring-2 ring-primary/30' : ''} 
-    ${clickable ? 'cursor-pointer hover:scale-[1.02] transition-transform' : ''}
-  `} data-testid="stat-card">
-    <CardContent className="p-3 sm:p-4 text-center">
-      <p className="font-heading text-xl sm:text-2xl font-bold tracking-tight mb-0.5">{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
-      {clickable && (
-        <p className="text-[10px] text-muted-foreground/60 mt-1">Click to view</p>
-      )}
-    </CardContent>
-  </Card>
-);
-
-const StatusBadge = ({ status }) => {
-  const variants = {
-    open: { variant: 'default', label: 'Open' },
-    waiting: { variant: 'secondary', label: 'Waiting' },
-    resolved: { variant: 'outline', label: 'Resolved' }
-  };
-  const config = variants[status] || variants.open;
-  return <Badge variant={config.variant}>{config.label}</Badge>;
 };
 
 export default Dashboard;
