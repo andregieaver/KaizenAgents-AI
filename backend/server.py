@@ -1884,17 +1884,12 @@ async def oauth_callback(
     integration_type = oauth_state.get("integration_type")
     provider = oauth_state.get("provider") or OAUTH_PROVIDERS.get(integration_type)
     
-    # Get tenant's OAuth config
-    oauth_config = await db.oauth_configs.find_one(
-        {"tenant_id": tenant_id, "provider": provider}
-    )
+    # Get platform-level OAuth credentials
+    app_id, app_secret = get_platform_oauth_credentials(provider)
     
-    if not oauth_config:
+    if not app_id or not app_secret:
         await db.oauth_states.delete_one({"state": state})
-        return RedirectResponse(f"{settings_url}&oauth_error=OAuth app not configured")
-    
-    app_id = oauth_config.get("app_id")
-    app_secret = oauth_config.get("app_secret")
+        return RedirectResponse(f"{settings_url}&oauth_error=Integration not configured")
     
     # Delete used state
     await db.oauth_states.delete_one({"state": state})
