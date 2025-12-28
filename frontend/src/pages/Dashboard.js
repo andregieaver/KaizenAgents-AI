@@ -497,7 +497,7 @@ const Dashboard = () => {
             <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'archived' ? 'bg-white' : 'bg-gray-500'}`} />
             <span>Archived</span>
             <span className={`font-semibold ${activeStatusFilter === 'archived' ? 'text-white' : 'text-foreground'}`}>
-              {stats?.archived_count || 0}
+              {stats?.archived_conversations || 0}
             </span>
           </button>
           
