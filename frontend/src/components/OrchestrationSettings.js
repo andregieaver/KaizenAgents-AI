@@ -568,26 +568,35 @@ const OrchestrationSettings = () => {
                         
                         {/* Enable/Disable Toggle */}
                         <div className="flex flex-col items-end gap-2">
-                          <div className="flex items-center gap-2">
-                            <Label htmlFor={`agent-${agent.id}-toggle`} className="text-xs text-muted-foreground">
-                              Available for orchestration
-                            </Label>
-                            <Switch
-                              id={`agent-${agent.id}-toggle`}
-                              checked={agent.orchestration_enabled || false}
-                              onCheckedChange={(checked) => toggleAgentOrchestrationEnabled(agent.id, checked)}
-                            />
-                          </div>
-                          
-                          {agent.orchestration_enabled && (
-                            <div className="flex items-center gap-2 mt-2">
-                              <Label htmlFor={`agent-${agent.id}-allowed`} className="text-xs text-muted-foreground">
-                                Allow delegation
-                              </Label>
-                              <Switch
-                                id={`agent-${agent.id}-allowed`}
-                                checked={selectedChildren.includes(agent.id)}
-                                onCheckedChange={() => toggleChildAgent(agent.id)}
+                          {agent.is_mother_agent ? (
+                            <div className="flex items-center gap-2 text-amber-500">
+                              <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+                                Mother Agent
+                              </Badge>
+                              <Info className="h-4 w-4" title="Mother Agent cannot be orchestrated" />
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <Label htmlFor={`agent-${agent.id}-toggle`} className="text-xs text-muted-foreground">
+                                  Available for orchestration
+                                </Label>
+                                <Switch
+                                  id={`agent-${agent.id}-toggle`}
+                                  checked={agent.orchestration_enabled || false}
+                                  onCheckedChange={(checked) => toggleAgentOrchestrationEnabled(agent.id, checked)}
+                                />
+                              </div>
+                              
+                              {agent.orchestration_enabled && (
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Label htmlFor={`agent-${agent.id}-allowed`} className="text-xs text-muted-foreground">
+                                    Allow delegation
+                                  </Label>
+                                  <Switch
+                                    id={`agent-${agent.id}-allowed`}
+                                    checked={selectedChildren.includes(agent.id)}
+                                    onCheckedChange={() => toggleChildAgent(agent.id)}
                               />
                             </div>
                           )}
