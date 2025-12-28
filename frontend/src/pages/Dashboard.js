@@ -354,19 +354,18 @@ const Dashboard = () => {
       <div className="flex-1 overflow-y-auto">
         {/* Header - Scrolls away */}
         <div className="p-4 pb-0 bg-card">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="font-heading text-xl font-bold tracking-tight">Inbox</h1>
-          </div>
-
-          {/* Search */}
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search conversations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex items-center gap-4 mb-4">
+            <h1 className="font-heading text-xl font-bold tracking-tight flex-shrink-0">Inbox</h1>
+            {/* Search - inline with heading */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
           </div>
       </div>{/* End of header bg-card */}
 
