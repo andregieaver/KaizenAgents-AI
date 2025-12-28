@@ -472,6 +472,23 @@ const Dashboard = () => {
           </button>
           
           <button
+            onClick={() => toggleStatusFilter('waiting')}
+            className={`
+              flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
+              ${activeStatusFilter === 'waiting' 
+                ? 'bg-amber-500 text-white shadow-sm' 
+                : 'hover:bg-amber-500/10 text-muted-foreground hover:text-amber-600'
+              }
+            `}
+          >
+            <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'waiting' ? 'bg-white' : 'bg-amber-500'}`} />
+            <span>Waiting</span>
+            <span className={`font-semibold ${activeStatusFilter === 'waiting' ? 'text-white' : 'text-foreground'}`}>
+              {stats?.waiting_count || 0}
+            </span>
+          </button>
+          
+          <button
             onClick={() => toggleStatusFilter('resolved_today')}
             className={`
               flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
@@ -482,17 +499,28 @@ const Dashboard = () => {
             `}
           >
             <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'resolved_today' ? 'bg-white' : 'bg-green-500'}`} />
-            <span>Resolved Today</span>
+            <span>Resolved</span>
             <span className={`font-semibold ${activeStatusFilter === 'resolved_today' ? 'text-white' : 'text-foreground'}`}>
               {stats?.resolved_today || 0}
             </span>
           </button>
           
-          <div className="flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 text-muted-foreground flex-shrink-0">
-            <div className="h-2 w-2 rounded-full bg-purple-500" />
-            <span>Avg Response:</span>
-            <span className="font-semibold text-foreground">{stats?.avg_response_time || '< 1m'}</span>
-          </div>
+          <button
+            onClick={() => toggleStatusFilter('archived')}
+            className={`
+              flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
+              ${activeStatusFilter === 'archived' 
+                ? 'bg-gray-500 text-white shadow-sm' 
+                : 'hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600'
+              }
+            `}
+          >
+            <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'archived' ? 'bg-white' : 'bg-gray-500'}`} />
+            <span>Archived</span>
+            <span className={`font-semibold ${activeStatusFilter === 'archived' ? 'text-white' : 'text-foreground'}`}>
+              {stats?.archived_count || 0}
+            </span>
+          </button>
           
           {activeStatusFilter && (
             <button
@@ -500,7 +528,7 @@ const Dashboard = () => {
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors ml-auto flex-shrink-0"
             >
               <X className="h-3 w-3" />
-              Clear filter
+              Clear
             </button>
           )}
         </div>
