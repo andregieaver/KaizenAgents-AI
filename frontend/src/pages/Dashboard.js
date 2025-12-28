@@ -370,50 +370,7 @@ const Dashboard = () => {
         {/* Header - Scrolls away */}
         <div className="p-4 pb-0 bg-card">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="font-heading text-xl font-bold tracking-tight">Inbox</h1>
-              <p className="text-sm text-muted-foreground">
-                {stats?.waiting_conversations || 0} conversations need attention
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fetchData(true)}
-                disabled={refreshing}
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filter
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem>
-                    <AlertCircle className="h-4 w-4 mr-2 text-red-500" />
-                    Needs Response
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Clock className="h-4 w-4 mr-2 text-amber-500" />
-                    Waiting
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <CheckCircle2 className="h-4 w-4 mr-2 text-green-500" />
-                    Resolved
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem>
-                    <Archive className="h-4 w-4 mr-2" />
-                    Show Archived
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+            <h1 className="font-heading text-xl font-bold tracking-tight">Inbox</h1>
           </div>
 
           {/* Search */}
