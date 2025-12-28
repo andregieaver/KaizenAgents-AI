@@ -468,19 +468,19 @@ const Dashboard = () => {
           </button>
           
           <button
-            onClick={() => toggleStatusFilter('resolved_today')}
+            onClick={() => toggleStatusFilter('resolved')}
             className={`
               flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
-              ${activeStatusFilter === 'resolved_today' 
+              ${activeStatusFilter === 'resolved' 
                 ? 'bg-green-500 text-white shadow-sm' 
                 : 'hover:bg-green-500/10 text-muted-foreground hover:text-green-600'
               }
             `}
           >
-            <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'resolved_today' ? 'bg-white' : 'bg-green-500'}`} />
+            <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'resolved' ? 'bg-white' : 'bg-green-500'}`} />
             <span>Resolved</span>
-            <span className={`font-semibold ${activeStatusFilter === 'resolved_today' ? 'text-white' : 'text-foreground'}`}>
-              {stats?.resolved_today || 0}
+            <span className={`font-semibold ${activeStatusFilter === 'resolved' ? 'text-white' : 'text-foreground'}`}>
+              {stats?.resolved_count || 0}
             </span>
           </button>
           
