@@ -570,7 +570,10 @@ const Dashboard = () => {
 
       {/* Source Legend - Footer */}
       <div className="relative border-t border-border bg-muted/30">
-        <div className="flex items-center justify-center gap-4 p-3 overflow-x-auto scrollbar-hide">
+        <div 
+          ref={footerRef}
+          className="flex items-center justify-center gap-4 p-3 overflow-x-auto scrollbar-hide"
+        >
           <div className="flex items-center gap-1 text-xs text-muted-foreground whitespace-nowrap">
             <MessageCircle className="h-3.5 w-3.5" />
             <span>Chat Widget</span>
@@ -591,10 +594,13 @@ const Dashboard = () => {
             <Badge variant="outline" className="text-[10px] h-4 px-1">Soon</Badge>
           </div>
         </div>
-        {/* Stronger gradient fade on left edge */}
-        <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background via-background/80 to-transparent pointer-events-none sm:hidden" />
-        {/* Stronger gradient fade on right edge */}
-        <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background via-background/80 to-transparent pointer-events-none sm:hidden" />
+        {/* Dynamic fade indicators based on scroll position */}
+        {footerScroll.canScrollLeft && (
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none" />
+        )}
+        {footerScroll.canScrollRight && (
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
+        )}
       </div>
     </div>
   );
