@@ -418,28 +418,74 @@ const Dashboard = () => {
         </Tabs>
       </div>
 
-      {/* Quick Stats Bar */}
-      <div className="flex items-center gap-4 px-4 py-3 border-b border-border bg-muted/30 overflow-x-auto">
-        <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-          <div className="h-2 w-2 rounded-full bg-red-500" />
-          <span className="text-muted-foreground">Needs Response:</span>
-          <span className="font-semibold">{stats?.waiting_conversations || 0}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-          <div className="h-2 w-2 rounded-full bg-blue-500" />
-          <span className="text-muted-foreground">Open:</span>
-          <span className="font-semibold">{stats?.open_conversations || 0}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-          <div className="h-2 w-2 rounded-full bg-green-500" />
-          <span className="text-muted-foreground">Resolved Today:</span>
-          <span className="font-semibold">{stats?.resolved_today || 0}</span>
-        </div>
-        <div className="flex items-center gap-2 text-sm whitespace-nowrap">
+      {/* Quick Stats Bar - Clickable Filters */}
+      <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/30 overflow-x-auto">
+        <button
+          onClick={() => toggleStatusFilter('needs_response')}
+          className={`
+            flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all
+            ${activeStatusFilter === 'needs_response' 
+              ? 'bg-red-500 text-white shadow-sm' 
+              : 'hover:bg-red-500/10 text-muted-foreground hover:text-red-600'
+            }
+          `}
+        >
+          <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'needs_response' ? 'bg-white' : 'bg-red-500'}`} />
+          <span>Needs Response</span>
+          <span className={`font-semibold ${activeStatusFilter === 'needs_response' ? 'text-white' : 'text-foreground'}`}>
+            {stats?.waiting_conversations || 0}
+          </span>
+        </button>
+        
+        <button
+          onClick={() => toggleStatusFilter('open')}
+          className={`
+            flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all
+            ${activeStatusFilter === 'open' 
+              ? 'bg-blue-500 text-white shadow-sm' 
+              : 'hover:bg-blue-500/10 text-muted-foreground hover:text-blue-600'
+            }
+          `}
+        >
+          <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'open' ? 'bg-white' : 'bg-blue-500'}`} />
+          <span>Open</span>
+          <span className={`font-semibold ${activeStatusFilter === 'open' ? 'text-white' : 'text-foreground'}`}>
+            {stats?.open_conversations || 0}
+          </span>
+        </button>
+        
+        <button
+          onClick={() => toggleStatusFilter('resolved_today')}
+          className={`
+            flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all
+            ${activeStatusFilter === 'resolved_today' 
+              ? 'bg-green-500 text-white shadow-sm' 
+              : 'hover:bg-green-500/10 text-muted-foreground hover:text-green-600'
+            }
+          `}
+        >
+          <div className={`h-2 w-2 rounded-full ${activeStatusFilter === 'resolved_today' ? 'bg-white' : 'bg-green-500'}`} />
+          <span>Resolved Today</span>
+          <span className={`font-semibold ${activeStatusFilter === 'resolved_today' ? 'text-white' : 'text-foreground'}`}>
+            {stats?.resolved_today || 0}
+          </span>
+        </button>
+        
+        <div className="flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 text-muted-foreground">
           <div className="h-2 w-2 rounded-full bg-purple-500" />
-          <span className="text-muted-foreground">Avg Response:</span>
-          <span className="font-semibold">{stats?.avg_response_time || '< 1m'}</span>
+          <span>Avg Response:</span>
+          <span className="font-semibold text-foreground">{stats?.avg_response_time || '< 1m'}</span>
         </div>
+        
+        {activeStatusFilter && (
+          <button
+            onClick={() => setActiveStatusFilter(null)}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted transition-colors ml-auto"
+          >
+            <X className="h-3 w-3" />
+            Clear filter
+          </button>
+        )}
       </div>
 
       {/* Conversation List */}
