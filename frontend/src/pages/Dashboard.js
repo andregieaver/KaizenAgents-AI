@@ -306,6 +306,8 @@ const Dashboard = () => {
     if (activeStatusFilter) {
       if (activeStatusFilter === 'needs_response' && conv.status !== 'needs_response' && conv.status !== 'waiting') return false;
       if (activeStatusFilter === 'open' && conv.status !== 'open') return false;
+      if (activeStatusFilter === 'waiting' && conv.status !== 'waiting') return false;
+      if (activeStatusFilter === 'archived' && conv.status !== 'archived') return false;
       if (activeStatusFilter === 'resolved_today') {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
