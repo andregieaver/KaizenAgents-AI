@@ -252,7 +252,12 @@ const Agents = () => {
   };
 
   const bulkEnableOrchestration = () => {
-    bulkUpdateAgents({ orchestration_enabled: true }, `${selectedAgents.size} agent(s) enabled for orchestration`);
+    // Filter out Mother Agent from selection
+    const motherAgent = agents.find(a => a.is_mother_agent && selectedAgents.has(a.id));
+    if (motherAgent) {
+      toast.info(`${motherAgent.name} is the Mother Agent and was excluded from orchestration`);
+    }
+    bulkUpdateAgents({ orchestration_enabled: true }, `Agent(s) enabled for orchestration (Mother Agent excluded)`);
   };
 
   const bulkDisableOrchestration = () => {
