@@ -1396,6 +1396,390 @@ class AIAgentHubTester:
         
         return True
 
+    # ============== KNOWLEDGE BASE FEATURE TESTS ==============
+
+    def test_knowledge_base_feature_end_to_end(self):
+        """Test Knowledge Base feature end-to-end as requested in review"""
+        print(f"\n🎯 Testing Knowledge Base Feature End-to-End")
+        
+        # Test all steps from the review request
+        login_test = self.test_super_admin_login()
+        if not login_test:
+            print("❌ Login failed - cannot continue with Knowledge Base tests")
+            return False
+            
+        # Test backend API endpoints
+        create_kb_article_test = self.test_create_knowledge_base_article()
+        get_kb_articles_test = self.test_get_knowledge_base_articles()
+        get_kb_categories_test = self.test_get_knowledge_base_categories()
+        get_single_kb_article_test = self.test_get_single_knowledge_base_article()
+        search_kb_articles_test = self.test_search_knowledge_base_articles()
+        filter_kb_by_category_test = self.test_filter_knowledge_base_by_category()
+        
+        # Summary of Knowledge Base tests
+        print(f"\n📋 Knowledge Base Feature Test Results:")
+        print(f"   Super Admin Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
+        print(f"   Create KB Article: {'✅ PASSED' if create_kb_article_test else '❌ FAILED'}")
+        print(f"   Get KB Articles: {'✅ PASSED' if get_kb_articles_test else '❌ FAILED'}")
+        print(f"   Get KB Categories: {'✅ PASSED' if get_kb_categories_test else '❌ FAILED'}")
+        print(f"   Get Single KB Article: {'✅ PASSED' if get_single_kb_article_test else '❌ FAILED'}")
+        print(f"   Search KB Articles: {'✅ PASSED' if search_kb_articles_test else '❌ FAILED'}")
+        print(f"   Filter KB by Category: {'✅ PASSED' if filter_kb_by_category_test else '❌ FAILED'}")
+        
+        return all([login_test, create_kb_article_test, get_kb_articles_test, 
+                   get_kb_categories_test, get_single_kb_article_test, 
+                   search_kb_articles_test, filter_kb_by_category_test])
+
+    def test_create_knowledge_base_article(self):
+        """Test POST /api/admin/pages - Create Knowledge Base article"""
+        print(f"\n🔧 Testing Create Knowledge Base Article")
+        
+        # Create a Knowledge Base article with all required fields
+        kb_article_data = {
+            "name": "Getting Started Guide",
+            "slug": "getting-started-guide",
+            "path": "/kb/getting-started-guide",
+            "page_type": "knowledge_base",
+            "category": "Getting Started",
+            "tags": ["setup", "basics", "tutorial"],
+            "visible": True,
+            "blocks": [
+                {
+                    "id": "block-1",
+                    "type": "hero",
+                    "content": {
+                        "title": "Getting Started Guide",
+                        "subtitle": "Learn the basics of using our platform"
+                    },
+                    "order": 1
+                },
+                {
+                    "id": "block-2", 
+                    "type": "text",
+                    "content": {
+                        "text": "<p>Welcome to our platform! This guide will help you get started with the basic features and functionality.</p>"
+                    },
+                    "order": 2
+                },
+                {
+                    "id": "block-3",
+                    "type": "heading",
+                    "content": {
+                        "text": "Step 1: Account Setup",
+                        "level": 2
+                    },
+                    "order": 3
+                },
+                {
+                    "id": "block-4",
+                    "type": "list",
+                    "content": {
+                        "ordered": True,
+                        "items": [
+                            "Create your account",
+                            "Verify your email address", 
+                            "Complete your profile"
+                        ]
+                    },
+                    "order": 4
+                }
+            ]
+        }
+        
+        success, response = self.run_test(
+            "Create Knowledge Base Article",
+            "POST",
+            "admin/pages",
+            200,
+            data=kb_article_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Knowledge Base article")
+            return False
+            
+        # Verify response structure
+        required_fields = ["slug", "name", "page_type", "category", "tags", "blocks"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields in response: {missing_fields}")
+            return False
+            
+        # Verify Knowledge Base specific fields
+        if response.get("page_type") != "knowledge_base":
+            print(f"❌ Expected page_type 'knowledge_base', got '{response.get('page_type')}'")
+            return False
+            
+        if response.get("category") != "Getting Started":
+            print(f"❌ Expected category 'Getting Started', got '{response.get('category')}'")
+            return False
+            
+        if not response.get("tags") or "setup" not in response.get("tags", []):
+            print(f"❌ Expected tags to include 'setup', got {response.get('tags')}")
+            return False
+            
+        if not response.get("blocks") or len(response.get("blocks", [])) != 4:
+            print(f"❌ Expected 4 content blocks, got {len(response.get('blocks', []))}")
+            return False
+            
+        print(f"   ✅ Knowledge Base article created successfully")
+        print(f"   Article Name: {response.get('name')}")
+        print(f"   Category: {response.get('category')}")
+        print(f"   Tags: {response.get('tags')}")
+        print(f"   Content Blocks: {len(response.get('blocks', []))}")
+        
+        # Store for later tests
+        self.kb_article_slug = response.get("slug")
+        
+        return True
+
+    def test_get_knowledge_base_articles(self):
+        """Test GET /api/admin/pages/knowledge-base/articles"""
+        print(f"\n🔧 Testing Get Knowledge Base Articles")
+        
+        success, response = self.run_test(
+            "Get Knowledge Base Articles",
+            "GET",
+            "admin/pages/knowledge-base/articles",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get Knowledge Base articles")
+            return False
+            
+        # Verify response is an array
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+            
+        print(f"   ✅ Knowledge Base articles endpoint accessible")
+        print(f"   Found {len(response)} Knowledge Base articles")
+        
+        if len(response) > 0:
+            # Verify article structure
+            article = response[0]
+            required_fields = ["slug", "name", "category", "tags", "seo", "blocks"]
+            missing_fields = [field for field in required_fields if field not in article]
+            
+            if missing_fields:
+                print(f"   ⚠️ Some articles missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ Article structure is correct")
+                
+            # Check if our created article is in the list
+            created_article = next((a for a in response if a.get("slug") == getattr(self, 'kb_article_slug', None)), None)
+            if created_article:
+                print(f"   ✅ Created article found in list: {created_article.get('name')}")
+            else:
+                print(f"   ⚠️ Created article not found in list")
+                
+        return True
+
+    def test_get_knowledge_base_categories(self):
+        """Test GET /api/admin/pages/knowledge-base/categories"""
+        print(f"\n🔧 Testing Get Knowledge Base Categories")
+        
+        success, response = self.run_test(
+            "Get Knowledge Base Categories",
+            "GET",
+            "admin/pages/knowledge-base/categories",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get Knowledge Base categories")
+            return False
+            
+        # Verify response is an array
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+            
+        print(f"   ✅ Knowledge Base categories endpoint accessible")
+        print(f"   Found {len(response)} categories")
+        
+        if len(response) > 0:
+            # Verify category structure
+            category = response[0]
+            required_fields = ["name", "count"]
+            missing_fields = [field for field in required_fields if field not in category]
+            
+            if missing_fields:
+                print(f"   ⚠️ Categories missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ Category structure is correct")
+                
+            # Check if our created category is in the list
+            getting_started_cat = next((c for c in response if c.get("name") == "Getting Started"), None)
+            if getting_started_cat:
+                print(f"   ✅ 'Getting Started' category found with {getting_started_cat.get('count')} articles")
+            else:
+                print(f"   ⚠️ 'Getting Started' category not found")
+                
+            # Print all categories
+            for cat in response:
+                print(f"     - {cat.get('name')}: {cat.get('count')} articles")
+                
+        return True
+
+    def test_get_single_knowledge_base_article(self):
+        """Test GET /api/admin/pages/knowledge-base/article/{slug}"""
+        print(f"\n🔧 Testing Get Single Knowledge Base Article")
+        
+        if not hasattr(self, 'kb_article_slug') or not self.kb_article_slug:
+            print("❌ No Knowledge Base article slug available for testing")
+            return False
+            
+        success, response = self.run_test(
+            "Get Single Knowledge Base Article",
+            "GET",
+            f"admin/pages/knowledge-base/article/{self.kb_article_slug}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get single Knowledge Base article")
+            return False
+            
+        # Verify response structure
+        required_fields = ["slug", "name", "category", "tags", "blocks", "seo"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields: {missing_fields}")
+            return False
+            
+        print(f"   ✅ Single article retrieved successfully")
+        print(f"   Article: {response.get('name')}")
+        print(f"   Category: {response.get('category')}")
+        print(f"   Tags: {response.get('tags')}")
+        print(f"   Content Blocks: {len(response.get('blocks', []))}")
+        
+        # Verify content blocks structure
+        blocks = response.get("blocks", [])
+        if len(blocks) > 0:
+            block_types = [block.get("type") for block in blocks]
+            print(f"   Block Types: {block_types}")
+            
+            # Verify specific block content
+            hero_block = next((b for b in blocks if b.get("type") == "hero"), None)
+            if hero_block and hero_block.get("content", {}).get("title") == "Getting Started Guide":
+                print(f"   ✅ Hero block content verified")
+            else:
+                print(f"   ⚠️ Hero block content not as expected")
+                
+        # Check for related articles
+        if "related" in response:
+            print(f"   Related Articles: {len(response.get('related', []))}")
+        
+        return True
+
+    def test_search_knowledge_base_articles(self):
+        """Test search functionality in Knowledge Base articles"""
+        print(f"\n🔧 Testing Search Knowledge Base Articles")
+        
+        # Test search by name
+        success, response = self.run_test(
+            "Search KB Articles by Name",
+            "GET",
+            "admin/pages/knowledge-base/articles?search=Getting Started",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to search Knowledge Base articles")
+            return False
+            
+        print(f"   ✅ Search by name returned {len(response)} articles")
+        
+        # Verify search results contain our article
+        if len(response) > 0:
+            found_article = next((a for a in response if "Getting Started" in a.get("name", "")), None)
+            if found_article:
+                print(f"   ✅ Search found expected article: {found_article.get('name')}")
+            else:
+                print(f"   ⚠️ Search did not find expected article")
+                
+        # Test search by tag
+        success, tag_response = self.run_test(
+            "Search KB Articles by Tag",
+            "GET",
+            "admin/pages/knowledge-base/articles?search=setup",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Search by tag returned {len(tag_response)} articles")
+            
+            # Verify tag search results
+            if len(tag_response) > 0:
+                found_tagged = next((a for a in tag_response if "setup" in a.get("tags", [])), None)
+                if found_tagged:
+                    print(f"   ✅ Tag search found article with 'setup' tag")
+                else:
+                    print(f"   ⚠️ Tag search did not find expected tagged article")
+        else:
+            print("   ⚠️ Tag search failed")
+            
+        return True
+
+    def test_filter_knowledge_base_by_category(self):
+        """Test category filtering in Knowledge Base articles"""
+        print(f"\n🔧 Testing Filter Knowledge Base by Category")
+        
+        # Test filter by category
+        success, response = self.run_test(
+            "Filter KB Articles by Category",
+            "GET",
+            "admin/pages/knowledge-base/articles?category=Getting Started",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to filter Knowledge Base articles by category")
+            return False
+            
+        print(f"   ✅ Category filter returned {len(response)} articles")
+        
+        # Verify all articles belong to the specified category
+        if len(response) > 0:
+            all_correct_category = all(a.get("category") == "Getting Started" for a in response)
+            if all_correct_category:
+                print(f"   ✅ All filtered articles belong to 'Getting Started' category")
+            else:
+                print(f"   ⚠️ Some filtered articles don't belong to expected category")
+                
+            # List the filtered articles
+            for article in response:
+                print(f"     - {article.get('name')} (Category: {article.get('category')})")
+        else:
+            print(f"   ⚠️ No articles found for 'Getting Started' category")
+            
+        # Test filter by tag
+        success, tag_response = self.run_test(
+            "Filter KB Articles by Tag",
+            "GET",
+            "admin/pages/knowledge-base/articles?tag=setup",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Tag filter returned {len(tag_response)} articles")
+            
+            # Verify all articles have the specified tag
+            if len(tag_response) > 0:
+                all_have_tag = all("setup" in a.get("tags", []) for a in tag_response)
+                if all_have_tag:
+                    print(f"   ✅ All filtered articles have 'setup' tag")
+                else:
+                    print(f"   ⚠️ Some filtered articles don't have expected tag")
+        else:
+            print("   ⚠️ Tag filter failed")
+            
+        return True
+
     # ============== PHASE 2: AI-POWERED AUTOMATION TESTS ==============
 
     def test_phase2_ai_automation_features(self):
