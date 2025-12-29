@@ -1438,6 +1438,361 @@ class AIAgentHubTester:
                    create_article_test, get_single_article_test, update_article_test, 
                    create_folder_test, delete_article_test, for_agents_test])
 
+    def test_company_kb_stats(self):
+        """Test GET /api/company-kb/stats"""
+        print(f"\n🔧 Testing Company KB Stats")
+        
+        success, response = self.run_test(
+            "Company KB Stats",
+            "GET",
+            "company-kb/stats",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get Company KB stats")
+            return False
+            
+        # Verify response structure
+        required_fields = ["total_articles", "visible_articles", "agent_available_articles", "total_folders", "total_categories"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields in stats response: {missing_fields}")
+            return False
+            
+        print(f"   ✅ Company KB stats retrieved successfully")
+        print(f"   Total Articles: {response.get('total_articles')}")
+        print(f"   Visible Articles: {response.get('visible_articles')}")
+        print(f"   Agent Available Articles: {response.get('agent_available_articles')}")
+        print(f"   Total Folders: {response.get('total_folders')}")
+        print(f"   Total Categories: {response.get('total_categories')}")
+        
+        return True
+
+    def test_company_kb_articles(self):
+        """Test GET /api/company-kb/articles"""
+        print(f"\n🔧 Testing Company KB Articles List")
+        
+        success, response = self.run_test(
+            "Company KB Articles List",
+            "GET",
+            "company-kb/articles",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get Company KB articles")
+            return False
+            
+        # Verify response is an array
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+            
+        print(f"   ✅ Company KB articles endpoint accessible")
+        print(f"   Found {len(response)} Company KB articles")
+        
+        if len(response) > 0:
+            # Verify article structure
+            article = response[0]
+            required_fields = ["id", "tenant_id", "name", "slug", "category", "tags", "folder_path", "available_for_agents", "visible", "blocks"]
+            missing_fields = [field for field in required_fields if field not in article]
+            
+            if missing_fields:
+                print(f"   ⚠️ Some articles missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ Article structure is correct")
+                
+            print(f"   Sample article: {article.get('name')} (Category: {article.get('category')})")
+        
+        return True
+
+    def test_company_kb_categories(self):
+        """Test GET /api/company-kb/categories"""
+        print(f"\n🔧 Testing Company KB Categories")
+        
+        success, response = self.run_test(
+            "Company KB Categories",
+            "GET",
+            "company-kb/categories",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get Company KB categories")
+            return False
+            
+        # Verify response is an array
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+            
+        print(f"   ✅ Company KB categories endpoint accessible")
+        print(f"   Found {len(response)} categories")
+        
+        if len(response) > 0:
+            # Verify category structure
+            category = response[0]
+            required_fields = ["name", "count"]
+            missing_fields = [field for field in required_fields if field not in category]
+            
+            if missing_fields:
+                print(f"   ⚠️ Some categories missing fields: {missing_fields}")
+            else:
+                print(f"   ✅ Category structure is correct")
+                
+            for cat in response:
+                print(f"   - {cat.get('name')}: {cat.get('count')} articles")
+        
+        return True
+
+    def test_company_kb_folders(self):
+        """Test GET /api/company-kb/folders"""
+        print(f"\n🔧 Testing Company KB Folders")
+        
+        success, response = self.run_test(
+            "Company KB Folders",
+            "GET",
+            "company-kb/folders",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get Company KB folders")
+            return False
+            
+        # Verify response is an array
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+            
+        print(f"   ✅ Company KB folders endpoint accessible")
+        print(f"   Found {len(response)} folders")
+        
+        if len(response) > 0:
+            for folder in response:
+                print(f"   - {folder.get('name')} (Path: {folder.get('path')})")
+        
+        return True
+
+    def test_company_kb_create_article(self):
+        """Test POST /api/company-kb/articles"""
+        print(f"\n🔧 Testing Company KB Create Article")
+        
+        # Create a test article with all required fields
+        article_data = {
+            "name": "Test API Documentation",
+            "category": "API",
+            "tags": ["api", "documentation"],
+            "available_for_agents": True,
+            "blocks": [
+                {
+                    "id": "1",
+                    "type": "text",
+                    "content": {
+                        "html": "<p>Test content for API documentation</p>"
+                    }
+                }
+            ]
+        }
+        
+        success, response = self.run_test(
+            "Company KB Create Article",
+            "POST",
+            "company-kb/articles",
+            200,
+            data=article_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Company KB article")
+            return False
+            
+        # Verify response structure
+        required_fields = ["id", "tenant_id", "name", "slug", "category", "tags", "blocks", "available_for_agents"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields in create response: {missing_fields}")
+            return False
+            
+        print(f"   ✅ Company KB article created successfully")
+        print(f"   Article Name: {response.get('name')}")
+        print(f"   Article Slug: {response.get('slug')}")
+        print(f"   Category: {response.get('category')}")
+        print(f"   Tags: {response.get('tags')}")
+        print(f"   Available for Agents: {response.get('available_for_agents')}")
+        print(f"   Content Blocks: {len(response.get('blocks', []))}")
+        
+        # Store for later tests
+        self.company_kb_article_slug = response.get("slug")
+        
+        return True
+
+    def test_company_kb_get_single_article(self):
+        """Test GET /api/company-kb/article/{slug}"""
+        print(f"\n🔧 Testing Company KB Get Single Article")
+        
+        if not hasattr(self, 'company_kb_article_slug') or not self.company_kb_article_slug:
+            print("❌ No article slug available for single article test")
+            return False
+            
+        success, response = self.run_test(
+            "Company KB Get Single Article",
+            "GET",
+            f"company-kb/article/{self.company_kb_article_slug}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get single Company KB article")
+            return False
+            
+        # Verify response structure
+        required_fields = ["id", "tenant_id", "name", "slug", "category", "tags", "blocks"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields in single article response: {missing_fields}")
+            return False
+            
+        print(f"   ✅ Single Company KB article retrieved successfully")
+        print(f"   Article Name: {response.get('name')}")
+        print(f"   Article Slug: {response.get('slug')}")
+        print(f"   Category: {response.get('category')}")
+        
+        return True
+
+    def test_company_kb_update_article(self):
+        """Test PUT /api/company-kb/articles/{slug}"""
+        print(f"\n🔧 Testing Company KB Update Article")
+        
+        if not hasattr(self, 'company_kb_article_slug') or not self.company_kb_article_slug:
+            print("❌ No article slug available for update test")
+            return False
+            
+        # Update article name
+        update_data = {
+            "name": "Updated API Documentation"
+        }
+        
+        success, response = self.run_test(
+            "Company KB Update Article",
+            "PUT",
+            f"company-kb/articles/{self.company_kb_article_slug}",
+            200,
+            data=update_data
+        )
+        
+        if not success:
+            print("❌ Failed to update Company KB article")
+            return False
+            
+        # Verify the update
+        if response.get('name') != "Updated API Documentation":
+            print(f"❌ Article name not updated correctly. Expected 'Updated API Documentation', got '{response.get('name')}'")
+            return False
+            
+        print(f"   ✅ Company KB article updated successfully")
+        print(f"   Updated Name: {response.get('name')}")
+        
+        return True
+
+    def test_company_kb_create_folder(self):
+        """Test POST /api/company-kb/folders"""
+        print(f"\n🔧 Testing Company KB Create Folder")
+        
+        folder_data = {
+            "name": "Tutorials",
+            "parent_path": "/"
+        }
+        
+        success, response = self.run_test(
+            "Company KB Create Folder",
+            "POST",
+            "company-kb/folders",
+            200,
+            data=folder_data
+        )
+        
+        if not success:
+            print("❌ Failed to create Company KB folder")
+            return False
+            
+        # Verify response structure
+        required_fields = ["id", "tenant_id", "name", "path", "parent_path"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields in folder create response: {missing_fields}")
+            return False
+            
+        print(f"   ✅ Company KB folder created successfully")
+        print(f"   Folder Name: {response.get('name')}")
+        print(f"   Folder Path: {response.get('path')}")
+        print(f"   Parent Path: {response.get('parent_path')}")
+        
+        return True
+
+    def test_company_kb_delete_article(self):
+        """Test DELETE /api/company-kb/articles/{slug}"""
+        print(f"\n🔧 Testing Company KB Delete Article")
+        
+        if not hasattr(self, 'company_kb_article_slug') or not self.company_kb_article_slug:
+            print("❌ No article slug available for delete test")
+            return False
+            
+        success, response = self.run_test(
+            "Company KB Delete Article",
+            "DELETE",
+            f"company-kb/articles/{self.company_kb_article_slug}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to delete Company KB article")
+            return False
+            
+        # Verify response
+        if response.get('message') != "Article deleted successfully":
+            print(f"❌ Unexpected delete response: {response}")
+            return False
+            
+        print(f"   ✅ Company KB article deleted successfully")
+        
+        return True
+
+    def test_company_kb_for_agents(self):
+        """Test GET /api/company-kb/articles/for-agents"""
+        print(f"\n🔧 Testing Company KB Articles for Agents")
+        
+        success, response = self.run_test(
+            "Company KB Articles for Agents",
+            "GET",
+            "company-kb/articles/for-agents",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get Company KB articles for agents")
+            return False
+            
+        # Verify response is an array
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+            
+        print(f"   ✅ Company KB articles for agents endpoint accessible")
+        print(f"   Found {len(response)} articles available for agents")
+        
+        # Verify all returned articles have available_for_agents=true
+        for article in response:
+            if not article.get('available_for_agents'):
+                print(f"   ⚠️ Article '{article.get('name')}' not marked as available for agents")
+        
+        return True
+
     def test_create_knowledge_base_article(self):
         """Test POST /api/admin/pages - Create Knowledge Base article"""
         print(f"\n🔧 Testing Create Knowledge Base Article")
