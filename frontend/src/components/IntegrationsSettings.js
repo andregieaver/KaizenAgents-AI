@@ -238,6 +238,7 @@ const IntegrationsSettings = () => {
             {INTEGRATIONS.map((integration) => {
               const isConnected = integrations[integration.id]?.connected;
               const isEnabled = integrations[integration.id]?.enabled;
+              const isConfigured = configStatus[integration.id] !== false;
               const Icon = integration.icon;
               
               return (
@@ -246,6 +247,7 @@ const IntegrationsSettings = () => {
                   className={`
                     rounded-lg border border-border p-4 transition-all
                     ${isConnected ? 'bg-card' : 'bg-muted/30'}
+                    ${!isConfigured ? 'opacity-75' : ''}
                   `}
                 >
                   <div className="flex items-start gap-4">
@@ -263,6 +265,12 @@ const IntegrationsSettings = () => {
                           <Badge variant="outline" className="text-green-600 border-green-600/30 bg-green-50 dark:bg-green-950/30">
                             <Check className="h-3 w-3 mr-1" />
                             Connected
+                          </Badge>
+                        )}
+                        {!isConnected && !isConfigured && (
+                          <Badge variant="outline" className="text-amber-600 border-amber-600/30 bg-amber-50 dark:bg-amber-950/30">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Coming Soon
                           </Badge>
                         )}
                       </div>
@@ -311,10 +319,17 @@ const IntegrationsSettings = () => {
                       ) : (
                         <Button
                           onClick={() => handleConnect(integration)}
-                          disabled={connecting === integration.id}
+                          disabled={connecting === integration.id || !isConfigured}
+                          variant={isConfigured ? "default" : "outline"}
+                          title={!isConfigured ? "This integration is not yet available" : `Connect ${integration.name}`}
                         >
                           {connecting === integration.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : !isConfigured ? (
+                            <>
+                              <Clock className="h-4 w-4 mr-2" />
+                              Coming Soon
+                            </>
                           ) : (
                             <>
                               <ExternalLink className="h-4 w-4 mr-2" />
