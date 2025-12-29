@@ -72,6 +72,10 @@ class PageCreateRequest(BaseModel):
     content: Optional[str] = None  # Legacy
     blocks: Optional[List[dict]] = []
     visible: bool = True
+    page_type: Optional[str] = "public"  # "public" or "knowledge_base"
+    category: Optional[str] = None  # For knowledge base categorization
+    tags: Optional[List[str]] = []  # For cross-referencing
+    related_articles: Optional[List[str]] = []  # Slugs of related articles
 
 class PageUpdateRequest(BaseModel):
     name: Optional[str] = None
@@ -79,6 +83,10 @@ class PageUpdateRequest(BaseModel):
     content: Optional[str] = None
     blocks: Optional[List[dict]] = None
     seo: Optional[PageSEO] = None
+    page_type: Optional[str] = None
+    category: Optional[str] = None
+    tags: Optional[List[str]] = None
+    related_articles: Optional[List[str]] = None
 
 class OGImageUploadResponse(BaseModel):
     url: str
