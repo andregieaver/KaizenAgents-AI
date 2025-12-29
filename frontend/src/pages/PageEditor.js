@@ -172,6 +172,10 @@ const PageEditor = () => {
         content: formData.content,
         blocks: formData.blocks,
         visible: formData.visible,
+        page_type: formData.page_type,
+        category: formData.category,
+        tags: formData.tags,
+        related_articles: formData.related_articles,
         seo: formData.seo
       };
 
