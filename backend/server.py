@@ -1727,6 +1727,35 @@ def get_platform_oauth_credentials(provider: str):
         return os.environ.get('GOOGLE_CLIENT_ID'), os.environ.get('GOOGLE_CLIENT_SECRET')
     return None, None
 
+@api_router.get("/integrations/config-status")
+async def get_integrations_config_status():
+    """Check which social integrations are configured (have platform OAuth credentials)"""
+    # Check each provider for configured credentials
+    status = {}
+    
+    # Meta (Facebook, Instagram)
+    meta_id, meta_secret = get_platform_oauth_credentials('meta')
+    meta_configured = bool(meta_id and meta_secret)
+    status['facebook'] = meta_configured
+    status['instagram'] = meta_configured
+    
+    # Twitter/X
+    twitter_id, twitter_secret = get_platform_oauth_credentials('twitter')
+    status['twitter'] = bool(twitter_id and twitter_secret)
+    
+    # LinkedIn
+    linkedin_id, linkedin_secret = get_platform_oauth_credentials('linkedin')
+    status['linkedin'] = bool(linkedin_id and linkedin_secret)
+    
+    # WhatsApp (uses Meta credentials)
+    status['whatsapp'] = meta_configured
+    
+    # YouTube (uses Google credentials)
+    google_id, google_secret = get_platform_oauth_credentials('google')
+    status['youtube'] = bool(google_id and google_secret)
+    
+    return status
+
 @api_router.get("/integrations")
 async def get_social_integrations(current_user: dict = Depends(get_current_user)):
     """Get all social media integrations for the current tenant"""
