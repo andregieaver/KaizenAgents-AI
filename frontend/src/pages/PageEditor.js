@@ -401,6 +401,55 @@ const PageEditor = () => {
                   onCheckedChange={(checked) => setFormData({ ...formData, visible: checked })}
                 />
               </div>
+
+              {/* Page Type */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="page_type">Page Type</Label>
+                  <select
+                    id="page_type"
+                    value={formData.page_type}
+                    onChange={(e) => setFormData({ ...formData, page_type: e.target.value })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <option value="public">Public Page</option>
+                    <option value="knowledge_base">Knowledge Base</option>
+                  </select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Knowledge Base articles appear in the Help section
+                  </p>
+                </div>
+                {formData.page_type === 'knowledge_base' && (
+                  <div>
+                    <Label htmlFor="category">Category</Label>
+                    <Input
+                      id="category"
+                      value={formData.category}
+                      onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                      placeholder="Getting Started"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Tags (for knowledge base) */}
+              {formData.page_type === 'knowledge_base' && (
+                <div>
+                  <Label htmlFor="tags">Tags (comma-separated)</Label>
+                  <Input
+                    id="tags"
+                    value={formData.tags?.join(', ') || ''}
+                    onChange={(e) => setFormData({ 
+                      ...formData, 
+                      tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) 
+                    })}
+                    placeholder="setup, configuration, basics"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Tags help with cross-referencing related articles
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
