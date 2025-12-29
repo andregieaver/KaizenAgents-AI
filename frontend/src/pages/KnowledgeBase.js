@@ -290,7 +290,7 @@ const KnowledgeBase = () => {
   // Loading state
   if (loading && !selectedArticle && articles.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-64 p-4 lg:p-6">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     );
@@ -299,15 +299,15 @@ const KnowledgeBase = () => {
   // Article View
   if (selectedArticle) {
     return (
-      <div className="max-w-4xl mx-auto">
+      <div className="p-4 lg:p-6 max-w-4xl mx-auto">
         {/* Back Button */}
         <Button
           variant="ghost"
-          className="mb-4"
+          className="mb-4 -ml-2"
           onClick={handleBack}
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Knowledge Base
+          Back to Documentation
         </Button>
 
         {/* Article Content */}
