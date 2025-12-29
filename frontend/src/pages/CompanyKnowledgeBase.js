@@ -287,7 +287,7 @@ const CompanyKnowledgeBase = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-64 p-4 lg:p-6">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
     );
@@ -296,7 +296,7 @@ const CompanyKnowledgeBase = () => {
   // Article detail view
   if (selectedArticle) {
     return (
-      <div className="space-y-4 sm:space-y-6">
+      <div className="p-4 lg:p-6 space-y-4 sm:space-y-6">
         <Button variant="ghost" onClick={closeArticle} className="gap-2 -ml-2 sm:ml-0">
           <ArrowLeft className="h-4 w-4" />
           <span className="text-sm sm:text-base">Back</span>
