@@ -465,7 +465,7 @@ const CompanyKnowledgeBase = () => {
       )}
 
       {/* Content */}
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {/* Folders */}
         {currentFolders.length > 0 && (
           <div className="grid gap-2">
@@ -475,19 +475,19 @@ const CompanyKnowledgeBase = () => {
                 className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors"
                 onClick={() => navigateToFolder(folder.path)}
               >
-                <div className="flex items-center gap-3">
-                  <Folder className="h-5 w-5 text-amber-500" />
-                  <div>
-                    <p className="font-medium">{folder.name}</p>
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <Folder className="h-5 w-5 text-amber-500 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <p className="font-medium truncate">{folder.name}</p>
                     {folder.description && (
-                      <p className="text-sm text-muted-foreground">{folder.description}</p>
+                      <p className="text-sm text-muted-foreground truncate">{folder.description}</p>
                     )}
                   </div>
                 </div>
                 {canManage && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" className="flex-shrink-0">
                         <MoreVertical className="h-4 w-4" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -512,42 +512,84 @@ const CompanyKnowledgeBase = () => {
 
         {/* Articles */}
         {currentArticles.length > 0 ? (
-          <div className="grid gap-3">
+          <div className="grid gap-2 sm:gap-3">
             {currentArticles.map(article => (
               <Card 
                 key={article.id} 
                 className="cursor-pointer hover:shadow-md transition-shadow"
                 onClick={() => viewArticle(article)}
               >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1">
-                      <FileText className="h-5 w-5 text-primary mt-0.5" />
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start gap-2 sm:gap-3 flex-1 min-w-0">
+                      <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-medium truncate">{article.name}</h3>
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
+                          <h3 className="font-medium text-sm sm:text-base truncate max-w-[200px] sm:max-w-none">{article.name}</h3>
                           {!article.visible && (
-                            <Badge variant="outline" className="text-amber-600">
-                              <EyeOff className="h-3 w-3 mr-1" />
-                              Draft
+                            <Badge variant="outline" className="text-amber-600 text-xs">
+                              <EyeOff className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Draft</span>
                             </Badge>
                           )}
                           {article.available_for_agents && (
-                            <Badge variant="outline" className="text-green-600">
-                              <Bot className="h-3 w-3 mr-1" />
-                              Agent
+                            <Badge variant="outline" className="text-green-600 text-xs">
+                              <Bot className="h-3 w-3 sm:mr-1" />
+                              <span className="hidden sm:inline">Agent</span>
                             </Badge>
                           )}
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
                           {article.category && (
                             <Badge variant="secondary" className="text-xs">
                               {article.category}
                             </Badge>
                           )}
-                          {article.tags?.slice(0, 3).map((tag, idx) => (
-                            <span key={idx} className="text-xs">#{tag}</span>
-                          ))}
+                          <span className="hidden sm:flex items-center gap-1">
+                            {article.tags?.slice(0, 3).map((tag, idx) => (
+                              <span key={idx}>#{tag}</span>
+                            ))}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    {canManage && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/dashboard/knowledge-base/edit/${article.slug}`);
+                            }}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteTarget({ type: 'article', slug: article.slug, name: article.name });
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : currentFolders.length === 0 ? (}
                         </div>
                       </div>
                     </div>
