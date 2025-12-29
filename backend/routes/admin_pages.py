@@ -106,6 +106,10 @@ class PageResponse(BaseModel):
     content: Optional[str] = None
     blocks: Optional[List[dict]] = []
     seo: PageSEO
+    page_type: Optional[str] = "public"
+    category: Optional[str] = None
+    tags: Optional[List[str]] = []
+    related_articles: Optional[List[str]] = []
     updated_at: str
     updated_by: Optional[str] = None
 
@@ -116,6 +120,10 @@ class PublicPageResponse(BaseModel):
     content: Optional[str] = None
     blocks: Optional[List[dict]] = []
     seo: PageSEO
+    page_type: Optional[str] = "public"
+    category: Optional[str] = None
+    tags: Optional[List[str]] = []
+    related_articles: Optional[List[str]] = []
 
 class PageTemplateExport(BaseModel):
     blocks: List[dict]
