@@ -39,7 +39,8 @@ import {
   Send,
   Briefcase,
   Cog,
-  BookOpen
+  BookOpen,
+  HelpCircle
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
