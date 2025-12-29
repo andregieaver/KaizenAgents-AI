@@ -38,7 +38,8 @@ import {
   ClipboardList,
   Send,
   Briefcase,
-  Cog
+  Cog,
+  BookOpen
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
