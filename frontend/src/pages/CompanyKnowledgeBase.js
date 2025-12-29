@@ -589,58 +589,18 @@ const CompanyKnowledgeBase = () => {
               </Card>
             ))}
           </div>
-        ) : currentFolders.length === 0 ? (}
-                        </div>
-                      </div>
-                    </div>
-                    {canManage && (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/dashboard/knowledge-base/edit/${article.slug}`);
-                            }}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            className="text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteTarget({ type: 'article', slug: article.slug, name: article.name });
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
         ) : currentFolders.length === 0 ? (
           <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <BookOpen className="h-12 w-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">No articles yet</h3>
-              <p className="text-muted-foreground text-center mb-4">
+            <CardContent className="flex flex-col items-center justify-center py-8 sm:py-12 px-4">
+              <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-muted-foreground mb-4" />
+              <h3 className="text-base sm:text-lg font-medium mb-2 text-center">No articles yet</h3>
+              <p className="text-sm text-muted-foreground text-center mb-4">
                 {searchQuery 
-                  ? 'No articles match your search. Try different keywords.'
-                  : 'Create your first knowledge base article to help your team.'}
+                  ? 'No articles match your search.'
+                  : 'Create your first knowledge base article.'}
               </p>
               {canManage && !searchQuery && (
-                <Button onClick={() => navigate('/dashboard/knowledge-base/create')}>
+                <Button size="sm" onClick={() => navigate('/dashboard/knowledge-base/create')}>
                   <Plus className="h-4 w-4 mr-2" />
                   Create Article
                 </Button>
