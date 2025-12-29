@@ -70,6 +70,7 @@ const CompanyKnowledgeBase = () => {
   const [deleting, setDeleting] = useState(false);
   
   const canManage = user?.role === 'super_admin' || user?.role === 'admin' || 
+                    user?.role === 'owner' || user?.is_super_admin ||
                     user?.permissions?.includes('manage_knowledge_base');
 
   const fetchData = useCallback(async () => {
