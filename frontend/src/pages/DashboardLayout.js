@@ -720,6 +720,8 @@ const Breadcrumb = () => {
       if (parent === 'agents') return 'Edit Agent';
       if (parent === 'customers') return 'Customer Details';
       if (parent === 'pages') return 'Edit Page';
+      if (parent === 'knowledge-base') return 'Edit Article';
+      if (parent === 'edit') return 'Edit Article';
       return 'Details';
     }
     
