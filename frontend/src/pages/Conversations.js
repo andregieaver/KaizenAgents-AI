@@ -300,7 +300,7 @@ const Conversations = () => {
 
       {/* Quick Filter Chips - Sticky with blur effect */}
       <div className="sticky top-0 z-10 -mx-4 px-4 py-3 mb-4 border-b border-border backdrop-blur-md bg-background/95">
-        <div className="flex flex-wrap gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
           <QuickFilterChip
             active={statusFilter === 'needs_response'}
             onClick={() => handleStatusFilter(statusFilter === 'needs_response' ? 'all' : 'needs_response')}
