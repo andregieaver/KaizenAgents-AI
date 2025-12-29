@@ -43,7 +43,7 @@ const QuickFilterChip = ({ active, onClick, icon, label, count, variant = 'defau
   <button
     onClick={onClick}
     className={`
-      inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex-shrink-0 whitespace-nowrap
+      inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex-shrink-0
       ${active 
         ? variant === 'destructive'
           ? 'bg-destructive text-destructive-foreground'
@@ -53,10 +53,10 @@ const QuickFilterChip = ({ active, onClick, icon, label, count, variant = 'defau
     `}
   >
     {icon}
-    {label}
+    <span className="whitespace-nowrap">{label}</span>
     {count > 0 && (
       <span className={`
-        ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold
+        px-1.5 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap
         ${active ? 'bg-white/20' : 'bg-background'}
       `}>
         {count}
