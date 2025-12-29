@@ -495,3 +495,119 @@ async def import_page_template(
     
     updated_page = await db.pages.find_one({"slug": slug}, {"_id": 0})
     return updated_page
+
+# ============== KNOWLEDGE BASE ENDPOINTS (For logged-in users) ==============
+
+class KnowledgeBaseArticle(BaseModel):
+    slug: str
+    name: str
+    path: str
+    category: Optional[str] = None
+    tags: Optional[List[str]] = []
+    seo: dict
+    blocks: Optional[List[dict]] = []
+    related_articles: Optional[List[str]] = []
+    updated_at: Optional[str] = None
+
+class KnowledgeBaseCategory(BaseModel):
+    name: str
+    slug: str
+    article_count: int
+    articles: List[KnowledgeBaseArticle]
+
+@router.get("/knowledge-base/articles", response_model=List[KnowledgeBaseArticle])
+async def get_knowledge_base_articles(
+    category: Optional[str] = None,
+    tag: Optional[str] = None,
+    search: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all published knowledge base articles (for logged-in users)"""
+    query = {"page_type": "knowledge_base", "visible": True}
+    
+    if category:
+        query["category"] = category
+    
+    if tag:
+        query["tags"] = tag
+    
+    articles = await db.pages.find(query, {"_id": 0}).sort("updated_at", -1).to_list(200)
+    
+    # Filter by search if provided
+    if search:
+        search_lower = search.lower()
+        articles = [
+            a for a in articles 
+            if search_lower in a.get("name", "").lower() 
+            or search_lower in a.get("seo", {}).get("description", "").lower()
+            or any(search_lower in tag.lower() for tag in a.get("tags", []))
+        ]
+    
+    return articles
+
+@router.get("/knowledge-base/categories")
+async def get_knowledge_base_categories(current_user: dict = Depends(get_current_user)):
+    """Get all categories with article counts"""
+    articles = await db.pages.find(
+        {"page_type": "knowledge_base", "visible": True},
+        {"_id": 0, "category": 1, "name": 1, "slug": 1}
+    ).to_list(200)
+    
+    # Group by category
+    categories = {}
+    for article in articles:
+        cat = article.get("category") or "Uncategorized"
+        if cat not in categories:
+            categories[cat] = {"name": cat, "count": 0}
+        categories[cat]["count"] += 1
+    
+    return list(categories.values())
+
+@router.get("/knowledge-base/article/{slug}")
+async def get_knowledge_base_article(
+    slug: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a single knowledge base article with related articles"""
+    article = await db.pages.find_one(
+        {"slug": slug, "page_type": "knowledge_base", "visible": True},
+        {"_id": 0}
+    )
+    
+    if not article:
+        raise HTTPException(status_code=404, detail="Article not found")
+    
+    # Fetch related articles
+    related_slugs = article.get("related_articles", [])
+    related_articles = []
+    
+    if related_slugs:
+        related = await db.pages.find(
+            {"slug": {"$in": related_slugs}, "page_type": "knowledge_base", "visible": True},
+            {"_id": 0, "slug": 1, "name": 1, "category": 1, "seo": 1}
+        ).to_list(10)
+        related_articles = related
+    
+    # Also find articles with same tags
+    article_tags = article.get("tags", [])
+    if article_tags and len(related_articles) < 5:
+        tag_related = await db.pages.find(
+            {
+                "page_type": "knowledge_base",
+                "visible": True,
+                "slug": {"$ne": slug},
+                "tags": {"$in": article_tags}
+            },
+            {"_id": 0, "slug": 1, "name": 1, "category": 1, "seo": 1}
+        ).limit(5 - len(related_articles)).to_list(5)
+        
+        # Avoid duplicates
+        existing_slugs = {r["slug"] for r in related_articles}
+        for r in tag_related:
+            if r["slug"] not in existing_slugs:
+                related_articles.append(r)
+    
+    return {
+        **article,
+        "related": related_articles
+    }
