@@ -375,7 +375,7 @@ const CompanyKnowledgeBase = () => {
 
   // Main list view
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="p-4 lg:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
