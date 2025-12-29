@@ -323,10 +323,10 @@ const Conversations = () => {
       </div>
 
       {/* Quick Filter Chips - Sticky with blur effect */}
-      <div className="relative sticky top-0 z-10 -mx-4 px-4 py-3 mb-4 border-b border-border backdrop-blur-md bg-background/95">
+      <div className="relative sticky top-0 z-10 -mx-4 sm:-mx-6 py-3 mb-4 border-b border-border backdrop-blur-md bg-background/95">
         <div 
           ref={filtersRef}
-          className="flex items-center gap-2 overflow-x-auto scrollbar-hide"
+          className="flex items-center gap-2 px-4 sm:px-6 overflow-x-auto scrollbar-hide"
           onScroll={updateFiltersScrollState}
         >
           <QuickFilterChip
