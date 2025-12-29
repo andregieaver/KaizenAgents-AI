@@ -8225,7 +8225,10 @@ def main():
         # 20. Store Credit Referral System Tests (Review Request)
         ("Store Credit Referral System", tester.test_store_credit_referral_system),
         
-        # 21. Phase 2: AI-Powered Automation Tests (Review Request)
+        # 21. Knowledge Base Feature Tests (Review Request)
+        ("Knowledge Base Feature End-to-End", tester.test_knowledge_base_feature_end_to_end),
+        
+        # 22. Phase 2: AI-Powered Automation Tests (Review Request)
         ("Phase 2: AI-Powered Automation Features", tester.test_phase2_ai_automation_features),
         
         # 21. Tiered Email Verification System Tests (Review Request)
