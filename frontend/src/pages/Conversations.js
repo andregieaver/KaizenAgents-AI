@@ -298,30 +298,32 @@ const Conversations = () => {
         </Select>
       </div>
 
-      {/* Quick Filter Chips */}
-      <div className="flex flex-wrap gap-2 mb-4">
-        <QuickFilterChip
-          active={statusFilter === 'needs_response'}
-          onClick={() => handleStatusFilter(statusFilter === 'needs_response' ? 'all' : 'needs_response')}
-          icon={<AlertCircle className="h-3 w-3" />}
-          label="Needs Response"
-          count={conversations.filter(c => needsResponse(c)).length}
-          variant="destructive"
-        />
-        <QuickFilterChip
-          active={statusFilter === 'open'}
-          onClick={() => handleStatusFilter(statusFilter === 'open' ? 'all' : 'open')}
-          icon={<Clock className="h-3 w-3" />}
-          label="Open"
-          count={conversations.filter(c => c.status === 'open').length}
-        />
-        <QuickFilterChip
-          active={statusFilter === 'waiting'}
-          onClick={() => handleStatusFilter(statusFilter === 'waiting' ? 'all' : 'waiting')}
-          icon={<MessageSquare className="h-3 w-3" />}
-          label="Waiting"
-          count={conversations.filter(c => c.status === 'waiting').length}
-        />
+      {/* Quick Filter Chips - Sticky with blur effect */}
+      <div className="sticky top-0 z-10 -mx-4 px-4 py-3 mb-4 border-b border-border backdrop-blur-md bg-background/95">
+        <div className="flex flex-wrap gap-2">
+          <QuickFilterChip
+            active={statusFilter === 'needs_response'}
+            onClick={() => handleStatusFilter(statusFilter === 'needs_response' ? 'all' : 'needs_response')}
+            icon={<AlertCircle className="h-3 w-3" />}
+            label="Needs Response"
+            count={conversations.filter(c => needsResponse(c)).length}
+            variant="destructive"
+          />
+          <QuickFilterChip
+            active={statusFilter === 'open'}
+            onClick={() => handleStatusFilter(statusFilter === 'open' ? 'all' : 'open')}
+            icon={<Clock className="h-3 w-3" />}
+            label="Open"
+            count={conversations.filter(c => c.status === 'open').length}
+          />
+          <QuickFilterChip
+            active={statusFilter === 'waiting'}
+            onClick={() => handleStatusFilter(statusFilter === 'waiting' ? 'all' : 'waiting')}
+            icon={<MessageSquare className="h-3 w-3" />}
+            label="Waiting"
+            count={conversations.filter(c => c.status === 'waiting').length}
+          />
+        </div>
       </div>
 
       {/* Conversations List */}
