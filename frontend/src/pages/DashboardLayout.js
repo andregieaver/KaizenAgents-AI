@@ -700,7 +700,7 @@ const Breadcrumb = () => {
       waitlist: 'Waitlist',
       'custom-emails': 'Custom Emails',
       'knowledge-base': 'Knowledge Base',
-      help: 'Help',
+      help: 'Documentation',
       messaging: 'Messaging',
       create: 'Create',
       edit: 'Edit'
