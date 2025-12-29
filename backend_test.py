@@ -8231,10 +8231,10 @@ def main():
         # 22. Phase 2: AI-Powered Automation Tests (Review Request)
         ("Phase 2: AI-Powered Automation Features", tester.test_phase2_ai_automation_features),
         
-        # 21. Tiered Email Verification System Tests (Review Request)
+        # 23. Tiered Email Verification System Tests (Review Request)
         ("Tiered Email Verification System", tester.test_tiered_email_verification_system),
         
-        # 22. Quota Limit Email Alerts Tests (Review Request)
+        # 24. Quota Limit Email Alerts Tests (Review Request)
         ("Quota Limit Email Alerts", tester.test_quota_limit_email_alerts),
     ]
     
