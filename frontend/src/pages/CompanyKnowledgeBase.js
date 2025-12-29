@@ -296,49 +296,51 @@ const CompanyKnowledgeBase = () => {
   // Article detail view
   if (selectedArticle) {
     return (
-      <div className="space-y-6">
-        <Button variant="ghost" onClick={closeArticle} className="gap-2">
+      <div className="space-y-4 sm:space-y-6">
+        <Button variant="ghost" onClick={closeArticle} className="gap-2 -ml-2 sm:ml-0">
           <ArrowLeft className="h-4 w-4" />
-          Back to Knowledge Base
+          <span className="text-sm sm:text-base">Back</span>
         </Button>
 
         <div className="max-w-4xl">
-          <div className="flex items-start justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4 sm:mb-6">
             <div>
-              <h1 className="text-3xl font-bold mb-2">{selectedArticle.name}</h1>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2">{selectedArticle.name}</h1>
+              <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                 {selectedArticle.category && (
-                  <Badge variant="secondary">{selectedArticle.category}</Badge>
+                  <Badge variant="secondary" className="text-xs">{selectedArticle.category}</Badge>
                 )}
                 {selectedArticle.available_for_agents && (
-                  <Badge variant="outline" className="gap-1">
+                  <Badge variant="outline" className="gap-1 text-xs">
                     <Bot className="h-3 w-3" />
-                    Available for Agents
+                    <span className="hidden sm:inline">Available for</span> Agents
                   </Badge>
                 )}
                 {selectedArticle.updated_at && (
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    Updated {new Date(selectedArticle.updated_at).toLocaleDateString()}
+                    {new Date(selectedArticle.updated_at).toLocaleDateString()}
                   </span>
                 )}
               </div>
             </div>
             {canManage && (
               <Button 
-                variant="outline" 
+                variant="outline"
+                size="sm"
+                className="w-full sm:w-auto"
                 onClick={() => navigate(`/dashboard/knowledge-base/edit/${selectedArticle.slug}`)}
               >
                 <Edit className="h-4 w-4 mr-2" />
-                Edit
+                Edit Article
               </Button>
             )}
           </div>
 
           {selectedArticle.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-6">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4 sm:mb-6">
               {selectedArticle.tags.map((tag, idx) => (
-                <Badge key={idx} variant="outline" className="gap-1">
+                <Badge key={idx} variant="outline" className="gap-1 text-xs">
                   <Tag className="h-3 w-3" />
                   {tag}
                 </Badge>
@@ -347,7 +349,7 @@ const CompanyKnowledgeBase = () => {
           )}
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="p-4 sm:pt-6">
               {selectedArticle.blocks?.length > 0 ? (
                 <div className="space-y-4">
                   {selectedArticle.blocks.map((block, idx) => (
