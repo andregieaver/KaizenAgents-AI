@@ -346,11 +346,15 @@ test_plan:
 
   - task: "Company Knowledge Base Feature"
     implemented: true
-    working: "pending"
+    working: false
     file: "pages/CompanyKnowledgeBase.js, pages/CompanyKBEditor.js, routes/company_knowledge_base.py"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+      - working: false
+        agent: "testing"
+        comment: "❌ COMPANY KNOWLEDGE BASE TESTING COMPLETED WITH CRITICAL ISSUES: Comprehensive end-to-end testing performed with credentials andre@humanweb.no/Pernilla66!. MIXED RESULTS (5/8 - 62.5% SUCCESS RATE): ✅ WORKING COMPONENTS: 1) Backend API fully functional - all Company KB endpoints (/api/company-kb/articles, /stats, /categories, /folders) returning 200 status with correct data, 2) Stats cards displaying accurate data (1 Total Articles, 0 Folders, 1 Categories, 1 Agent Available), 3) UI layout correct with 'Knowledge Base' title and book icon, 4) Search bar and category filter dropdown present, 5) Sidebar navigation working (Knowledge Base highlighted, Help accessible). ❌ CRITICAL ISSUES: 1) Article display broken - existing article 'Getting Started with Our Platform' exists in database with proper structure (category: 'Getting Started', tags: #onboarding #basics #tutorial, available_for_agents: true) but NOT VISIBLE in UI, 2) Admin functionality missing - New Article and New Folder buttons not displayed despite user having owner role and is_super_admin: true, 3) Cannot test article detail view, creation, or folder management due to UI rendering issues, 4) Authentication error in console logs: 'REQUEST FAILED: /api/auth/me - net::ERR_ABORTED'. ROOT CAUSE: Frontend component not properly rendering article cards and admin controls despite successful API data retrieval. The CompanyKnowledgeBase.js component appears to have rendering logic issues preventing articles from displaying and admin buttons from showing. Backend is fully functional but frontend UI is broken."
     test_focus: |
       - Login and navigate to /dashboard/knowledge-base
       - Verify stats cards show correct counts
