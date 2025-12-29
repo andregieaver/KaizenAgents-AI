@@ -96,11 +96,13 @@ const INTEGRATIONS = [
 const IntegrationsSettings = () => {
   const { token } = useAuth();
   const [integrations, setIntegrations] = useState({});
+  const [configStatus, setConfigStatus] = useState({});
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(null);
 
   useEffect(() => {
     fetchIntegrations();
+    fetchConfigStatus();
     
     // Handle OAuth callback
     const urlParams = new URLSearchParams(window.location.search);
@@ -117,6 +119,19 @@ const IntegrationsSettings = () => {
       window.history.replaceState({}, document.title, window.location.pathname + '?tab=integrations');
     }
   }, [token]);
+
+  const fetchConfigStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/integrations/config-status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setConfigStatus(response.data || {});
+    } catch (error) {
+      console.error('Failed to fetch config status:', error);
+      // Default to all not configured
+      setConfigStatus({});
+    }
+  };
 
   const fetchIntegrations = async () => {
     try {
