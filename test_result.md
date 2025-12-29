@@ -339,10 +339,28 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Social Media Integrations Tab Testing"
+    - "Knowledge Base Feature End-to-End Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
+
+  - task: "Knowledge Base Feature Testing"
+    implemented: true
+    working: "pending"
+    file: "pages/PageEditor.js, pages/KnowledgeBase.js, routes/admin_pages.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    test_focus: |
+      - As super-admin: Navigate to /dashboard/admin/pages/create
+      - Create new page with Page Type = "Knowledge Base"
+      - Verify Category and Tags fields appear when Knowledge Base is selected
+      - Add page name, content blocks, and save
+      - Navigate to /dashboard/knowledge-base as regular user
+      - Verify the article is listed and can be viewed
+      - Test search functionality
+      - Test category filtering
+    credentials: "andre@humanweb.no / Pernilla66!"
 
 agent_communication:
   - agent: "testing"
