@@ -44,6 +44,10 @@ const PageEditor = () => {
     content: '',
     blocks: [],
     visible: true,
+    page_type: 'public',
+    category: '',
+    tags: [],
+    related_articles: [],
     seo: {
       title: '',
       description: '',
