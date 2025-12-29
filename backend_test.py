@@ -10104,7 +10104,7 @@ if __name__ == "__main__":
             sys.exit(0 if success else 1)
         elif test_name == "knowledge_base":
             tester = AIAgentHubTester()
-            success = tester.test_knowledge_base_feature_end_to_end()
+            success = tester.test_company_knowledge_base_feature_end_to_end()
             sys.exit(0 if success else 1)
         else:
             print(f"Unknown test: {test_name}")
