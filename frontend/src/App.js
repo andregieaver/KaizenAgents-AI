@@ -49,6 +49,8 @@ import WaitlistAdmin from "./pages/WaitlistAdmin";
 import CustomEmailsAdmin from "./pages/CustomEmailsAdmin";
 import Messaging from "./pages/Messaging";
 import KnowledgeBase from "./pages/KnowledgeBase";
+import CompanyKnowledgeBase from "./pages/CompanyKnowledgeBase";
+import CompanyKBEditor from "./pages/CompanyKBEditor";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
