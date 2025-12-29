@@ -88,6 +88,10 @@ const PageEditor = () => {
         content: page.content || '',
         blocks: page.blocks || [],
         visible: page.visible,
+        page_type: page.page_type || 'public',
+        category: page.category || '',
+        tags: page.tags || [],
+        related_articles: page.related_articles || [],
         seo: {
           title: page.seo?.title || '',
           description: page.seo?.description || '',
