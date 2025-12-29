@@ -62,6 +62,10 @@ class PageSettings(BaseModel):
     content: Optional[str] = None  # Legacy field, kept for backward compatibility
     blocks: Optional[List[ContentBlock]] = []
     seo: Optional[PageSEO] = None
+    page_type: Optional[str] = "public"  # "public" or "knowledge_base"
+    category: Optional[str] = None
+    tags: Optional[List[str]] = []
+    related_articles: Optional[List[str]] = []
     updated_at: Optional[str] = None
     updated_by: Optional[str] = None
 
