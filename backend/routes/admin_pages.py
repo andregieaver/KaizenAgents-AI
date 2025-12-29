@@ -260,6 +260,10 @@ async def create_page(
         "is_system_page": False,
         "content": page_data.content or "",
         "blocks": page_data.blocks or [],
+        "page_type": page_data.page_type or "public",
+        "category": page_data.category,
+        "tags": page_data.tags or [],
+        "related_articles": page_data.related_articles or [],
         "seo": {
             "title": f"{page_data.name}",
             "description": "",
@@ -293,11 +297,18 @@ async def create_page(
     return new_page
 
 @router.get("", response_model=List[PageResponse])
-async def get_all_pages(current_user: dict = Depends(is_super_admin)):
-    """Get all public pages with their settings"""
+async def get_all_pages(
+    page_type: Optional[str] = None,
+    current_user: dict = Depends(is_super_admin)
+):
+    """Get all pages with their settings, optionally filtered by page_type"""
     await ensure_default_pages()
     
-    pages = await db.pages.find({}, {"_id": 0}).sort("created_at", -1).to_list(100)
+    query = {}
+    if page_type:
+        query["page_type"] = page_type
+    
+    pages = await db.pages.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
     return pages
 
 @router.get("/{slug}", response_model=PageResponse)
