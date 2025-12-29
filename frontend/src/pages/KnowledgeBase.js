@@ -396,14 +396,14 @@ const KnowledgeBase = () => {
 
   // Articles List View
   return (
-    <div className="space-y-6">
+    <div className="p-4 lg:p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <BookOpen className="h-6 w-6" />
-          Knowledge Base
+        <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+          <BookOpen className="h-5 w-5 sm:h-6 sm:w-6" />
+          Documentation
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Find articles and guides to help you get the most out of the platform
         </p>
       </div>
@@ -419,7 +419,10 @@ const KnowledgeBase = () => {
             className="pl-9"
           />
         </div>
-        <Button type="submit">Search</Button>
+        <Button type="submit" size="sm" className="sm:size-default">
+          <Search className="h-4 w-4 sm:hidden" />
+          <span className="hidden sm:inline">Search</span>
+        </Button>
       </form>
 
       {/* Categories */}
