@@ -214,7 +214,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
     { path: '/dashboard/affiliates', icon: Gift, label: 'Affiliates' },
     { path: '/dashboard/knowledge-base', icon: BookOpen, label: 'Knowledge Base' },
-    { path: '/dashboard/help', icon: HelpCircle, label: 'Help' },
+    { path: '/dashboard/help', icon: HelpCircle, label: 'Documentation' },
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -253,7 +253,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
     { path: '/dashboard/affiliates', icon: Gift, label: 'Affiliates' },
     { path: '/dashboard/knowledge-base', icon: BookOpen, label: 'Knowledge Base' },
-    { path: '/dashboard/help', icon: HelpCircle, label: 'Help' },
+    { path: '/dashboard/help', icon: HelpCircle, label: 'Documentation' },
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
 
