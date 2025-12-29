@@ -651,7 +651,7 @@ const CompanyKnowledgeBase = () => {
           <DialogHeader>
             <DialogTitle>Delete {deleteTarget?.type === 'folder' ? 'Folder' : 'Article'}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{deleteTarget?.name}"? 
+              Are you sure you want to delete &quot;{deleteTarget?.name}&quot;? 
               {deleteTarget?.type === 'folder' && ' Articles inside will be moved to the root folder.'}
               This action cannot be undone.
             </DialogDescription>
