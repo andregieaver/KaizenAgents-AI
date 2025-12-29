@@ -43,7 +43,7 @@ const QuickFilterChip = ({ active, onClick, icon, label, count, variant = 'defau
   <button
     onClick={onClick}
     className={`
-      inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors
+      inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex-shrink-0 whitespace-nowrap
       ${active 
         ? variant === 'destructive'
           ? 'bg-destructive text-destructive-foreground'
