@@ -79,6 +79,30 @@ const Conversations = () => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const listRef = useRef(null);
+  
+  // Scroll fade indicators for filter chips
+  const filtersRef = useRef(null);
+  const [filtersScroll, setFiltersScroll] = useState({ canScrollLeft: false, canScrollRight: false });
+  
+  const updateFiltersScrollState = useCallback(() => {
+    const el = filtersRef.current;
+    if (!el) return;
+    const canScrollLeft = el.scrollLeft > 5;
+    const canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 5);
+    setFiltersScroll({ canScrollLeft, canScrollRight });
+  }, []);
+  
+  useEffect(() => {
+    const el = filtersRef.current;
+    if (!el) return;
+    updateFiltersScrollState();
+    el.addEventListener('scroll', updateFiltersScrollState);
+    window.addEventListener('resize', updateFiltersScrollState);
+    return () => {
+      el.removeEventListener('scroll', updateFiltersScrollState);
+      window.removeEventListener('resize', updateFiltersScrollState);
+    };
+  }, [updateFiltersScrollState]);
 
   useEffect(() => {
     const fetchConversations = async () => {
