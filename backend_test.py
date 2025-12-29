@@ -1431,7 +1431,7 @@ class AIAgentHubTester:
         print(f"   GET /article/{{slug}}: {'✅ PASSED' if get_single_article_test else '❌ FAILED'}")
         print(f"   PUT /articles/{{slug}}: {'✅ PASSED' if update_article_test else '❌ FAILED'}")
         print(f"   POST /folders: {'✅ PASSED' if create_folder_test else '❌ FAILED'}")
-        print(f"   DELETE /articles/{slug}: {'✅ PASSED' if delete_article_test else '❌ FAILED'}")
+        print(f"   DELETE /articles/{{slug}}: {'✅ PASSED' if delete_article_test else '❌ FAILED'}")
         print(f"   GET /articles/for-agents: {'✅ PASSED' if for_agents_test else '❌ FAILED'}")
         
         return all([login_test, stats_test, articles_test, categories_test, folders_test, 
