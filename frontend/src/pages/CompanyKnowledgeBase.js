@@ -373,64 +373,34 @@ const CompanyKnowledgeBase = () => {
 
   // Main list view
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <BookOpen className="h-6 w-6" />
+          <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+            <BookOpen className="h-5 w-5 sm:h-6 sm:w-6" />
             Knowledge Base
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Internal documentation and support articles for your team
+          <p className="text-sm text-muted-foreground mt-1">
+            Internal documentation and support articles
           </p>
         </div>
         {canManage && (
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => setShowFolderDialog(true)}>
-              <FolderPlus className="h-4 w-4 mr-2" />
-              New Folder
+            <Button variant="outline" size="sm" className="sm:size-default" onClick={() => setShowFolderDialog(true)}>
+              <FolderPlus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">New Folder</span>
             </Button>
-            <Button onClick={() => navigate('/dashboard/knowledge-base/create')}>
-              <Plus className="h-4 w-4 mr-2" />
-              New Article
+            <Button size="sm" className="sm:size-default" onClick={() => navigate('/dashboard/knowledge-base/create')}>
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">New Article</span>
             </Button>
           </div>
         )}
       </div>
 
-      {/* Stats Cards */}
-      {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold">{stats.total_articles}</div>
-              <p className="text-xs text-muted-foreground">Total Articles</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold">{stats.total_folders}</div>
-              <p className="text-xs text-muted-foreground">Folders</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold">{stats.total_categories}</div>
-              <p className="text-xs text-muted-foreground">Categories</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="text-2xl font-bold">{stats.agent_available_articles}</div>
-              <p className="text-xs text-muted-foreground">Agent Available</p>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       {/* Search and Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
         <form onSubmit={handleSearch} className="flex-1 flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -441,15 +411,18 @@ const CompanyKnowledgeBase = () => {
               className="pl-10"
             />
           </div>
-          <Button type="submit" variant="secondary">Search</Button>
+          <Button type="submit" variant="secondary" size="sm" className="sm:size-default">
+            <Search className="h-4 w-4 sm:hidden" />
+            <span className="hidden sm:inline">Search</span>
+          </Button>
         </form>
         
         {categories.length > 0 && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" size="sm" className="sm:size-default gap-2 w-full sm:w-auto">
                 <Filter className="h-4 w-4" />
-                {selectedCategory || 'All Categories'}
+                <span className="truncate">{selectedCategory || 'All Categories'}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
@@ -470,24 +443,26 @@ const CompanyKnowledgeBase = () => {
         )}
       </div>
 
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-1 text-sm">
-        {getBreadcrumbs().map((crumb, idx, arr) => (
-          <div key={crumb.path} className="flex items-center">
-            <button
-              onClick={() => navigateToFolder(crumb.path)}
-              className={`hover:text-primary ${
-                idx === arr.length - 1 ? 'text-foreground font-medium' : 'text-muted-foreground'
-              }`}
-            >
-              {crumb.name}
-            </button>
-            {idx < arr.length - 1 && (
-              <ChevronRight className="h-4 w-4 mx-1 text-muted-foreground" />
-            )}
-          </div>
-        ))}
-      </div>
+      {/* Folder Navigation - Only show when not at root */}
+      {currentFolder !== '/' && (
+        <div className="flex items-center gap-1 text-sm overflow-x-auto pb-1">
+          {getBreadcrumbs().map((crumb, idx, arr) => (
+            <div key={crumb.path} className="flex items-center whitespace-nowrap">
+              <button
+                onClick={() => navigateToFolder(crumb.path)}
+                className={`hover:text-primary ${
+                  idx === arr.length - 1 ? 'text-foreground font-medium' : 'text-muted-foreground'
+                }`}
+              >
+                {crumb.name}
+              </button>
+              {idx < arr.length - 1 && (
+                <ChevronRight className="h-4 w-4 mx-1 text-muted-foreground flex-shrink-0" />
+              )}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Content */}
       <div className="space-y-4">
