@@ -63,8 +63,11 @@ def generate_slug(name: str) -> str:
 def check_kb_permission(user: dict, required_role: str = "admin") -> bool:
     """Check if user has permission to manage KB articles"""
     user_role = user.get("role", "")
-    # Super admins and company admins can manage
-    if user_role in ["super_admin", "admin"]:
+    # Super admins, owners, and company admins can manage
+    if user_role in ["super_admin", "admin", "owner"]:
+        return True
+    # Check is_super_admin flag
+    if user.get("is_super_admin"):
         return True
     # Check for specific KB permission
     permissions = user.get("permissions", [])
