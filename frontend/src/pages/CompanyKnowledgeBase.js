@@ -195,10 +195,10 @@ const CompanyKnowledgeBase = () => {
   const currentFolders = folders.filter(f => f.parent_path === currentFolder);
   
   // Get current folder's articles
-  const currentArticles = articles.filter(a => 
-    a.folder_path === currentFolder || 
-    (currentFolder === '/' && !a.folder_path)
-  );
+  const currentArticles = articles.filter(a => {
+    const articleFolder = a.folder_path || '/';
+    return articleFolder === currentFolder;
+  });
 
   // Breadcrumb navigation
   const getBreadcrumbs = () => {
