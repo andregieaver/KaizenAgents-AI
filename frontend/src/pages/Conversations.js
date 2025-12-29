@@ -323,8 +323,12 @@ const Conversations = () => {
       </div>
 
       {/* Quick Filter Chips - Sticky with blur effect */}
-      <div className="sticky top-0 z-10 -mx-4 px-4 py-3 mb-4 border-b border-border backdrop-blur-md bg-background/95">
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+      <div className="relative sticky top-0 z-10 -mx-4 px-4 py-3 mb-4 border-b border-border backdrop-blur-md bg-background/95">
+        <div 
+          ref={filtersRef}
+          className="flex items-center gap-2 overflow-x-auto scrollbar-hide"
+          onScroll={updateFiltersScrollState}
+        >
           <QuickFilterChip
             active={statusFilter === 'needs_response'}
             onClick={() => handleStatusFilter(statusFilter === 'needs_response' ? 'all' : 'needs_response')}
@@ -348,6 +352,13 @@ const Conversations = () => {
             count={conversations.filter(c => c.status === 'waiting').length}
           />
         </div>
+        {/* Dynamic fade indicators based on scroll position */}
+        {filtersScroll.canScrollLeft && (
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent pointer-events-none sm:hidden" />
+        )}
+        {filtersScroll.canScrollRight && (
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
+        )}
       </div>
 
       {/* Conversations List */}
