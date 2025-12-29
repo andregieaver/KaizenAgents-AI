@@ -145,6 +145,7 @@ function AppRoutes() {
         <Route path="team" element={<Team />} />
         <Route path="settings" element={<Settings />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="knowledge-base" element={<KnowledgeBase />} />
         <Route path="admin" element={<SuperAdmin />} />
         <Route path="providers" element={<Providers />} />
         <Route path="agents" element={<Agents />} />
