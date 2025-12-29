@@ -347,11 +347,15 @@ test_plan:
 
   - task: "Social Integrations Coming Soon UX"
     implemented: true
-    working: "pending"
+    working: true
     file: "components/IntegrationsSettings.js, server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "✅ SOCIAL INTEGRATIONS 'COMING SOON' UX TESTING COMPLETED SUCCESSFULLY: Comprehensive testing of the Social Integrations 'Coming Soon' UX improvement completed with credentials andre@humanweb.no/Pernilla66!. ALL TEST SCENARIOS PASSED (8/8 - 100% SUCCESS RATE): 1) ✅ Backend Verification - GET /api/integrations/config-status returns all false values as expected (facebook:false, instagram:false, twitter:false, linkedin:false, whatsapp:false, youtube:false), confirming no OAuth credentials are configured, 2) ✅ Navigation - Successfully logged in and navigated to /dashboard/settings > Integrations tab, page loaded correctly with proper layout, 3) ✅ All 6 Integrations Present - Found all required integrations: Facebook, Instagram, X (Twitter), LinkedIn, WhatsApp Business, YouTube with proper icons and descriptions, 4) ✅ 'Coming Soon' Badges - Found 12 'Coming Soon' badges with clock icons (2 per integration - badge and button), all displaying amber/gold color scheme as specified, 5) ✅ Button Styling - Found 6 'Coming Soon' buttons with outline style (lighter appearance, not solid blue 'Connect' style), buttons properly disabled and visually distinct, 6) ✅ Disabled Button Behavior - Attempted to click 'Coming Soon' buttons, no navigation occurred, URL remained unchanged (correct behavior), buttons are non-functional as expected, 7) ✅ Scroll Verification - All integrations visible after scrolling, WhatsApp Business and YouTube properly displayed at bottom of list, 8) ✅ No Error Messages - No error messages or toasts displayed when viewing the page, clean user experience maintained. CRITICAL VERIFICATION: The 'Coming Soon' UX improvement is working perfectly - when no OAuth credentials are configured (configStatus returns all false), all 6 integrations display amber/gold 'Coming Soon' badges with clock icons instead of 'Connect' buttons, preventing users from clicking and encountering errors. The UX clearly communicates that these features are not yet available, providing excellent user experience and preventing confusion. The implementation correctly uses the configStatus API response to conditionally render badges and disabled buttons based on OAuth configuration availability."
     test_focus: |
       - Backend: Test GET /api/integrations/config-status returns all false
       - Login and navigate to Settings > Integrations tab
