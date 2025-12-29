@@ -1396,39 +1396,47 @@ class AIAgentHubTester:
         
         return True
 
-    # ============== KNOWLEDGE BASE FEATURE TESTS ==============
+    # ============== COMPANY KNOWLEDGE BASE FEATURE TESTS ==============
 
-    def test_knowledge_base_feature_end_to_end(self):
-        """Test Knowledge Base feature end-to-end as requested in review"""
-        print(f"\n🎯 Testing Knowledge Base Feature End-to-End")
+    def test_company_knowledge_base_feature_end_to_end(self):
+        """Test Company Knowledge Base feature end-to-end as requested in review"""
+        print(f"\n🎯 Testing Company Knowledge Base Feature End-to-End")
         
         # Test all steps from the review request
         login_test = self.test_super_admin_login()
         if not login_test:
-            print("❌ Login failed - cannot continue with Knowledge Base tests")
+            print("❌ Login failed - cannot continue with Company Knowledge Base tests")
             return False
             
         # Test backend API endpoints
-        create_kb_article_test = self.test_create_knowledge_base_article()
-        get_kb_articles_test = self.test_get_knowledge_base_articles()
-        get_kb_categories_test = self.test_get_knowledge_base_categories()
-        get_single_kb_article_test = self.test_get_single_knowledge_base_article()
-        search_kb_articles_test = self.test_search_knowledge_base_articles()
-        filter_kb_by_category_test = self.test_filter_knowledge_base_by_category()
+        stats_test = self.test_company_kb_stats()
+        articles_test = self.test_company_kb_articles()
+        categories_test = self.test_company_kb_categories()
+        folders_test = self.test_company_kb_folders()
+        create_article_test = self.test_company_kb_create_article()
+        get_single_article_test = self.test_company_kb_get_single_article()
+        update_article_test = self.test_company_kb_update_article()
+        create_folder_test = self.test_company_kb_create_folder()
+        delete_article_test = self.test_company_kb_delete_article()
+        for_agents_test = self.test_company_kb_for_agents()
         
-        # Summary of Knowledge Base tests
-        print(f"\n📋 Knowledge Base Feature Test Results:")
+        # Summary of Company Knowledge Base tests
+        print(f"\n📋 Company Knowledge Base Feature Test Results:")
         print(f"   Super Admin Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
-        print(f"   Create KB Article: {'✅ PASSED' if create_kb_article_test else '❌ FAILED'}")
-        print(f"   Get KB Articles: {'✅ PASSED' if get_kb_articles_test else '❌ FAILED'}")
-        print(f"   Get KB Categories: {'✅ PASSED' if get_kb_categories_test else '❌ FAILED'}")
-        print(f"   Get Single KB Article: {'✅ PASSED' if get_single_kb_article_test else '❌ FAILED'}")
-        print(f"   Search KB Articles: {'✅ PASSED' if search_kb_articles_test else '❌ FAILED'}")
-        print(f"   Filter KB by Category: {'✅ PASSED' if filter_kb_by_category_test else '❌ FAILED'}")
+        print(f"   GET /stats: {'✅ PASSED' if stats_test else '❌ FAILED'}")
+        print(f"   GET /articles: {'✅ PASSED' if articles_test else '❌ FAILED'}")
+        print(f"   GET /categories: {'✅ PASSED' if categories_test else '❌ FAILED'}")
+        print(f"   GET /folders: {'✅ PASSED' if folders_test else '❌ FAILED'}")
+        print(f"   POST /articles: {'✅ PASSED' if create_article_test else '❌ FAILED'}")
+        print(f"   GET /article/{slug}: {'✅ PASSED' if get_single_article_test else '❌ FAILED'}")
+        print(f"   PUT /articles/{slug}: {'✅ PASSED' if update_article_test else '❌ FAILED'}")
+        print(f"   POST /folders: {'✅ PASSED' if create_folder_test else '❌ FAILED'}")
+        print(f"   DELETE /articles/{slug}: {'✅ PASSED' if delete_article_test else '❌ FAILED'}")
+        print(f"   GET /articles/for-agents: {'✅ PASSED' if for_agents_test else '❌ FAILED'}")
         
-        return all([login_test, create_kb_article_test, get_kb_articles_test, 
-                   get_kb_categories_test, get_single_kb_article_test, 
-                   search_kb_articles_test, filter_kb_by_category_test])
+        return all([login_test, stats_test, articles_test, categories_test, folders_test, 
+                   create_article_test, get_single_article_test, update_article_test, 
+                   create_folder_test, delete_article_test, for_agents_test])
 
     def test_create_knowledge_base_article(self):
         """Test POST /api/admin/pages - Create Knowledge Base article"""
