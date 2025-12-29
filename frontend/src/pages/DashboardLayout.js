@@ -698,7 +698,12 @@ const Breadcrumb = () => {
       'email-templates': 'Email Templates',
       storage: 'Storage',
       waitlist: 'Waitlist',
-      'custom-emails': 'Custom Emails'
+      'custom-emails': 'Custom Emails',
+      'knowledge-base': 'Knowledge Base',
+      help: 'Help',
+      messaging: 'Messaging',
+      create: 'Create',
+      edit: 'Edit'
     };
     
     // If previous path was 'conversations' and this looks like an ID, show 'Details'
