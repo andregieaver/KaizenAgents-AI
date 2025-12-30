@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Badge } from '../components/ui/badge';
@@ -40,7 +41,10 @@ import {
   XCircle,
   Play,
   RefreshCw,
-  Shield
+  Shield,
+  Wrench,
+  Clock,
+  History
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
