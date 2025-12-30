@@ -605,6 +605,10 @@ const AgentEdit = () => {
             <MessageSquare className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Channels</span>
           </TabsTrigger>
+          <TabsTrigger value="tools" className="flex-1 sm:flex-none">
+            <Wrench className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Tools</span>
+          </TabsTrigger>
           {!isNew && (
             <>
               <TabsTrigger value="test" className="flex-1 sm:flex-none">
