@@ -25,7 +25,13 @@ async def get_browser():
     
     async with _browser_lock:
         if _browser is None:
+            import os
             from playwright.async_api import async_playwright
+            
+            # Set browser path if using custom location
+            browser_path = os.environ.get('PLAYWRIGHT_BROWSERS_PATH', '/pw-browsers')
+            os.environ['PLAYWRIGHT_BROWSERS_PATH'] = browser_path
+            
             _playwright = await async_playwright().start()
             _browser = await _playwright.chromium.launch(
                 headless=True,
