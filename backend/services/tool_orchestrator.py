@@ -294,9 +294,10 @@ class ToolOrchestrator:
         """Save execution log to database"""
         # Remove screenshot data from log to save space
         log_copy = log.copy()
-        if log_copy.get("result", {}).get("screenshot"):
-            log_copy["result"] = log_copy["result"].copy()
-            log_copy["result"]["screenshot"] = {"saved": True, "size": log_copy["result"]["screenshot"].get("size")}
+        result = log_copy.get("result")
+        if result and isinstance(result, dict) and result.get("screenshot"):
+            log_copy["result"] = result.copy()
+            log_copy["result"]["screenshot"] = {"saved": True, "size": result["screenshot"].get("size")}
         
         await self.db.tool_executions.insert_one(log_copy)
     
