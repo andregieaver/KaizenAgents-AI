@@ -254,6 +254,7 @@ const DashboardLayout = () => {
     { path: '/marketplace', icon: Bot, label: 'Marketplace' },
     { path: '/dashboard/team', icon: Users, label: 'Users' },
     { path: '/dashboard/agents', icon: Bot, label: 'Agents' },
+    { path: '/dashboard/agent-tools', icon: Wrench, label: 'Agent Tools' },
     { path: '/dashboard/knowledge-base', icon: BookOpen, label: 'Knowledge Base' },
     { path: '/dashboard/help', icon: HelpCircle, label: 'Documentation' },
     { path: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
