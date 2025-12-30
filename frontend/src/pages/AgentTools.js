@@ -307,16 +307,18 @@ export default function AgentTools() {
 
       {/* Tools Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex-wrap h-auto gap-1">
-          {categories.map(category => (
-            <TabsTrigger key={category} value={category} className="capitalize">
-              {categoryLabels[category] || category}
-              <Badge variant="secondary" className="ml-2">
-                {tools[category]?.length || 0}
-              </Badge>
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        <div className="overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+          <TabsList className="inline-flex h-auto gap-1 min-w-max">
+            {categories.map(category => (
+              <TabsTrigger key={category} value={category} className="capitalize whitespace-nowrap">
+                {categoryLabels[category] || category}
+                <Badge variant="secondary" className="ml-2">
+                  {tools[category]?.length || 0}
+                </Badge>
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </div>
 
         {categories.map(category => (
           <TabsContent key={category} value={category}>
