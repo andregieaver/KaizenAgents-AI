@@ -1791,3 +1791,25 @@ User and agent avatars were showing fallbacks or generic icons instead of actual
         2. Logs and Analytics tabs work
         3. Search and filter functionality
     credentials: "andre@humanweb.no / Pernilla66!"
+
+  - task: "AI Agent Tools - Phase 6: Testing & Polish (Mobile Friendliness)"
+    implemented: true
+    working: "needs_testing"
+    file: "pages/AgentTools.js, CredentialsManager.js, ScheduledTasks.js, ExecutionLogs.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    test_focus: |
+      - Verify sub-navigation across all Agent Tools pages:
+        1. Tools, Credentials, Scheduled Tasks, Logs buttons visible
+        2. Current page button is highlighted (variant="default")
+        3. Navigation between pages works correctly
+      - Test mobile responsiveness (375x812 viewport):
+        1. Sub-navigation scrolls horizontally
+        2. Stats cards stack properly
+        3. Tool tabs scroll horizontally 
+        4. Forms are accessible
+      - Test desktop view (1920x800 viewport):
+        1. All elements properly spaced
+        2. Multi-column layouts work
+    credentials: "andre@humanweb.no / Pernilla66!"
