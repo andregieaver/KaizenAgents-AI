@@ -22,6 +22,10 @@ from services.browser_tools import (
     execute_browser_tool,
     BROWSER_TOOL_EXECUTORS
 )
+from services.audit_tools import (
+    AUDIT_TOOL_EXECUTORS,
+    execute_audit_tool
+)
 
 logger = logging.getLogger(__name__)
 
