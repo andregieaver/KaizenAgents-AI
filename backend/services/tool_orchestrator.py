@@ -198,7 +198,8 @@ class ToolOrchestrator:
         agent_id: str,
         conversation_id: Optional[str] = None,
         tenant_tier: str = "starter",
-        session_id: Optional[str] = None
+        session_id: Optional[str] = None,
+        skip_agent_check: bool = False
     ) -> Dict[str, Any]:
         """
         Execute a tool with validation, logging, and rate limiting
@@ -211,6 +212,7 @@ class ToolOrchestrator:
             conversation_id: Optional conversation context
             tenant_tier: Tenant's subscription tier
             session_id: Optional browser session to reuse
+            skip_agent_check: Skip agent permission check (for admin testing)
         
         Returns:
             Tool execution result
@@ -235,6 +237,24 @@ class ToolOrchestrator:
         }
         
         try:
+            # Check if tool is enabled for this agent (unless skipped for admin testing)
+            if not skip_agent_check and agent_id != "test-agent":
+                agent = await self.db.agents.find_one(
+                    {"id": agent_id, "tenant_id": tenant_id},
+                    {"_id": 0, "config": 1}
+                )
+                if agent:
+                    enabled_tools = agent.get("config", {}).get("enabled_tools", [])
+                    if enabled_tools and tool_name not in enabled_tools:
+                        execution_log["status"] = "denied"
+                        execution_log["error"] = f"Tool '{tool_name}' is not enabled for this agent"
+                        await self._save_execution_log(execution_log)
+                        return {
+                            "success": False,
+                            "error": f"Tool '{tool_name}' is not enabled for this agent",
+                            "execution_id": execution_id
+                        }
+            
             # Validate access
             access = await self.validate_tool_access(tool_name, tenant_id, tenant_tier)
             if not access["allowed"]:
