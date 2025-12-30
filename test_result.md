@@ -339,7 +339,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Company Knowledge Base Feature Testing"
+    - "Phase 2 AI Agent Tools - Secure Credential Management & Login Tools"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
