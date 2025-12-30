@@ -40,7 +40,11 @@ import {
   Briefcase,
   Cog,
   BookOpen,
-  HelpCircle
+  HelpCircle,
+  Wrench,
+  Key,
+  Clock,
+  History
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
