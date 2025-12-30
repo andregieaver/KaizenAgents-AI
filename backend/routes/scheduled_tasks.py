@@ -25,7 +25,7 @@ class ScheduleConfig(BaseModel):
     cron_expression: Optional[str] = Field(None, description="Cron expression (for type=cron)")
     interval_minutes: Optional[int] = Field(None, description="Interval in minutes (for type=interval)")
     run_at: Optional[str] = Field(None, description="ISO datetime to run (for type=one_time)")
-    timezone: str = Field(default="UTC", description="Timezone for the schedule")
+    tz: str = Field(default="UTC", alias="timezone", description="Timezone for the schedule")
 
 
 class OnCompleteAction(BaseModel):
