@@ -11151,9 +11151,13 @@ if __name__ == "__main__":
             tester = AIAgentHubTester()
             success = tester.test_phase_2_ai_agent_tools_implementation()
             sys.exit(0 if success else 1)
+        elif test_name == "phase3_scheduling":
+            tester = AIAgentHubTester()
+            success = tester.test_phase_3_ai_agent_tools_implementation()
+            sys.exit(0 if success else 1)
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: rag, rag_enforcement, quota, mother_agent, new_features, security, channels, messaging, knowledge_base, phase2_credentials")
+            print("Available tests: rag, rag_enforcement, quota, mother_agent, new_features, security, channels, messaging, knowledge_base, phase2_credentials, phase3_scheduling")
             sys.exit(1)
     else:
         sys.exit(main())
