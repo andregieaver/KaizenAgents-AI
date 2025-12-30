@@ -533,6 +533,216 @@ async def select_option(
 
 
 # =============================================================================
+# AUTHENTICATION TOOL IMPLEMENTATIONS
+# =============================================================================
+
+async def login_with_credential(
+    session: BrowserSession,
+    credential: Dict[str, Any],
+    take_screenshot: bool = True
+) -> Dict[str, Any]:
+    """
+    Log into a website using a credential object with decrypted data
+    
+    Args:
+        session: Browser session
+        credential: Credential dict with 'decrypted' field containing username/password
+        take_screenshot: Whether to capture screenshot after login
+    
+    Returns:
+        Dict with login result
+    """
+    try:
+        decrypted = credential.get("decrypted", {})
+        if not decrypted:
+            return {"success": False, "error": "No decrypted credentials provided"}
+        
+        username = decrypted.get("username")
+        password = decrypted.get("password")
+        
+        if not username or not password:
+            return {"success": False, "error": "Missing username or password"}
+        
+        selectors = credential.get("field_selectors", {})
+        login_url = credential.get("login_url")
+        
+        if not login_url:
+            return {"success": False, "error": "No login URL configured"}
+        
+        # Navigate to login page
+        await session.page.goto(login_url, wait_until='domcontentloaded', timeout=30000)
+        await session.page.wait_for_timeout(1000)  # Wait for page to settle
+        
+        # Fill username
+        username_selector = selectors.get("username", "input[name='username'], input[name='email'], input[type='email'], #username, #email")
+        try:
+            await session.page.fill(username_selector, username)
+        except Exception as e:
+            return {"success": False, "error": f"Failed to fill username field: {str(e)}", "step": "username"}
+        
+        # Fill password
+        password_selector = selectors.get("password", "input[type='password'], input[name='password'], #password")
+        try:
+            await session.page.fill(password_selector, password)
+        except Exception as e:
+            return {"success": False, "error": f"Failed to fill password field: {str(e)}", "step": "password"}
+        
+        # Fill additional fields if any
+        additional = decrypted.get("additional_fields", {})
+        for selector, value in additional.items():
+            try:
+                await session.page.fill(selector, value)
+            except Exception as e:
+                logger.warning(f"Failed to fill additional field {selector}: {str(e)}")
+        
+        # Click submit
+        submit_selector = selectors.get("submit", "button[type='submit'], input[type='submit'], [type='submit']")
+        try:
+            # Try to handle navigation after click
+            try:
+                async with session.page.expect_navigation(timeout=15000):
+                    await session.page.click(submit_selector)
+            except Exception:
+                # Navigation might not happen for some login forms (SPA, AJAX)
+                await session.page.click(submit_selector)
+                await session.page.wait_for_timeout(3000)
+        except Exception as e:
+            return {"success": False, "error": f"Failed to click submit button: {str(e)}", "step": "submit"}
+        
+        # Wait for page to settle after login
+        await session.page.wait_for_timeout(2000)
+        
+        # Check for success indicator if configured
+        success_indicator = credential.get("success_indicator")
+        login_success = True
+        
+        if success_indicator:
+            try:
+                element = await session.page.query_selector(success_indicator)
+                login_success = element is not None
+            except Exception:
+                login_success = False
+        
+        # Build result
+        result = {
+            "success": login_success,
+            "url": session.page.url,
+            "title": await session.page.title(),
+            "credential_name": credential.get("name"),
+            "site_domain": credential.get("site_domain")
+        }
+        
+        # Take screenshot if requested
+        if take_screenshot:
+            try:
+                screenshot_data = await session.page.screenshot(type='jpeg', quality=80)
+                import base64
+                result["screenshot"] = {
+                    "format": "jpeg",
+                    "data": base64.b64encode(screenshot_data).decode('utf-8'),
+                    "size": len(screenshot_data)
+                }
+            except Exception as e:
+                logger.warning(f"Failed to capture screenshot: {str(e)}")
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"login_with_credential error: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+async def logout_from_website(
+    session: BrowserSession,
+    logout_url: Optional[str] = None,
+    logout_selector: Optional[str] = None,
+    clear_cookies: bool = True
+) -> Dict[str, Any]:
+    """
+    Log out from a website
+    
+    Args:
+        session: Browser session
+        logout_url: URL to navigate to for logout (optional)
+        logout_selector: CSS selector for logout button (optional)
+        clear_cookies: Whether to clear all cookies
+    
+    Returns:
+        Dict with logout result
+    """
+    try:
+        # Method 1: Navigate to logout URL
+        if logout_url:
+            await session.page.goto(logout_url, wait_until='domcontentloaded', timeout=30000)
+            await session.page.wait_for_timeout(1000)
+        
+        # Method 2: Click logout button/link
+        elif logout_selector:
+            try:
+                await session.page.click(logout_selector)
+                await session.page.wait_for_timeout(2000)
+            except Exception as e:
+                return {"success": False, "error": f"Failed to click logout: {str(e)}"}
+        
+        # Method 3: Clear cookies to force logout
+        if clear_cookies:
+            await session.context.clear_cookies()
+        
+        return {
+            "success": True,
+            "message": "Logged out successfully",
+            "url": session.page.url,
+            "cookies_cleared": clear_cookies
+        }
+        
+    except Exception as e:
+        logger.error(f"logout_from_website error: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+async def check_login_status_tool(
+    session: BrowserSession,
+    success_indicator: Optional[str] = None,
+    logout_indicator: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Check if currently logged into a website
+    
+    Args:
+        session: Browser session
+        success_indicator: Selector that indicates logged in
+        logout_indicator: Selector that indicates logged out
+        
+    Returns:
+        Login status
+    """
+    try:
+        is_logged_in = None
+        
+        if success_indicator:
+            element = await session.page.query_selector(success_indicator)
+            if element:
+                is_logged_in = True
+        
+        if logout_indicator and is_logged_in is None:
+            element = await session.page.query_selector(logout_indicator)
+            if element:
+                is_logged_in = False
+        
+        return {
+            "success": True,
+            "is_logged_in": is_logged_in,
+            "url": session.page.url,
+            "title": await session.page.title(),
+            "note": "Could not determine login status" if is_logged_in is None else None
+        }
+        
+    except Exception as e:
+        logger.error(f"check_login_status_tool error: {str(e)}")
+        return {"success": False, "error": str(e)}
+
+
+# =============================================================================
 # TOOL EXECUTOR MAPPING
 # =============================================================================
 
@@ -546,6 +756,8 @@ BROWSER_TOOL_EXECUTORS = {
     "fill_form": fill_form,
     "submit_form": submit_form,
     "select_option": select_option,
+    "check_login_status": check_login_status_tool,
+    "logout_from_website": logout_from_website,
 }
 
 
