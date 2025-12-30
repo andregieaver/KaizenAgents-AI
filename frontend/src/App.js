@@ -160,6 +160,10 @@ function AppRoutes() {
         <Route path="agents" element={<Agents />} />
         <Route path="agents/new" element={<AgentEdit />} />
         <Route path="agents/:agentId" element={<AgentEdit />} />
+        <Route path="agent-tools" element={<AgentTools />} />
+        <Route path="agent-tools/credentials" element={<CredentialsManager />} />
+        <Route path="agent-tools/scheduled-tasks" element={<ScheduledTasks />} />
+        <Route path="agent-tools/logs" element={<ExecutionLogs />} />
         <Route path="storage" element={<StorageConfig />} />
         <Route path="rate-limits" element={<RateLimits />} />
         <Route path="observability" element={<Observability />} />
