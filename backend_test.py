@@ -1396,6 +1396,347 @@ class AIAgentHubTester:
         
         return True
 
+    # ============== PHASE 4 AI AGENT TOOLS - AUDIT TOOLS TESTS ==============
+
+    def test_phase_4_ai_agent_tools_implementation(self):
+        """Test Phase 4 AI Agent Tools implementation - Audit Tools"""
+        print(f"\n🎯 Testing Phase 4 AI Agent Tools Implementation - Audit Tools")
+        
+        # Test all components from the review request
+        login_test = self.test_super_admin_login()
+        if not login_test:
+            print("❌ Login failed - cannot continue with Phase 4 tests")
+            return False
+            
+        # Test all 5 audit tools
+        seo_audit_test = self.test_seo_audit_tool()
+        accessibility_test = self.test_accessibility_audit_tool()
+        performance_test = self.test_performance_audit_tool()
+        security_test = self.test_security_audit_tool()
+        broken_links_test = self.test_broken_links_audit_tool()
+        
+        # Summary of Phase 4 tests
+        print(f"\n📋 Phase 4 AI Agent Tools Implementation Test Results:")
+        print(f"   Super Admin Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
+        print(f"   SEO Audit Tool: {'✅ PASSED' if seo_audit_test else '❌ FAILED'}")
+        print(f"   Accessibility Check Tool: {'✅ PASSED' if accessibility_test else '❌ FAILED'}")
+        print(f"   Performance Check Tool: {'✅ PASSED' if performance_test else '❌ FAILED'}")
+        print(f"   Security Headers Check Tool: {'✅ PASSED' if security_test else '❌ FAILED'}")
+        print(f"   Broken Links Check Tool: {'✅ PASSED' if broken_links_test else '❌ FAILED'}")
+        
+        return all([login_test, seo_audit_test, accessibility_test, performance_test, security_test, broken_links_test])
+
+    def test_seo_audit_tool(self):
+        """Test SEO Audit tool (audit_seo)"""
+        print(f"\n🔧 Testing SEO Audit Tool")
+        
+        tool_data = {
+            "tool_name": "audit_seo",
+            "params": {
+                "url": "https://example.com"
+            }
+        }
+        
+        success, response = self.run_test(
+            "Execute SEO Audit Tool",
+            "POST",
+            "agent-tools/execute",
+            200,
+            data=tool_data
+        )
+        
+        if not success:
+            print("❌ Failed to execute SEO audit tool")
+            return False
+            
+        # Verify response structure
+        if not response.get("success"):
+            print(f"❌ SEO audit failed: {response.get('error', 'Unknown error')}")
+            return False
+            
+        # Check required fields
+        required_fields = ["score", "grade", "meta", "headings", "images", "links", "schema", "issues", "warnings", "passed", "duration_ms", "timestamp"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields in SEO audit response: {missing_fields}")
+            return False
+            
+        print(f"   ✅ SEO Audit completed successfully")
+        print(f"   Score: {response.get('score', 'N/A')}/100")
+        print(f"   Grade: {response.get('grade', 'N/A')}")
+        print(f"   Issues: {len(response.get('issues', []))}")
+        print(f"   Warnings: {len(response.get('warnings', []))}")
+        print(f"   Passed: {len(response.get('passed', []))}")
+        print(f"   Duration: {response.get('duration_ms', 'N/A')}ms")
+        
+        # Verify score is 0-100
+        score = response.get('score', -1)
+        if not (0 <= score <= 100):
+            print(f"❌ Invalid score: {score} (should be 0-100)")
+            return False
+            
+        # Verify grade is A-F
+        grade = response.get('grade', '')
+        if grade not in ['A', 'B', 'C', 'D', 'F']:
+            print(f"❌ Invalid grade: {grade} (should be A-F)")
+            return False
+            
+        print(f"   ✅ SEO Audit tool working correctly")
+        return True
+
+    def test_accessibility_audit_tool(self):
+        """Test Accessibility Check tool (audit_accessibility)"""
+        print(f"\n🔧 Testing Accessibility Check Tool")
+        
+        tool_data = {
+            "tool_name": "audit_accessibility",
+            "params": {
+                "url": "https://example.com"
+            }
+        }
+        
+        success, response = self.run_test(
+            "Execute Accessibility Check Tool",
+            "POST",
+            "agent-tools/execute",
+            200,
+            data=tool_data
+        )
+        
+        if not success:
+            print("❌ Failed to execute accessibility check tool")
+            return False
+            
+        # Verify response structure
+        if not response.get("success"):
+            print(f"❌ Accessibility check failed: {response.get('error', 'Unknown error')}")
+            return False
+            
+        # Check required fields
+        required_fields = ["score", "grade", "language", "images", "forms", "links", "aria", "issues", "warnings", "passed", "duration_ms", "timestamp"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields in accessibility check response: {missing_fields}")
+            return False
+            
+        print(f"   ✅ Accessibility Check completed successfully")
+        print(f"   Score: {response.get('score', 'N/A')}/100")
+        print(f"   Grade: {response.get('grade', 'N/A')}")
+        print(f"   Language: {response.get('language', 'N/A')}")
+        print(f"   Issues: {len(response.get('issues', []))}")
+        print(f"   Warnings: {len(response.get('warnings', []))}")
+        print(f"   Passed: {len(response.get('passed', []))}")
+        print(f"   Duration: {response.get('duration_ms', 'N/A')}ms")
+        
+        # Verify WCAG 2.1 compliance check
+        standard = response.get('standard', '')
+        if 'WCAG' not in standard:
+            print(f"⚠️ Expected WCAG standard, got: {standard}")
+        else:
+            print(f"   ✅ WCAG compliance check performed")
+            
+        print(f"   ✅ Accessibility Check tool working correctly")
+        return True
+
+    def test_performance_audit_tool(self):
+        """Test Performance Check tool (audit_performance)"""
+        print(f"\n🔧 Testing Performance Check Tool")
+        
+        tool_data = {
+            "tool_name": "audit_performance",
+            "params": {
+                "url": "https://example.com"
+            }
+        }
+        
+        success, response = self.run_test(
+            "Execute Performance Check Tool",
+            "POST",
+            "agent-tools/execute",
+            200,
+            data=tool_data
+        )
+        
+        if not success:
+            print("❌ Failed to execute performance check tool")
+            return False
+            
+        # Verify response structure
+        if not response.get("success"):
+            print(f"❌ Performance check failed: {response.get('error', 'Unknown error')}")
+            return False
+            
+        # Check required fields
+        required_fields = ["score", "grade", "timing", "page", "resources", "compression", "issues", "warnings", "passed", "duration_ms", "timestamp"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields in performance check response: {missing_fields}")
+            return False
+            
+        print(f"   ✅ Performance Check completed successfully")
+        print(f"   Score: {response.get('score', 'N/A')}/100")
+        print(f"   Grade: {response.get('grade', 'N/A')}")
+        
+        # Check timing metrics
+        timing = response.get('timing', {})
+        ttfb = timing.get('ttfb_ms', 0)
+        total = timing.get('total_ms', 0)
+        print(f"   TTFB: {ttfb}ms")
+        print(f"   Total Time: {total}ms")
+        
+        # Check page size
+        page = response.get('page', {})
+        size_kb = page.get('html_size_kb', 0)
+        print(f"   Page Size: {size_kb}KB")
+        
+        # Check compression
+        compression = response.get('compression', {})
+        compression_enabled = compression.get('enabled', False)
+        print(f"   Compression: {'Enabled' if compression_enabled else 'Disabled'}")
+        
+        print(f"   Issues: {len(response.get('issues', []))}")
+        print(f"   Warnings: {len(response.get('warnings', []))}")
+        print(f"   Passed: {len(response.get('passed', []))}")
+        print(f"   Duration: {response.get('duration_ms', 'N/A')}ms")
+            
+        print(f"   ✅ Performance Check tool working correctly")
+        return True
+
+    def test_security_audit_tool(self):
+        """Test Security Headers Check tool (audit_security)"""
+        print(f"\n🔧 Testing Security Headers Check Tool")
+        
+        tool_data = {
+            "tool_name": "audit_security",
+            "params": {
+                "url": "https://example.com"
+            }
+        }
+        
+        success, response = self.run_test(
+            "Execute Security Headers Check Tool",
+            "POST",
+            "agent-tools/execute",
+            200,
+            data=tool_data
+        )
+        
+        if not success:
+            print("❌ Failed to execute security headers check tool")
+            return False
+            
+        # Verify response structure
+        if not response.get("success"):
+            print(f"❌ Security headers check failed: {response.get('error', 'Unknown error')}")
+            return False
+            
+        # Check required fields
+        required_fields = ["score", "grade", "headers", "issues", "warnings", "passed", "duration_ms", "timestamp"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields in security headers check response: {missing_fields}")
+            return False
+            
+        print(f"   ✅ Security Headers Check completed successfully")
+        print(f"   Score: {response.get('score', 'N/A')}/100")
+        print(f"   Grade: {response.get('grade', 'N/A')}")
+        
+        # Check headers analysis
+        headers = response.get('headers', {})
+        security_headers = ['Strict-Transport-Security', 'Content-Security-Policy', 'X-Content-Type-Options', 'X-Frame-Options']
+        found_headers = 0
+        for header in security_headers:
+            if headers.get(header, {}).get('present'):
+                found_headers += 1
+                
+        print(f"   Security Headers Found: {found_headers}/{len(security_headers)}")
+        print(f"   Issues: {len(response.get('issues', []))}")
+        print(f"   Warnings: {len(response.get('warnings', []))}")
+        print(f"   Passed: {len(response.get('passed', []))}")
+        print(f"   Duration: {response.get('duration_ms', 'N/A')}ms")
+        
+        # Verify headers structure
+        for header_name, header_info in headers.items():
+            if not isinstance(header_info, dict) or 'present' not in header_info:
+                print(f"❌ Invalid header structure for {header_name}")
+                return False
+                
+        print(f"   ✅ Security Headers Check tool working correctly")
+        return True
+
+    def test_broken_links_audit_tool(self):
+        """Test Broken Links Check tool (check_broken_links)"""
+        print(f"\n🔧 Testing Broken Links Check Tool")
+        
+        tool_data = {
+            "tool_name": "check_broken_links",
+            "params": {
+                "url": "https://example.com",
+                "max_links": 10
+            }
+        }
+        
+        success, response = self.run_test(
+            "Execute Broken Links Check Tool",
+            "POST",
+            "agent-tools/execute",
+            200,
+            data=tool_data
+        )
+        
+        if not success:
+            print("❌ Failed to execute broken links check tool")
+            return False
+            
+        # Verify response structure
+        if not response.get("success"):
+            print(f"❌ Broken links check failed: {response.get('error', 'Unknown error')}")
+            return False
+            
+        # Check required fields
+        required_fields = ["score", "grade", "total_links_found", "links_checked", "results", "issues", "warnings", "passed", "duration_ms", "timestamp"]
+        missing_fields = [field for field in required_fields if field not in response]
+        
+        if missing_fields:
+            print(f"❌ Missing required fields in broken links check response: {missing_fields}")
+            return False
+            
+        print(f"   ✅ Broken Links Check completed successfully")
+        print(f"   Score: {response.get('score', 'N/A')}/100")
+        print(f"   Grade: {response.get('grade', 'N/A')}")
+        print(f"   Total Links Found: {response.get('total_links_found', 'N/A')}")
+        print(f"   Links Checked: {response.get('links_checked', 'N/A')}")
+        
+        # Check results structure
+        results = response.get('results', {})
+        broken_count = len(results.get('broken', []))
+        working_count = results.get('working', 0)
+        redirects_count = len(results.get('redirects', []))
+        timeouts_count = len(results.get('timeouts', []))
+        
+        print(f"   Broken Links: {broken_count}")
+        print(f"   Working Links: {working_count}")
+        print(f"   Redirects: {redirects_count}")
+        print(f"   Timeouts: {timeouts_count}")
+        print(f"   Issues: {len(response.get('issues', []))}")
+        print(f"   Warnings: {len(response.get('warnings', []))}")
+        print(f"   Passed: {len(response.get('passed', []))}")
+        print(f"   Duration: {response.get('duration_ms', 'N/A')}ms")
+        
+        # Verify max_links parameter was respected
+        links_checked = response.get('links_checked', 0)
+        if links_checked > 10:
+            print(f"⚠️ More links checked ({links_checked}) than max_links parameter (10)")
+        else:
+            print(f"   ✅ max_links parameter respected")
+            
+        print(f"   ✅ Broken Links Check tool working correctly")
+        return True
+
     # ============== PHASE 3 AI AGENT TOOLS - TASK SCHEDULING & EXECUTION SYSTEM TESTS ==============
 
     def test_phase_3_ai_agent_tools_implementation(self):
