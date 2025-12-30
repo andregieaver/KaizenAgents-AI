@@ -8,7 +8,7 @@ import time
 
 class AffiliateSystemTester:
     def __init__(self):
-        self.base_url = "https://kb-social-dash.preview.emergentagent.com/api"
+        self.base_url = "https://ai-automation-43.preview.emergentagent.com/api"
         self.token = None
         self.affiliate_code = None
         self.test_referral_id = None
