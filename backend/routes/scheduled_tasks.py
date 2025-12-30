@@ -261,7 +261,7 @@ async def update_task(
             "cron_expression": updates.schedule.cron_expression,
             "interval_minutes": updates.schedule.interval_minutes,
             "run_at": updates.schedule.run_at,
-            "timezone": updates.schedule.timezone
+            "timezone": updates.schedule.tz
         }
     if updates.enabled is not None:
         update_data["enabled"] = updates.enabled
