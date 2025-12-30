@@ -325,6 +325,79 @@ class ToolOrchestrator:
             await session.__aexit__(None, None, None)
             logger.info(f"Closed browser session {session_id}")
     
+    async def _execute_login_tool(
+        self,
+        params: Dict[str, Any],
+        tenant_id: str,
+        session_id: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Execute login_to_website tool with credential fetching
+        
+        Args:
+            params: Tool parameters (credential_id or credential_name)
+            tenant_id: Tenant ID for credential lookup
+            session_id: Optional browser session ID
+        
+        Returns:
+            Login result
+        """
+        from services.credential_service import CredentialService, CredentialEncryption
+        from services.browser_tools import BrowserSession, login_with_credential
+        
+        credential_id = params.get("credential_id")
+        credential_name = params.get("credential_name")
+        
+        if not credential_id and not credential_name:
+            return {"success": False, "error": "Either credential_id or credential_name required"}
+        
+        # Initialize credential service
+        encryption = CredentialEncryption()
+        cred_service = CredentialService(self.db, encryption)
+        
+        # Fetch credential with decrypted data
+        if credential_id:
+            credential = await cred_service.get_credential(credential_id, tenant_id, include_decrypted=True)
+        else:
+            credential = await cred_service.get_credential_by_name(credential_name, tenant_id, include_decrypted=True)
+        
+        if not credential:
+            return {"success": False, "error": "Credential not found"}
+        
+        if not credential.get("decrypted"):
+            return {"success": False, "error": "Failed to decrypt credentials"}
+        
+        # Get or create session
+        session = None
+        owns_session = False
+        
+        if session_id and session_id in self._active_sessions:
+            session = self._active_sessions[session_id]
+        else:
+            session = BrowserSession()
+            await session.__aenter__()
+            owns_session = True
+        
+        try:
+            result = await login_with_credential(
+                session=session,
+                credential=credential,
+                take_screenshot=True
+            )
+            
+            # Record usage in credential service
+            await cred_service.record_usage(
+                credential.get("id"),
+                tenant_id,
+                result.get("success", False)
+            )
+            
+            return result
+            
+        finally:
+            if owns_session:
+                await session.__aexit__(None, None, None)
+    
     async def cleanup_sessions(self):
         """Clean up all active sessions"""
         for session_id in list(self._active_sessions.keys()):
