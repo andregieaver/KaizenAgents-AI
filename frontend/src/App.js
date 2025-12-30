@@ -51,6 +51,10 @@ import Messaging from "./pages/Messaging";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import CompanyKnowledgeBase from "./pages/CompanyKnowledgeBase";
 import CompanyKBEditor from "./pages/CompanyKBEditor";
+import AgentTools from "./pages/AgentTools";
+import CredentialsManager from "./pages/CredentialsManager";
+import ScheduledTasks from "./pages/ScheduledTasks";
+import ExecutionLogs from "./pages/ExecutionLogs";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
