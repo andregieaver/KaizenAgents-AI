@@ -608,7 +608,7 @@ TOOL_FEATURE_GATES = {
         }
     },
     "agent_auth_tools": {
-        "tools": ["login_to_website", "check_login_status"],
+        "tools": ["login_to_website", "logout_from_website", "check_login_status"],
         "default_limit": 10,
         "tier_limits": {
             "free": 0,
