@@ -198,7 +198,7 @@ async def create_task(
             "interval_minutes": schedule.interval_minutes,
             "run_at": schedule.run_at
         },
-        timezone_str=schedule.timezone,
+        timezone_str=schedule.tz,
         enabled=task_data.enabled,
         on_complete=task_data.on_complete.model_dump() if task_data.on_complete else None
     )
