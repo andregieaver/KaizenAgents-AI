@@ -208,13 +208,13 @@ const DashboardLayout = () => {
     { path: '/marketplace', icon: Bot, label: 'Marketplace' },
     { path: '/dashboard/agents', icon: Bot, label: 'Agents' },
     { path: '/dashboard/team', icon: Users, label: 'Users' },
+    { path: '/dashboard/knowledge-base', icon: BookOpen, label: 'Knowledge Base' },
+    { path: '/dashboard/help', icon: HelpCircle, label: 'Documentation' },
   ];
   
   const accountNavItems = [
     { path: '/dashboard/billing', icon: CreditCard, label: 'Billing' },
     { path: '/dashboard/affiliates', icon: Gift, label: 'Affiliates' },
-    { path: '/dashboard/knowledge-base', icon: BookOpen, label: 'Knowledge Base' },
-    { path: '/dashboard/help', icon: HelpCircle, label: 'Documentation' },
     { path: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
 
