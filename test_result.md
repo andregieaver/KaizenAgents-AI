@@ -1653,3 +1653,24 @@ User and agent avatars were showing fallbacks or generic icons instead of actual
       - Verify conversation list scrolls properly under sticky headers
       - Verify footer remains at bottom
     credentials: "andre@humanweb.no / Pernilla66!"
+
+  - task: "AI Agent Tools - Phase 2: Credential Management & Login Tools"
+    implemented: true
+    working: "needs_testing"
+    file: "routes/agent_credentials.py, services/credential_service.py, services/browser_tools.py, services/tool_orchestrator.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    test_focus: |
+      - Test CRUD operations for credentials:
+        1. POST /api/credentials - Create new credential
+        2. GET /api/credentials - List all credentials
+        3. GET /api/credentials/{id} - Get single credential
+        4. PUT /api/credentials/{id} - Update credential
+        5. DELETE /api/credentials/{id} - Delete credential
+        6. GET /api/credentials/by-name/{name} - Lookup by name
+      - Verify credentials are encrypted in database
+      - Verify password/username not exposed in API responses
+      - Test auth tools in /api/agent-tools/available (should show 3: login_to_website, logout_from_website, check_login_status)
+      - Test login_to_website tool execution via /api/agent-tools/execute
+    credentials: "andre@humanweb.no / Pernilla66!"
