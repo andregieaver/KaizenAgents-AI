@@ -46,19 +46,6 @@ export default function ExecutionLogs() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('logs');
 
-  useEffect(() => {
-    fetchAll();
-  }, []);
-
-  const fetchAll = async () => {
-    setLoading(true);
-    await Promise.all([
-      fetchExecutions(),
-      fetchUsage()
-    ]);
-    setLoading(false);
-  };
-
   const fetchExecutions = async () => {
     try {
       const response = await axios.get(`${API}/agent-tools/history`, {
@@ -81,6 +68,20 @@ export default function ExecutionLogs() {
       console.error('Failed to fetch usage');
     }
   };
+
+  const fetchAll = async () => {
+    setLoading(true);
+    await Promise.all([
+      fetchExecutions(),
+      fetchUsage()
+    ]);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const viewDetails = (execution) => {
     setSelectedExecution(execution);
