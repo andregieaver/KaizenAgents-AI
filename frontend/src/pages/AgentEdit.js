@@ -31,7 +31,8 @@ import {
   AgentIntegrationsTab,
   AgentTestTab,
   AgentEmbedTab,
-  AgentChannelsTab
+  AgentChannelsTab,
+  AgentToolsTab
 } from '../components/agent';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
