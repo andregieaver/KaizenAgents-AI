@@ -1686,3 +1686,29 @@ User and agent avatars were showing fallbacks or generic icons instead of actual
       - Test auth tools in /api/agent-tools/available (should show 3: login_to_website, logout_from_website, check_login_status)
       - Test login_to_website tool execution via /api/agent-tools/execute
     credentials: "andre@humanweb.no / Pernilla66!"
+
+  - task: "AI Agent Tools - Phase 3: Task Scheduling & Execution"
+    implemented: true
+    working: "needs_testing"
+    file: "services/task_scheduler_service.py, routes/scheduled_tasks.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    test_focus: |
+      - Test CRUD operations for scheduled tasks:
+        1. POST /api/scheduled-tasks - Create new task (may fail quota for starter tier - expected)
+        2. GET /api/scheduled-tasks - List all tasks
+        3. GET /api/scheduled-tasks/{id} - Get single task
+        4. PUT /api/scheduled-tasks/{id} - Update task
+        5. DELETE /api/scheduled-tasks/{id} - Delete task
+      - Test task actions:
+        1. POST /api/scheduled-tasks/{id}/run - Run task immediately
+        2. POST /api/scheduled-tasks/{id}/enable - Enable task
+        3. POST /api/scheduled-tasks/{id}/disable - Disable task
+      - Test execution history:
+        1. GET /api/scheduled-tasks/{id}/executions - Get task execution history
+        2. GET /api/scheduled-tasks/executions/all - Get all executions
+      - Test scheduler status:
+        1. GET /api/scheduled-tasks/status/scheduler - Get scheduler stats
+      - Verify feature gating (starter tier should have quota_limit: 0)
+    credentials: "andre@humanweb.no / Pernilla66!"
