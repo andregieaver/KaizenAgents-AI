@@ -1751,3 +1751,31 @@ User and agent avatars were showing fallbacks or generic icons instead of actual
         - duration_ms
       - Test against example.com as baseline
     credentials: "andre@humanweb.no / Pernilla66!"
+
+  - task: "AI Agent Tools - Phase 5: Frontend UI"
+    implemented: true
+    working: "needs_testing"
+    file: "frontend/src/pages/AgentTools.js, CredentialsManager.js, ScheduledTasks.js, ExecutionLogs.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    test_focus: |
+      - Test Agent Tools page at /dashboard/agent-tools:
+        1. Displays usage stats (Current Hour, Today, Tier, Limits)
+        2. Shows tool categories (Browser, Form, Auth, Audit, Scheduler)
+        3. Test URL input works
+        4. Test Tool buttons execute tools and show results
+      - Test Credentials Manager at /dashboard/agent-tools/credentials:
+        1. Shows empty state initially
+        2. Can create new credential (add form works)
+        3. Credentials are listed with card view
+        4. Edit/Delete buttons work
+      - Test Scheduled Tasks at /dashboard/agent-tools/scheduled-tasks:
+        1. Shows scheduler status (Running)
+        2. Shows quota warning for starter tier
+        3. Tasks and Execution History tabs work
+      - Test Execution Logs at /dashboard/agent-tools/logs:
+        1. Shows stats cards
+        2. Logs and Analytics tabs work
+        3. Search and filter functionality
+    credentials: "andre@humanweb.no / Pernilla66!"
