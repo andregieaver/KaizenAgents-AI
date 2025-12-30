@@ -171,26 +171,16 @@ export default function ExecutionLogs() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
-      {/* Sub Navigation */}
+      {/* Sub Navigation - Super Admin Only */}
       <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
         <Link to="/dashboard/agent-tools">
           <Button variant="outline" size="sm">
-            <Wrench className="h-4 w-4 mr-2" /> Tools
-          </Button>
-        </Link>
-        <Link to="/dashboard/agent-tools/credentials">
-          <Button variant="outline" size="sm">
-            <Key className="h-4 w-4 mr-2" /> Credentials
-          </Button>
-        </Link>
-        <Link to="/dashboard/agent-tools/scheduled-tasks">
-          <Button variant="outline" size="sm">
-            <Clock className="h-4 w-4 mr-2" /> Scheduled Tasks
+            <Wrench className="h-4 w-4 mr-2" /> Tool Testing
           </Button>
         </Link>
         <Link to="/dashboard/agent-tools/logs">
           <Button variant="default" size="sm">
-            <History className="h-4 w-4 mr-2" /> Logs
+            <History className="h-4 w-4 mr-2" /> Execution Logs
           </Button>
         </Link>
       </div>
@@ -199,7 +189,7 @@ export default function ExecutionLogs() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Execution Logs</h1>
-          <p className="text-muted-foreground">View tool execution history and usage analytics</p>
+          <p className="text-muted-foreground">View tool execution history and usage analytics (Super Admin)</p>
         </div>
         <Button variant="outline" onClick={fetchAll}>
           <RefreshCw className="h-4 w-4 mr-2" /> Refresh
