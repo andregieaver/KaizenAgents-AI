@@ -211,8 +211,9 @@ const DashboardLayout = () => {
   const resourcesNavItems = [
     { path: '/marketplace', icon: Bot, label: 'Marketplace' },
     { path: '/dashboard/agents', icon: Bot, label: 'Agents' },
-    { path: '/dashboard/agent-tools', icon: Wrench, label: 'Agent Tools' },
     { path: '/dashboard/team', icon: Users, label: 'Users' },
+    { path: '/dashboard/credentials', icon: Key, label: 'Credentials' },
+    { path: '/dashboard/scheduled-tasks', icon: Clock, label: 'Scheduled Tasks' },
     { path: '/dashboard/knowledge-base', icon: BookOpen, label: 'Knowledge Base' },
     { path: '/dashboard/help', icon: HelpCircle, label: 'Documentation' },
   ];
@@ -226,6 +227,8 @@ const DashboardLayout = () => {
   // Super Admin items (collapsible)
   const superAdminNavItems = user?.is_super_admin ? [
     { path: '/dashboard/admin', icon: Shield, label: 'Super Admin' },
+    { path: '/dashboard/agent-tools', icon: Wrench, label: 'Agent Tools' },
+    { path: '/dashboard/agent-tools/logs', icon: History, label: 'Tool Exec Logs' },
     { path: '/dashboard/providers', icon: MessageSquare, label: 'AI Providers' },
     { path: '/dashboard/storage', icon: Database, label: 'Storage' },
     { path: '/dashboard/rate-limits', icon: Shield, label: 'Rate Limits' },
