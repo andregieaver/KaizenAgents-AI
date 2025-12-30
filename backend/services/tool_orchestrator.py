@@ -258,6 +258,23 @@ class ToolOrchestrator:
                     session = self._active_sessions[session_id]
                 
                 result = await execute_browser_tool(tool_name, params, session)
+            elif tool_name in AUDIT_TOOL_EXECUTORS:
+                # Audit tool - direct execution
+                result = await execute_audit_tool(tool_name, params)
+            elif tool_name.startswith("audit_") or tool_name == "check_broken_links":
+                # Map registry names to implementation names
+                tool_name_map = {
+                    "audit_seo": "seo_audit",
+                    "audit_accessibility": "accessibility_check",
+                    "audit_performance": "performance_check",
+                    "audit_security": "security_headers_check",
+                    "check_broken_links": "broken_links_check"
+                }
+                mapped_name = tool_name_map.get(tool_name)
+                if mapped_name:
+                    result = await execute_audit_tool(mapped_name, params)
+                else:
+                    result = {"success": False, "error": f"Tool not implemented: {tool_name}"}
             else:
                 # Unknown tool
                 result = {"success": False, "error": f"Tool not implemented: {tool_name}"}
