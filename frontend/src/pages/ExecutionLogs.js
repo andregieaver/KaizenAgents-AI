@@ -46,42 +46,50 @@ export default function ExecutionLogs() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [activeTab, setActiveTab] = useState('logs');
 
-  const fetchExecutions = async () => {
-    try {
-      const response = await axios.get(`${API}/agent-tools/history`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { limit: 100 }
-      });
-      setExecutions(response.data.executions || []);
-    } catch (error) {
-      console.error('Failed to fetch executions');
-    }
-  };
-
-  const fetchUsage = async () => {
-    try {
-      const response = await axios.get(`${API}/agent-tools/usage`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setUsage(response.data);
-    } catch (error) {
-      console.error('Failed to fetch usage');
-    }
-  };
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [execResponse, usageResponse] = await Promise.all([
+          axios.get(`${API}/agent-tools/history`, {
+            headers: { Authorization: `Bearer ${token}` },
+            params: { limit: 100 }
+          }),
+          axios.get(`${API}/agent-tools/usage`, {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
+        setExecutions(execResponse.data.executions || []);
+        setUsage(usageResponse.data);
+      } catch (error) {
+        console.error('Failed to fetch data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [token]);
 
   const fetchAll = async () => {
     setLoading(true);
-    await Promise.all([
-      fetchExecutions(),
-      fetchUsage()
-    ]);
-    setLoading(false);
+    try {
+      const [execResponse, usageResponse] = await Promise.all([
+        axios.get(`${API}/agent-tools/history`, {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { limit: 100 }
+        }),
+        axios.get(`${API}/agent-tools/usage`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
+      setExecutions(execResponse.data.executions || []);
+      setUsage(usageResponse.data);
+    } catch (error) {
+      console.error('Failed to fetch data');
+    } finally {
+      setLoading(false);
+    }
   };
-
-  useEffect(() => {
-    fetchAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const viewDetails = (execution) => {
     setSelectedExecution(execution);
