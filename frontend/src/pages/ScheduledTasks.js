@@ -658,7 +658,7 @@ export default function ScheduledTasks() {
                   placeholder="0 9 * * *"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Format: minute hour day month weekday (e.g., "0 9 * * *" = daily at 9 AM)
+                  Format: minute hour day month weekday (e.g., &quot;0 9 * * *&quot; = daily at 9 AM)
                 </p>
               </div>
             )}
@@ -703,7 +703,7 @@ export default function ScheduledTasks() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Task</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{selectedTask?.name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{selectedTask?.name}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

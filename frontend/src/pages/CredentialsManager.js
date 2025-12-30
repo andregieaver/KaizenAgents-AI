@@ -521,7 +521,7 @@ export default function CredentialsManager() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Credential</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{selectedCredential?.name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{selectedCredential?.name}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
