@@ -196,7 +196,7 @@ async def execute_tool(
     request: ToolExecuteRequest,
     current_user: dict = Depends(get_current_user)
 ):
-    """Execute a tool directly (for testing/manual use)"""
+    """Execute a tool directly (for testing/manual use by super admins)"""
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
@@ -204,15 +204,19 @@ async def execute_tool(
     # Get user's tier (default to starter)
     tenant_tier = current_user.get("tier", "starter")
     
+    # Check if super admin for skip_agent_check
+    is_super_admin = current_user.get("is_super_admin", False)
+    
     orchestrator = get_orchestrator()
     
     result = await orchestrator.execute_tool(
         tool_name=request.tool_name,
         params=request.params,
         tenant_id=tenant_id,
-        agent_id="manual",  # Manual execution
+        agent_id=request.agent_id or "test-agent",
         tenant_tier=tenant_tier,
-        session_id=request.session_id
+        session_id=request.session_id,
+        skip_agent_check=is_super_admin  # Skip agent permission check for super admin testing
     )
     
     return result
