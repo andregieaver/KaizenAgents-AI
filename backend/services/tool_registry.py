@@ -305,6 +305,33 @@ AUTH_TOOLS = [
     {
         "type": "function",
         "function": {
+            "name": "logout_from_website",
+            "description": "Log out from the current website session",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "logout_url": {
+                        "type": "string",
+                        "description": "URL to navigate to for logout (optional)"
+                    },
+                    "logout_selector": {
+                        "type": "string",
+                        "description": "CSS selector for logout button/link (optional)"
+                    },
+                    "clear_cookies": {
+                        "type": "boolean",
+                        "description": "Clear all session cookies",
+                        "default": True
+                    }
+                }
+            }
+        },
+        "category": ToolCategory.AUTH,
+        "feature_key": "agent_auth_tools"
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "check_login_status",
             "description": "Check if currently logged into a website",
             "parameters": {
