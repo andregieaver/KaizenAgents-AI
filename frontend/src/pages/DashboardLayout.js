@@ -211,6 +211,7 @@ const DashboardLayout = () => {
   const resourcesNavItems = [
     { path: '/marketplace', icon: Bot, label: 'Marketplace' },
     { path: '/dashboard/agents', icon: Bot, label: 'Agents' },
+    { path: '/dashboard/agent-tools', icon: Wrench, label: 'Agent Tools' },
     { path: '/dashboard/team', icon: Users, label: 'Users' },
     { path: '/dashboard/knowledge-base', icon: BookOpen, label: 'Knowledge Base' },
     { path: '/dashboard/help', icon: HelpCircle, label: 'Documentation' },
