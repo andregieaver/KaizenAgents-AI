@@ -1724,3 +1724,26 @@ User and agent avatars were showing fallbacks or generic icons instead of actual
         1. GET /api/scheduled-tasks/status/scheduler - Get scheduler stats
       - Verify feature gating (starter tier should have quota_limit: 0)
     credentials: "andre@humanweb.no / Pernilla66!"
+
+  - task: "AI Agent Tools - Phase 4: Audit Tools"
+    implemented: true
+    working: "needs_testing"
+    file: "services/audit_tools.py, services/tool_orchestrator.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    test_focus: |
+      - Test all 5 audit tools via /api/agent-tools/execute:
+        1. audit_seo - SEO audit with meta tags, headings, images, links, schema
+        2. audit_accessibility - WCAG compliance check
+        3. audit_performance - Performance metrics (TTFB, HTML size, compression)
+        4. audit_security - Security headers check
+        5. check_broken_links - Broken links detection
+      - Verify each tool returns:
+        - success: true
+        - score: 0-100
+        - grade: A/B/C/D/F
+        - issues, warnings, passed arrays
+        - duration_ms
+      - Test against example.com as baseline
+    credentials: "andre@humanweb.no / Pernilla66!"
