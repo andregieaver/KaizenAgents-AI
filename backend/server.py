@@ -4881,6 +4881,7 @@ api_router.include_router(crm_router_mod)
 api_router.include_router(messaging_router_mod)
 api_router.include_router(company_kb_router_mod)
 api_router.include_router(agent_tools_router_mod)
+api_router.include_router(agent_credentials_router_mod)
 
 # Include the admin router with providers and agents endpoints
 api_router.include_router(admin_router)
