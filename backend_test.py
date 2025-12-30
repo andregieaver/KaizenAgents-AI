@@ -10773,9 +10773,13 @@ if __name__ == "__main__":
             tester = AIAgentHubTester()
             success = tester.test_company_knowledge_base_feature_end_to_end()
             sys.exit(0 if success else 1)
+        elif test_name == "phase2_credentials":
+            tester = AIAgentHubTester()
+            success = tester.test_phase_2_ai_agent_tools_implementation()
+            sys.exit(0 if success else 1)
         else:
             print(f"Unknown test: {test_name}")
-            print("Available tests: rag, rag_enforcement, quota, mother_agent, new_features, security, channels, messaging, knowledge_base")
+            print("Available tests: rag, rag_enforcement, quota, mother_agent, new_features, security, channels, messaging, knowledge_base, phase2_credentials")
             sys.exit(1)
     else:
         sys.exit(main())
