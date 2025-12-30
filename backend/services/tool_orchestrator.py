@@ -244,7 +244,10 @@ class ToolOrchestrator:
                 }
             
             # Execute the tool
-            if tool_name in BROWSER_TOOL_EXECUTORS:
+            if tool_name == "login_to_website":
+                # Special handling for login - needs credential service
+                result = await self._execute_login_tool(params, tenant_id, session_id)
+            elif tool_name in BROWSER_TOOL_EXECUTORS:
                 # Browser tool - manage session
                 session = None
                 if session_id and session_id in self._active_sessions:
