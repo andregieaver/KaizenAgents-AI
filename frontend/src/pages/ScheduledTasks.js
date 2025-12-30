@@ -332,6 +332,30 @@ export default function ScheduledTasks() {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
+      {/* Sub Navigation */}
+      <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0">
+        <Link to="/dashboard/agent-tools">
+          <Button variant="outline" size="sm">
+            <Wrench className="h-4 w-4 mr-2" /> Tools
+          </Button>
+        </Link>
+        <Link to="/dashboard/agent-tools/credentials">
+          <Button variant="outline" size="sm">
+            <Key className="h-4 w-4 mr-2" /> Credentials
+          </Button>
+        </Link>
+        <Link to="/dashboard/agent-tools/scheduled-tasks">
+          <Button variant="default" size="sm">
+            <Clock className="h-4 w-4 mr-2" /> Scheduled Tasks
+          </Button>
+        </Link>
+        <Link to="/dashboard/agent-tools/logs">
+          <Button variant="outline" size="sm">
+            <History className="h-4 w-4 mr-2" /> Logs
+          </Button>
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
