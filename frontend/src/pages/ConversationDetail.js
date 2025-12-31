@@ -1042,6 +1042,99 @@ const ConversationDetail = () => {
       </div>
         </div>
       </div>
+
+      {/* Escalate to Ticket Dialog */}
+      <Dialog open={showEscalateDialog} onOpenChange={setShowEscalateDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Escalate to Ticket</DialogTitle>
+            <DialogDescription>
+              Create a support ticket from this conversation. The ticket will be linked to this conversation.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="escalate-title">Title *</Label>
+              <Input
+                id="escalate-title"
+                value={escalateForm.title}
+                onChange={(e) => setEscalateForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Brief description of the issue"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="escalate-description">Description</Label>
+              <Textarea
+                id="escalate-description"
+                value={escalateForm.description}
+                onChange={(e) => setEscalateForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Additional details..."
+                rows={3}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Priority</Label>
+                <Select 
+                  value={escalateForm.priority} 
+                  onValueChange={(v) => setEscalateForm(prev => ({ ...prev, priority: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                    <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Category</Label>
+                <Select 
+                  value={escalateForm.category} 
+                  onValueChange={(v) => setEscalateForm(prev => ({ ...prev, category: v }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="support">Support</SelectItem>
+                    <SelectItem value="bug">Bug</SelectItem>
+                    <SelectItem value="feature_request">Feature Request</SelectItem>
+                    <SelectItem value="billing">Billing</SelectItem>
+                    <SelectItem value="technical">Technical</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEscalateDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEscalateToTicket} disabled={escalating}>
+              {escalating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Escalating...
+                </>
+              ) : (
+                <>
+                  <Ticket className="h-4 w-4 mr-2" />
+                  Escalate
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
