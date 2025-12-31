@@ -364,6 +364,53 @@ const ConversationDetail = () => {
     }
   };
 
+  const handleEscalateToTicket = async () => {
+    if (!escalateForm.title.trim()) {
+      toast.error('Title is required');
+      return;
+    }
+    
+    setEscalating(true);
+    try {
+      const response = await axios.post(
+        `${API}/tickets/escalate/${id}`,
+        escalateForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      toast.success('Conversation escalated to ticket successfully');
+      setShowEscalateDialog(false);
+      setConversation(prev => ({
+        ...prev,
+        escalated_to_ticket_id: response.data.id
+      }));
+      
+      // Reset form
+      setEscalateForm({
+        title: '',
+        description: '',
+        priority: 'medium',
+        category: 'support'
+      });
+    } catch (error) {
+      const message = error.response?.data?.detail || 'Failed to escalate conversation';
+      toast.error(message);
+    } finally {
+      setEscalating(false);
+    }
+  };
+
+  const openEscalateDialog = () => {
+    // Pre-fill with conversation info
+    setEscalateForm({
+      title: `Support request from ${conversation?.customer_name || 'Customer'}`,
+      description: conversation?.last_message || '',
+      priority: 'medium',
+      category: 'support'
+    });
+    setShowEscalateDialog(true);
+  };
+
   if (loading) {
     return (
       <div className="p-6 lg:p-8">
