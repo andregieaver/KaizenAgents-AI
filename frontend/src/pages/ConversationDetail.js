@@ -744,6 +744,7 @@ const ConversationDetail = () => {
                     Escalate to Ticket
                   </Button>
                 )}
+              </div>
             </CardContent>
           </Card>
 
