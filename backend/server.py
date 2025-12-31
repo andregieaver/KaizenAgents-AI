@@ -4847,6 +4847,7 @@ from routes.company_knowledge_base import router as company_kb_router_mod
 from routes.agent_tools import router as agent_tools_router_mod
 from routes.agent_credentials import router as agent_credentials_router_mod
 from routes.scheduled_tasks import router as scheduled_tasks_router_mod
+from routes.tickets import router as tickets_router_mod
 
 # Register all modularized routers under /api
 api_router.include_router(auth_router_mod)
