@@ -715,6 +715,35 @@ const ConversationDetail = () => {
                   </Button>
                 </div>
               </div>
+              <Separator />
+              {/* Escalate to Ticket */}
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">Actions</p>
+                {conversation.escalated_to_ticket_id ? (
+                  <div className="flex items-center gap-2 p-2 bg-primary/5 rounded-lg border border-primary/20">
+                    <Ticket className="h-4 w-4 text-primary" />
+                    <span className="text-sm flex-1">Escalated to ticket</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate('/dashboard')}
+                      className="h-7 px-2"
+                    >
+                      <ArrowUpRight className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={openEscalateDialog}
+                    className="w-full"
+                    data-testid="escalate-btn"
+                  >
+                    <Ticket className="h-3 w-3 mr-1" />
+                    Escalate to Ticket
+                  </Button>
+                )}
             </CardContent>
           </Card>
 
