@@ -492,12 +492,12 @@ const CreateTicketDialog = ({ open, onOpenChange, onCreated, token }) => {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Assign to User</Label>
-              <Select value={formData.assigned_to_user_id} onValueChange={(v) => setFormData(prev => ({ ...prev, assigned_to_user_id: v }))}>
+              <Select value={formData.assigned_to_user_id || "none"} onValueChange={(v) => setFormData(prev => ({ ...prev, assigned_to_user_id: v === "none" ? "" : v }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select user..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Unassigned</SelectItem>
+                  <SelectItem value="none">Unassigned</SelectItem>
                   {users.map(user => (
                     <SelectItem key={user.id} value={user.id}>{user.name}</SelectItem>
                   ))}
@@ -506,12 +506,12 @@ const CreateTicketDialog = ({ open, onOpenChange, onCreated, token }) => {
             </div>
             <div className="space-y-2">
               <Label>Assign to Team</Label>
-              <Select value={formData.assigned_to_team_id} onValueChange={(v) => setFormData(prev => ({ ...prev, assigned_to_team_id: v }))}>
+              <Select value={formData.assigned_to_team_id || "none"} onValueChange={(v) => setFormData(prev => ({ ...prev, assigned_to_team_id: v === "none" ? "" : v }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select team..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No team</SelectItem>
+                  <SelectItem value="none">No team</SelectItem>
                   {teams.map(team => (
                     <SelectItem key={team.id} value={team.id}>{team.name}</SelectItem>
                   ))}
