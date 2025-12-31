@@ -179,6 +179,140 @@ const PriorityIndicator = ({ priority }) => {
   return <div className={`h-2 w-2 rounded-full ${colors[priority] || ''}`} />;
 };
 
+// Draggable Kanban Ticket Card Component
+const KanbanTicketCard = ({ ticket, isDragging }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isBeingDragged,
+  } = useSortable({ 
+    id: ticket.id,
+    data: {
+      type: 'ticket',
+      ticket,
+      status: ticket.status,
+    }
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging || isBeingDragged ? 0.5 : 1,
+  };
+
+  const priorityColors = {
+    low: 'border-l-gray-400',
+    medium: 'border-l-blue-500',
+    high: 'border-l-orange-500',
+    urgent: 'border-l-red-500'
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`bg-background border rounded-lg mb-2 transition-all select-none border-l-4 ${priorityColors[ticket.priority] || priorityColors.medium} ${
+        isBeingDragged ? 'shadow-lg ring-2 ring-primary/30 scale-105 z-50' : 'border-border hover:shadow-md'
+      }`}
+    >
+      <div className="flex">
+        {/* Drag Handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="flex items-center justify-center w-8 flex-shrink-0 cursor-grab active:cursor-grabbing bg-muted/30 hover:bg-muted rounded-l-lg touch-none"
+          style={{ touchAction: 'none' }}
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+        
+        {/* Card Content */}
+        <div className="flex-1 p-3 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h4 className="font-medium text-sm line-clamp-2">{ticket.title}</h4>
+            {ticket.conversation_id && (
+              <ArrowUpRight className="h-3 w-3 text-muted-foreground flex-shrink-0" title="Linked to conversation" />
+            )}
+          </div>
+          
+          {ticket.customer_name && (
+            <p className="text-xs text-muted-foreground truncate mb-2">
+              {ticket.customer_name}
+            </p>
+          )}
+          
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <PriorityBadge priority={ticket.priority} />
+            <CategoryBadge category={ticket.category} />
+          </div>
+          
+          <div className="flex items-center justify-between mt-2 pt-2 border-t border-border/50">
+            <span className="text-xs text-muted-foreground">
+              {ticket.created_at && formatDistanceToNow(new Date(ticket.created_at), { addSuffix: false })}
+            </span>
+            {ticket.assigned_user && (
+              <Avatar className="h-5 w-5">
+                <AvatarImage src={resolveImageUrl(ticket.assigned_user.avatar_url)} />
+                <AvatarFallback className="text-xs bg-muted">
+                  {ticket.assigned_user.name?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Droppable Kanban Column Component for Tickets
+const KanbanTicketColumn = ({ stage, tickets }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: stage.id,
+    data: {
+      type: 'column',
+      status: stage.id,
+    }
+  });
+
+  return (
+    <div 
+      ref={setNodeRef}
+      className={`flex-shrink-0 w-72 rounded-lg p-3 transition-colors touch-none ${
+        isOver ? 'bg-primary/10 ring-2 ring-primary/30' : 'bg-muted/30'
+      }`}
+      style={{ touchAction: 'none' }}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className={`h-2 w-2 rounded-full ${stage.color}`} />
+          <h3 className="font-medium text-sm">{stage.label}</h3>
+        </div>
+        <Badge variant="secondary" className="text-xs">{tickets.length}</Badge>
+      </div>
+      <div className="h-[calc(100vh-380px)] overflow-y-auto">
+        <SortableContext items={tickets.map(t => t.id)} strategy={verticalListSortingStrategy}>
+          <div className="min-h-[100px]">
+            {tickets.map(ticket => (
+              <KanbanTicketCard key={ticket.id} ticket={ticket} />
+            ))}
+            {tickets.length === 0 && (
+              <div className={`text-center py-8 text-sm border-2 border-dashed rounded-lg ${
+                isOver ? 'border-primary text-primary' : 'border-muted-foreground/30 text-muted-foreground'
+              }`}>
+                {isOver ? 'Drop here' : 'No tickets'}
+              </div>
+            )}
+          </div>
+        </SortableContext>
+      </div>
+    </div>
+  );
+};
+
 // Conversation item component
 const ConversationItem = ({ conversation, onClick, isSelected }) => {
   const [starred, setStarred] = useState(conversation.starred || false);
