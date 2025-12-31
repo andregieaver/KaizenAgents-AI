@@ -360,7 +360,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Ticketing System on Dashboard Page Testing"
+    - "Escalate to Ticket Feature Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
