@@ -72,6 +72,15 @@ import { toast } from 'sonner';
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
+// Ticket status stages for Kanban view
+const TICKET_STAGES = [
+  { id: 'open', label: 'Open', color: 'bg-blue-500' },
+  { id: 'in_progress', label: 'In Progress', color: 'bg-purple-500' },
+  { id: 'waiting_on_customer', label: 'Waiting', color: 'bg-amber-500' },
+  { id: 'resolved', label: 'Resolved', color: 'bg-green-500' },
+  { id: 'closed', label: 'Closed', color: 'bg-gray-500' },
+];
+
 // Helper to resolve image URLs
 const resolveImageUrl = (url) => {
   if (!url || url === 'None' || url === 'null' || url === 'undefined') return null;
