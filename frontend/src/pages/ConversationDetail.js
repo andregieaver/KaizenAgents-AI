@@ -122,6 +122,16 @@ const ConversationDetail = () => {
   const [showCannedResponses, setShowCannedResponses] = useState(false);
   const messagesEndRef = useRef(null);
   
+  // Escalate to Ticket state
+  const [showEscalateDialog, setShowEscalateDialog] = useState(false);
+  const [escalating, setEscalating] = useState(false);
+  const [escalateForm, setEscalateForm] = useState({
+    title: '',
+    description: '',
+    priority: 'medium',
+    category: 'support'
+  });
+  
   // Canned/Template Responses
   const cannedResponses = [
     { id: 1, label: 'Greeting', text: "Hello! Thank you for reaching out. How can I assist you today?" },
