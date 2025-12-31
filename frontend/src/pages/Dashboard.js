@@ -731,10 +731,49 @@ const Dashboard = () => {
   const [ticketStatusFilter, setTicketStatusFilter] = useState(null);
   const [ticketSearch, setTicketSearch] = useState('');
   const [showCreateTicket, setShowCreateTicket] = useState(false);
+  const [ticketViewMode, setTicketViewMode] = useState('list'); // 'list' or 'kanban'
+  const [activeTicket, setActiveTicket] = useState(null); // For drag overlay
+  
+  // Kanban scroll state
+  const kanbanRef = useRef(null);
+  const [kanbanScroll, setKanbanScroll] = useState({ canScrollLeft: false, canScrollRight: false });
   
   // Loading states
   const [loadingInbox, setLoadingInbox] = useState(true);
   const [loadingTickets, setLoadingTickets] = useState(true);
+
+  // DnD sensors for Kanban
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 200, tolerance: 8 },
+    }),
+    useSensor(KeyboardSensor)
+  );
+
+  // Kanban scroll handling
+  const updateKanbanScrollState = useCallback(() => {
+    const el = kanbanRef.current;
+    if (!el) return;
+    const canScrollLeft = el.scrollLeft > 0;
+    const canScrollRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 1;
+    setKanbanScroll({ canScrollLeft, canScrollRight });
+  }, []);
+
+  useEffect(() => {
+    const el = kanbanRef.current;
+    if (el && ticketViewMode === 'kanban') {
+      updateKanbanScrollState();
+      el.addEventListener('scroll', updateKanbanScrollState);
+      window.addEventListener('resize', updateKanbanScrollState);
+      return () => {
+        el.removeEventListener('scroll', updateKanbanScrollState);
+        window.removeEventListener('resize', updateKanbanScrollState);
+      };
+    }
+  }, [updateKanbanScrollState, ticketViewMode]);
 
   // Fetch inbox data
   const fetchInboxData = useCallback(async () => {
