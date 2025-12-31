@@ -1100,82 +1100,148 @@ const Dashboard = () => {
                     className="pl-9 h-9"
                   />
                 </div>
+                {/* View Toggle */}
+                <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                  <Button
+                    variant={ticketViewMode === 'list' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setTicketViewMode('list')}
+                    className="h-7 px-2"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={ticketViewMode === 'kanban' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setTicketViewMode('kanban')}
+                    className="h-7 px-2"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
                 <Button onClick={() => setShowCreateTicket(true)} size="sm">
                   <Plus className="h-4 w-4 mr-2" />
                   New Ticket
                 </Button>
               </div>
               
-              {/* Sub-tabs */}
-              <div className="mt-3">
-                <Tabs value={ticketTab} onValueChange={setTicketTab}>
-                  <TabsList className="bg-transparent p-0 h-auto gap-1">
-                    <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm">
-                      All {ticketTabCounts.all > 0 && `(${ticketTabCounts.all})`}
-                    </TabsTrigger>
-                    <TabsTrigger value="open" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm">
-                      Open {ticketTabCounts.open > 0 && `(${ticketTabCounts.open})`}
-                    </TabsTrigger>
-                    <TabsTrigger value="assigned" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm">
-                      Assigned to Me {ticketTabCounts.assigned > 0 && `(${ticketTabCounts.assigned})`}
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-              </div>
-            </div>
-
-            {/* Quick Stats Filter */}
-            <div className="flex items-center gap-2 px-4 py-2 border-b border-border overflow-x-auto">
-              {[
-                { key: 'open', label: 'Open', count: ticketStats?.open || 0, color: 'blue' },
-                { key: 'in_progress', label: 'In Progress', count: ticketStats?.in_progress || 0, color: 'purple' },
-                { key: 'waiting_on_customer', label: 'Waiting', count: ticketStats?.waiting_on_customer || 0, color: 'amber' },
-                { key: 'resolved', label: 'Resolved', count: ticketStats?.resolved || 0, color: 'green' },
-                { key: 'closed', label: 'Closed', count: ticketStats?.closed || 0, color: 'gray' },
-              ].map(filter => (
-                <button
-                  key={filter.key}
-                  onClick={() => setTicketStatusFilter(ticketStatusFilter === filter.key ? null : filter.key)}
-                  className={`
-                    flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
-                    ${ticketStatusFilter === filter.key 
-                      ? `bg-${filter.color}-500 text-white` 
-                      : `hover:bg-${filter.color}-500/10 text-muted-foreground`
-                    }
-                  `}
-                >
-                  <div className={`h-2 w-2 rounded-full bg-${filter.color}-500`} />
-                  <span>{filter.label}</span>
-                  <span className="font-semibold">{filter.count}</span>
-                </button>
-              ))}
-              {ticketStatusFilter && (
-                <button
-                  onClick={() => setTicketStatusFilter(null)}
-                  className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted ml-auto"
-                >
-                  <X className="h-3 w-3" /> Clear
-                </button>
-              )}
-            </div>
-
-            {/* Ticket List */}
-            <div className="flex-1 overflow-y-auto">
-              {filteredTickets.length > 0 ? (
-                <div className="divide-y divide-border">
-                  {filteredTickets.map((ticket) => (
-                    <TicketItem
-                      key={ticket.id}
-                      ticket={ticket}
-                      onClick={() => handleTicketClick(ticket)}
-                      isSelected={selectedTicket === ticket.id}
-                    />
-                  ))}
+              {/* Sub-tabs - only show in list view */}
+              {ticketViewMode === 'list' && (
+                <div className="mt-3">
+                  <Tabs value={ticketTab} onValueChange={setTicketTab}>
+                    <TabsList className="bg-transparent p-0 h-auto gap-1">
+                      <TabsTrigger value="all" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm">
+                        All {ticketTabCounts.all > 0 && `(${ticketTabCounts.all})`}
+                      </TabsTrigger>
+                      <TabsTrigger value="open" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm">
+                        Open {ticketTabCounts.open > 0 && `(${ticketTabCounts.open})`}
+                      </TabsTrigger>
+                      <TabsTrigger value="assigned" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground rounded-full px-4 py-1.5 text-sm">
+                        Assigned to Me {ticketTabCounts.assigned > 0 && `(${ticketTabCounts.assigned})`}
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
                 </div>
-              ) : (
-                <EmptyState type="tickets" tab={ticketTab} />
               )}
             </div>
+
+            {/* Quick Stats Filter - only show in list view */}
+            {ticketViewMode === 'list' && (
+              <div className="flex items-center gap-2 px-4 py-2 border-b border-border overflow-x-auto">
+                {[
+                  { key: 'open', label: 'Open', count: ticketStats?.open || 0, color: 'blue' },
+                  { key: 'in_progress', label: 'In Progress', count: ticketStats?.in_progress || 0, color: 'purple' },
+                  { key: 'waiting_on_customer', label: 'Waiting', count: ticketStats?.waiting_on_customer || 0, color: 'amber' },
+                  { key: 'resolved', label: 'Resolved', count: ticketStats?.resolved || 0, color: 'green' },
+                  { key: 'closed', label: 'Closed', count: ticketStats?.closed || 0, color: 'gray' },
+                ].map(filter => (
+                  <button
+                    key={filter.key}
+                    onClick={() => setTicketStatusFilter(ticketStatusFilter === filter.key ? null : filter.key)}
+                    className={`
+                      flex items-center gap-2 text-sm whitespace-nowrap px-3 py-1.5 rounded-full transition-all flex-shrink-0
+                      ${ticketStatusFilter === filter.key 
+                        ? `bg-${filter.color}-500 text-white` 
+                        : `hover:bg-${filter.color}-500/10 text-muted-foreground`
+                      }
+                    `}
+                  >
+                    <div className={`h-2 w-2 rounded-full bg-${filter.color}-500`} />
+                    <span>{filter.label}</span>
+                    <span className="font-semibold">{filter.count}</span>
+                  </button>
+                ))}
+                {ticketStatusFilter && (
+                  <button
+                    onClick={() => setTicketStatusFilter(null)}
+                    className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground px-2 py-1 rounded hover:bg-muted ml-auto"
+                  >
+                    <X className="h-3 w-3" /> Clear
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Ticket List View */}
+            {ticketViewMode === 'list' && (
+              <div className="flex-1 overflow-y-auto">
+                {filteredTickets.length > 0 ? (
+                  <div className="divide-y divide-border">
+                    {filteredTickets.map((ticket) => (
+                      <TicketItem
+                        key={ticket.id}
+                        ticket={ticket}
+                        onClick={() => handleTicketClick(ticket)}
+                        isSelected={selectedTicket === ticket.id}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyState type="tickets" tab={ticketTab} />
+                )}
+              </div>
+            )}
+
+            {/* Ticket Kanban View */}
+            {ticketViewMode === 'kanban' && (
+              <div className="flex-1 relative">
+                {/* Scroll fade indicators */}
+                {kanbanScroll.canScrollLeft && (
+                  <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+                )}
+                {kanbanScroll.canScrollRight && (
+                  <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+                )}
+                
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                >
+                  <div 
+                    ref={kanbanRef}
+                    className="flex gap-4 p-4 overflow-x-auto h-full"
+                  >
+                    {TICKET_STAGES.map(stage => (
+                      <KanbanTicketColumn
+                        key={stage.id}
+                        stage={stage}
+                        tickets={ticketsByStatus[stage.id] || []}
+                      />
+                    ))}
+                  </div>
+                  
+                  <DragOverlay>
+                    {activeTicket && (
+                      <div className="w-72">
+                        <KanbanTicketCard ticket={activeTicket} isDragging />
+                      </div>
+                    )}
+                  </DragOverlay>
+                </DndContext>
+              </div>
+            )}
           </div>
         )}
 
