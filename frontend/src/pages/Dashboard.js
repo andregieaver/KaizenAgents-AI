@@ -889,6 +889,55 @@ const Dashboard = () => {
     fetchTicketsData(); // Refresh stats
   };
 
+  // Kanban drag handlers
+  const handleDragStart = (event) => {
+    const { active } = event;
+    const ticket = tickets.find(t => t.id === active.id);
+    setActiveTicket(ticket);
+  };
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+    setActiveTicket(null);
+
+    if (!over) return;
+
+    const ticketId = active.id;
+    const newStatus = over.data?.current?.status || over.id;
+    
+    // Find the ticket
+    const ticket = tickets.find(t => t.id === ticketId);
+    if (!ticket || ticket.status === newStatus) return;
+
+    // Optimistic update
+    setTickets(prev => prev.map(t => 
+      t.id === ticketId ? { ...t, status: newStatus } : t
+    ));
+
+    // Update on server
+    try {
+      await axios.put(
+        `${API}/tickets/${ticketId}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success(`Ticket moved to ${TICKET_STAGES.find(s => s.id === newStatus)?.label || newStatus}`);
+      fetchTicketsData(); // Refresh stats
+    } catch (error) {
+      // Revert on error
+      setTickets(prev => prev.map(t => 
+        t.id === ticketId ? { ...t, status: ticket.status } : t
+      ));
+      toast.error('Failed to update ticket status');
+    }
+  };
+
+  // Group tickets by status for Kanban view
+  const ticketsByStatus = TICKET_STAGES.reduce((acc, stage) => {
+    acc[stage.id] = filteredTickets.filter(t => t.status === stage.id);
+    return acc;
+  }, {});
+
   // Loading skeleton
   if (loadingInbox && loadingTickets) {
     return (
