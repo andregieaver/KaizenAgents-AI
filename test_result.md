@@ -384,7 +384,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Escalate to Ticket Feature Testing"
+    - "Tickets Kanban View Drag and Drop Testing"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
