@@ -259,17 +259,18 @@ class ToolOrchestrator:
                             "execution_id": execution_id
                         }
             
-            # Validate access
-            access = await self.validate_tool_access(tool_name, tenant_id, tenant_tier)
-            if not access["allowed"]:
-                execution_log["status"] = "denied"
-                execution_log["error"] = access["reason"]
-                await self._save_execution_log(execution_log)
-                return {
-                    "success": False,
-                    "error": access["reason"],
-                    "execution_id": execution_id
-                }
+            # Validate access (skip for admin testing)
+            if not skip_agent_check:
+                access = await self.validate_tool_access(tool_name, tenant_id, tenant_tier)
+                if not access["allowed"]:
+                    execution_log["status"] = "denied"
+                    execution_log["error"] = access["reason"]
+                    await self._save_execution_log(execution_log)
+                    return {
+                        "success": False,
+                        "error": access["reason"],
+                        "execution_id": execution_id
+                    }
             
             # Execute the tool
             if tool_name == "login_to_website":
