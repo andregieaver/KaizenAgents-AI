@@ -161,6 +161,9 @@ function AppRoutes() {
         <Route path="agents" element={<Agents />} />
         <Route path="agents/new" element={<AgentEdit />} />
         <Route path="agents/:agentId" element={<AgentEdit />} />
+        {/* Projects routes */}
+        <Route path="projects" element={<Projects />} />
+        <Route path="projects/:projectId" element={<Projects />} />
         {/* Company-level routes */}
         <Route path="credentials" element={<CredentialsManager />} />
         <Route path="scheduled-tasks" element={<ScheduledTasks />} />
