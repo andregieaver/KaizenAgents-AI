@@ -299,6 +299,41 @@ class ToolOrchestrator:
                     result = await execute_audit_tool(mapped_name, params)
                 else:
                     result = {"success": False, "error": f"Tool not implemented: {tool_name}"}
+            elif tool_name in PROJECT_TOOL_EXECUTORS:
+                # Project management tool - needs user context
+                # Get user_id from agent context or use a system user
+                user_id = None
+                if agent_id and agent_id != "test-agent":
+                    agent = await self.db.agents.find_one(
+                        {"id": agent_id},
+                        {"_id": 0, "created_by": 1}
+                    )
+                    if agent:
+                        user_id = agent.get("created_by")
+                
+                if not user_id:
+                    # Try to get an admin user for the tenant
+                    admin_user = await self.db.users.find_one(
+                        {"tenant_id": tenant_id, "role": {"$in": ["admin", "super_admin"]}},
+                        {"_id": 0, "id": 1}
+                    )
+                    if admin_user:
+                        user_id = admin_user.get("id")
+                    else:
+                        # Fallback to any user in the tenant
+                        any_user = await self.db.users.find_one(
+                            {"tenant_id": tenant_id},
+                            {"_id": 0, "id": 1}
+                        )
+                        user_id = any_user.get("id") if any_user else "system"
+                
+                result = await execute_project_tool(
+                    db=self.db,
+                    tool_name=tool_name,
+                    tenant_id=tenant_id,
+                    user_id=user_id,
+                    parameters=params
+                )
             else:
                 # Unknown tool
                 result = {"success": False, "error": f"Tool not implemented: {tool_name}"}
