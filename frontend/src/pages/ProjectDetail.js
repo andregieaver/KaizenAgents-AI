@@ -794,9 +794,23 @@ const ProjectDetail = () => {
 
   const handleCreateTask = async (formData, checklists) => {
     try {
+      // Clean up empty values
+      const cleanedData = {
+        title: formData.title,
+        list_id: formData.list_id,
+        status: formData.status || 'todo',
+        priority: formData.priority || 'medium',
+      };
+      
+      // Only add optional fields if they have values
+      if (formData.description) cleanedData.description = formData.description;
+      if (formData.due_date) cleanedData.due_date = formData.due_date;
+      if (formData.start_date) cleanedData.start_date = formData.start_date;
+      if (formData.estimated_hours) cleanedData.estimated_hours = parseFloat(formData.estimated_hours);
+      
       const response = await axios.post(
         `${API}/projects/${projectId}/tasks`,
-        formData,
+        cleanedData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
@@ -814,7 +828,8 @@ const ProjectDetail = () => {
       toast.success('Task created');
       fetchProject();
     } catch (error) {
-      toast.error('Failed to create task');
+      console.error('Task creation error:', error.response?.data);
+      toast.error(error.response?.data?.detail || 'Failed to create task');
       throw error;
     }
   };
