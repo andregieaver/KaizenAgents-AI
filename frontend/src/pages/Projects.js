@@ -298,27 +298,40 @@ const SpaceDialog = ({ open, onOpenChange, space, onSave }) => {
 };
 
 // Create Project Dialog
-const ProjectDialog = ({ open, onOpenChange, spaceId, onSave }) => {
+const ProjectDialog = ({ open, onOpenChange, spaceId, project, onSave }) => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     description: '',
     color: '#6366F1',
     start_date: '',
-    end_date: ''
+    end_date: '',
+    status: 'active'
   });
 
   useEffect(() => {
     if (open) {
-      setFormData({
-        name: '',
-        description: '',
-        color: '#6366F1',
-        start_date: '',
-        end_date: ''
-      });
+      if (project) {
+        setFormData({
+          name: project.name || '',
+          description: project.description || '',
+          color: project.color || '#6366F1',
+          start_date: project.start_date || '',
+          end_date: project.end_date || '',
+          status: project.status || 'active'
+        });
+      } else {
+        setFormData({
+          name: '',
+          description: '',
+          color: '#6366F1',
+          start_date: '',
+          end_date: '',
+          status: 'active'
+        });
+      }
     }
-  }, [open]);
+  }, [open, project]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -335,13 +348,15 @@ const ProjectDialog = ({ open, onOpenChange, spaceId, onSave }) => {
     }
   };
 
+  const isEditing = !!project;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Project</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Project' : 'Create Project'}</DialogTitle>
           <DialogDescription>
-            Create a new project in this space.
+            {isEditing ? 'Update project details.' : 'Create a new project in this space.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -366,6 +381,26 @@ const ProjectDialog = ({ open, onOpenChange, spaceId, onSave }) => {
               rows={2}
             />
           </div>
+
+          {isEditing && (
+            <div className="space-y-2">
+              <Label htmlFor="project-status">Status</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(v) => setFormData(prev => ({ ...prev, status: v }))}
+              >
+                <SelectTrigger id="project-status">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="on_hold">On Hold</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -414,7 +449,7 @@ const ProjectDialog = ({ open, onOpenChange, spaceId, onSave }) => {
             </Button>
             <Button type="submit" disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Create Project
+              {isEditing ? 'Update' : 'Create'} Project
             </Button>
           </DialogFooter>
         </form>
