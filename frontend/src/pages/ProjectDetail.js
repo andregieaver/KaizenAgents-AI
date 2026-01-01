@@ -435,6 +435,7 @@ const MiniTaskCard = ({ task, onEdit, onStatusChange, projectStatuses }) => {
 // Droppable List Component with Status Columns
 const DroppableList = ({ list, search, onEditTask, onStatusChange, taskStatuses, onStatusDragEnd }) => {
   const [isOpen, setIsOpen] = useState(false); // Collapsed by default
+  const [listViewMode, setListViewMode] = useState('kanban'); // 'kanban' or 'list'
   
   const filteredTasks = list.tasks?.filter(t => 
     t.title.toLowerCase().includes(search.toLowerCase())
@@ -462,31 +463,158 @@ const DroppableList = ({ list, search, onEditTask, onStatusChange, taskStatuses,
           )}
           <span className="font-medium">{list.name}</span>
         </div>
-        <Badge variant="secondary">{taskCount}</Badge>
+        <div className="flex items-center gap-2">
+          {isOpen && (
+            <div 
+              className="flex items-center gap-0.5 bg-muted rounded p-0.5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setListViewMode('list')}
+                className={`p-1 rounded transition-colors ${listViewMode === 'list' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
+                title="List View"
+              >
+                <List className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setListViewMode('kanban')}
+                className={`p-1 rounded transition-colors ${listViewMode === 'kanban' ? 'bg-background shadow-sm' : 'hover:bg-background/50'}`}
+                title="Kanban View"
+              >
+                <LayoutGrid className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          )}
+          <Badge variant="secondary">{taskCount}</Badge>
+        </div>
       </div>
       
       {isOpen && (
         <div className="px-3 pb-3">
-          {taskCount > 0 || taskStatuses.length > 0 ? (
-            <div className="flex gap-2 overflow-x-auto">
-              {taskStatuses.map(status => (
-                <ListStatusColumn
-                  key={status.id}
-                  listId={list.id}
-                  status={status}
-                  tasks={tasksByStatus[status.id] || []}
-                  onEditTask={onEditTask}
-                  onStatusChange={onStatusChange}
-                  projectStatuses={taskStatuses}
-                />
-              ))}
+          {listViewMode === 'kanban' ? (
+            // Kanban View with horizontal scroll
+            <div className="overflow-x-auto pb-2">
+              <div className="flex gap-2 min-w-max">
+                {taskStatuses.map(status => (
+                  <ListStatusColumn
+                    key={status.id}
+                    listId={list.id}
+                    status={status}
+                    tasks={tasksByStatus[status.id] || []}
+                    onEditTask={onEditTask}
+                    onStatusChange={onStatusChange}
+                    projectStatuses={taskStatuses}
+                  />
+                ))}
+              </div>
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">No tasks in this list</p>
+            // List View with vertical scroll
+            <div className="max-h-[400px] overflow-y-auto">
+              {filteredTasks.length > 0 ? (
+                <SortableContext items={filteredTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-1">
+                    {filteredTasks.map(task => {
+                      const taskStatus = taskStatuses.find(s => s.id === task.status);
+                      return (
+                        <ListViewTaskRow
+                          key={task.id}
+                          task={task}
+                          status={taskStatus}
+                          onEdit={onEditTask}
+                          onStatusChange={onStatusChange}
+                          projectStatuses={taskStatuses}
+                        />
+                      );
+                    })}
+                  </div>
+                </SortableContext>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-4">No tasks in this list</p>
+              )}
+            </div>
           )}
         </div>
       )}
     </Card>
+  );
+};
+
+// List View Task Row (for vertical list within a list)
+const ListViewTaskRow = ({ task, status, onEdit, onStatusChange, projectStatuses }) => {
+  const priorityColor = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
+  
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`flex items-center gap-2 py-2 px-2 hover:bg-muted/50 rounded cursor-pointer transition-colors ${
+        isDragging ? 'bg-muted/80 shadow' : ''
+      }`}
+      onClick={() => onEdit(task)}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing touch-none"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </div>
+      
+      <button 
+        onClick={(e) => { 
+          e.stopPropagation(); 
+          onStatusChange(task.id, task.status === 'done' ? 'todo' : 'done'); 
+        }}
+        className="flex-shrink-0"
+      >
+        {task.status === 'done' ? (
+          <CheckCircle2 className="h-4 w-4 text-green-500" />
+        ) : (
+          <Circle className="h-4 w-4 text-muted-foreground" />
+        )}
+      </button>
+      
+      <span className={`flex-1 text-sm truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+        {task.title}
+      </span>
+      
+      {status && (
+        <Badge 
+          variant="outline" 
+          className="text-[10px] px-1.5 h-5"
+          style={{ borderColor: status.color, color: status.color }}
+        >
+          {status.name}
+        </Badge>
+      )}
+      
+      <Badge className={`text-[10px] px-1.5 h-5 ${priorityColor.bg} ${priorityColor.text}`}>
+        {task.priority}
+      </Badge>
+      
+      {task.due_date && (
+        <span className="text-xs text-muted-foreground whitespace-nowrap">
+          {format(new Date(task.due_date), 'MMM d')}
+        </span>
+      )}
+    </div>
   );
 };
 
