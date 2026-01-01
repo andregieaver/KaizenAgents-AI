@@ -1034,6 +1034,51 @@ const ProjectDetail = () => {
     }
   };
 
+  // Handler for List View drag and drop (moving tasks between lists)
+  const handleListDragEnd = async (event) => {
+    const { active, over } = event;
+    setActiveTask(null);
+    
+    if (!over) return;
+    
+    const taskId = active.id;
+    
+    // Check if dropped on a list
+    const overId = over.id.toString();
+    let newListId = null;
+    
+    if (overId.startsWith('list-')) {
+      newListId = overId.replace('list-', '');
+    } else if (over.data?.current?.type === 'list') {
+      newListId = over.data.current.listId;
+    }
+    
+    if (!newListId) return;
+    
+    const task = project.all_tasks?.find(t => t.id === taskId);
+    if (!task || task.list_id === newListId) return;
+    
+    // Optimistic update
+    setProject(prev => ({
+      ...prev,
+      all_tasks: prev.all_tasks.map(t => 
+        t.id === taskId ? { ...t, list_id: newListId } : t
+      )
+    }));
+    
+    try {
+      await axios.put(
+        `${API}/projects/${projectId}/tasks/${taskId}`,
+        { list_id: newListId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Task moved to list');
+    } catch (error) {
+      fetchProject(); // Revert on error
+      toast.error('Failed to move task');
+    }
+  };
+
   const openEditTask = (task) => {
     setEditingTask(task);
     setShowTaskDialog(true);
