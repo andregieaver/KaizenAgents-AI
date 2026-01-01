@@ -654,6 +654,8 @@ const Projects = () => {
   const [showProjectDialog, setShowProjectDialog] = useState(false);
   const [selectedSpaceId, setSelectedSpaceId] = useState(null);
   const [editingProject, setEditingProject] = useState(null);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicatingProject, setDuplicatingProject] = useState(null);
   
   // Space detail view
   const [selectedSpace, setSelectedSpace] = useState(null);
