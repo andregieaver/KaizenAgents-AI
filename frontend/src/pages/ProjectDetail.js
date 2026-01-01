@@ -1045,36 +1045,16 @@ const ProjectDetail = () => {
         {/* List View */}
         {viewMode === 'list' && (
           <ScrollArea className="h-full">
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-3">
               {lists.map(list => (
-                <Card key={list.id}>
-                  <CardHeader className="py-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-base">{list.name}</CardTitle>
-                      <Badge variant="secondary">{list.tasks?.length || 0}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    {list.tasks && list.tasks.length > 0 ? (
-                      <div className="border rounded-lg divide-y">
-                        {list.tasks
-                          .filter(t => t.title.toLowerCase().includes(search.toLowerCase()))
-                          .map(task => (
-                            <TaskRow
-                              key={task.id}
-                              task={task}
-                              onEdit={openEditTask}
-                              onStatusChange={handleStatusChange}
-                              projectStatuses={taskStatuses}
-                            />
-                          ))
-                        }
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground text-center py-4">No tasks in this list</p>
-                    )}
-                  </CardContent>
-                </Card>
+                <CollapsibleList
+                  key={list.id}
+                  list={list}
+                  search={search}
+                  onEditTask={openEditTask}
+                  onStatusChange={handleStatusChange}
+                  taskStatuses={taskStatuses}
+                />
               ))}
             </div>
           </ScrollArea>
