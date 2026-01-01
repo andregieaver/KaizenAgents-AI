@@ -1058,13 +1058,38 @@ const ProjectDetail = () => {
     const task = project.all_tasks?.find(t => t.id === taskId);
     if (!task || task.list_id === newListId) return;
     
-    // Optimistic update
-    setProject(prev => ({
-      ...prev,
-      all_tasks: prev.all_tasks.map(t => 
-        t.id === taskId ? { ...t, list_id: newListId } : t
-      )
-    }));
+    const oldListId = task.list_id;
+    
+    // Optimistic update - update both all_tasks and lists
+    setProject(prev => {
+      const updatedTask = { ...task, list_id: newListId };
+      
+      return {
+        ...prev,
+        // Update all_tasks
+        all_tasks: prev.all_tasks.map(t => 
+          t.id === taskId ? updatedTask : t
+        ),
+        // Update lists - remove from old list and add to new list
+        lists: prev.lists.map(list => {
+          if (list.id === oldListId) {
+            // Remove task from old list
+            return {
+              ...list,
+              tasks: (list.tasks || []).filter(t => t.id !== taskId)
+            };
+          }
+          if (list.id === newListId) {
+            // Add task to new list
+            return {
+              ...list,
+              tasks: [...(list.tasks || []), updatedTask]
+            };
+          }
+          return list;
+        })
+      };
+    });
     
     try {
       await axios.put(
