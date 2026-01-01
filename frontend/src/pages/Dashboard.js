@@ -214,8 +214,8 @@ const KanbanTicketCard = ({ ticket, isDragging }) => {
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-background border rounded-lg mb-2 transition-all select-none border-l-4 ${priorityColors[ticket.priority] || priorityColors.medium} ${
-        isBeingDragged ? 'shadow-lg ring-2 ring-primary/30 scale-105 z-50' : 'border-border hover:shadow-md'
+      className={`bg-background border rounded mb-2 transition-all select-none border-l-4 ${priorityColors[ticket.priority] || priorityColors.medium} ${
+        isBeingDragged ? 'shadow ring-2 ring-primary/30 scale-105 z-50' : 'border-border hover:shadow-sm'
       }`}
     >
       <div className="flex">
@@ -223,7 +223,7 @@ const KanbanTicketCard = ({ ticket, isDragging }) => {
         <div
           {...attributes}
           {...listeners}
-          className="flex items-center justify-center w-8 flex-shrink-0 cursor-grab active:cursor-grabbing bg-muted/30 hover:bg-muted rounded-l-lg touch-none"
+          className="flex items-center justify-center w-8 flex-shrink-0 cursor-grab active:cursor-grabbing bg-muted/30 hover:bg-muted rounded-l touch-none"
           style={{ touchAction: 'none' }}
         >
           <GripVertical className="h-4 w-4 text-muted-foreground" />

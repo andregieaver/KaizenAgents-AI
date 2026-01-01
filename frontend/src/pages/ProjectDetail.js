@@ -121,15 +121,15 @@ const KanbanTaskCard = ({ task, onEdit, isDragging }) => {
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-background border rounded-lg mb-2 transition-all select-none ${
-        isBeingDragged ? 'shadow-lg ring-2 ring-primary/30 scale-105 z-50' : 'hover:shadow-md'
+      className={`bg-background border rounded mb-2 transition-all select-none ${
+        isBeingDragged ? 'shadow ring-2 ring-primary/30 scale-105 z-50' : 'hover:shadow-sm'
       }`}
     >
       <div className="flex">
         <div
           {...attributes}
           {...listeners}
-          className="flex items-center justify-center w-6 flex-shrink-0 cursor-grab active:cursor-grabbing bg-muted/30 hover:bg-muted rounded-l-lg touch-none"
+          className="flex items-center justify-center w-6 flex-shrink-0 cursor-grab active:cursor-grabbing bg-muted/30 hover:bg-muted rounded-l touch-none"
         >
           <GripVertical className="h-3 w-3 text-muted-foreground" />
         </div>
