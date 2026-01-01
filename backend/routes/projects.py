@@ -1,0 +1,1189 @@
+"""
+Project Management API Routes
+Spaces, Projects, Lists, Tasks, Subtasks, Checklists, Dependencies
+"""
+from fastapi import APIRouter, HTTPException, Depends, Query
+from pydantic import BaseModel, Field
+from typing import List, Dict, Any, Optional
+from datetime import datetime, timezone
+from uuid import uuid4
+from enum import Enum
+
+import sys
+sys.path.append('/app/backend')
+from server import db, get_current_user
+
+
+router = APIRouter(prefix="/projects", tags=["projects"])
+
+
+# =============================================================================
+# DEFAULT STATUSES
+# =============================================================================
+
+DEFAULT_PROJECT_STATUSES = [
+    {"id": "planning", "name": "Planning", "color": "#6B7280"},
+    {"id": "active", "name": "Active", "color": "#3B82F6"},
+    {"id": "on_hold", "name": "On Hold", "color": "#F59E0B"},
+    {"id": "completed", "name": "Completed", "color": "#10B981"},
+    {"id": "archived", "name": "Archived", "color": "#9CA3AF"},
+]
+
+DEFAULT_TASK_STATUSES = [
+    {"id": "todo", "name": "To Do", "color": "#6B7280"},
+    {"id": "in_progress", "name": "In Progress", "color": "#3B82F6"},
+    {"id": "review", "name": "Review", "color": "#8B5CF6"},
+    {"id": "done", "name": "Done", "color": "#10B981"},
+]
+
+DEFAULT_PRIORITIES = [
+    {"id": "low", "name": "Low", "color": "#6B7280"},
+    {"id": "medium", "name": "Medium", "color": "#3B82F6"},
+    {"id": "high", "name": "High", "color": "#F59E0B"},
+    {"id": "urgent", "name": "Urgent", "color": "#EF4444"},
+]
+
+
+# =============================================================================
+# PYDANTIC MODELS - SPACES
+# =============================================================================
+
+class SpaceCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    description: Optional[str] = None
+    color: Optional[str] = "#6366F1"
+    icon: Optional[str] = "folder"
+
+
+class SpaceUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    description: Optional[str] = None
+    color: Optional[str] = None
+    icon: Optional[str] = None
+
+
+# =============================================================================
+# PYDANTIC MODELS - PROJECTS
+# =============================================================================
+
+class ProjectStatusConfig(BaseModel):
+    id: str
+    name: str
+    color: str
+
+
+class ProjectCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=200)
+    description: Optional[str] = None
+    space_id: str
+    color: Optional[str] = "#6366F1"
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    project_statuses: Optional[List[ProjectStatusConfig]] = None
+    task_statuses: Optional[List[ProjectStatusConfig]] = None
+
+
+class ProjectUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    description: Optional[str] = None
+    color: Optional[str] = None
+    status: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    project_statuses: Optional[List[ProjectStatusConfig]] = None
+    task_statuses: Optional[List[ProjectStatusConfig]] = None
+
+
+# =============================================================================
+# PYDANTIC MODELS - LISTS
+# =============================================================================
+
+class ListCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    color: Optional[str] = None
+
+
+class ListUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    color: Optional[str] = None
+    position: Optional[int] = None
+
+
+# =============================================================================
+# PYDANTIC MODELS - TASKS
+# =============================================================================
+
+class ChecklistItem(BaseModel):
+    id: Optional[str] = None
+    text: str
+    is_completed: bool = False
+
+
+class ChecklistCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    items: List[ChecklistItem] = []
+
+
+class TaskCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=500)
+    description: Optional[str] = None
+    list_id: str
+    status: Optional[str] = "todo"
+    priority: Optional[str] = "medium"
+    assignee_id: Optional[str] = None
+    due_date: Optional[str] = None
+    start_date: Optional[str] = None
+    estimated_hours: Optional[float] = None
+    tags: Optional[List[str]] = []
+    parent_task_id: Optional[str] = None  # For subtasks
+
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=500)
+    description: Optional[str] = None
+    list_id: Optional[str] = None
+    status: Optional[str] = None
+    priority: Optional[str] = None
+    assignee_id: Optional[str] = None
+    due_date: Optional[str] = None
+    start_date: Optional[str] = None
+    estimated_hours: Optional[float] = None
+    tags: Optional[List[str]] = None
+    position: Optional[int] = None
+
+
+class TaskMove(BaseModel):
+    list_id: str
+    position: Optional[int] = None
+
+
+class DependencyCreate(BaseModel):
+    depends_on_task_id: str  # This task depends on another task
+
+
+# =============================================================================
+# HELPER FUNCTIONS
+# =============================================================================
+
+async def check_projects_feature(tenant_id: str) -> bool:
+    """Check if tenant has projects feature enabled"""
+    feature_gate = await db.feature_gates.find_one({
+        "tenant_id": tenant_id,
+        "feature_key": "projects"
+    })
+    
+    if feature_gate:
+        return feature_gate.get("is_enabled", False)
+    
+    # Default: check tenant tier
+    tenant = await db.tenants.find_one({"id": tenant_id})
+    if tenant:
+        tier = tenant.get("tier", "starter")
+        return tier in ["professional", "enterprise", "unlimited"]
+    
+    return False
+
+
+async def get_next_position(collection_name: str, filter_query: dict) -> int:
+    """Get next position for ordering"""
+    last_item = await db[collection_name].find_one(
+        filter_query,
+        sort=[("position", -1)]
+    )
+    return (last_item.get("position", 0) + 1) if last_item else 0
+
+
+# =============================================================================
+# SPACES ENDPOINTS
+# =============================================================================
+
+@router.get("/spaces")
+async def get_spaces(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all spaces for the tenant"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    spaces = await db.project_spaces.find(
+        {"tenant_id": tenant_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    # Get project count for each space
+    for space in spaces:
+        count = await db.projects.count_documents({
+            "tenant_id": tenant_id,
+            "space_id": space["id"]
+        })
+        space["project_count"] = count
+    
+    return spaces
+
+
+@router.post("/spaces")
+async def create_space(
+    space_data: SpaceCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new space"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    now = datetime.now(timezone.utc)
+    
+    space = {
+        "id": str(uuid4()),
+        "tenant_id": tenant_id,
+        "name": space_data.name,
+        "description": space_data.description,
+        "color": space_data.color,
+        "icon": space_data.icon,
+        "created_by": current_user.get("id"),
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat()
+    }
+    
+    await db.project_spaces.insert_one(space)
+    space.pop("_id", None)
+    space["project_count"] = 0
+    
+    return space
+
+
+@router.get("/spaces/{space_id}")
+async def get_space(
+    space_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a specific space with its projects"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    space = await db.project_spaces.find_one(
+        {"id": space_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Get projects in this space
+    projects = await db.projects.find(
+        {"tenant_id": tenant_id, "space_id": space_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    space["projects"] = projects
+    
+    return space
+
+
+@router.put("/spaces/{space_id}")
+async def update_space(
+    space_id: str,
+    space_data: SpaceUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a space"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    existing = await db.project_spaces.find_one(
+        {"id": space_id, "tenant_id": tenant_id}
+    )
+    
+    if not existing:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    
+    if space_data.name is not None:
+        update_data["name"] = space_data.name
+    if space_data.description is not None:
+        update_data["description"] = space_data.description
+    if space_data.color is not None:
+        update_data["color"] = space_data.color
+    if space_data.icon is not None:
+        update_data["icon"] = space_data.icon
+    
+    await db.project_spaces.update_one(
+        {"id": space_id},
+        {"$set": update_data}
+    )
+    
+    updated = await db.project_spaces.find_one(
+        {"id": space_id},
+        {"_id": 0}
+    )
+    
+    return updated
+
+
+@router.delete("/spaces/{space_id}")
+async def delete_space(
+    space_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a space and all its contents"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    existing = await db.project_spaces.find_one(
+        {"id": space_id, "tenant_id": tenant_id}
+    )
+    
+    if not existing:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Get all projects in this space
+    projects = await db.projects.find(
+        {"space_id": space_id, "tenant_id": tenant_id}
+    ).to_list(1000)
+    
+    project_ids = [p["id"] for p in projects]
+    
+    # Delete all tasks in these projects
+    if project_ids:
+        await db.project_tasks.delete_many({"project_id": {"$in": project_ids}})
+        await db.project_lists.delete_many({"project_id": {"$in": project_ids}})
+        await db.task_dependencies.delete_many({"project_id": {"$in": project_ids}})
+    
+    # Delete projects
+    await db.projects.delete_many({"space_id": space_id})
+    
+    # Delete space
+    await db.project_spaces.delete_one({"id": space_id})
+    
+    return {"message": "Space deleted successfully"}
+
+
+# =============================================================================
+# PROJECTS ENDPOINTS
+# =============================================================================
+
+@router.get("")
+async def get_all_projects(
+    space_id: Optional[str] = None,
+    status: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all projects, optionally filtered by space"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    query = {"tenant_id": tenant_id}
+    if space_id:
+        query["space_id"] = space_id
+    if status:
+        query["status"] = status
+    
+    projects = await db.projects.find(
+        query,
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    
+    # Enrich with task counts
+    for project in projects:
+        task_count = await db.project_tasks.count_documents({
+            "project_id": project["id"],
+            "parent_task_id": None  # Only top-level tasks
+        })
+        completed_count = await db.project_tasks.count_documents({
+            "project_id": project["id"],
+            "parent_task_id": None,
+            "status": "done"
+        })
+        project["task_count"] = task_count
+        project["completed_count"] = completed_count
+    
+    return projects
+
+
+@router.post("")
+async def create_project(
+    project_data: ProjectCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new project"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify space exists
+    space = await db.project_spaces.find_one(
+        {"id": project_data.space_id, "tenant_id": tenant_id}
+    )
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    now = datetime.now(timezone.utc)
+    
+    project = {
+        "id": str(uuid4()),
+        "tenant_id": tenant_id,
+        "space_id": project_data.space_id,
+        "name": project_data.name,
+        "description": project_data.description,
+        "color": project_data.color,
+        "status": "active",
+        "start_date": project_data.start_date,
+        "end_date": project_data.end_date,
+        "owner_id": current_user.get("id"),
+        "members": [current_user.get("id")],
+        "project_statuses": [s.dict() for s in project_data.project_statuses] if project_data.project_statuses else DEFAULT_PROJECT_STATUSES,
+        "task_statuses": [s.dict() for s in project_data.task_statuses] if project_data.task_statuses else DEFAULT_TASK_STATUSES,
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat()
+    }
+    
+    await db.projects.insert_one(project)
+    project.pop("_id", None)
+    project["task_count"] = 0
+    project["completed_count"] = 0
+    
+    # Create default list
+    default_list = {
+        "id": str(uuid4()),
+        "tenant_id": tenant_id,
+        "project_id": project["id"],
+        "name": "To Do",
+        "color": None,
+        "position": 0,
+        "created_at": now.isoformat()
+    }
+    await db.project_lists.insert_one(default_list)
+    
+    return project
+
+
+@router.get("/{project_id}")
+async def get_project(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a project with all its lists and tasks"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    project = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Get lists
+    lists = await db.project_lists.find(
+        {"project_id": project_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    ).sort("position", 1).to_list(100)
+    
+    # Get all tasks (including subtasks)
+    tasks = await db.project_tasks.find(
+        {"project_id": project_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    ).sort("position", 1).to_list(1000)
+    
+    # Get dependencies
+    dependencies = await db.task_dependencies.find(
+        {"project_id": project_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    # Organize tasks by list and separate subtasks
+    for lst in lists:
+        lst["tasks"] = [t for t in tasks if t.get("list_id") == lst["id"] and not t.get("parent_task_id")]
+        # Add subtasks to each task
+        for task in lst["tasks"]:
+            task["subtasks"] = [t for t in tasks if t.get("parent_task_id") == task["id"]]
+            task["dependencies"] = [d for d in dependencies if d.get("task_id") == task["id"]]
+    
+    project["lists"] = lists
+    project["all_tasks"] = tasks  # Flat list for Gantt view
+    project["dependencies"] = dependencies
+    
+    return project
+
+
+@router.put("/{project_id}")
+async def update_project(
+    project_id: str,
+    project_data: ProjectUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a project"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    existing = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id}
+    )
+    
+    if not existing:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    
+    for field in ["name", "description", "color", "status", "start_date", "end_date"]:
+        value = getattr(project_data, field, None)
+        if value is not None:
+            update_data[field] = value
+    
+    if project_data.project_statuses is not None:
+        update_data["project_statuses"] = [s.dict() for s in project_data.project_statuses]
+    if project_data.task_statuses is not None:
+        update_data["task_statuses"] = [s.dict() for s in project_data.task_statuses]
+    
+    await db.projects.update_one(
+        {"id": project_id},
+        {"$set": update_data}
+    )
+    
+    updated = await db.projects.find_one(
+        {"id": project_id},
+        {"_id": 0}
+    )
+    
+    return updated
+
+
+@router.delete("/{project_id}")
+async def delete_project(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a project and all its contents"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    existing = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id}
+    )
+    
+    if not existing:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Delete all related data
+    await db.project_tasks.delete_many({"project_id": project_id})
+    await db.project_lists.delete_many({"project_id": project_id})
+    await db.task_dependencies.delete_many({"project_id": project_id})
+    await db.projects.delete_one({"id": project_id})
+    
+    return {"message": "Project deleted successfully"}
+
+
+# =============================================================================
+# LISTS ENDPOINTS
+# =============================================================================
+
+@router.get("/{project_id}/lists")
+async def get_lists(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all lists in a project"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    lists = await db.project_lists.find(
+        {"project_id": project_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    ).sort("position", 1).to_list(100)
+    
+    return lists
+
+
+@router.post("/{project_id}/lists")
+async def create_list(
+    project_id: str,
+    list_data: ListCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new list in a project"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify project exists
+    project = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id}
+    )
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    position = await get_next_position(
+        "project_lists",
+        {"project_id": project_id, "tenant_id": tenant_id}
+    )
+    
+    now = datetime.now(timezone.utc)
+    
+    new_list = {
+        "id": str(uuid4()),
+        "tenant_id": tenant_id,
+        "project_id": project_id,
+        "name": list_data.name,
+        "color": list_data.color,
+        "position": position,
+        "created_at": now.isoformat()
+    }
+    
+    await db.project_lists.insert_one(new_list)
+    new_list.pop("_id", None)
+    
+    return new_list
+
+
+@router.put("/{project_id}/lists/{list_id}")
+async def update_list(
+    project_id: str,
+    list_id: str,
+    list_data: ListUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a list"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    existing = await db.project_lists.find_one(
+        {"id": list_id, "project_id": project_id, "tenant_id": tenant_id}
+    )
+    
+    if not existing:
+        raise HTTPException(status_code=404, detail="List not found")
+    
+    update_data = {}
+    if list_data.name is not None:
+        update_data["name"] = list_data.name
+    if list_data.color is not None:
+        update_data["color"] = list_data.color
+    if list_data.position is not None:
+        update_data["position"] = list_data.position
+    
+    if update_data:
+        await db.project_lists.update_one(
+            {"id": list_id},
+            {"$set": update_data}
+        )
+    
+    updated = await db.project_lists.find_one(
+        {"id": list_id},
+        {"_id": 0}
+    )
+    
+    return updated
+
+
+@router.delete("/{project_id}/lists/{list_id}")
+async def delete_list(
+    project_id: str,
+    list_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a list and all its tasks"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    existing = await db.project_lists.find_one(
+        {"id": list_id, "project_id": project_id, "tenant_id": tenant_id}
+    )
+    
+    if not existing:
+        raise HTTPException(status_code=404, detail="List not found")
+    
+    # Delete all tasks in this list
+    await db.project_tasks.delete_many({"list_id": list_id})
+    await db.project_lists.delete_one({"id": list_id})
+    
+    return {"message": "List deleted successfully"}
+
+
+# =============================================================================
+# TASKS ENDPOINTS
+# =============================================================================
+
+@router.post("/{project_id}/tasks")
+async def create_task(
+    project_id: str,
+    task_data: TaskCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new task"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify project and list exist
+    project = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id}
+    )
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    list_exists = await db.project_lists.find_one(
+        {"id": task_data.list_id, "project_id": project_id}
+    )
+    if not list_exists:
+        raise HTTPException(status_code=404, detail="List not found")
+    
+    # If subtask, verify parent exists
+    if task_data.parent_task_id:
+        parent = await db.project_tasks.find_one(
+            {"id": task_data.parent_task_id, "project_id": project_id}
+        )
+        if not parent:
+            raise HTTPException(status_code=404, detail="Parent task not found")
+    
+    position = await get_next_position(
+        "project_tasks",
+        {
+            "list_id": task_data.list_id,
+            "tenant_id": tenant_id,
+            "parent_task_id": task_data.parent_task_id
+        }
+    )
+    
+    now = datetime.now(timezone.utc)
+    
+    task = {
+        "id": str(uuid4()),
+        "tenant_id": tenant_id,
+        "project_id": project_id,
+        "list_id": task_data.list_id,
+        "title": task_data.title,
+        "description": task_data.description,
+        "status": task_data.status or "todo",
+        "priority": task_data.priority or "medium",
+        "assignee_id": task_data.assignee_id,
+        "due_date": task_data.due_date,
+        "start_date": task_data.start_date,
+        "estimated_hours": task_data.estimated_hours,
+        "tags": task_data.tags or [],
+        "parent_task_id": task_data.parent_task_id,
+        "position": position,
+        "checklists": [],
+        "created_by": current_user.get("id"),
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat()
+    }
+    
+    await db.project_tasks.insert_one(task)
+    task.pop("_id", None)
+    task["subtasks"] = []
+    task["dependencies"] = []
+    
+    return task
+
+
+@router.get("/{project_id}/tasks/{task_id}")
+async def get_task(
+    project_id: str,
+    task_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get a specific task with subtasks and checklists"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    task = await db.project_tasks.find_one(
+        {"id": task_id, "project_id": project_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    # Get subtasks
+    subtasks = await db.project_tasks.find(
+        {"parent_task_id": task_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    ).sort("position", 1).to_list(100)
+    
+    # Get dependencies
+    dependencies = await db.task_dependencies.find(
+        {"task_id": task_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    # Get assignee details
+    if task.get("assignee_id"):
+        assignee = await db.users.find_one(
+            {"id": task["assignee_id"]},
+            {"_id": 0, "id": 1, "name": 1, "email": 1, "avatar_url": 1}
+        )
+        task["assignee"] = assignee
+    
+    task["subtasks"] = subtasks
+    task["dependencies"] = dependencies
+    
+    return task
+
+
+@router.put("/{project_id}/tasks/{task_id}")
+async def update_task(
+    project_id: str,
+    task_id: str,
+    task_data: TaskUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a task"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    existing = await db.project_tasks.find_one(
+        {"id": task_id, "project_id": project_id, "tenant_id": tenant_id}
+    )
+    
+    if not existing:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    
+    for field in ["title", "description", "list_id", "status", "priority", 
+                  "assignee_id", "due_date", "start_date", "estimated_hours", 
+                  "tags", "position"]:
+        value = getattr(task_data, field, None)
+        if value is not None:
+            update_data[field] = value
+    
+    await db.project_tasks.update_one(
+        {"id": task_id},
+        {"$set": update_data}
+    )
+    
+    updated = await db.project_tasks.find_one(
+        {"id": task_id},
+        {"_id": 0}
+    )
+    
+    return updated
+
+
+@router.delete("/{project_id}/tasks/{task_id}")
+async def delete_task(
+    project_id: str,
+    task_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a task and its subtasks"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    existing = await db.project_tasks.find_one(
+        {"id": task_id, "project_id": project_id, "tenant_id": tenant_id}
+    )
+    
+    if not existing:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    # Delete subtasks
+    await db.project_tasks.delete_many({"parent_task_id": task_id})
+    # Delete dependencies
+    await db.task_dependencies.delete_many({
+        "$or": [{"task_id": task_id}, {"depends_on_task_id": task_id}]
+    })
+    # Delete task
+    await db.project_tasks.delete_one({"id": task_id})
+    
+    return {"message": "Task deleted successfully"}
+
+
+@router.post("/{project_id}/tasks/{task_id}/move")
+async def move_task(
+    project_id: str,
+    task_id: str,
+    move_data: TaskMove,
+    current_user: dict = Depends(get_current_user)
+):
+    """Move a task to a different list"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    task = await db.project_tasks.find_one(
+        {"id": task_id, "project_id": project_id, "tenant_id": tenant_id}
+    )
+    
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    # Verify target list exists
+    target_list = await db.project_lists.find_one(
+        {"id": move_data.list_id, "project_id": project_id}
+    )
+    if not target_list:
+        raise HTTPException(status_code=404, detail="Target list not found")
+    
+    position = move_data.position
+    if position is None:
+        position = await get_next_position(
+            "project_tasks",
+            {"list_id": move_data.list_id, "tenant_id": tenant_id, "parent_task_id": None}
+        )
+    
+    await db.project_tasks.update_one(
+        {"id": task_id},
+        {"$set": {
+            "list_id": move_data.list_id,
+            "position": position,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    updated = await db.project_tasks.find_one(
+        {"id": task_id},
+        {"_id": 0}
+    )
+    
+    return updated
+
+
+# =============================================================================
+# CHECKLISTS ENDPOINTS
+# =============================================================================
+
+@router.post("/{project_id}/tasks/{task_id}/checklists")
+async def add_checklist(
+    project_id: str,
+    task_id: str,
+    checklist_data: ChecklistCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Add a checklist to a task"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    task = await db.project_tasks.find_one(
+        {"id": task_id, "project_id": project_id, "tenant_id": tenant_id}
+    )
+    
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    checklist = {
+        "id": str(uuid4()),
+        "name": checklist_data.name,
+        "items": [
+            {
+                "id": item.id or str(uuid4()),
+                "text": item.text,
+                "is_completed": item.is_completed
+            }
+            for item in checklist_data.items
+        ]
+    }
+    
+    checklists = task.get("checklists", [])
+    checklists.append(checklist)
+    
+    await db.project_tasks.update_one(
+        {"id": task_id},
+        {"$set": {"checklists": checklists}}
+    )
+    
+    return checklist
+
+
+@router.put("/{project_id}/tasks/{task_id}/checklists/{checklist_id}")
+async def update_checklist(
+    project_id: str,
+    task_id: str,
+    checklist_id: str,
+    checklist_data: ChecklistCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a checklist"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    task = await db.project_tasks.find_one(
+        {"id": task_id, "project_id": project_id, "tenant_id": tenant_id}
+    )
+    
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    checklists = task.get("checklists", [])
+    updated = False
+    
+    for i, cl in enumerate(checklists):
+        if cl["id"] == checklist_id:
+            checklists[i] = {
+                "id": checklist_id,
+                "name": checklist_data.name,
+                "items": [
+                    {
+                        "id": item.id or str(uuid4()),
+                        "text": item.text,
+                        "is_completed": item.is_completed
+                    }
+                    for item in checklist_data.items
+                ]
+            }
+            updated = True
+            break
+    
+    if not updated:
+        raise HTTPException(status_code=404, detail="Checklist not found")
+    
+    await db.project_tasks.update_one(
+        {"id": task_id},
+        {"$set": {"checklists": checklists}}
+    )
+    
+    return checklists[i]
+
+
+@router.delete("/{project_id}/tasks/{task_id}/checklists/{checklist_id}")
+async def delete_checklist(
+    project_id: str,
+    task_id: str,
+    checklist_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a checklist"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    task = await db.project_tasks.find_one(
+        {"id": task_id, "project_id": project_id, "tenant_id": tenant_id}
+    )
+    
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    checklists = [cl for cl in task.get("checklists", []) if cl["id"] != checklist_id]
+    
+    await db.project_tasks.update_one(
+        {"id": task_id},
+        {"$set": {"checklists": checklists}}
+    )
+    
+    return {"message": "Checklist deleted"}
+
+
+# =============================================================================
+# DEPENDENCIES ENDPOINTS
+# =============================================================================
+
+@router.post("/{project_id}/tasks/{task_id}/dependencies")
+async def add_dependency(
+    project_id: str,
+    task_id: str,
+    dependency_data: DependencyCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Add a dependency (this task depends on another task)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify both tasks exist
+    task = await db.project_tasks.find_one(
+        {"id": task_id, "project_id": project_id, "tenant_id": tenant_id}
+    )
+    if not task:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    depends_on = await db.project_tasks.find_one(
+        {"id": dependency_data.depends_on_task_id, "project_id": project_id}
+    )
+    if not depends_on:
+        raise HTTPException(status_code=404, detail="Dependency task not found")
+    
+    # Prevent self-dependency
+    if task_id == dependency_data.depends_on_task_id:
+        raise HTTPException(status_code=400, detail="Task cannot depend on itself")
+    
+    # Check for circular dependency
+    # Simple check: if depends_on already depends on task_id
+    existing_reverse = await db.task_dependencies.find_one({
+        "task_id": dependency_data.depends_on_task_id,
+        "depends_on_task_id": task_id
+    })
+    if existing_reverse:
+        raise HTTPException(status_code=400, detail="Circular dependency detected")
+    
+    # Check if dependency already exists
+    existing = await db.task_dependencies.find_one({
+        "task_id": task_id,
+        "depends_on_task_id": dependency_data.depends_on_task_id
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Dependency already exists")
+    
+    dependency = {
+        "id": str(uuid4()),
+        "tenant_id": tenant_id,
+        "project_id": project_id,
+        "task_id": task_id,
+        "depends_on_task_id": dependency_data.depends_on_task_id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.task_dependencies.insert_one(dependency)
+    dependency.pop("_id", None)
+    
+    return dependency
+
+
+@router.delete("/{project_id}/tasks/{task_id}/dependencies/{dependency_id}")
+async def remove_dependency(
+    project_id: str,
+    task_id: str,
+    dependency_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Remove a dependency"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    result = await db.task_dependencies.delete_one({
+        "id": dependency_id,
+        "task_id": task_id,
+        "tenant_id": tenant_id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Dependency not found")
+    
+    return {"message": "Dependency removed"}
+
+
+@router.get("/{project_id}/dependencies")
+async def get_project_dependencies(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all dependencies in a project (for Gantt view)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    dependencies = await db.task_dependencies.find(
+        {"project_id": project_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    ).to_list(1000)
+    
+    return dependencies
