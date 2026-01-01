@@ -217,7 +217,8 @@ async def execute_tool(
         agent_id=request.agent_id or "test-agent",
         tenant_tier=tenant_tier,
         session_id=request.session_id,
-        skip_agent_check=is_super_admin  # Skip agent permission check for super admin testing
+        skip_agent_check=is_super_admin,  # Skip agent permission check for super admin testing
+        user_id=current_user.get("id")  # Pass user ID for project tools
     )
     
     return result
