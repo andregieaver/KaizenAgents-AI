@@ -1378,9 +1378,13 @@ const Dashboard = () => {
               ) : (
                 <div className="divide-y">
                   {filteredTasks.map(task => {
-                    const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
-                    const isDueToday = task.due_date && format(new Date(task.due_date), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-                    const isDueTomorrow = task.due_date && format(new Date(task.due_date), 'yyyy-MM-dd') === format(new Date(Date.now() + 86400000), 'yyyy-MM-dd');
+                    const today = format(new Date(), 'yyyy-MM-dd');
+                    const tomorrow = format(new Date(Date.now() + 86400000), 'yyyy-MM-dd');
+                    const taskDueDate = task.due_date ? format(new Date(task.due_date), 'yyyy-MM-dd') : null;
+                    
+                    const isOverdue = taskDueDate && taskDueDate < today && task.status !== 'done';
+                    const isDueToday = taskDueDate === today;
+                    const isDueTomorrow = taskDueDate === tomorrow;
                     
                     return (
                       <div
