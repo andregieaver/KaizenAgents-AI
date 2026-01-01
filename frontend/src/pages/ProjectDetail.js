@@ -470,7 +470,7 @@ const TaskDialog = ({ open, onOpenChange, task, projectId, lists, statuses, onSa
       setFormData({
         title: task.title || '',
         description: task.description || '',
-        list_id: task.list_id || '',
+        list_id: task.list_id || (lists.length > 0 ? lists[0].id : ''),
         status: task.status || 'todo',
         priority: task.priority || 'medium',
         due_date: task.due_date || '',
@@ -478,11 +478,11 @@ const TaskDialog = ({ open, onOpenChange, task, projectId, lists, statuses, onSa
         estimated_hours: task.estimated_hours || ''
       });
       setChecklists(task.checklists || []);
-    } else {
+    } else if (open && lists.length > 0) {
       setFormData({
         title: '',
         description: '',
-        list_id: lists[0]?.id || '',
+        list_id: lists[0].id,
         status: 'todo',
         priority: 'medium',
         due_date: '',
