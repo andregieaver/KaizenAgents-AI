@@ -12,6 +12,7 @@ class ToolCategory(str, Enum):
     AUTH = "auth"
     AUDIT = "audit"
     SCHEDULER = "scheduler"
+    PROJECT = "project"
 
 
 # =============================================================================
