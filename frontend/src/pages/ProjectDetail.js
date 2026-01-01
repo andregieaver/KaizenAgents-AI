@@ -80,7 +80,9 @@ import {
   Link2,
   Clock,
   Settings,
-  X
+  X,
+  Home,
+  Folder
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInDays, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isWithinInterval, parseISO } from 'date-fns';
 import { toast } from 'sonner';
