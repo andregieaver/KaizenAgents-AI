@@ -814,18 +814,43 @@ const Dashboard = () => {
     }
   }, [token]);
 
+  // Fetch my tasks data
+  const fetchMyTasks = useCallback(async () => {
+    try {
+      const includeCompleted = taskFilter === 'all' || taskFilter === 'completed';
+      const status = taskFilter === 'completed' ? 'done' : undefined;
+      
+      const params = new URLSearchParams();
+      if (includeCompleted) params.append('include_completed', 'true');
+      if (status) params.append('status', status);
+      
+      const res = await axios.get(`${API}/projects/my-tasks?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setMyTasks(res.data.tasks || []);
+      setTaskStats(res.data.stats);
+    } catch (error) {
+      console.error('Failed to fetch tasks:', error);
+      setMyTasks([]);
+    } finally {
+      setLoadingTasks(false);
+    }
+  }, [token, taskFilter]);
+
   useEffect(() => {
     fetchInboxData();
     fetchTicketsData();
+    fetchMyTasks();
     
     // Auto-refresh
     const interval = setInterval(() => {
       fetchInboxData();
       fetchTicketsData();
+      fetchMyTasks();
     }, 10000);
     
     return () => clearInterval(interval);
-  }, [fetchInboxData, fetchTicketsData]);
+  }, [fetchInboxData, fetchTicketsData, fetchMyTasks]);
 
   // Filter conversations
   const filteredConversations = conversations.filter(conv => {
