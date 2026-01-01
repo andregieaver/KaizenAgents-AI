@@ -881,46 +881,25 @@ const Projects = () => {
   if (selectedSpace) {
     return (
       <div className="p-6 space-y-6">
-        {/* Breadcrumbs */}
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/dashboard" className="flex items-center gap-1">
-                  <Home className="h-4 w-4" />
-                  Dashboard
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <button onClick={handleBackToSpaces} className="hover:text-foreground">
-                  Projects
-                </button>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{selectedSpace.name}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div 
-              className="h-10 w-10 rounded-lg flex items-center justify-center"
-              style={{ backgroundColor: `${selectedSpace.color}20` }}
-            >
-              <Folder className="h-5 w-5" style={{ color: selectedSpace.color }} />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold">{selectedSpace.name}</h1>
-              {selectedSpace.description && (
-                <p className="text-sm text-muted-foreground">{selectedSpace.description}</p>
-              )}
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={handleBackToSpaces}>
+              ← Back
+            </Button>
+            <div className="flex items-center gap-3">
+              <div 
+                className="h-10 w-10 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: `${selectedSpace.color}20` }}
+              >
+                <Folder className="h-5 w-5" style={{ color: selectedSpace.color }} />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold">{selectedSpace.name}</h1>
+                {selectedSpace.description && (
+                  <p className="text-sm text-muted-foreground">{selectedSpace.description}</p>
+                )}
+              </div>
             </div>
           </div>
           <Button onClick={openCreateProject}>
