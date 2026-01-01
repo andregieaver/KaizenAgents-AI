@@ -364,6 +364,104 @@ async def delete_space(
 
 
 # =============================================================================
+# MY TASKS ENDPOINT (Tasks assigned to current user)
+# =============================================================================
+
+@router.get("/my-tasks")
+async def get_my_tasks(
+    status: Optional[str] = None,
+    include_completed: bool = False,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all tasks assigned to the current user, sorted by due date"""
+    tenant_id = current_user.get("tenant_id")
+    user_id = current_user.get("id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Build query for tasks assigned to current user
+    query = {
+        "tenant_id": tenant_id,
+        "assignee_id": user_id,
+        "parent_task_id": None  # Only top-level tasks, not subtasks
+    }
+    
+    # Filter by status if provided
+    if status:
+        query["status"] = status
+    elif not include_completed:
+        # Exclude completed tasks by default
+        query["status"] = {"$ne": "done"}
+    
+    # Fetch tasks sorted by due_date (nulls last), then by priority
+    tasks = await db.project_tasks.find(
+        query,
+        {"_id": 0}
+    ).sort([
+        ("due_date", 1),  # Ascending - earliest due dates first
+        ("priority", -1),  # High priority first
+        ("created_at", -1)
+    ]).to_list(100)
+    
+    # Enrich tasks with project and list info
+    for task in tasks:
+        # Get project info
+        project = await db.projects.find_one(
+            {"id": task.get("project_id")},
+            {"_id": 0, "id": 1, "name": 1, "color": 1}
+        )
+        task["project"] = project
+        
+        # Get list info
+        lst = await db.project_lists.find_one(
+            {"id": task.get("list_id")},
+            {"_id": 0, "id": 1, "name": 1}
+        )
+        task["list"] = lst
+        
+        # Get subtask count
+        subtask_count = await db.project_tasks.count_documents({
+            "parent_task_id": task["id"]
+        })
+        completed_subtasks = await db.project_tasks.count_documents({
+            "parent_task_id": task["id"],
+            "status": "done"
+        })
+        task["subtask_count"] = subtask_count
+        task["completed_subtasks"] = completed_subtasks
+    
+    # Get stats
+    total_assigned = await db.project_tasks.count_documents({
+        "tenant_id": tenant_id,
+        "assignee_id": user_id,
+        "parent_task_id": None
+    })
+    overdue_count = await db.project_tasks.count_documents({
+        "tenant_id": tenant_id,
+        "assignee_id": user_id,
+        "parent_task_id": None,
+        "status": {"$ne": "done"},
+        "due_date": {"$lt": datetime.now(timezone.utc).strftime("%Y-%m-%d")}
+    })
+    completed_count = await db.project_tasks.count_documents({
+        "tenant_id": tenant_id,
+        "assignee_id": user_id,
+        "parent_task_id": None,
+        "status": "done"
+    })
+    
+    return {
+        "tasks": tasks,
+        "stats": {
+            "total": total_assigned,
+            "pending": total_assigned - completed_count,
+            "completed": completed_count,
+            "overdue": overdue_count
+        }
+    }
+
+
+# =============================================================================
 # PROJECTS ENDPOINTS
 # =============================================================================
 
