@@ -291,28 +291,30 @@ const GanttView = ({ tasks, dependencies, onEdit, projectStatuses }) => {
   // Filter tasks that have dates
   const tasksWithDates = tasks.filter(t => t.start_date || t.due_date);
   
-  // Calculate date range from tasks
-  useEffect(() => {
-    if (tasksWithDates.length > 0) {
-      let minDate = new Date();
-      let maxDate = addDays(new Date(), 30);
-      
-      tasksWithDates.forEach(task => {
-        if (task.start_date) {
-          const start = new Date(task.start_date);
-          if (start < minDate) minDate = start;
-        }
-        if (task.due_date) {
-          const end = new Date(task.due_date);
-          if (end > maxDate) maxDate = end;
-        }
-      });
-      
-      setDateRange({
-        start: startOfWeek(minDate),
-        end: addDays(endOfWeek(maxDate), 7)
-      });
+  // Calculate date range from tasks using useMemo
+  const dateRange = useMemo(() => {
+    if (tasksWithDates.length === 0) {
+      return { start: new Date(), end: addDays(new Date(), 30) };
     }
+    
+    let minDate = new Date();
+    let maxDate = addDays(new Date(), 30);
+    
+    tasksWithDates.forEach(task => {
+      if (task.start_date) {
+        const start = new Date(task.start_date);
+        if (start < minDate) minDate = start;
+      }
+      if (task.due_date) {
+        const end = new Date(task.due_date);
+        if (end > maxDate) maxDate = end;
+      }
+    });
+    
+    return {
+      start: startOfWeek(minDate),
+      end: addDays(endOfWeek(maxDate), 7)
+    };
   }, [tasksWithDates]);
   
   const days = eachDayOfInterval({ start: dateRange.start, end: dateRange.end });
