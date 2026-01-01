@@ -218,7 +218,7 @@ const TaskRow = ({ task, onEdit, onStatusChange, projectStatuses, level = 0 }) =
   return (
     <>
       <div 
-        className={`flex items-center gap-3 py-2 px-3 hover:bg-muted/50 border-b cursor-pointer ${
+        className={`flex items-center gap-3 py-2.5 px-3 hover:bg-muted/50 cursor-pointer transition-colors ${
           level > 0 ? 'pl-8 bg-muted/20' : ''
         }`}
         onClick={() => onEdit(task)}
