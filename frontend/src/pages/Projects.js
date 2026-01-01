@@ -578,6 +578,40 @@ const Projects = () => {
     }
   };
 
+  const handleUpdateProject = async (data) => {
+    try {
+      const response = await axios.put(`${API}/projects/${editingProject.id}`, data, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSpaceProjects(prev => prev.map(p => 
+        p.id === editingProject.id ? response.data : p
+      ));
+      toast.success('Project updated successfully');
+    } catch (error) {
+      toast.error('Failed to update project');
+      throw error;
+    }
+  };
+
+  const handleDeleteProject = async (project) => {
+    if (!confirm(`Delete "${project.name}" and all its tasks? This cannot be undone.`)) return;
+    try {
+      await axios.delete(`${API}/projects/${project.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSpaceProjects(prev => prev.filter(p => p.id !== project.id));
+      // Update space project count
+      setSpaces(prev => prev.map(s => 
+        s.id === project.space_id 
+          ? { ...s, project_count: Math.max((s.project_count || 1) - 1, 0) }
+          : s
+      ));
+      toast.success('Project deleted');
+    } catch (error) {
+      toast.error('Failed to delete project');
+    }
+  };
+
   const handleSpaceClick = (space) => {
     setSelectedSpace(space);
     fetchSpaceDetail(space.id);
@@ -586,6 +620,18 @@ const Projects = () => {
   const handleBackToSpaces = () => {
     setSelectedSpace(null);
     setSpaceProjects([]);
+  };
+
+  const openEditProject = (project) => {
+    setEditingProject(project);
+    setSelectedSpaceId(project.space_id);
+    setShowProjectDialog(true);
+  };
+
+  const openCreateProject = () => {
+    setEditingProject(null);
+    setSelectedSpaceId(selectedSpace.id);
+    setShowProjectDialog(true);
   };
 
   const filteredSpaces = spaces.filter(space => 
