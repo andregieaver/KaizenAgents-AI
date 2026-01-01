@@ -44,7 +44,8 @@ import {
   Wrench,
   Key,
   Clock,
-  History
+  History,
+  FolderKanban
 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
