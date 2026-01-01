@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 class SeatPricingTester:
-    def __init__(self, base_url="https://toolaccess.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://projectsync-app-1.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.super_admin_token = None
         self.regular_user_token = None
