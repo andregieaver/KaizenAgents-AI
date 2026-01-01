@@ -472,6 +472,7 @@ const Projects = () => {
   const [editingSpace, setEditingSpace] = useState(null);
   const [showProjectDialog, setShowProjectDialog] = useState(false);
   const [selectedSpaceId, setSelectedSpaceId] = useState(null);
+  const [editingProject, setEditingProject] = useState(null);
   
   // Space detail view
   const [selectedSpace, setSelectedSpace] = useState(null);
