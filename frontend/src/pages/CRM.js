@@ -181,8 +181,8 @@ const KanbanCard = ({ customer, isDragging }) => {
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-background border rounded-lg mb-2 transition-all select-none ${
-        isBeingDragged ? 'shadow-lg border-primary scale-105 z-50' : 'border-border hover:shadow-md'
+      className={`bg-background border rounded mb-2 transition-all select-none ${
+        isBeingDragged ? 'shadow border-primary scale-105 z-50' : 'border-border hover:shadow-sm'
       }`}
     >
       <div className="flex">
@@ -190,7 +190,7 @@ const KanbanCard = ({ customer, isDragging }) => {
         <div
           {...attributes}
           {...listeners}
-          className="flex items-center justify-center w-10 flex-shrink-0 cursor-grab active:cursor-grabbing bg-muted/30 hover:bg-muted rounded-l-lg touch-none"
+          className="flex items-center justify-center w-10 flex-shrink-0 cursor-grab active:cursor-grabbing bg-muted/30 hover:bg-muted rounded-l touch-none"
           style={{ touchAction: 'none' }}
         >
           <GripVertical className="h-5 w-5 text-muted-foreground" />
@@ -244,7 +244,7 @@ const KanbanColumn = ({ stage, customers }) => {
   return (
     <div 
       ref={setNodeRef}
-      className={`flex-shrink-0 w-72 rounded-lg p-3 transition-colors touch-none ${
+      className={`flex-shrink-0 w-72 rounded p-3 transition-colors touch-none ${
         isOver ? 'bg-primary/10 ring-2 ring-primary/30' : 'bg-muted/30'
       }`}
       style={{ touchAction: 'none' }}
@@ -263,7 +263,7 @@ const KanbanColumn = ({ stage, customers }) => {
               <KanbanCard key={customer.id} customer={customer} />
             ))}
             {customers.length === 0 && (
-              <div className={`text-center py-8 text-sm border-2 border-dashed rounded-lg ${
+              <div className={`text-center py-8 text-sm border-2 border-dashed rounded ${
                 isOver ? 'border-primary text-primary' : 'border-muted-foreground/30 text-muted-foreground'
               }`}>
                 {isOver ? 'Drop here' : 'No customers'}
