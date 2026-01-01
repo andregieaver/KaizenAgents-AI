@@ -328,14 +328,113 @@ const SortableTaskRow = ({ task, onEdit, onStatusChange, projectStatuses, level 
   );
 };
 
-// Droppable List Component
-const DroppableList = ({ list, search, onEditTask, onStatusChange, taskStatuses }) => {
-  const [isOpen, setIsOpen] = useState(false); // Collapsed by default
-  
+// Droppable Status Column within a List
+const ListStatusColumn = ({ listId, status, tasks, onEditTask, onStatusChange, projectStatuses }) => {
   const { setNodeRef, isOver } = useDroppable({
-    id: `list-${list.id}`,
-    data: { type: 'list', listId: list.id }
+    id: `list-${listId}-status-${status.id}`,
+    data: { type: 'status', listId, statusId: status.id }
   });
+  
+  return (
+    <div 
+      ref={setNodeRef}
+      className={`flex-1 min-w-[200px] rounded p-2 transition-colors ${
+        isOver ? 'bg-primary/10 ring-1 ring-primary/30' : 'bg-muted/30'
+      }`}
+    >
+      <div className="flex items-center justify-between mb-2 px-1">
+        <div className="flex items-center gap-1.5">
+          <div 
+            className="h-2 w-2 rounded-full"
+            style={{ backgroundColor: status.color }}
+          />
+          <span className="text-xs font-medium">{status.name}</span>
+        </div>
+        <Badge variant="secondary" className="text-[10px] h-4 px-1">{tasks.length}</Badge>
+      </div>
+      <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+        <div className="space-y-1 min-h-[60px]">
+          {tasks.map(task => (
+            <MiniTaskCard
+              key={task.id}
+              task={task}
+              onEdit={onEditTask}
+              onStatusChange={onStatusChange}
+              projectStatuses={projectStatuses}
+            />
+          ))}
+          {tasks.length === 0 && (
+            <div className={`text-center py-4 text-xs border border-dashed rounded ${
+              isOver ? 'border-primary text-primary' : 'border-muted-foreground/30 text-muted-foreground'
+            }`}>
+              {isOver ? 'Drop here' : 'Empty'}
+            </div>
+          )}
+        </div>
+      </SortableContext>
+    </div>
+  );
+};
+
+// Mini Task Card for List View Kanban
+const MiniTaskCard = ({ task, onEdit, onStatusChange, projectStatuses }) => {
+  const priorityColor = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
+  
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`bg-background border rounded p-2 cursor-pointer hover:shadow-sm transition-all ${
+        isDragging ? 'shadow ring-1 ring-primary/30' : ''
+      }`}
+    >
+      <div className="flex items-start gap-1.5">
+        <div
+          {...attributes}
+          {...listeners}
+          className="mt-0.5 cursor-grab active:cursor-grabbing touch-none"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="h-3 w-3 text-muted-foreground" />
+        </div>
+        <div className="flex-1 min-w-0" onClick={() => onEdit(task)}>
+          <p className={`text-xs font-medium truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+            {task.title}
+          </p>
+          <div className="flex items-center gap-1 mt-1">
+            <Badge className={`text-[10px] px-1 py-0 h-4 ${priorityColor.bg} ${priorityColor.text}`}>
+              {task.priority}
+            </Badge>
+            {task.due_date && (
+              <span className="text-[10px] text-muted-foreground">
+                {format(new Date(task.due_date), 'MMM d')}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Droppable List Component with Status Columns
+const DroppableList = ({ list, search, onEditTask, onStatusChange, taskStatuses, onStatusDragEnd }) => {
+  const [isOpen, setIsOpen] = useState(false); // Collapsed by default
   
   const filteredTasks = list.tasks?.filter(t => 
     t.title.toLowerCase().includes(search.toLowerCase())
@@ -343,8 +442,14 @@ const DroppableList = ({ list, search, onEditTask, onStatusChange, taskStatuses 
   
   const taskCount = filteredTasks.length;
   
+  // Group tasks by status
+  const tasksByStatus = taskStatuses.reduce((acc, status) => {
+    acc[status.id] = filteredTasks.filter(t => t.status === status.id);
+    return acc;
+  }, {});
+  
   return (
-    <Card className={`transition-colors ${isOver ? 'ring-2 ring-primary/50 bg-primary/5' : ''}`}>
+    <Card>
       <div 
         className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-muted/50 transition-colors"
         onClick={() => setIsOpen(!isOpen)}
@@ -361,25 +466,23 @@ const DroppableList = ({ list, search, onEditTask, onStatusChange, taskStatuses 
       </div>
       
       {isOpen && (
-        <div ref={setNodeRef} className="pb-2">
-          {taskCount > 0 ? (
-            <SortableContext items={filteredTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
-              <div className="divide-y divide-border/30">
-                {filteredTasks.map(task => (
-                  <SortableTaskRow
-                    key={task.id}
-                    task={task}
-                    onEdit={onEditTask}
-                    onStatusChange={onStatusChange}
-                    projectStatuses={taskStatuses}
-                  />
-                ))}
-              </div>
-            </SortableContext>
+        <div className="px-3 pb-3">
+          {taskCount > 0 || taskStatuses.length > 0 ? (
+            <div className="flex gap-2 overflow-x-auto">
+              {taskStatuses.map(status => (
+                <ListStatusColumn
+                  key={status.id}
+                  listId={list.id}
+                  status={status}
+                  tasks={tasksByStatus[status.id] || []}
+                  onEditTask={onEditTask}
+                  onStatusChange={onStatusChange}
+                  projectStatuses={taskStatuses}
+                />
+              ))}
+            </div>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">
-              {isOver ? 'Drop task here' : 'No tasks in this list'}
-            </p>
+            <p className="text-sm text-muted-foreground text-center py-4">No tasks in this list</p>
           )}
         </div>
       )}
