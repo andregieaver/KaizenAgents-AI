@@ -566,11 +566,580 @@ SCHEDULER_TOOLS = [
 
 
 # =============================================================================
+# PROJECT MANAGEMENT TOOLS
+# =============================================================================
+
+PROJECT_TOOLS = [
+    # Space Management
+    {
+        "type": "function",
+        "function": {
+            "name": "create_space",
+            "description": "Create a new space (workspace) to organize projects. Spaces are top-level containers for projects.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the space (e.g., 'Marketing', 'Development', 'HR')"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Description of the space's purpose"
+                    },
+                    "color": {
+                        "type": "string",
+                        "description": "Hex color code for the space (e.g., '#6366F1')"
+                    }
+                },
+                "required": ["name"]
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_spaces",
+            "description": "List all spaces (workspaces) in the system with their project counts",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_space",
+            "description": "Get details of a specific space including its projects",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "space_id": {
+                        "type": "string",
+                        "description": "ID of the space"
+                    },
+                    "space_name": {
+                        "type": "string",
+                        "description": "Name of the space (alternative to ID)"
+                    }
+                }
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    # Project Management
+    {
+        "type": "function",
+        "function": {
+            "name": "create_project",
+            "description": "Create a new project within a space",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the project"
+                    },
+                    "space_id": {
+                        "type": "string",
+                        "description": "ID of the space to create project in"
+                    },
+                    "space_name": {
+                        "type": "string",
+                        "description": "Name of the space (alternative to space_id)"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Project description"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "description": "Project start date (YYYY-MM-DD)"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "description": "Project end date (YYYY-MM-DD)"
+                    },
+                    "color": {
+                        "type": "string",
+                        "description": "Hex color code for the project"
+                    }
+                },
+                "required": ["name"]
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "list_projects",
+            "description": "List all projects, optionally filtered by space",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "space_id": {
+                        "type": "string",
+                        "description": "Filter by space ID"
+                    },
+                    "space_name": {
+                        "type": "string",
+                        "description": "Filter by space name"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Filter by status (active, completed, on_hold, archived)"
+                    }
+                }
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_project",
+            "description": "Get full details of a project including lists, tasks, and progress",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "ID of the project"
+                    },
+                    "project_name": {
+                        "type": "string",
+                        "description": "Name of the project (alternative to ID)"
+                    }
+                }
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_project",
+            "description": "Update a project's details (name, description, status, dates)",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "ID of the project to update"
+                    },
+                    "project_name": {
+                        "type": "string",
+                        "description": "Name of the project (alternative to ID)"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "New name for the project"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "New description"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "New status (planning, active, on_hold, completed, archived)"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "description": "New start date (YYYY-MM-DD)"
+                    },
+                    "end_date": {
+                        "type": "string",
+                        "description": "New end date (YYYY-MM-DD)"
+                    }
+                }
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    # List Management
+    {
+        "type": "function",
+        "function": {
+            "name": "create_list",
+            "description": "Create a new list (task group/section) in a project",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "ID of the project"
+                    },
+                    "project_name": {
+                        "type": "string",
+                        "description": "Name of the project (alternative to ID)"
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the list (e.g., 'Backlog', 'In Review', 'Blocked')"
+                    },
+                    "color": {
+                        "type": "string",
+                        "description": "Hex color code for the list"
+                    }
+                },
+                "required": ["name"]
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    # Task Management
+    {
+        "type": "function",
+        "function": {
+            "name": "create_task",
+            "description": "Create a new task in a project",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "ID of the project"
+                    },
+                    "project_name": {
+                        "type": "string",
+                        "description": "Name of the project (alternative to ID)"
+                    },
+                    "list_id": {
+                        "type": "string",
+                        "description": "ID of the list to add task to"
+                    },
+                    "list_name": {
+                        "type": "string",
+                        "description": "Name of the list (alternative to ID)"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "Task title"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Task description"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "Task status (todo, in_progress, review, done)"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "description": "Task priority (low, medium, high, urgent)"
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "description": "Due date (YYYY-MM-DD)"
+                    },
+                    "start_date": {
+                        "type": "string",
+                        "description": "Start date (YYYY-MM-DD)"
+                    },
+                    "estimated_hours": {
+                        "type": "number",
+                        "description": "Estimated hours to complete"
+                    },
+                    "assignee_id": {
+                        "type": "string",
+                        "description": "ID of the user to assign"
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Tags for categorization"
+                    }
+                },
+                "required": ["title"]
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_task",
+            "description": "Update an existing task",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "ID of the project"
+                    },
+                    "task_id": {
+                        "type": "string",
+                        "description": "ID of the task to update"
+                    },
+                    "task_title": {
+                        "type": "string",
+                        "description": "Title of the task (alternative to ID)"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "New title"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "New description"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "New status"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "description": "New priority"
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "description": "New due date"
+                    },
+                    "list_id": {
+                        "type": "string",
+                        "description": "Move to different list"
+                    }
+                }
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "complete_task",
+            "description": "Mark a task as completed (set status to 'done')",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "ID of the project"
+                    },
+                    "task_id": {
+                        "type": "string",
+                        "description": "ID of the task"
+                    },
+                    "task_title": {
+                        "type": "string",
+                        "description": "Title of the task (alternative to ID)"
+                    }
+                }
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "delete_task",
+            "description": "Delete a task from a project",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "ID of the project"
+                    },
+                    "task_id": {
+                        "type": "string",
+                        "description": "ID of the task"
+                    },
+                    "task_title": {
+                        "type": "string",
+                        "description": "Title of the task (alternative to ID)"
+                    }
+                }
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    # Subtask Management
+    {
+        "type": "function",
+        "function": {
+            "name": "create_subtask",
+            "description": "Create a subtask under a parent task",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "ID of the project"
+                    },
+                    "parent_task_id": {
+                        "type": "string",
+                        "description": "ID of the parent task"
+                    },
+                    "parent_task_title": {
+                        "type": "string",
+                        "description": "Title of parent task (alternative to ID)"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "Subtask title"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Subtask description"
+                    },
+                    "priority": {
+                        "type": "string",
+                        "description": "Priority (low, medium, high, urgent)"
+                    },
+                    "due_date": {
+                        "type": "string",
+                        "description": "Due date (YYYY-MM-DD)"
+                    }
+                },
+                "required": ["title"]
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    # Checklist Management
+    {
+        "type": "function",
+        "function": {
+            "name": "add_checklist",
+            "description": "Add a checklist to a task",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "ID of the project"
+                    },
+                    "task_id": {
+                        "type": "string",
+                        "description": "ID of the task"
+                    },
+                    "task_title": {
+                        "type": "string",
+                        "description": "Title of the task (alternative to ID)"
+                    },
+                    "checklist_name": {
+                        "type": "string",
+                        "description": "Name of the checklist (e.g., 'Requirements', 'Testing Steps')"
+                    },
+                    "items": {
+                        "type": "array",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "text": {"type": "string"},
+                                "is_completed": {"type": "boolean"}
+                            }
+                        },
+                        "description": "Checklist items"
+                    }
+                },
+                "required": ["checklist_name"]
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_checklist_item",
+            "description": "Mark a checklist item as completed or not completed",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "ID of the project"
+                    },
+                    "task_id": {
+                        "type": "string",
+                        "description": "ID of the task"
+                    },
+                    "checklist_id": {
+                        "type": "string",
+                        "description": "ID of the checklist"
+                    },
+                    "checklist_name": {
+                        "type": "string",
+                        "description": "Name of the checklist (alternative to ID)"
+                    },
+                    "item_text": {
+                        "type": "string",
+                        "description": "Text of the item to update"
+                    },
+                    "is_completed": {
+                        "type": "boolean",
+                        "description": "Whether the item is completed"
+                    }
+                },
+                "required": ["is_completed"]
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    },
+    # Task Dependencies
+    {
+        "type": "function",
+        "function": {
+            "name": "add_task_dependency",
+            "description": "Add a dependency between tasks (task B depends on task A completing first)",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "project_id": {
+                        "type": "string",
+                        "description": "ID of the project"
+                    },
+                    "task_id": {
+                        "type": "string",
+                        "description": "ID of the task that has the dependency"
+                    },
+                    "depends_on_task_id": {
+                        "type": "string",
+                        "description": "ID of the task that must be completed first"
+                    },
+                    "task_title": {
+                        "type": "string",
+                        "description": "Title of the dependent task (alternative to task_id)"
+                    },
+                    "depends_on_task_title": {
+                        "type": "string",
+                        "description": "Title of the prerequisite task (alternative to depends_on_task_id)"
+                    }
+                }
+            }
+        },
+        "category": ToolCategory.PROJECT,
+        "feature_key": "agent_project_tools"
+    }
+]
+
+
+# =============================================================================
 # REGISTRY
 # =============================================================================
 
 # All tools combined
-ALL_TOOLS = BROWSER_TOOLS + FORM_TOOLS + AUTH_TOOLS + AUDIT_TOOLS + SCHEDULER_TOOLS
+ALL_TOOLS = BROWSER_TOOLS + FORM_TOOLS + AUTH_TOOLS + AUDIT_TOOLS + SCHEDULER_TOOLS + PROJECT_TOOLS
 
 # Tool lookup by name
 TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
