@@ -579,6 +579,15 @@ async def get_project(
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
     
+    # Get space name if project belongs to a space
+    if project.get("space_id"):
+        space = await db.spaces.find_one(
+            {"id": project["space_id"]},
+            {"_id": 0, "name": 1}
+        )
+        if space:
+            project["space_name"] = space["name"]
+    
     # Get lists
     lists = await db.project_lists.find(
         {"project_id": project_id, "tenant_id": tenant_id},
