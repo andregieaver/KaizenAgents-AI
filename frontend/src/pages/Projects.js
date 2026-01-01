@@ -924,6 +924,7 @@ const Projects = () => {
                 onClick={() => navigate(`/dashboard/projects/${project.id}`)}
                 onEdit={openEditProject}
                 onDelete={handleDeleteProject}
+                onDuplicate={openDuplicateProject}
               />
             ))}
           </div>
@@ -946,6 +947,14 @@ const Projects = () => {
           spaceId={selectedSpaceId}
           project={editingProject}
           onSave={editingProject ? handleUpdateProject : handleCreateProject}
+        />
+
+        {/* Duplicate Project Dialog */}
+        <DuplicateProjectDialog
+          open={showDuplicateDialog}
+          onOpenChange={setShowDuplicateDialog}
+          project={duplicatingProject}
+          onDuplicate={handleDuplicateProject}
         />
       </div>
     );
