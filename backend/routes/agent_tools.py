@@ -11,6 +11,7 @@ from uuid import uuid4
 import sys
 sys.path.append('/app/backend')
 from server import db, get_current_user
+from middleware.auth import is_super_admin
 from services.tool_registry import (
     TOOL_REGISTRY,
     TOOL_FEATURE_GATES,
