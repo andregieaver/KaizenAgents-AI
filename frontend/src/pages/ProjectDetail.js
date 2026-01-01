@@ -208,21 +208,52 @@ const KanbanColumn = ({ status, tasks, onEdit, projectStatuses }) => {
   );
 };
 
-// List View Task Row
-const TaskRow = ({ task, onEdit, onStatusChange, projectStatuses, level = 0 }) => {
+// List View Task Row (Sortable)
+const SortableTaskRow = ({ task, onEdit, onStatusChange, projectStatuses, level = 0 }) => {
   const [expanded, setExpanded] = useState(false);
   const hasSubtasks = task.subtasks && task.subtasks.length > 0;
   const priorityColor = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
   const completedSubtasks = task.subtasks?.filter(s => s.status === 'done').length || 0;
+  
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  // Get status info
+  const taskStatus = projectStatuses?.find(s => s.id === task.status) || 
+    projectStatuses?.find(s => s.name?.toLowerCase() === task.status);
 
   return (
     <>
       <div 
-        className={`flex items-center gap-3 py-2.5 px-3 hover:bg-muted/50 cursor-pointer transition-colors ${
-          level > 0 ? 'pl-8 bg-muted/20' : ''
-        }`}
+        ref={setNodeRef}
+        style={style}
+        className={`flex items-center gap-2 py-2 hover:bg-muted/50 cursor-pointer transition-colors ${
+          level > 0 ? 'pl-6 bg-muted/20' : ''
+        } ${isDragging ? 'bg-muted/80' : ''}`}
         onClick={() => onEdit(task)}
       >
+        {/* Drag Handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="flex items-center justify-center w-6 cursor-grab active:cursor-grabbing touch-none"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
+        </div>
+        
         {hasSubtasks ? (
           <button 
             onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
@@ -248,9 +279,23 @@ const TaskRow = ({ task, onEdit, onStatusChange, projectStatuses, level = 0 }) =
           )}
         </button>
         
-        <span className={`flex-1 text-sm ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+        <span className={`flex-1 text-sm truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
           {task.title}
         </span>
+        
+        {/* Status Badge */}
+        {taskStatus && (
+          <Badge 
+            variant="outline" 
+            className="text-xs"
+            style={{ 
+              borderColor: taskStatus.color,
+              color: taskStatus.color 
+            }}
+          >
+            {taskStatus.name}
+          </Badge>
+        )}
         
         <Badge className={`text-xs ${priorityColor.bg} ${priorityColor.text}`}>
           {task.priority}
@@ -270,7 +315,7 @@ const TaskRow = ({ task, onEdit, onStatusChange, projectStatuses, level = 0 }) =
       </div>
       
       {expanded && hasSubtasks && task.subtasks.map(subtask => (
-        <TaskRow 
+        <SortableTaskRow 
           key={subtask.id} 
           task={subtask} 
           onEdit={onEdit}
@@ -283,9 +328,14 @@ const TaskRow = ({ task, onEdit, onStatusChange, projectStatuses, level = 0 }) =
   );
 };
 
-// Collapsible List Component
-const CollapsibleList = ({ list, search, onEditTask, onStatusChange, taskStatuses }) => {
-  const [isOpen, setIsOpen] = useState(true);
+// Droppable List Component
+const DroppableList = ({ list, search, onEditTask, onStatusChange, taskStatuses }) => {
+  const [isOpen, setIsOpen] = useState(false); // Collapsed by default
+  
+  const { setNodeRef, isOver } = useDroppable({
+    id: `list-${list.id}`,
+    data: { type: 'list', listId: list.id }
+  });
   
   const filteredTasks = list.tasks?.filter(t => 
     t.title.toLowerCase().includes(search.toLowerCase())
@@ -294,7 +344,7 @@ const CollapsibleList = ({ list, search, onEditTask, onStatusChange, taskStatuse
   const taskCount = filteredTasks.length;
   
   return (
-    <Card>
+    <Card className={`transition-colors ${isOver ? 'ring-2 ring-primary/50 bg-primary/5' : ''}`}>
       <div 
         className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-muted/50 transition-colors"
         onClick={() => setIsOpen(!isOpen)}
@@ -311,23 +361,27 @@ const CollapsibleList = ({ list, search, onEditTask, onStatusChange, taskStatuse
       </div>
       
       {isOpen && (
-        <CardContent className="pt-0 pb-2">
+        <div ref={setNodeRef} className="pb-2">
           {taskCount > 0 ? (
-            <div className="divide-y divide-border/50">
-              {filteredTasks.map(task => (
-                <TaskRow
-                  key={task.id}
-                  task={task}
-                  onEdit={onEditTask}
-                  onStatusChange={onStatusChange}
-                  projectStatuses={taskStatuses}
-                />
-              ))}
-            </div>
+            <SortableContext items={filteredTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+              <div className="divide-y divide-border/30">
+                {filteredTasks.map(task => (
+                  <SortableTaskRow
+                    key={task.id}
+                    task={task}
+                    onEdit={onEditTask}
+                    onStatusChange={onStatusChange}
+                    projectStatuses={taskStatuses}
+                  />
+                ))}
+              </div>
+            </SortableContext>
           ) : (
-            <p className="text-sm text-muted-foreground text-center py-4">No tasks in this list</p>
+            <p className="text-sm text-muted-foreground text-center py-4">
+              {isOver ? 'Drop task here' : 'No tasks in this list'}
+            </p>
           )}
-        </CardContent>
+        </div>
       )}
     </Card>
   );
