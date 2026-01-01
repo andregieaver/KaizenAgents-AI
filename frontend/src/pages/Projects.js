@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
@@ -30,6 +30,14 @@ import {
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '../components/ui/breadcrumb';
+import {
   Folder,
   Plus,
   Search,
@@ -43,7 +51,8 @@ import {
   Calendar,
   Users,
   CheckCircle2,
-  Copy
+  Copy,
+  Home
 } from 'lucide-react';
 import { Checkbox } from '../components/ui/checkbox';
 import { formatDistanceToNow } from 'date-fns';
