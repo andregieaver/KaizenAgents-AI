@@ -1153,6 +1153,7 @@ TOOLS_BY_CATEGORY: Dict[ToolCategory, List[Dict[str, Any]]] = {
     ToolCategory.AUTH: AUTH_TOOLS,
     ToolCategory.AUDIT: AUDIT_TOOLS,
     ToolCategory.SCHEDULER: SCHEDULER_TOOLS,
+    ToolCategory.PROJECT: PROJECT_TOOLS,
 }
 
 # Feature gate mappings
