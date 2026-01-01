@@ -741,6 +741,13 @@ const Dashboard = () => {
   // Loading states
   const [loadingInbox, setLoadingInbox] = useState(true);
   const [loadingTickets, setLoadingTickets] = useState(true);
+  const [loadingTasks, setLoadingTasks] = useState(true);
+  
+  // Tasks state
+  const [myTasks, setMyTasks] = useState([]);
+  const [taskStats, setTaskStats] = useState(null);
+  const [taskFilter, setTaskFilter] = useState('pending'); // 'pending', 'all', 'completed'
+  const [taskSearch, setTaskSearch] = useState('');
 
   // DnD sensors for Kanban
   const sensors = useSensors(
