@@ -684,7 +684,7 @@ const Projects = () => {
               </div>
             </div>
           </div>
-          <Button onClick={() => { setSelectedSpaceId(selectedSpace.id); setShowProjectDialog(true); }}>
+          <Button onClick={openCreateProject}>
             <Plus className="h-4 w-4 mr-2" />
             New Project
           </Button>
@@ -713,6 +713,8 @@ const Projects = () => {
                 key={project.id}
                 project={project}
                 onClick={() => navigate(`/dashboard/projects/${project.id}`)}
+                onEdit={openEditProject}
+                onDelete={handleDeleteProject}
               />
             ))}
           </div>
@@ -721,7 +723,7 @@ const Projects = () => {
             <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
             <h3 className="text-lg font-medium mb-2">No projects yet</h3>
             <p className="text-muted-foreground mb-4">Create your first project to get started</p>
-            <Button onClick={() => { setSelectedSpaceId(selectedSpace.id); setShowProjectDialog(true); }}>
+            <Button onClick={openCreateProject}>
               <Plus className="h-4 w-4 mr-2" />
               Create Project
             </Button>
@@ -733,7 +735,8 @@ const Projects = () => {
           open={showProjectDialog}
           onOpenChange={setShowProjectDialog}
           spaceId={selectedSpaceId}
-          onSave={handleCreateProject}
+          project={editingProject}
+          onSave={editingProject ? handleUpdateProject : handleCreateProject}
         />
       </div>
     );
