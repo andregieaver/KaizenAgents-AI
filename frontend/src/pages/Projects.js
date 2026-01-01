@@ -117,7 +117,7 @@ const SpaceCard = ({ space, onClick, onEdit, onDelete }) => {
 };
 
 // Project Card Component (for Space Detail view)
-const ProjectCard = ({ project, onClick }) => {
+const ProjectCard = ({ project, onClick, onEdit, onDelete }) => {
   const progress = project.task_count > 0 
     ? Math.round((project.completed_count / project.task_count) * 100) 
     : 0;
@@ -136,9 +136,29 @@ const ProjectCard = ({ project, onClick }) => {
             />
             <h3 className="font-medium">{project.name}</h3>
           </div>
-          <Badge variant="secondary" className="text-xs">
-            {project.status}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              {project.status}
+            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }}>
+                  <Pencil className="h-4 w-4 mr-2" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => { e.stopPropagation(); onDelete(project); }}
+                  className="text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
         
         {project.description && (
