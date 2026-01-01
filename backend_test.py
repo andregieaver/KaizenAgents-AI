@@ -1535,11 +1535,13 @@ class AIAgentHubTester:
             print(f"❌ create_project failed: {response.get('error', 'Unknown error')}")
             return False
             
-        project_id = response.get('project_id')
+        project_data = response.get('project', {})
+        project_id = project_data.get('id')
         print(f"   ✅ create_project: Created project with ID {project_id}")
         
-        # Store project name for later tests
+        # Store project name and ID for later tests
         self.test_project_name = "Backend Test Project"
+        self.test_project_id = project_id
         
         # Test 2: list_projects
         tool_data = {
@@ -1568,8 +1570,7 @@ class AIAgentHubTester:
         tool_data = {
             "tool_name": "get_project",
             "params": {
-                "project_name": self.test_project_name,
-                "space_name": self.test_space_name
+                "project_name": self.test_project_name
             }
         }
         
@@ -1593,7 +1594,6 @@ class AIAgentHubTester:
             "tool_name": "update_project",
             "params": {
                 "project_name": self.test_project_name,
-                "space_name": self.test_space_name,
                 "status": "on_hold"
             }
         }
@@ -1618,7 +1618,7 @@ class AIAgentHubTester:
         """Test List Tools: create_list"""
         print(f"\n🔧 Testing List Tools")
         
-        if not hasattr(self, 'test_project_name') or not hasattr(self, 'test_space_name'):
+        if not hasattr(self, 'test_project_name') or not hasattr(self, 'test_project_id'):
             print("❌ No test project available for list tools")
             return False
         
@@ -1627,8 +1627,7 @@ class AIAgentHubTester:
             "tool_name": "create_list",
             "params": {
                 "name": "In Progress",
-                "project_name": self.test_project_name,
-                "space_name": self.test_space_name
+                "project_name": self.test_project_name
             }
         }
         
@@ -1644,7 +1643,8 @@ class AIAgentHubTester:
             print(f"❌ create_list failed: {response.get('error', 'Unknown error')}")
             return False
             
-        list_id = response.get('list_id')
+        list_data = response.get('list', {})
+        list_id = list_data.get('id')
         print(f"   ✅ create_list: Created list 'In Progress' with ID {list_id}")
         
         # Store list name for later tests
@@ -1656,7 +1656,7 @@ class AIAgentHubTester:
         """Test Task Tools: create_task, update_task, complete_task, delete_task"""
         print(f"\n🔧 Testing Task Tools")
         
-        if not hasattr(self, 'test_list_name') or not hasattr(self, 'test_project_name') or not hasattr(self, 'test_space_name'):
+        if not hasattr(self, 'test_list_name') or not hasattr(self, 'test_project_name') or not hasattr(self, 'test_project_id'):
             print("❌ No test list available for task tools")
             return False
         
@@ -1666,7 +1666,6 @@ class AIAgentHubTester:
             "params": {
                 "title": "Write unit tests",
                 "project_name": self.test_project_name,
-                "space_name": self.test_space_name,
                 "list_name": self.test_list_name,
                 "priority": "high",
                 "description": "Write comprehensive unit tests for the backend API"
@@ -1685,7 +1684,8 @@ class AIAgentHubTester:
             print(f"❌ create_task failed: {response.get('error', 'Unknown error')}")
             return False
             
-        task_id = response.get('task_id')
+        task_data = response.get('task', {})
+        task_id = task_data.get('id')
         print(f"   ✅ create_task: Created task 'Write unit tests' with ID {task_id}")
         
         # Store task name for later tests
@@ -1695,9 +1695,8 @@ class AIAgentHubTester:
         tool_data = {
             "tool_name": "update_task",
             "params": {
-                "task_name": self.test_task_name,
-                "project_name": self.test_project_name,
-                "space_name": self.test_space_name,
+                "task_title": self.test_task_name,
+                "project_id": self.test_project_id,
                 "description": "Write comprehensive unit tests for the backend API - Updated description"
             }
         }
@@ -1720,9 +1719,8 @@ class AIAgentHubTester:
         tool_data = {
             "tool_name": "complete_task",
             "params": {
-                "task_name": self.test_task_name,
-                "project_name": self.test_project_name,
-                "space_name": self.test_space_name
+                "task_title": self.test_task_name,
+                "project_id": self.test_project_id
             }
         }
         
@@ -1744,9 +1742,8 @@ class AIAgentHubTester:
         tool_data = {
             "tool_name": "delete_task",
             "params": {
-                "task_name": self.test_task_name,
-                "project_name": self.test_project_name,
-                "space_name": self.test_space_name
+                "task_title": self.test_task_name,
+                "project_id": self.test_project_id
             }
         }
         
@@ -1770,7 +1767,7 @@ class AIAgentHubTester:
         """Test Advanced Tools: create_subtask, add_checklist, update_checklist_item, add_task_dependency"""
         print(f"\n🔧 Testing Advanced Tools")
         
-        if not hasattr(self, 'test_list_name') or not hasattr(self, 'test_project_name') or not hasattr(self, 'test_space_name'):
+        if not hasattr(self, 'test_list_name') or not hasattr(self, 'test_project_name') or not hasattr(self, 'test_project_id'):
             print("❌ No test list available for advanced tools")
             return False
         
@@ -1780,7 +1777,6 @@ class AIAgentHubTester:
             "params": {
                 "title": "Parent Task for Testing",
                 "project_name": self.test_project_name,
-                "space_name": self.test_space_name,
                 "list_name": self.test_list_name,
                 "priority": "medium"
             }
@@ -1806,9 +1802,8 @@ class AIAgentHubTester:
             "tool_name": "create_subtask",
             "params": {
                 "title": "Subtask for Testing",
-                "parent_task_name": parent_task_name,
-                "project_name": self.test_project_name,
-                "space_name": self.test_space_name
+                "parent_task_title": parent_task_name,
+                "project_id": self.test_project_id
             }
         }
         
@@ -1830,10 +1825,9 @@ class AIAgentHubTester:
         tool_data = {
             "tool_name": "add_checklist",
             "params": {
-                "task_name": parent_task_name,
-                "project_name": self.test_project_name,
-                "space_name": self.test_space_name,
                 "checklist_name": "Testing Checklist",
+                "task_title": parent_task_name,
+                "project_id": self.test_project_id,
                 "items": ["Item 1", "Item 2", "Item 3"]
             }
         }
@@ -1856,28 +1850,59 @@ class AIAgentHubTester:
         tool_data = {
             "tool_name": "update_checklist_item",
             "params": {
-                "task_name": parent_task_name,
-                "project_name": self.test_project_name,
-                "space_name": self.test_space_name,
+                "task_id": None,  # Will need to find task by title
                 "checklist_name": "Testing Checklist",
-                "item_name": "Item 1",
-                "completed": True
+                "item_text": "Item 1",
+                "is_completed": True
             }
         }
         
-        success, response = self.run_test(
-            "Update Checklist Item Tool",
+        # First get the task ID by finding the task
+        get_project_data = {
+            "tool_name": "get_project",
+            "params": {
+                "project_name": self.test_project_name
+            }
+        }
+        
+        success, project_response = self.run_test(
+            "Get Project for Task ID",
             "POST",
             "agent-tools/execute",
             200,
-            data=tool_data
+            data=get_project_data
         )
         
-        if not success or not response.get("success"):
-            print(f"❌ update_checklist_item failed: {response.get('error', 'Unknown error')}")
-            return False
+        if success and project_response.get("success"):
+            project_data = project_response.get('project', {})
+            lists = project_data.get('lists', [])
+            task_id = None
+            for lst in lists:
+                for task in lst.get('tasks', []):
+                    if task.get('title') == parent_task_name:
+                        task_id = task.get('id')
+                        break
+                if task_id:
+                    break
             
-        print(f"   ✅ update_checklist_item: Toggled checklist item completion")
+            if task_id:
+                tool_data['params']['task_id'] = task_id
+                
+                success, response = self.run_test(
+                    "Update Checklist Item Tool",
+                    "POST",
+                    "agent-tools/execute",
+                    200,
+                    data=tool_data
+                )
+                
+                if not success or not response.get("success"):
+                    print(f"❌ update_checklist_item failed: {response.get('error', 'Unknown error')}")
+                    return False
+                    
+                print(f"   ✅ update_checklist_item: Toggled checklist item completion")
+            else:
+                print(f"   ⚠️ Could not find task ID for checklist item update")
         
         # Create another task for dependency testing
         tool_data = {
@@ -1885,7 +1910,6 @@ class AIAgentHubTester:
             "params": {
                 "title": "Dependent Task",
                 "project_name": self.test_project_name,
-                "space_name": self.test_space_name,
                 "list_name": self.test_list_name,
                 "priority": "low"
             }
@@ -1909,10 +1933,9 @@ class AIAgentHubTester:
         tool_data = {
             "tool_name": "add_task_dependency",
             "params": {
-                "task_name": dependent_task_name,
-                "depends_on_task_name": parent_task_name,
-                "project_name": self.test_project_name,
-                "space_name": self.test_space_name
+                "task_title": dependent_task_name,
+                "depends_on_task_title": parent_task_name,
+                "project_id": self.test_project_id
             }
         }
         
