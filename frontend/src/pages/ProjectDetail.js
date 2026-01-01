@@ -499,6 +499,10 @@ const TaskDialog = ({ open, onOpenChange, task, projectId, lists, statuses, onSa
       toast.error('Title is required');
       return;
     }
+    if (!formData.list_id) {
+      toast.error('Please select a list');
+      return;
+    }
     setLoading(true);
     try {
       await onSave(formData, checklists);
