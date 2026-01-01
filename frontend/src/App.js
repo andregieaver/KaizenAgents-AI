@@ -56,6 +56,7 @@ import CredentialsManager from "./pages/CredentialsManager";
 import ScheduledTasks from "./pages/ScheduledTasks";
 import ExecutionLogs from "./pages/ExecutionLogs";
 import Projects from "./pages/Projects";
+import ProjectDetail from "./pages/ProjectDetail";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
