@@ -681,6 +681,142 @@ async def delete_project(
     return {"message": "Project deleted successfully"}
 
 
+class DuplicateProjectRequest(BaseModel):
+    new_name: str
+    keep_lists: bool = True
+    keep_tasks: bool = True
+    keep_checklists: bool = True
+    keep_assignees: bool = False
+
+
+@router.post("/{project_id}/duplicate")
+async def duplicate_project(
+    project_id: str,
+    request: DuplicateProjectRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Duplicate a project with selected options"""
+    tenant_id = current_user.get("tenant_id")
+    user_id = current_user.get("id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Get original project
+    original = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    )
+    
+    if not original:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Create new project
+    new_project_id = str(uuid4())
+    new_project = {
+        **original,
+        "id": new_project_id,
+        "name": request.new_name,
+        "owner_id": user_id,
+        "members": [user_id],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.projects.insert_one(new_project)
+    
+    # Map old IDs to new IDs for references
+    list_id_map = {}
+    task_id_map = {}
+    
+    if request.keep_lists:
+        # Get original lists
+        original_lists = await db.project_lists.find(
+            {"project_id": project_id, "tenant_id": tenant_id},
+            {"_id": 0}
+        ).to_list(100)
+        
+        for lst in original_lists:
+            new_list_id = str(uuid4())
+            list_id_map[lst["id"]] = new_list_id
+            
+            new_list = {
+                **lst,
+                "id": new_list_id,
+                "project_id": new_project_id,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+            await db.project_lists.insert_one(new_list)
+        
+        if request.keep_tasks:
+            # Get original tasks
+            original_tasks = await db.project_tasks.find(
+                {"project_id": project_id, "tenant_id": tenant_id},
+                {"_id": 0}
+            ).to_list(1000)
+            
+            for task in original_tasks:
+                new_task_id = str(uuid4())
+                task_id_map[task["id"]] = new_task_id
+                
+                new_task = {
+                    **task,
+                    "id": new_task_id,
+                    "project_id": new_project_id,
+                    "list_id": list_id_map.get(task.get("list_id"), task.get("list_id")),
+                    "created_at": datetime.now(timezone.utc).isoformat(),
+                    "updated_at": datetime.now(timezone.utc).isoformat()
+                }
+                
+                # Handle assignees
+                if not request.keep_assignees:
+                    new_task["assignee_id"] = None
+                
+                # Handle checklists
+                if not request.keep_checklists:
+                    new_task["checklists"] = []
+                elif new_task.get("checklists"):
+                    # Generate new IDs for checklist items
+                    for checklist in new_task["checklists"]:
+                        checklist["id"] = str(uuid4())
+                        for item in checklist.get("items", []):
+                            item["id"] = str(uuid4())
+                
+                # Handle parent task references (for subtasks)
+                if task.get("parent_task_id"):
+                    new_task["parent_task_id"] = task_id_map.get(task["parent_task_id"], task["parent_task_id"])
+                
+                await db.project_tasks.insert_one(new_task)
+            
+            # Update subtask parent references (second pass for tasks created after their parents)
+            for old_id, new_id in task_id_map.items():
+                await db.project_tasks.update_many(
+                    {"project_id": new_project_id, "parent_task_id": old_id},
+                    {"$set": {"parent_task_id": new_id}}
+                )
+    
+    # Get the new project with counts
+    new_project_data = await db.projects.find_one(
+        {"id": new_project_id},
+        {"_id": 0}
+    )
+    
+    # Add task counts
+    task_count = await db.project_tasks.count_documents({
+        "project_id": new_project_id,
+        "parent_task_id": None
+    })
+    completed_count = await db.project_tasks.count_documents({
+        "project_id": new_project_id,
+        "parent_task_id": None,
+        "status": "done"
+    })
+    
+    new_project_data["task_count"] = task_count
+    new_project_data["completed_count"] = completed_count
+    
+    return new_project_data
+
+
 # =============================================================================
 # LISTS ENDPOINTS
 # =============================================================================
