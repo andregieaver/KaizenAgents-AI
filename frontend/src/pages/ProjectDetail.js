@@ -1412,14 +1412,14 @@ const ProjectDetail = () => {
                 <Link to="/dashboard/projects">Projects</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
-            {project.space_id && (
+            {project.space_id && project.space_name && (
               <>
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
                     <Link to="/dashboard/projects" className="flex items-center gap-1">
                       <Folder className="h-3.5 w-3.5" />
-                      {project.space_name || 'Space'}
+                      {project.space_name}
                     </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
