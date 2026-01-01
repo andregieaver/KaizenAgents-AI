@@ -1300,7 +1300,190 @@ const Dashboard = () => {
         {/* TASKS TAB */}
         {mainTab === 'tasks' && (
           <div className="h-full flex flex-col">
-            <EmptyState type="tasks" tab="all" />
+            {/* Tasks Header */}
+            <div className="p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  {/* Filter Tabs */}
+                  <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                    <Button
+                      variant={taskFilter === 'pending' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setTaskFilter('pending')}
+                      className="h-7 px-3 text-xs"
+                    >
+                      Pending
+                      {taskStats?.pending > 0 && (
+                        <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px]">
+                          {taskStats.pending}
+                        </Badge>
+                      )}
+                    </Button>
+                    <Button
+                      variant={taskFilter === 'all' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setTaskFilter('all')}
+                      className="h-7 px-3 text-xs"
+                    >
+                      All
+                    </Button>
+                    <Button
+                      variant={taskFilter === 'completed' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setTaskFilter('completed')}
+                      className="h-7 px-3 text-xs"
+                    >
+                      Completed
+                    </Button>
+                  </div>
+                  
+                  {/* Stats badges */}
+                  {taskStats?.overdue > 0 && (
+                    <Badge variant="destructive" className="gap-1">
+                      <AlertCircle className="h-3 w-3" />
+                      {taskStats.overdue} overdue
+                    </Badge>
+                  )}
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <div className="relative w-64">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Search tasks..."
+                      value={taskSearch}
+                      onChange={(e) => setTaskSearch(e.target.value)}
+                      className="pl-9 h-9"
+                    />
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => navigate('/dashboard/projects')}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    New Task
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Tasks List */}
+            <div className="flex-1 overflow-y-auto">
+              {loadingTasks ? (
+                <div className="flex items-center justify-center py-16">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                </div>
+              ) : filteredTasks.length === 0 ? (
+                <EmptyState type="tasks" tab={taskFilter} />
+              ) : (
+                <div className="divide-y">
+                  {filteredTasks.map(task => {
+                    const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'done';
+                    const isDueToday = task.due_date && format(new Date(task.due_date), 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+                    const isDueTomorrow = task.due_date && format(new Date(task.due_date), 'yyyy-MM-dd') === format(new Date(Date.now() + 86400000), 'yyyy-MM-dd');
+                    
+                    return (
+                      <div
+                        key={task.id}
+                        onClick={() => handleTaskClick(task)}
+                        className={`p-4 hover:bg-accent/50 cursor-pointer transition-colors ${
+                          task.status === 'done' ? 'opacity-60' : ''
+                        }`}
+                      >
+                        <div className="flex items-start gap-4">
+                          {/* Status checkbox */}
+                          <div className={`mt-0.5 h-5 w-5 rounded border-2 flex items-center justify-center ${
+                            task.status === 'done' 
+                              ? 'bg-green-500 border-green-500' 
+                              : task.status === 'in_progress'
+                              ? 'border-blue-500'
+                              : 'border-muted-foreground/30'
+                          }`}>
+                            {task.status === 'done' && (
+                              <CheckSquare className="h-3.5 w-3.5 text-white" />
+                            )}
+                          </div>
+                          
+                          {/* Task content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex-1 min-w-0">
+                                <h4 className={`font-medium truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+                                  {task.title}
+                                </h4>
+                                {task.description && (
+                                  <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">
+                                    {task.description}
+                                  </p>
+                                )}
+                              </div>
+                              
+                              {/* Priority badge */}
+                              {task.priority && task.priority !== 'medium' && (
+                                <Badge 
+                                  variant={task.priority === 'urgent' ? 'destructive' : task.priority === 'high' ? 'default' : 'secondary'}
+                                  className="shrink-0"
+                                >
+                                  {task.priority}
+                                </Badge>
+                              )}
+                            </div>
+                            
+                            {/* Task meta */}
+                            <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                              {/* Project name */}
+                              {task.project && (
+                                <div className="flex items-center gap-1.5">
+                                  <div 
+                                    className="h-2 w-2 rounded-full"
+                                    style={{ backgroundColor: task.project.color || '#6366F1' }}
+                                  />
+                                  <span className="truncate max-w-[150px]">{task.project.name}</span>
+                                </div>
+                              )}
+                              
+                              {/* Due date */}
+                              {task.due_date && (
+                                <div className={`flex items-center gap-1 ${
+                                  isOverdue ? 'text-destructive font-medium' : 
+                                  isDueToday ? 'text-amber-600 font-medium' :
+                                  isDueTomorrow ? 'text-blue-600' : ''
+                                }`}>
+                                  <Calendar className="h-3 w-3" />
+                                  {isOverdue ? 'Overdue' : 
+                                   isDueToday ? 'Today' :
+                                   isDueTomorrow ? 'Tomorrow' :
+                                   format(new Date(task.due_date), 'MMM d')}
+                                </div>
+                              )}
+                              
+                              {/* Subtask progress */}
+                              {task.subtask_count > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <CheckSquare className="h-3 w-3" />
+                                  {task.completed_subtasks}/{task.subtask_count}
+                                </div>
+                              )}
+                              
+                              {/* List name */}
+                              {task.list && (
+                                <div className="flex items-center gap-1">
+                                  <List className="h-3 w-3" />
+                                  {task.list.name}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Arrow indicator */}
+                          <ArrowUpRight className="h-4 w-4 text-muted-foreground shrink-0 mt-1" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
