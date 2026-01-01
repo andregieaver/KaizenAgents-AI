@@ -26,6 +26,10 @@ from services.audit_tools import (
     AUDIT_TOOL_EXECUTORS,
     execute_audit_tool
 )
+from services.project_tools import (
+    PROJECT_TOOL_EXECUTORS,
+    execute_project_tool
+)
 
 logger = logging.getLogger(__name__)
 

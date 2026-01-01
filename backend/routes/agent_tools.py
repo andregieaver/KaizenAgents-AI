@@ -48,6 +48,7 @@ class ToolExecuteRequest(BaseModel):
     tool_name: str
     params: Dict[str, Any] = {}
     session_id: Optional[str] = None
+    agent_id: Optional[str] = None
 
 
 class SessionCreateRequest(BaseModel):
