@@ -470,6 +470,175 @@ const ProjectDialog = ({ open, onOpenChange, spaceId, project, onSave }) => {
   );
 };
 
+// Duplicate Project Dialog
+const DuplicateProjectDialog = ({ open, onOpenChange, project, onDuplicate }) => {
+  const [loading, setLoading] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [options, setOptions] = useState({
+    keepLists: true,
+    keepTasks: true,
+    keepChecklists: true,
+    keepAssignees: false
+  });
+
+  useEffect(() => {
+    if (open && project) {
+      setNewName(`${project.name} (Copy)`);
+      setOptions({
+        keepLists: true,
+        keepTasks: true,
+        keepChecklists: true,
+        keepAssignees: false
+      });
+    }
+  }, [open, project]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!newName.trim()) {
+      toast.error('Name is required');
+      return;
+    }
+    setLoading(true);
+    try {
+      await onDuplicate({
+        new_name: newName.trim(),
+        keep_lists: options.keepLists,
+        keep_tasks: options.keepTasks,
+        keep_checklists: options.keepChecklists,
+        keep_assignees: options.keepAssignees
+      });
+      onOpenChange(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!project) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Duplicate Project</DialogTitle>
+          <DialogDescription>
+            Create a copy of "{project.name}" with selected content.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="new-name">New Project Name *</Label>
+            <Input
+              id="new-name"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              placeholder="Enter name for the duplicated project"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <Label>Include in duplicate:</Label>
+            
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="keep-lists"
+                  checked={options.keepLists}
+                  onCheckedChange={(checked) => {
+                    setOptions(prev => ({
+                      ...prev,
+                      keepLists: checked,
+                      keepTasks: checked ? prev.keepTasks : false,
+                      keepChecklists: checked ? prev.keepChecklists : false
+                    }));
+                  }}
+                />
+                <label htmlFor="keep-lists" className="text-sm font-medium cursor-pointer">
+                  Lists
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-2 ml-6">
+                <Checkbox
+                  id="keep-tasks"
+                  checked={options.keepTasks}
+                  disabled={!options.keepLists}
+                  onCheckedChange={(checked) => {
+                    setOptions(prev => ({
+                      ...prev,
+                      keepTasks: checked,
+                      keepChecklists: checked ? prev.keepChecklists : false,
+                      keepAssignees: checked ? prev.keepAssignees : false
+                    }));
+                  }}
+                />
+                <label 
+                  htmlFor="keep-tasks" 
+                  className={`text-sm cursor-pointer ${!options.keepLists ? 'text-muted-foreground' : ''}`}
+                >
+                  Tasks in lists
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-2 ml-12">
+                <Checkbox
+                  id="keep-checklists"
+                  checked={options.keepChecklists}
+                  disabled={!options.keepTasks}
+                  onCheckedChange={(checked) => setOptions(prev => ({ ...prev, keepChecklists: checked }))}
+                />
+                <label 
+                  htmlFor="keep-checklists" 
+                  className={`text-sm cursor-pointer ${!options.keepTasks ? 'text-muted-foreground' : ''}`}
+                >
+                  Checklists in tasks
+                </label>
+              </div>
+
+              <div className="flex items-center space-x-2 ml-12">
+                <Checkbox
+                  id="keep-assignees"
+                  checked={options.keepAssignees}
+                  disabled={!options.keepTasks}
+                  onCheckedChange={(checked) => setOptions(prev => ({ ...prev, keepAssignees: checked }))}
+                />
+                <label 
+                  htmlFor="keep-assignees" 
+                  className={`text-sm cursor-pointer ${!options.keepTasks ? 'text-muted-foreground' : ''}`}
+                >
+                  Task assignees
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-muted/50 rounded-lg p-3 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground mb-1">What will be copied:</p>
+            <ul className="list-disc list-inside space-y-0.5">
+              <li>Project settings and metadata</li>
+              {options.keepLists && <li>All lists</li>}
+              {options.keepTasks && <li>All tasks with their status and priority</li>}
+              {options.keepChecklists && <li>Task checklists</li>}
+              {options.keepAssignees && <li>Task assignees</li>}
+            </ul>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+              Duplicate Project
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // Main Projects Page
 const Projects = () => {
   const { token } = useAuth();
