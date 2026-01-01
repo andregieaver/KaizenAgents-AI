@@ -892,6 +892,19 @@ const Dashboard = () => {
     return true;
   });
 
+  // Filter tasks
+  const filteredTasks = myTasks.filter(task => {
+    if (taskSearch) {
+      const query = taskSearch.toLowerCase();
+      return (
+        task.title?.toLowerCase().includes(query) ||
+        task.description?.toLowerCase().includes(query) ||
+        task.project?.name?.toLowerCase().includes(query)
+      );
+    }
+    return true;
+  });
+
   // Tab counts
   const inboxTabCounts = {
     all: conversations.length,
@@ -914,6 +927,11 @@ const Dashboard = () => {
     setSelectedTicket(ticket.id);
     // TODO: Navigate to ticket detail or open modal
     toast.info(`Ticket: ${ticket.title}`);
+  };
+
+  const handleTaskClick = (task) => {
+    // Navigate to project detail page with task context
+    navigate(`/dashboard/projects/${task.project_id}`);
   };
 
   const handleTicketCreated = (newTicket) => {
