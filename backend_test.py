@@ -1691,75 +1691,110 @@ class AIAgentHubTester:
         # Store task name for later tests
         self.test_task_name = "Write unit tests"
         
-        # Test 2: update_task
-        tool_data = {
-            "tool_name": "update_task",
+        # Test 2: update_task - First get the project to find the actual task
+        get_project_data = {
+            "tool_name": "get_project",
             "params": {
-                "task_title": self.test_task_name,
-                "project_id": self.test_project_id,
-                "description": "Write comprehensive unit tests for the backend API - Updated description"
+                "project_name": self.test_project_name
             }
         }
         
-        success, response = self.run_test(
-            "Update Task Tool",
+        success, project_response = self.run_test(
+            "Get Project for Task Update",
             "POST",
             "agent-tools/execute",
             200,
-            data=tool_data
+            data=get_project_data
         )
         
-        if not success or not response.get("success"):
-            print(f"❌ update_task failed: {response.get('error', 'Unknown error')}")
-            return False
+        if success and project_response.get("success"):
+            project_data = project_response.get('project', {})
+            lists = project_data.get('lists', [])
+            task_found = False
             
-        print(f"   ✅ update_task: Updated task description")
-        
-        # Test 3: complete_task
-        tool_data = {
-            "tool_name": "complete_task",
-            "params": {
-                "task_title": self.test_task_name,
-                "project_id": self.test_project_id
-            }
-        }
-        
-        success, response = self.run_test(
-            "Complete Task Tool",
-            "POST",
-            "agent-tools/execute",
-            200,
-            data=tool_data
-        )
-        
-        if not success or not response.get("success"):
-            print(f"❌ complete_task failed: {response.get('error', 'Unknown error')}")
-            return False
+            for lst in lists:
+                for task in lst.get('tasks', []):
+                    if task.get('title') == self.test_task_name:
+                        task_found = True
+                        task_id = task.get('id')
+                        print(f"   Found task '{self.test_task_name}' with ID {task_id}")
+                        break
+                if task_found:
+                    break
             
-        print(f"   ✅ complete_task: Marked task as done")
-        
-        # Test 4: delete_task
-        tool_data = {
-            "tool_name": "delete_task",
-            "params": {
-                "task_title": self.test_task_name,
-                "project_id": self.test_project_id
-            }
-        }
-        
-        success, response = self.run_test(
-            "Delete Task Tool",
-            "POST",
-            "agent-tools/execute",
-            200,
-            data=tool_data
-        )
-        
-        if not success or not response.get("success"):
-            print(f"❌ delete_task failed: {response.get('error', 'Unknown error')}")
+            if task_found:
+                # Use task_id instead of task_title for more reliable lookup
+                tool_data = {
+                    "tool_name": "update_task",
+                    "params": {
+                        "task_id": task_id,
+                        "description": "Write comprehensive unit tests for the backend API - Updated description"
+                    }
+                }
+                
+                success, response = self.run_test(
+                    "Update Task Tool",
+                    "POST",
+                    "agent-tools/execute",
+                    200,
+                    data=tool_data
+                )
+                
+                if not success or not response.get("success"):
+                    print(f"❌ update_task failed: {response.get('error', 'Unknown error')}")
+                    return False
+                    
+                print(f"   ✅ update_task: Updated task description")
+                
+                # Test 3: complete_task
+                tool_data = {
+                    "tool_name": "complete_task",
+                    "params": {
+                        "task_id": task_id
+                    }
+                }
+                
+                success, response = self.run_test(
+                    "Complete Task Tool",
+                    "POST",
+                    "agent-tools/execute",
+                    200,
+                    data=tool_data
+                )
+                
+                if not success or not response.get("success"):
+                    print(f"❌ complete_task failed: {response.get('error', 'Unknown error')}")
+                    return False
+                    
+                print(f"   ✅ complete_task: Marked task as done")
+                
+                # Test 4: delete_task
+                tool_data = {
+                    "tool_name": "delete_task",
+                    "params": {
+                        "task_id": task_id
+                    }
+                }
+                
+                success, response = self.run_test(
+                    "Delete Task Tool",
+                    "POST",
+                    "agent-tools/execute",
+                    200,
+                    data=tool_data
+                )
+                
+                if not success or not response.get("success"):
+                    print(f"❌ delete_task failed: {response.get('error', 'Unknown error')}")
+                    return False
+                    
+                print(f"   ✅ delete_task: Deleted task successfully")
+            else:
+                print(f"❌ Could not find task '{self.test_task_name}' in project")
+                return False
+        else:
+            print(f"❌ Could not get project details for task operations")
             return False
-            
-        print(f"   ✅ delete_task: Deleted task successfully")
         
         return True
 
