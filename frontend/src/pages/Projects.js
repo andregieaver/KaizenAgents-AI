@@ -795,6 +795,32 @@ const Projects = () => {
     }
   };
 
+  const handleDuplicateProject = async (options) => {
+    try {
+      const response = await axios.post(
+        `${API}/projects/${duplicatingProject.id}/duplicate`,
+        options,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setSpaceProjects(prev => [response.data, ...prev]);
+      // Update space project count
+      setSpaces(prev => prev.map(s => 
+        s.id === duplicatingProject.space_id 
+          ? { ...s, project_count: (s.project_count || 0) + 1 }
+          : s
+      ));
+      toast.success('Project duplicated successfully');
+    } catch (error) {
+      toast.error('Failed to duplicate project');
+      throw error;
+    }
+  };
+
+  const openDuplicateProject = (project) => {
+    setDuplicatingProject(project);
+    setShowDuplicateDialog(true);
+  };
+
   const handleSpaceClick = (space) => {
     setSelectedSpace(space);
     fetchSpaceDetail(space.id);
