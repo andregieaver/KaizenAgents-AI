@@ -285,7 +285,6 @@ const TaskRow = ({ task, onEdit, onStatusChange, projectStatuses, level = 0 }) =
 
 // Gantt Chart View
 const GanttView = ({ tasks, dependencies, onEdit, projectStatuses }) => {
-  const [dateRange, setDateRange] = useState({ start: new Date(), end: addDays(new Date(), 30) });
   const ganttRef = useRef(null);
   
   // Filter tasks that have dates
