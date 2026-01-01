@@ -1137,7 +1137,7 @@ const ProjectDetail = () => {
     }
   };
 
-  // Handler for List View drag and drop (moving tasks between lists)
+  // Handler for List View drag and drop (moving tasks between status columns within lists)
   const handleListDragEnd = async (event) => {
     const { active, over } = event;
     setActiveTask(null);
@@ -1145,65 +1145,73 @@ const ProjectDetail = () => {
     if (!over) return;
     
     const taskId = active.id;
-    
-    // Check if dropped on a list
-    const overId = over.id.toString();
-    let newListId = null;
-    
-    if (overId.startsWith('list-')) {
-      newListId = overId.replace('list-', '');
-    } else if (over.data?.current?.type === 'list') {
-      newListId = over.data.current.listId;
-    }
-    
-    if (!newListId) return;
-    
     const task = project.all_tasks?.find(t => t.id === taskId);
-    if (!task || task.list_id === newListId) return;
+    if (!task) return;
     
-    const oldListId = task.list_id;
+    // Check if dropped on a status column within a list
+    const overData = over.data?.current;
     
-    // Optimistic update - update both all_tasks and lists
-    setProject(prev => {
-      const updatedTask = { ...task, list_id: newListId };
+    if (overData?.type === 'status') {
+      const newStatusId = overData.statusId;
+      const targetListId = overData.listId;
       
-      return {
-        ...prev,
-        // Update all_tasks
-        all_tasks: prev.all_tasks.map(t => 
-          t.id === taskId ? updatedTask : t
-        ),
-        // Update lists - remove from old list and add to new list
-        lists: prev.lists.map(list => {
-          if (list.id === oldListId) {
-            // Remove task from old list
-            return {
-              ...list,
-              tasks: (list.tasks || []).filter(t => t.id !== taskId)
-            };
-          }
-          if (list.id === newListId) {
-            // Add task to new list
-            return {
-              ...list,
-              tasks: [...(list.tasks || []), updatedTask]
-            };
-          }
-          return list;
-        })
-      };
-    });
-    
-    try {
-      await axios.put(
-        `${API}/projects/${projectId}/tasks/${taskId}`,
-        { list_id: newListId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success('Task moved to list');
-    } catch (error) {
-      fetchProject(); // Revert on error
-      toast.error('Failed to move task');
+      // Check if status changed
+      if (task.status === newStatusId && task.list_id === targetListId) return;
+      
+      const oldListId = task.list_id;
+      const updates = { status: newStatusId };
+      
+      // If moving to a different list as well
+      if (task.list_id !== targetListId) {
+        updates.list_id = targetListId;
+      }
+      
+      // Optimistic update
+      setProject(prev => {
+        const updatedTask = { ...task, ...updates };
+        
+        return {
+          ...prev,
+          all_tasks: prev.all_tasks.map(t => 
+            t.id === taskId ? updatedTask : t
+          ),
+          lists: prev.lists.map(list => {
+            if (list.id === oldListId && oldListId !== targetListId) {
+              return {
+                ...list,
+                tasks: (list.tasks || []).filter(t => t.id !== taskId)
+              };
+            }
+            if (list.id === targetListId) {
+              if (oldListId === targetListId) {
+                // Same list, just update the task
+                return {
+                  ...list,
+                  tasks: (list.tasks || []).map(t => t.id === taskId ? updatedTask : t)
+                };
+              } else {
+                // Different list, add the task
+                return {
+                  ...list,
+                  tasks: [...(list.tasks || []), updatedTask]
+                };
+              }
+            }
+            return list;
+          })
+        };
+      });
+      
+      try {
+        await axios.put(
+          `${API}/projects/${projectId}/tasks/${taskId}`,
+          updates,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } catch (error) {
+        fetchProject();
+        toast.error('Failed to update task');
+      }
     }
   };
 
