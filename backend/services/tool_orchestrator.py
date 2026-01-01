@@ -203,7 +203,8 @@ class ToolOrchestrator:
         conversation_id: Optional[str] = None,
         tenant_tier: str = "starter",
         session_id: Optional[str] = None,
-        skip_agent_check: bool = False
+        skip_agent_check: bool = False,
+        user_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Execute a tool with validation, logging, and rate limiting
@@ -217,6 +218,7 @@ class ToolOrchestrator:
             tenant_tier: Tenant's subscription tier
             session_id: Optional browser session to reuse
             skip_agent_check: Skip agent permission check (for admin testing)
+            user_id: Optional user ID for tools that need it (like project tools)
         
         Returns:
             Tool execution result
