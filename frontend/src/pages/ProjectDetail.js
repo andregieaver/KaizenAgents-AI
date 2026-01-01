@@ -174,7 +174,7 @@ const KanbanColumn = ({ status, tasks, onEdit, projectStatuses }) => {
   return (
     <div 
       ref={setNodeRef}
-      className={`flex-shrink-0 w-72 rounded-lg p-3 transition-colors ${
+      className={`flex-shrink-0 w-72 rounded p-3 transition-colors ${
         isOver ? 'bg-primary/10 ring-2 ring-primary/30' : 'bg-muted/30'
       }`}
     >
@@ -195,7 +195,7 @@ const KanbanColumn = ({ status, tasks, onEdit, projectStatuses }) => {
               <KanbanTaskCard key={task.id} task={task} onEdit={onEdit} />
             ))}
             {tasks.length === 0 && (
-              <div className={`text-center py-8 text-sm border-2 border-dashed rounded-lg ${
+              <div className={`text-center py-8 text-sm border-2 border-dashed rounded ${
                 isOver ? 'border-primary text-primary' : 'border-muted-foreground/30 text-muted-foreground'
               }`}>
                 {isOver ? 'Drop here' : 'No tasks'}
