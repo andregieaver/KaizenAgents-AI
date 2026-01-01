@@ -470,7 +470,9 @@ const EmptyState = ({ type, tab }) => {
       assigned: { icon: User, title: 'No tickets assigned to you', description: 'Tickets assigned to you will appear here.' }
     },
     tasks: {
-      all: { icon: CheckSquare, title: 'Tasks coming soon', description: 'This feature is under development. Stay tuned!' }
+      all: { icon: CheckSquare, title: 'No tasks assigned', description: 'Tasks assigned to you from projects will appear here.' },
+      pending: { icon: Clock, title: 'No pending tasks', description: 'You have no pending tasks. Great job!' },
+      completed: { icon: CheckSquare, title: 'No completed tasks', description: 'Tasks you have completed will appear here.' }
     }
   };
   
