@@ -126,7 +126,7 @@ const SpaceCard = ({ space, onClick, onEdit, onDelete }) => {
 };
 
 // Project Card Component (for Space Detail view)
-const ProjectCard = ({ project, onClick, onEdit, onDelete }) => {
+const ProjectCard = ({ project, onClick, onEdit, onDelete, onDuplicate }) => {
   const progress = project.task_count > 0 
     ? Math.round((project.completed_count / project.task_count) * 100) 
     : 0;
@@ -158,6 +158,9 @@ const ProjectCard = ({ project, onClick, onEdit, onDelete }) => {
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }}>
                   <Pencil className="h-4 w-4 mr-2" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDuplicate(project); }}>
+                  <Copy className="h-4 w-4 mr-2" /> Duplicate
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={(e) => { e.stopPropagation(); onDelete(project); }}
