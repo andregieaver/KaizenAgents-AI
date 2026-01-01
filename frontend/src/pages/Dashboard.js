@@ -281,7 +281,7 @@ const KanbanTicketColumn = ({ stage, tickets }) => {
   return (
     <div 
       ref={setNodeRef}
-      className={`flex-shrink-0 w-72 rounded-lg p-3 transition-colors touch-none ${
+      className={`flex-shrink-0 w-72 rounded p-3 transition-colors touch-none ${
         isOver ? 'bg-primary/10 ring-2 ring-primary/30' : 'bg-muted/30'
       }`}
       style={{ touchAction: 'none' }}
@@ -300,7 +300,7 @@ const KanbanTicketColumn = ({ stage, tickets }) => {
               <KanbanTicketCard key={ticket.id} ticket={ticket} />
             ))}
             {tickets.length === 0 && (
-              <div className={`text-center py-8 text-sm border-2 border-dashed rounded-lg ${
+              <div className={`text-center py-8 text-sm border-2 border-dashed rounded ${
                 isOver ? 'border-primary text-primary' : 'border-muted-foreground/30 text-muted-foreground'
               }`}>
                 {isOver ? 'Drop here' : 'No tickets'}
