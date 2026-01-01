@@ -206,8 +206,8 @@ async def execute_tool(
     # Get user's tier (default to starter)
     tenant_tier = current_user.get("tier", "starter")
     
-    # Check if super admin for skip_agent_check
-    is_super_admin = current_user.get("is_super_admin", False)
+    # Check if super admin using the proper function
+    user_is_super_admin = is_super_admin(current_user)
     
     orchestrator = get_orchestrator()
     
@@ -218,7 +218,7 @@ async def execute_tool(
         agent_id=request.agent_id or "test-agent",
         tenant_tier=tenant_tier,
         session_id=request.session_id,
-        skip_agent_check=is_super_admin,  # Skip agent permission check for super admin testing
+        skip_agent_check=user_is_super_admin,  # Skip agent permission check for super admin testing
         user_id=current_user.get("id")  # Pass user ID for project tools
     )
     
