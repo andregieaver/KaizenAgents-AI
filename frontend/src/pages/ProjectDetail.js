@@ -283,6 +283,56 @@ const TaskRow = ({ task, onEdit, onStatusChange, projectStatuses, level = 0 }) =
   );
 };
 
+// Collapsible List Component
+const CollapsibleList = ({ list, search, onEditTask, onStatusChange, taskStatuses }) => {
+  const [isOpen, setIsOpen] = useState(true);
+  
+  const filteredTasks = list.tasks?.filter(t => 
+    t.title.toLowerCase().includes(search.toLowerCase())
+  ) || [];
+  
+  const taskCount = filteredTasks.length;
+  
+  return (
+    <Card>
+      <div 
+        className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-muted/50 transition-colors"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center gap-2">
+          {isOpen ? (
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          )}
+          <span className="font-medium">{list.name}</span>
+        </div>
+        <Badge variant="secondary">{taskCount}</Badge>
+      </div>
+      
+      {isOpen && (
+        <CardContent className="pt-0 pb-2">
+          {taskCount > 0 ? (
+            <div className="divide-y divide-border/50">
+              {filteredTasks.map(task => (
+                <TaskRow
+                  key={task.id}
+                  task={task}
+                  onEdit={onEditTask}
+                  onStatusChange={onStatusChange}
+                  projectStatuses={taskStatuses}
+                />
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">No tasks in this list</p>
+          )}
+        </CardContent>
+      )}
+    </Card>
+  );
+};
+
 // Gantt Chart View
 const GanttView = ({ tasks, dependencies, onEdit, projectStatuses }) => {
   const ganttRef = useRef(null);
