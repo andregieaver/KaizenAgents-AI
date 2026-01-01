@@ -1832,37 +1832,68 @@ class AIAgentHubTester:
         parent_task_name = "Parent Task for Testing"
         print(f"   ✅ Created parent task for advanced tools testing")
         
-        # Test 1: create_subtask
-        tool_data = {
-            "tool_name": "create_subtask",
+        # Test 1: create_subtask - First find the parent task ID
+        get_project_data = {
+            "tool_name": "get_project",
             "params": {
-                "title": "Subtask for Testing",
-                "parent_task_title": parent_task_name,
-                "project_id": self.test_project_id
+                "project_name": self.test_project_name
             }
         }
         
-        success, response = self.run_test(
-            "Create Subtask Tool",
+        success, project_response = self.run_test(
+            "Get Project for Parent Task ID",
             "POST",
             "agent-tools/execute",
             200,
-            data=tool_data
+            data=get_project_data
         )
         
-        if not success or not response.get("success"):
-            print(f"❌ create_subtask failed: {response.get('error', 'Unknown error')}")
-            return False
+        parent_task_id = None
+        if success and project_response.get("success"):
+            project_data = project_response.get('project', {})
+            lists = project_data.get('lists', [])
             
-        print(f"   ✅ create_subtask: Created subtask under parent task")
+            for lst in lists:
+                for task in lst.get('tasks', []):
+                    if task.get('title') == parent_task_name:
+                        parent_task_id = task.get('id')
+                        print(f"   Found parent task '{parent_task_name}' with ID {parent_task_id}")
+                        break
+                if parent_task_id:
+                    break
+        
+        if parent_task_id:
+            tool_data = {
+                "tool_name": "create_subtask",
+                "params": {
+                    "title": "Subtask for Testing",
+                    "parent_task_id": parent_task_id
+                }
+            }
+            
+            success, response = self.run_test(
+                "Create Subtask Tool",
+                "POST",
+                "agent-tools/execute",
+                200,
+                data=tool_data
+            )
+            
+            if not success or not response.get("success"):
+                print(f"❌ create_subtask failed: {response.get('error', 'Unknown error')}")
+                return False
+                
+            print(f"   ✅ create_subtask: Created subtask under parent task")
+        else:
+            print(f"❌ Could not find parent task '{parent_task_name}' for subtask creation")
+            return False
         
         # Test 2: add_checklist
         tool_data = {
             "tool_name": "add_checklist",
             "params": {
                 "checklist_name": "Testing Checklist",
-                "task_title": parent_task_name,
-                "project_id": self.test_project_id,
+                "task_id": parent_task_id,
                 "items": ["Item 1", "Item 2", "Item 3"]
             }
         }
@@ -1885,59 +1916,26 @@ class AIAgentHubTester:
         tool_data = {
             "tool_name": "update_checklist_item",
             "params": {
-                "task_id": None,  # Will need to find task by title
+                "task_id": parent_task_id,
                 "checklist_name": "Testing Checklist",
                 "item_text": "Item 1",
                 "is_completed": True
             }
         }
         
-        # First get the task ID by finding the task
-        get_project_data = {
-            "tool_name": "get_project",
-            "params": {
-                "project_name": self.test_project_name
-            }
-        }
-        
-        success, project_response = self.run_test(
-            "Get Project for Task ID",
+        success, response = self.run_test(
+            "Update Checklist Item Tool",
             "POST",
             "agent-tools/execute",
             200,
-            data=get_project_data
+            data=tool_data
         )
         
-        if success and project_response.get("success"):
-            project_data = project_response.get('project', {})
-            lists = project_data.get('lists', [])
-            task_id = None
-            for lst in lists:
-                for task in lst.get('tasks', []):
-                    if task.get('title') == parent_task_name:
-                        task_id = task.get('id')
-                        break
-                if task_id:
-                    break
+        if not success or not response.get("success"):
+            print(f"❌ update_checklist_item failed: {response.get('error', 'Unknown error')}")
+            return False
             
-            if task_id:
-                tool_data['params']['task_id'] = task_id
-                
-                success, response = self.run_test(
-                    "Update Checklist Item Tool",
-                    "POST",
-                    "agent-tools/execute",
-                    200,
-                    data=tool_data
-                )
-                
-                if not success or not response.get("success"):
-                    print(f"❌ update_checklist_item failed: {response.get('error', 'Unknown error')}")
-                    return False
-                    
-                print(f"   ✅ update_checklist_item: Toggled checklist item completion")
-            else:
-                print(f"   ⚠️ Could not find task ID for checklist item update")
+        print(f"   ✅ update_checklist_item: Toggled checklist item completion")
         
         # Create another task for dependency testing
         tool_data = {
@@ -1962,14 +1960,15 @@ class AIAgentHubTester:
             print(f"❌ Failed to create dependent task: {response.get('error', 'Unknown error')}")
             return False
             
-        dependent_task_name = "Dependent Task"
+        dependent_task_data = response.get('task', {})
+        dependent_task_id = dependent_task_data.get('id')
         
         # Test 4: add_task_dependency
         tool_data = {
             "tool_name": "add_task_dependency",
             "params": {
-                "task_title": dependent_task_name,
-                "depends_on_task_title": parent_task_name,
+                "task_id": dependent_task_id,
+                "depends_on_task_id": parent_task_id,
                 "project_id": self.test_project_id
             }
         }
