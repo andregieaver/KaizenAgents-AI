@@ -1193,20 +1193,37 @@ const ProjectDetail = () => {
       <div className="flex-1 overflow-hidden">
         {/* List View */}
         {viewMode === 'list' && (
-          <ScrollArea className="h-full">
-            <div className="p-4 space-y-3">
-              {lists.map(list => (
-                <CollapsibleList
-                  key={list.id}
-                  list={list}
-                  search={search}
-                  onEditTask={openEditTask}
-                  onStatusChange={handleStatusChange}
-                  taskStatuses={taskStatuses}
-                />
-              ))}
-            </div>
-          </ScrollArea>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleListDragEnd}
+          >
+            <ScrollArea className="h-full">
+              <div className="p-4 space-y-3">
+                {lists.map(list => (
+                  <DroppableList
+                    key={list.id}
+                    list={list}
+                    search={search}
+                    onEditTask={openEditTask}
+                    onStatusChange={handleStatusChange}
+                    taskStatuses={taskStatuses}
+                  />
+                ))}
+              </div>
+            </ScrollArea>
+            <DragOverlay>
+              {activeTask && (
+                <div className="bg-background border rounded p-2 shadow-lg w-64">
+                  <div className="flex items-center gap-2">
+                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm truncate">{activeTask.title}</span>
+                  </div>
+                </div>
+              )}
+            </DragOverlay>
+          </DndContext>
         )}
 
         {/* Kanban View */}
