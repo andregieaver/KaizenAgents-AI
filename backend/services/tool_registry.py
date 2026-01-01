@@ -1207,6 +1207,24 @@ TOOL_FEATURE_GATES = {
             "professional": 10,
             "enterprise": 50
         }
+    },
+    "agent_project_tools": {
+        "tools": [
+            "create_space", "list_spaces", "get_space",
+            "create_project", "list_projects", "get_project", "update_project",
+            "create_list",
+            "create_task", "update_task", "complete_task", "delete_task",
+            "create_subtask",
+            "add_checklist", "update_checklist_item",
+            "add_task_dependency"
+        ],
+        "default_limit": 100,  # per hour
+        "tier_limits": {
+            "free": 0,
+            "starter": 0,
+            "professional": 200,
+            "enterprise": 1000
+        }
     }
 }
 
