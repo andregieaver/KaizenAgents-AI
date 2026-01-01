@@ -42,8 +42,10 @@ import {
   ListFilter,
   Calendar,
   Users,
-  CheckCircle2
+  CheckCircle2,
+  Copy
 } from 'lucide-react';
+import { Checkbox } from '../components/ui/checkbox';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
