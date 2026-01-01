@@ -186,16 +186,16 @@ code {
     }
 
     .card-neumorphic {
-        border-radius: 1.5rem;
+        border-radius: 0.75rem;
         box-shadow: 
-            8px 8px 16px rgba(0, 0, 0, 0.1),
-            -8px -8px 16px rgba(255, 255, 255, 0.7);
+            4px 4px 8px rgba(0, 0, 0, 0.1),
+            -4px -4px 8px rgba(255, 255, 255, 0.7);
     }
 
     .dark .card-neumorphic {
         box-shadow: 
-            8px 8px 16px rgba(0, 0, 0, 0.5),
-            -8px -8px 16px rgba(255, 255, 255, 0.03);
+            4px 4px 8px rgba(0, 0, 0, 0.5),
+            -4px -4px 8px rgba(255, 255, 255, 0.03);
     }
 
     .input-neumorphic {
