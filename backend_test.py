@@ -1466,7 +1466,31 @@ class AIAgentHubTester:
                     self.test_project_name = projects[0].get("name")
                     print(f"   ✅ Using project '{self.test_project_name}' (ID: {self.test_project_id}) for status testing")
                 else:
-                    print("   ⚠️ No projects found in space, will create one if needed")
+                    print("   ⚠️ No projects found in space, creating one for testing")
+                    # Create a test project
+                    project_data = {
+                        "name": "Status Test Project",
+                        "description": "Project for testing status inheritance",
+                        "space_id": self.test_space_id,
+                        "color": "#3B82F6"
+                    }
+                    
+                    create_success, create_response = self.run_test(
+                        "Create Test Project for Status Testing",
+                        "POST",
+                        "projects",
+                        200,
+                        data=project_data
+                    )
+                    
+                    if create_success:
+                        self.test_project_id = create_response.get("id")
+                        self.test_project_name = create_response.get("name")
+                        print(f"   ✅ Created project '{self.test_project_name}' (ID: {self.test_project_id}) for status testing")
+                    else:
+                        print("   ❌ Failed to create test project")
+            else:
+                print("   ⚠️ Could not get space details")
             
             return True
         else:
