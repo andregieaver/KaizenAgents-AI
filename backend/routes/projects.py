@@ -70,6 +70,17 @@ class ProjectStatusConfig(BaseModel):
     id: str
     name: str
     color: str
+    is_final: bool = False
+    order: int = 0
+
+
+# Default statuses used when no custom statuses are set
+DEFAULT_TASK_STATUSES = [
+    {"id": "todo", "name": "To Do", "color": "#6B7280", "is_final": False, "order": 0},
+    {"id": "in_progress", "name": "In Progress", "color": "#3B82F6", "is_final": False, "order": 1},
+    {"id": "review", "name": "Review", "color": "#F59E0B", "is_final": False, "order": 2},
+    {"id": "done", "name": "Done", "color": "#10B981", "is_final": True, "order": 3},
+]
 
 
 class ProjectCreate(BaseModel):
