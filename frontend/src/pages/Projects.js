@@ -1170,8 +1170,8 @@ const Projects = () => {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
+            onDragStart={handleProjectDragStart}
+            onDragEnd={handleProjectDragEnd}
           >
             <SortableContext
               items={filteredProjects.map(p => p.id)}
