@@ -1500,6 +1500,7 @@ const ProjectDetail = () => {
                     onEditTask={openEditTask}
                     onStatusChange={handleStatusChange}
                     taskStatuses={taskStatuses}
+                    onManageStatuses={openListStatusModal}
                   />
                 ))}
               </div>
