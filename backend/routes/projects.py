@@ -184,13 +184,13 @@ async def check_projects_feature(tenant_id: str) -> bool:
     return False
 
 
-async def get_next_position(collection_name: str, filter_query: dict) -> int:
+async def get_next_position(collection_name: str, filter_query: dict, field: str = "position") -> int:
     """Get next position for ordering"""
     last_item = await db[collection_name].find_one(
         filter_query,
-        sort=[("position", -1)]
+        sort=[(field, -1)]
     )
-    return (last_item.get("position", 0) + 1) if last_item else 0
+    return (last_item.get(field, 0) + 1) if last_item else 0
 
 
 # =============================================================================
