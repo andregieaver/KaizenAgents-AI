@@ -548,7 +548,7 @@ const StatusManagementModal = ({
                   </Select>
                 </>
               ) : (
-                `Are you sure you want to delete the "${deleteConfirm?.name}" status?`
+                <>Are you sure you want to delete the &quot;{deleteConfirm?.name}&quot; status?</>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
