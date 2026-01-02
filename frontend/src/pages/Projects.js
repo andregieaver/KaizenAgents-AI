@@ -799,6 +799,7 @@ const Projects = () => {
   
   // Drag state for visual feedback
   const [activeProject, setActiveProject] = useState(null);
+  const [activeSpace, setActiveSpace] = useState(null);
 
   const fetchSpaces = useCallback(async () => {
     try {
