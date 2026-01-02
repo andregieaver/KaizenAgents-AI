@@ -1257,6 +1257,15 @@ const Projects = () => {
           project={duplicatingProject}
           onDuplicate={handleDuplicateProject}
         />
+
+        {/* Status Management Modal */}
+        <StatusManagementModal
+          open={showStatusModal}
+          onOpenChange={setShowStatusModal}
+          entityType={statusModalEntity.type}
+          entityId={statusModalEntity.id}
+          entityName={statusModalEntity.name}
+        />
       </div>
     );
   }
