@@ -1012,7 +1012,7 @@ const Projects = () => {
     project.description?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // DnD sensors for project reordering (including touch support for mobile)
+  // DnD sensors for reordering (including touch support for mobile)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -1030,8 +1030,45 @@ const Projects = () => {
     })
   );
 
-  // Handle drag start for visual feedback
-  const handleDragStart = (event) => {
+  // Handle drag start for spaces
+  const handleSpaceDragStart = (event) => {
+    const space = spaces.find(s => s.id === event.active.id);
+    setActiveSpace(space);
+  };
+
+  // Handle drag end for space reordering
+  const handleSpaceDragEnd = async (event) => {
+    setActiveSpace(null);
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = spaces.findIndex(s => s.id === active.id);
+    const newIndex = spaces.findIndex(s => s.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    // Optimistically update UI
+    const newOrder = arrayMove(spaces, oldIndex, newIndex);
+    setSpaces(newOrder);
+
+    // Save to backend
+    try {
+      await axios.post(
+        `${API}/projects/spaces/reorder`,
+        { space_ids: newOrder.map(s => s.id) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Spaces reordered');
+    } catch (error) {
+      // Revert on error
+      setSpaces(spaces);
+      toast.error('Failed to reorder spaces');
+    }
+  };
+
+  // Handle drag start for projects
+  const handleProjectDragStart = (event) => {
     const project = spaceProjects.find(p => p.id === event.active.id);
     setActiveProject(project);
   };
