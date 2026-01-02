@@ -1001,18 +1001,29 @@ const Projects = () => {
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : filteredProjects.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredProjects.map(project => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onClick={() => navigate(`/dashboard/projects/${project.id}`)}
-                onEdit={openEditProject}
-                onDelete={handleDeleteProject}
-                onDuplicate={openDuplicateProject}
-              />
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={filteredProjects.map(p => p.id)}
+              strategy={rectSortingStrategy}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredProjects.map(project => (
+                  <SortableProjectCard
+                    key={project.id}
+                    project={project}
+                    onClick={() => navigate(`/dashboard/projects/${project.id}`)}
+                    onEdit={openEditProject}
+                    onDelete={handleDeleteProject}
+                    onDuplicate={openDuplicateProject}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         ) : (
           <div className="text-center py-12">
             <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
