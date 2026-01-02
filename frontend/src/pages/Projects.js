@@ -886,11 +886,15 @@ const Projects = () => {
   const handleSpaceClick = (space) => {
     setSelectedSpace(space);
     fetchSpaceDetail(space.id);
+    // Save to URL for persistence on refresh
+    setSearchParams({ space: space.id });
   };
 
   const handleBackToSpaces = () => {
     setSelectedSpace(null);
     setSpaceProjects([]);
+    // Clear URL params
+    setSearchParams({});
   };
 
   const openEditProject = (project) => {
