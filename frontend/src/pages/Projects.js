@@ -1044,6 +1044,7 @@ const Projects = () => {
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
             <SortableContext
@@ -1063,6 +1064,22 @@ const Projects = () => {
                 ))}
               </div>
             </SortableContext>
+            <DragOverlay>
+              {activeProject && (
+                <Card className="shadow-xl border-2 border-primary/50 w-full max-w-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2">
+                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      <div 
+                        className="h-3 w-3 rounded-full"
+                        style={{ backgroundColor: activeProject.color || '#6366F1' }}
+                      />
+                      <span className="font-medium">{activeProject.name}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </DragOverlay>
           </DndContext>
         ) : (
           <div className="text-center py-12">
