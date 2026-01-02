@@ -1931,3 +1931,15 @@ User and agent avatars were showing fallbacks or generic icons instead of actual
       - working: true
         agent: "testing"
         comment: "✅ AI AGENT PROJECT MANAGEMENT TOOLS RE-TESTING COMPLETED SUCCESSFULLY: Comprehensive re-testing of AI Agent Project Management Tools integration completed successfully with credentials andre@humanweb.no/Pernilla66! as requested in review. ALL TEST SCENARIOS PASSED (6/6 - 100% SUCCESS RATE): 1) ✅ Space Tools - list_spaces (found 5 spaces), create_space ('Backend Test Space' with description and color #EF4444), get_space (retrieved space with 0 projects), 2) ✅ Project Tools - create_project ('Backend Test Project' with dates 2024-01-01 to 2024-12-31), list_projects (found 4 projects in space), get_project (retrieved project with 3 lists), update_project (status changed to 'on_hold'), 3) ✅ List Tools - create_list ('In Progress' list created successfully), 4) ✅ Task Tools - create_task ('Write unit tests' with high priority), update_task (description updated), complete_task (marked as done), delete_task (deleted successfully), 5) ✅ Advanced Tools - create_subtask (created under parent task), add_checklist (3 items added), update_checklist_item (Item 1 marked completed), add_task_dependency (dependency created between tasks). CRITICAL VERIFICATION: Super admin user bypasses tier restrictions correctly, all tools return success: true with expected data, space/project/list/task lookups by name work correctly, task ID resolution working properly for reliable operations. The AI Agent Project Management Tools integration is production-ready and fully functional with all 16 tools working as specified in the review request."
+
+  - task: "Login and Breadcrumb Fix"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/Projects.js, frontend/src/pages/ProjectDetail.js, frontend/src/pages/DashboardLayout.js"
+    stuck_count: 0
+    priority: "critical"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "✅ LOGIN AND BREADCRUMB FIX COMPLETED: 1) ✅ Login Issue - Backend login API working correctly (POST /api/auth/login returns 200 with JWT token), frontend login page loads and functions properly, redirect to /dashboard after login successful, 2) ✅ Breadcrumb Fix - Removed redundant inline breadcrumb components from Projects.js (lines 975-991) and ProjectDetail.js (lines 1398-1433), kept only the centralized header breadcrumbs in DashboardLayout.js, removed unused Breadcrumb imports and Home icon imports from both files, 3) ✅ Desktop Verification - Header breadcrumbs show correctly: 'Dashboard > Projects' on projects list, 'Dashboard > Projects > Project' on project detail page, 4) ✅ Mobile Verification - Mobile header breadcrumbs display properly at 375px viewport width. All changes tested with credentials andre@humanweb.no/Pernilla66!. The login issue was resolved (no actual fix needed - was working), and the breadcrumb fix is complete."
