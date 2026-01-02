@@ -499,6 +499,351 @@ async def delete_space(
 
 
 # =============================================================================
+# STATUS MANAGEMENT ENDPOINTS
+# =============================================================================
+
+@router.get("/spaces/{space_id}/statuses")
+async def get_space_statuses(
+    space_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get effective statuses for a space"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    space = await db.project_spaces.find_one(
+        {"id": space_id, "tenant_id": tenant_id},
+        {"custom_statuses": 1}
+    )
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    statuses = space.get("custom_statuses") or DEFAULT_TASK_STATUSES
+    is_custom = bool(space.get("custom_statuses"))
+    
+    return {"statuses": statuses, "is_custom": is_custom, "inherited_from": None}
+
+
+@router.put("/spaces/{space_id}/statuses")
+async def update_space_statuses(
+    space_id: str,
+    request: StatusUpdateRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Set custom statuses for a space"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    space = await db.project_spaces.find_one(
+        {"id": space_id, "tenant_id": tenant_id}
+    )
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Convert to dicts and ensure order
+    statuses = [
+        {**s.model_dump(), "order": i} 
+        for i, s in enumerate(request.statuses)
+    ]
+    
+    await db.project_spaces.update_one(
+        {"id": space_id, "tenant_id": tenant_id},
+        {"$set": {"custom_statuses": statuses, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Space statuses updated", "statuses": statuses}
+
+
+@router.delete("/spaces/{space_id}/statuses")
+async def clear_space_statuses(
+    space_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Clear custom statuses for a space (revert to defaults)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    await db.project_spaces.update_one(
+        {"id": space_id, "tenant_id": tenant_id},
+        {"$unset": {"custom_statuses": ""}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Space statuses cleared", "statuses": DEFAULT_TASK_STATUSES}
+
+
+@router.get("/spaces/{space_id}/statuses/{status_id}/tasks-count")
+async def get_space_status_task_count(
+    space_id: str,
+    status_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get count of tasks using a specific status in a space"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    count = await get_tasks_using_status(tenant_id, status_id, space_id=space_id)
+    return {"count": count}
+
+
+@router.get("/{project_id}/statuses")
+async def get_project_statuses(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get effective statuses for a project (considering inheritance)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    project = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id},
+        {"custom_statuses": 1, "space_id": 1}
+    )
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Check if project has custom statuses
+    if project.get("custom_statuses"):
+        return {"statuses": project["custom_statuses"], "is_custom": True, "inherited_from": None}
+    
+    # Check space for inherited statuses
+    space = await db.project_spaces.find_one(
+        {"id": project["space_id"], "tenant_id": tenant_id},
+        {"custom_statuses": 1, "name": 1}
+    )
+    
+    if space and space.get("custom_statuses"):
+        return {"statuses": space["custom_statuses"], "is_custom": False, "inherited_from": "space"}
+    
+    return {"statuses": DEFAULT_TASK_STATUSES, "is_custom": False, "inherited_from": None}
+
+
+@router.put("/{project_id}/statuses")
+async def update_project_statuses(
+    project_id: str,
+    request: StatusUpdateRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Set custom statuses for a project"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    project = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id}
+    )
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    statuses = [
+        {**s.model_dump(), "order": i} 
+        for i, s in enumerate(request.statuses)
+    ]
+    
+    await db.projects.update_one(
+        {"id": project_id, "tenant_id": tenant_id},
+        {"$set": {"custom_statuses": statuses, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "Project statuses updated", "statuses": statuses}
+
+
+@router.delete("/{project_id}/statuses")
+async def clear_project_statuses(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Clear custom statuses for a project (revert to inherited)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    project = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id},
+        {"space_id": 1}
+    )
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    await db.projects.update_one(
+        {"id": project_id, "tenant_id": tenant_id},
+        {"$unset": {"custom_statuses": ""}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Return inherited statuses
+    statuses = await get_effective_statuses(tenant_id, space_id=project["space_id"])
+    return {"message": "Project statuses cleared", "statuses": statuses}
+
+
+@router.get("/{project_id}/statuses/{status_id}/tasks-count")
+async def get_project_status_task_count(
+    project_id: str,
+    status_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get count of tasks using a specific status in a project"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    count = await get_tasks_using_status(tenant_id, status_id, project_id=project_id)
+    return {"count": count}
+
+
+@router.get("/lists/{list_id}/statuses")
+async def get_list_statuses(
+    list_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get effective statuses for a list (considering inheritance)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    list_doc = await db.project_lists.find_one(
+        {"id": list_id, "tenant_id": tenant_id},
+        {"custom_statuses": 1, "project_id": 1}
+    )
+    if not list_doc:
+        raise HTTPException(status_code=404, detail="List not found")
+    
+    # Check if list has custom statuses
+    if list_doc.get("custom_statuses"):
+        return {"statuses": list_doc["custom_statuses"], "is_custom": True, "inherited_from": None}
+    
+    # Get project for inheritance check
+    project = await db.projects.find_one(
+        {"id": list_doc["project_id"], "tenant_id": tenant_id},
+        {"custom_statuses": 1, "space_id": 1}
+    )
+    
+    if project and project.get("custom_statuses"):
+        return {"statuses": project["custom_statuses"], "is_custom": False, "inherited_from": "project"}
+    
+    # Check space
+    if project:
+        space = await db.project_spaces.find_one(
+            {"id": project["space_id"], "tenant_id": tenant_id},
+            {"custom_statuses": 1}
+        )
+        if space and space.get("custom_statuses"):
+            return {"statuses": space["custom_statuses"], "is_custom": False, "inherited_from": "space"}
+    
+    return {"statuses": DEFAULT_TASK_STATUSES, "is_custom": False, "inherited_from": None}
+
+
+@router.put("/lists/{list_id}/statuses")
+async def update_list_statuses(
+    list_id: str,
+    request: StatusUpdateRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Set custom statuses for a list"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    list_doc = await db.project_lists.find_one(
+        {"id": list_id, "tenant_id": tenant_id}
+    )
+    if not list_doc:
+        raise HTTPException(status_code=404, detail="List not found")
+    
+    statuses = [
+        {**s.model_dump(), "order": i} 
+        for i, s in enumerate(request.statuses)
+    ]
+    
+    await db.project_lists.update_one(
+        {"id": list_id, "tenant_id": tenant_id},
+        {"$set": {"custom_statuses": statuses, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": "List statuses updated", "statuses": statuses}
+
+
+@router.delete("/lists/{list_id}/statuses")
+async def clear_list_statuses(
+    list_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Clear custom statuses for a list (revert to inherited)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    list_doc = await db.project_lists.find_one(
+        {"id": list_id, "tenant_id": tenant_id},
+        {"project_id": 1}
+    )
+    if not list_doc:
+        raise HTTPException(status_code=404, detail="List not found")
+    
+    await db.project_lists.update_one(
+        {"id": list_id, "tenant_id": tenant_id},
+        {"$unset": {"custom_statuses": ""}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    # Return inherited statuses
+    statuses = await get_effective_statuses(tenant_id, project_id=list_doc["project_id"])
+    return {"message": "List statuses cleared", "statuses": statuses}
+
+
+@router.get("/lists/{list_id}/statuses/{status_id}/tasks-count")
+async def get_list_status_task_count(
+    list_id: str,
+    status_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get count of tasks using a specific status in a list"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    count = await get_tasks_using_status(tenant_id, status_id, list_id=list_id)
+    return {"count": count}
+
+
+@router.post("/tasks/reassign-status")
+async def reassign_task_status(
+    request: StatusReassignRequest,
+    project_id: str = None,
+    list_id: str = None,
+    space_id: str = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Reassign tasks from one status to another"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    query = {"tenant_id": tenant_id, "status": request.from_status_id}
+    
+    if list_id:
+        query["list_id"] = list_id
+    elif project_id:
+        query["project_id"] = project_id
+    elif space_id:
+        projects = await db.projects.find(
+            {"tenant_id": tenant_id, "space_id": space_id},
+            {"id": 1}
+        ).to_list(1000)
+        project_ids = [p["id"] for p in projects]
+        query["project_id"] = {"$in": project_ids}
+    
+    result = await db.project_tasks.update_many(
+        query,
+        {"$set": {"status": request.to_status_id, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    
+    return {"message": f"Reassigned {result.modified_count} tasks"}
+
+
+# =============================================================================
 # MY TASKS ENDPOINT (Tasks assigned to current user)
 # =============================================================================
 
