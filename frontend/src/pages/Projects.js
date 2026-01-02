@@ -897,6 +897,47 @@ const Projects = () => {
     project.description?.toLowerCase().includes(search.toLowerCase())
   );
 
+  // DnD sensors for project reordering
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handle drag end for project reordering
+  const handleDragEnd = async (event) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = spaceProjects.findIndex(p => p.id === active.id);
+    const newIndex = spaceProjects.findIndex(p => p.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    // Optimistically update UI
+    const newOrder = arrayMove(spaceProjects, oldIndex, newIndex);
+    setSpaceProjects(newOrder);
+
+    // Save to backend
+    try {
+      await axios.post(
+        `${API}/projects/spaces/${selectedSpace.id}/reorder`,
+        { project_ids: newOrder.map(p => p.id) },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (error) {
+      // Revert on error
+      setSpaceProjects(spaceProjects);
+      toast.error('Failed to reorder projects');
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6">
