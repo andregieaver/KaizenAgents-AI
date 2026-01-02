@@ -898,11 +898,17 @@ const Projects = () => {
     project.description?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // DnD sensors for project reordering
+  // DnD sensors for project reordering (including touch support for mobile)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
