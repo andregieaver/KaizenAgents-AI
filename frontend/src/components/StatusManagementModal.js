@@ -203,7 +203,7 @@ const StatusManagementModal = ({
   );
 
   // Get API endpoint based on entity type
-  const getEndpoint = (suffix = '') => {
+  const getEndpoint = useCallback((suffix = '') => {
     switch (entityType) {
       case 'space':
         return `${API}/projects/spaces/${entityId}/statuses${suffix}`;
@@ -214,7 +214,7 @@ const StatusManagementModal = ({
       default:
         return '';
     }
-  };
+  }, [entityType, entityId]);
 
   // Fetch statuses when modal opens
   useEffect(() => {
