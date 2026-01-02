@@ -219,6 +219,85 @@ async def get_next_position(collection_name: str, filter_query: dict, field: str
 
 
 # =============================================================================
+# STATUS INHERITANCE HELPER FUNCTIONS
+# =============================================================================
+
+async def get_effective_statuses(
+    tenant_id: str,
+    space_id: str = None,
+    project_id: str = None,
+    list_id: str = None
+) -> List[dict]:
+    """
+    Get effective statuses based on inheritance chain:
+    List -> Project -> Space -> Default
+    
+    Returns the most specific custom statuses available, or defaults if none set.
+    """
+    # If list_id provided, check list first
+    if list_id:
+        list_doc = await db.project_lists.find_one(
+            {"id": list_id, "tenant_id": tenant_id},
+            {"custom_statuses": 1, "project_id": 1}
+        )
+        if list_doc and list_doc.get("custom_statuses"):
+            return list_doc["custom_statuses"]
+        # Get project_id for inheritance lookup
+        if list_doc:
+            project_id = list_doc.get("project_id")
+    
+    # If project_id provided or found, check project
+    if project_id:
+        project_doc = await db.projects.find_one(
+            {"id": project_id, "tenant_id": tenant_id},
+            {"custom_statuses": 1, "space_id": 1}
+        )
+        if project_doc and project_doc.get("custom_statuses"):
+            return project_doc["custom_statuses"]
+        # Get space_id for inheritance lookup
+        if project_doc:
+            space_id = project_doc.get("space_id")
+    
+    # If space_id provided or found, check space
+    if space_id:
+        space_doc = await db.project_spaces.find_one(
+            {"id": space_id, "tenant_id": tenant_id},
+            {"custom_statuses": 1}
+        )
+        if space_doc and space_doc.get("custom_statuses"):
+            return space_doc["custom_statuses"]
+    
+    # Return default statuses
+    return DEFAULT_TASK_STATUSES
+
+
+async def get_tasks_using_status(
+    tenant_id: str,
+    status_id: str,
+    space_id: str = None,
+    project_id: str = None,
+    list_id: str = None
+) -> int:
+    """Count tasks using a specific status within the given scope"""
+    query = {"tenant_id": tenant_id, "status": status_id}
+    
+    if list_id:
+        query["list_id"] = list_id
+    elif project_id:
+        query["project_id"] = project_id
+    elif space_id:
+        # Get all projects in space
+        projects = await db.projects.find(
+            {"tenant_id": tenant_id, "space_id": space_id},
+            {"id": 1}
+        ).to_list(1000)
+        project_ids = [p["id"] for p in projects]
+        query["project_id"] = {"$in": project_ids}
+    
+    return await db.project_tasks.count_documents(query)
+
+
+# =============================================================================
 # SPACES ENDPOINTS
 # =============================================================================
 
