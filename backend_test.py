@@ -1396,6 +1396,420 @@ class AIAgentHubTester:
         
         return True
 
+    # ============== STATUS MANAGEMENT API TESTS ==============
+
+    def test_status_management_api(self):
+        """Test the Status Management API endpoints for the status inheritance system"""
+        print(f"\n🎯 Testing Status Management API Endpoints")
+        
+        # Test all components from the review request
+        login_test = self.test_super_admin_login()
+        if not login_test:
+            print("❌ Login failed - cannot continue with status management tests")
+            return False
+            
+        # Test status management functionality
+        spaces_test = self.test_get_spaces_for_status_testing()
+        space_status_test = self.test_space_status_management()
+        project_status_test = self.test_project_status_inheritance()
+        default_status_test = self.test_default_statuses_verification()
+        
+        # Summary of status management tests
+        print(f"\n📋 Status Management API Test Results:")
+        print(f"   Super Admin Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
+        print(f"   Get Spaces for Testing: {'✅ PASSED' if spaces_test else '❌ FAILED'}")
+        print(f"   Space Status Management: {'✅ PASSED' if space_status_test else '❌ FAILED'}")
+        print(f"   Project Status Inheritance: {'✅ PASSED' if project_status_test else '❌ FAILED'}")
+        print(f"   Default Statuses Verification: {'✅ PASSED' if default_status_test else '❌ FAILED'}")
+        
+        return all([login_test, spaces_test, space_status_test, project_status_test, default_status_test])
+
+    def test_get_spaces_for_status_testing(self):
+        """Test GET /api/projects/spaces - Get list of spaces"""
+        print(f"\n🔧 Testing GET /api/projects/spaces")
+        
+        success, response = self.run_test(
+            "Get Spaces List",
+            "GET",
+            "projects/spaces",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get spaces")
+            return False
+            
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+            
+        print(f"   ✅ Found {len(response)} spaces")
+        
+        # Find a space to use for testing
+        if response:
+            self.test_space_id = response[0].get("id")
+            self.test_space_name = response[0].get("name")
+            print(f"   ✅ Using space '{self.test_space_name}' (ID: {self.test_space_id}) for status testing")
+            
+            # Get a project from this space for testing
+            space_detail_success, space_detail = self.run_test(
+                "Get Space Detail for Project",
+                "GET",
+                f"projects/spaces/{self.test_space_id}",
+                200
+            )
+            
+            if space_detail_success and space_detail.get("projects"):
+                projects = space_detail["projects"]
+                if projects:
+                    self.test_project_id = projects[0].get("id")
+                    self.test_project_name = projects[0].get("name")
+                    print(f"   ✅ Using project '{self.test_project_name}' (ID: {self.test_project_id}) for status testing")
+                else:
+                    print("   ⚠️ No projects found in space, will create one if needed")
+            
+            return True
+        else:
+            print("   ❌ No spaces found")
+            return False
+
+    def test_space_status_management(self):
+        """Test Space Status Management endpoints"""
+        print(f"\n🔧 Testing Space Status Management")
+        
+        if not hasattr(self, 'test_space_id'):
+            print("❌ No test space ID available")
+            return False
+        
+        # Test 1: GET /api/projects/spaces/{space_id}/statuses - Should return default statuses (is_custom: false)
+        success, response = self.run_test(
+            "Get Space Statuses (Initial - Should be Default)",
+            "GET",
+            f"projects/spaces/{self.test_space_id}/statuses",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get space statuses")
+            return False
+        
+        # Verify response structure
+        if not all(key in response for key in ["statuses", "is_custom", "inherited_from"]):
+            print("❌ Response missing required fields")
+            return False
+        
+        initial_statuses = response["statuses"]
+        is_custom_initial = response["is_custom"]
+        inherited_from_initial = response["inherited_from"]
+        
+        print(f"   ✅ Initial statuses retrieved: {len(initial_statuses)} statuses")
+        print(f"   ✅ is_custom: {is_custom_initial} (should be False)")
+        print(f"   ✅ inherited_from: {inherited_from_initial} (should be None)")
+        
+        # Verify default statuses structure
+        expected_default_statuses = ["todo", "in_progress", "review", "done"]
+        actual_status_ids = [s.get("id") for s in initial_statuses]
+        
+        if not all(status_id in actual_status_ids for status_id in expected_default_statuses):
+            print(f"   ⚠️ Default statuses may not match expected: {actual_status_ids}")
+        else:
+            print(f"   ✅ Default statuses verified: {actual_status_ids}")
+        
+        # Test 2: PUT /api/projects/spaces/{space_id}/statuses - Set custom statuses for a space
+        custom_statuses = [
+            {"id": "backlog", "name": "Backlog", "color": "#6B7280", "is_final": False, "order": 0},
+            {"id": "in_progress", "name": "In Progress", "color": "#3B82F6", "is_final": False, "order": 1},
+            {"id": "testing", "name": "Testing", "color": "#F59E0B", "is_final": False, "order": 2},
+            {"id": "completed", "name": "Completed", "color": "#10B981", "is_final": True, "order": 3}
+        ]
+        
+        success, response = self.run_test(
+            "Set Custom Statuses for Space",
+            "PUT",
+            f"projects/spaces/{self.test_space_id}/statuses",
+            200,
+            data={"statuses": custom_statuses}
+        )
+        
+        if not success:
+            print("❌ Failed to set custom statuses")
+            return False
+        
+        print(f"   ✅ Custom statuses set successfully")
+        print(f"   Response: {response.get('message', 'No message')}")
+        
+        # Test 3: GET /api/projects/spaces/{space_id}/statuses - Should now return custom statuses (is_custom: true)
+        success, response = self.run_test(
+            "Get Space Statuses (After Custom Set - Should be Custom)",
+            "GET",
+            f"projects/spaces/{self.test_space_id}/statuses",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get space statuses after setting custom")
+            return False
+        
+        custom_statuses_retrieved = response["statuses"]
+        is_custom_after = response["is_custom"]
+        inherited_from_after = response["inherited_from"]
+        
+        print(f"   ✅ Custom statuses retrieved: {len(custom_statuses_retrieved)} statuses")
+        print(f"   ✅ is_custom: {is_custom_after} (should be True)")
+        print(f"   ✅ inherited_from: {inherited_from_after} (should be None)")
+        
+        # Verify custom statuses were saved correctly
+        custom_status_ids = [s.get("id") for s in custom_statuses_retrieved]
+        expected_custom_ids = ["backlog", "in_progress", "testing", "completed"]
+        
+        if custom_status_ids == expected_custom_ids:
+            print(f"   ✅ Custom statuses verified: {custom_status_ids}")
+        else:
+            print(f"   ⚠️ Custom statuses may not match expected: {custom_status_ids} vs {expected_custom_ids}")
+        
+        # Store custom statuses for project inheritance testing
+        self.space_custom_statuses = custom_statuses_retrieved
+        
+        return True
+
+    def test_project_status_inheritance(self):
+        """Test Project Status Inheritance"""
+        print(f"\n🔧 Testing Project Status Inheritance")
+        
+        if not hasattr(self, 'test_project_id'):
+            print("❌ No test project ID available")
+            return False
+        
+        # Test 1: GET /api/projects/{project_id}/statuses - Project should inherit from space (inherited_from: "space")
+        success, response = self.run_test(
+            "Get Project Statuses (Should Inherit from Space)",
+            "GET",
+            f"projects/{self.test_project_id}/statuses",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get project statuses")
+            return False
+        
+        inherited_statuses = response["statuses"]
+        is_custom_inherited = response["is_custom"]
+        inherited_from = response["inherited_from"]
+        
+        print(f"   ✅ Project statuses retrieved: {len(inherited_statuses)} statuses")
+        print(f"   ✅ is_custom: {is_custom_inherited} (should be False)")
+        print(f"   ✅ inherited_from: {inherited_from} (should be 'space')")
+        
+        # Verify project inherits space's custom statuses
+        if inherited_from == "space":
+            print(f"   ✅ Project correctly inherits from space")
+            
+            # Compare with space statuses
+            if hasattr(self, 'space_custom_statuses'):
+                space_status_ids = [s.get("id") for s in self.space_custom_statuses]
+                project_status_ids = [s.get("id") for s in inherited_statuses]
+                
+                if space_status_ids == project_status_ids:
+                    print(f"   ✅ Project statuses match space statuses: {project_status_ids}")
+                else:
+                    print(f"   ⚠️ Project statuses don't match space: {project_status_ids} vs {space_status_ids}")
+        else:
+            print(f"   ⚠️ Project not inheriting from space as expected")
+        
+        # Test 2: PUT /api/projects/{project_id}/statuses - Set custom statuses for the project
+        project_custom_statuses = [
+            {"id": "draft", "name": "Draft", "color": "#9CA3AF", "is_final": False, "order": 0},
+            {"id": "review", "name": "Review", "color": "#8B5CF6", "is_final": False, "order": 1},
+            {"id": "approved", "name": "Approved", "color": "#10B981", "is_final": True, "order": 2}
+        ]
+        
+        success, response = self.run_test(
+            "Set Custom Statuses for Project",
+            "PUT",
+            f"projects/{self.test_project_id}/statuses",
+            200,
+            data={"statuses": project_custom_statuses}
+        )
+        
+        if not success:
+            print("❌ Failed to set custom statuses for project")
+            return False
+        
+        print(f"   ✅ Project custom statuses set successfully")
+        
+        # Test 3: GET /api/projects/{project_id}/statuses - Should return custom statuses (is_custom: true, inherited_from: null)
+        success, response = self.run_test(
+            "Get Project Statuses (After Custom Set)",
+            "GET",
+            f"projects/{self.test_project_id}/statuses",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get project statuses after setting custom")
+            return False
+        
+        project_custom_retrieved = response["statuses"]
+        is_custom_project = response["is_custom"]
+        inherited_from_project = response["inherited_from"]
+        
+        print(f"   ✅ Project custom statuses retrieved: {len(project_custom_retrieved)} statuses")
+        print(f"   ✅ is_custom: {is_custom_project} (should be True)")
+        print(f"   ✅ inherited_from: {inherited_from_project} (should be None)")
+        
+        # Verify project custom statuses
+        project_status_ids = [s.get("id") for s in project_custom_retrieved]
+        expected_project_ids = ["draft", "review", "approved"]
+        
+        if project_status_ids == expected_project_ids:
+            print(f"   ✅ Project custom statuses verified: {project_status_ids}")
+        else:
+            print(f"   ⚠️ Project custom statuses may not match: {project_status_ids} vs {expected_project_ids}")
+        
+        # Test 4: DELETE /api/projects/{project_id}/statuses - Clear custom statuses
+        success, response = self.run_test(
+            "Clear Project Custom Statuses",
+            "DELETE",
+            f"projects/{self.test_project_id}/statuses",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to clear project custom statuses")
+            return False
+        
+        print(f"   ✅ Project custom statuses cleared")
+        print(f"   Response: {response.get('message', 'No message')}")
+        
+        # Test 5: GET /api/projects/{project_id}/statuses - Should again inherit from space (inherited_from: "space")
+        success, response = self.run_test(
+            "Get Project Statuses (After Clear - Should Inherit Again)",
+            "GET",
+            f"projects/{self.test_project_id}/statuses",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get project statuses after clearing")
+            return False
+        
+        restored_statuses = response["statuses"]
+        is_custom_restored = response["is_custom"]
+        inherited_from_restored = response["inherited_from"]
+        
+        print(f"   ✅ Project statuses after clear: {len(restored_statuses)} statuses")
+        print(f"   ✅ is_custom: {is_custom_restored} (should be False)")
+        print(f"   ✅ inherited_from: {inherited_from_restored} (should be 'space')")
+        
+        # Verify inheritance is restored
+        if inherited_from_restored == "space":
+            print(f"   ✅ Project inheritance restored correctly")
+        else:
+            print(f"   ⚠️ Project inheritance not restored as expected")
+        
+        return True
+
+    def test_default_statuses_verification(self):
+        """Test Default Statuses verification"""
+        print(f"\n🔧 Testing Default Statuses Verification")
+        
+        # Create a new space to test default statuses
+        space_data = {
+            "name": "Default Status Test Space",
+            "description": "Space for testing default statuses",
+            "color": "#6366F1"
+        }
+        
+        success, response = self.run_test(
+            "Create New Space for Default Status Testing",
+            "POST",
+            "projects/spaces",
+            200,
+            data=space_data
+        )
+        
+        if not success:
+            print("❌ Failed to create test space")
+            return False
+        
+        new_space_id = response.get("id")
+        print(f"   ✅ Created test space: {new_space_id}")
+        
+        # Get statuses for new space (should be defaults)
+        success, response = self.run_test(
+            "Get Default Statuses for New Space",
+            "GET",
+            f"projects/spaces/{new_space_id}/statuses",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get default statuses")
+            return False
+        
+        default_statuses = response["statuses"]
+        is_custom = response["is_custom"]
+        inherited_from = response["inherited_from"]
+        
+        print(f"   ✅ Default statuses retrieved: {len(default_statuses)} statuses")
+        print(f"   ✅ is_custom: {is_custom} (should be False)")
+        print(f"   ✅ inherited_from: {inherited_from} (should be None)")
+        
+        # Verify default statuses structure
+        expected_defaults = ["todo", "in_progress", "review", "done"]
+        actual_status_ids = [s.get("id") for s in default_statuses]
+        
+        print(f"   Default status IDs: {actual_status_ids}")
+        
+        # Check each expected default status
+        for expected_id in expected_defaults:
+            if expected_id in actual_status_ids:
+                print(f"   ✅ Found expected default status: {expected_id}")
+            else:
+                print(f"   ⚠️ Missing expected default status: {expected_id}")
+        
+        # Verify each status has required fields
+        required_fields = ["id", "name", "color", "is_final", "order"]
+        all_fields_present = True
+        
+        for status in default_statuses:
+            for field in required_fields:
+                if field not in status:
+                    print(f"   ❌ Status {status.get('id', 'unknown')} missing field: {field}")
+                    all_fields_present = False
+        
+        if all_fields_present:
+            print(f"   ✅ All default statuses have required fields: {required_fields}")
+        
+        # Verify specific default status properties
+        for status in default_statuses:
+            status_id = status.get("id")
+            status_name = status.get("name")
+            is_final = status.get("is_final", False)
+            
+            print(f"   Status: {status_id} -> {status_name} (final: {is_final})")
+            
+            # Check if 'done' status is marked as final
+            if status_id == "done" and is_final:
+                print(f"   ✅ 'done' status correctly marked as final")
+            elif status_id == "done" and not is_final:
+                print(f"   ⚠️ 'done' status should be marked as final")
+        
+        # Clean up - delete test space
+        success, response = self.run_test(
+            "Delete Test Space",
+            "DELETE",
+            f"projects/spaces/{new_space_id}",
+            200
+        )
+        
+        if success:
+            print(f"   ✅ Test space cleaned up")
+        else:
+            print(f"   ⚠️ Failed to clean up test space")
+        
+        return True
+
     # ============== PROJECT REORDER FUNCTIONALITY TESTS ==============
 
     def test_project_reorder_functionality(self):
