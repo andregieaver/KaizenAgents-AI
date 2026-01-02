@@ -216,29 +216,28 @@ const StatusManagementModal = ({
     }
   };
 
-  // Fetch statuses
+  // Fetch statuses when modal opens
   useEffect(() => {
     if (open && entityId) {
-      fetchStatuses();
+      const loadStatuses = async () => {
+        setLoading(true);
+        try {
+          const response = await axios.get(getEndpoint(), {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setStatuses(response.data.statuses || []);
+          setIsCustom(response.data.is_custom);
+          setInheritedFrom(response.data.inherited_from);
+        } catch (error) {
+          console.error('Failed to fetch statuses:', error);
+          toast.error('Failed to load statuses');
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadStatuses();
     }
-  }, [open, entityId]);
-
-  const fetchStatuses = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(getEndpoint(), {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setStatuses(response.data.statuses || []);
-      setIsCustom(response.data.is_custom);
-      setInheritedFrom(response.data.inherited_from);
-    } catch (error) {
-      console.error('Failed to fetch statuses:', error);
-      toast.error('Failed to load statuses');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [open, entityId, token, getEndpoint]);
 
   // Save statuses
   const saveStatuses = async (newStatuses) => {
