@@ -1267,17 +1267,42 @@ const Projects = () => {
 
       {/* Spaces Grid */}
       {filteredSpaces.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredSpaces.map(space => (
-            <SpaceCard
-              key={space.id}
-              space={space}
-              onClick={() => handleSpaceClick(space)}
-              onEdit={(s) => { setEditingSpace(s); setShowSpaceDialog(true); }}
-              onDelete={handleDeleteSpace}
-            />
-          ))}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleSpaceDragStart}
+          onDragEnd={handleSpaceDragEnd}
+        >
+          <SortableContext
+            items={filteredSpaces.map(s => s.id)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredSpaces.map(space => (
+                <SortableSpaceCard
+                  key={space.id}
+                  space={space}
+                  onClick={() => handleSpaceClick(space)}
+                  onEdit={(s) => { setEditingSpace(s); setShowSpaceDialog(true); }}
+                  onDelete={handleDeleteSpace}
+                />
+              ))}
+            </div>
+          </SortableContext>
+          <DragOverlay>
+            {activeSpace && (
+              <Card className="shadow-xl border-2 border-primary/50 w-full max-w-sm border-l-4" style={{ borderLeftColor: activeSpace.color || '#6366F1' }}>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                    <Folder className="h-5 w-5" style={{ color: activeSpace.color || '#6366F1' }} />
+                    <span className="font-medium">{activeSpace.name}</span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </DragOverlay>
+        </DndContext>
       ) : (
         <div className="text-center py-12">
           <Folder className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
