@@ -259,6 +259,31 @@ async def create_space(
     return space
 
 
+class ReorderSpacesRequest(BaseModel):
+    """Request model for reordering spaces"""
+    space_ids: List[str] = Field(..., description="Ordered list of space IDs")
+
+
+@router.post("/spaces/reorder")
+async def reorder_spaces(
+    request: ReorderSpacesRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Reorder spaces"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Update order for each space
+    for index, space_id in enumerate(request.space_ids):
+        await db.project_spaces.update_one(
+            {"id": space_id, "tenant_id": tenant_id},
+            {"$set": {"order": index, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+    
+    return {"message": "Spaces reordered successfully"}
+
+
 @router.get("/spaces/{space_id}")
 async def get_space(
     space_id: str,
