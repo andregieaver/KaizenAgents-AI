@@ -1074,7 +1074,7 @@ const Projects = () => {
   };
 
   // Handle drag end for project reordering
-  const handleDragEnd = async (event) => {
+  const handleProjectDragEnd = async (event) => {
     setActiveProject(null);
     const { active, over } = event;
 
