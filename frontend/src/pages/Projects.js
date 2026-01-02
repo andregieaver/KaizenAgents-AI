@@ -143,80 +143,106 @@ const SpaceCard = ({ space, onClick, onEdit, onDelete }) => {
   );
 };
 
-// Project Card Component (for Space Detail view)
-const ProjectCard = ({ project, onClick, onEdit, onDelete, onDuplicate }) => {
+// Project Card Component (for Space Detail view) - Sortable
+const SortableProjectCard = ({ project, onClick, onEdit, onDelete, onDuplicate }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: project.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   const progress = project.task_count > 0 
     ? Math.round((project.completed_count / project.task_count) * 100) 
     : 0;
 
   return (
-    <Card 
-      className="group cursor-pointer hover:shadow-md transition-all"
-      onClick={onClick}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div 
-              className="h-3 w-3 rounded-full"
-              style={{ backgroundColor: project.color || '#6366F1' }}
-            />
-            <h3 className="font-medium">{project.name}</h3>
+    <div ref={setNodeRef} style={style}>
+      <Card 
+        className="group cursor-pointer hover:shadow-md transition-all"
+        onClick={onClick}
+      >
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-2">
+              {/* Drag Handle */}
+              <div
+                {...attributes}
+                {...listeners}
+                className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <GripVertical className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div 
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: project.color || '#6366F1' }}
+              />
+              <h3 className="font-medium">{project.name}</h3>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs">
+                {project.status}
+              </Badge>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }}>
+                    <Pencil className="h-4 w-4 mr-2" /> Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDuplicate(project); }}>
+                    <Copy className="h-4 w-4 mr-2" /> Duplicate
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={(e) => { e.stopPropagation(); onDelete(project); }}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" /> Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="text-xs">
-              {project.status}
-            </Badge>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(project); }}>
-                  <Pencil className="h-4 w-4 mr-2" /> Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDuplicate(project); }}>
-                  <Copy className="h-4 w-4 mr-2" /> Duplicate
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={(e) => { e.stopPropagation(); onDelete(project); }}
-                  className="text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" /> Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          
+          {project.description && (
+            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+              {project.description}
+            </p>
+          )}
+          
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="font-medium">{progress}%</span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>{project.completed_count || 0} / {project.task_count || 0} tasks</span>
+              {project.end_date && (
+                <span>Due {new Date(project.end_date).toLocaleDateString()}</span>
+              )}
+            </div>
           </div>
-        </div>
-        
-        {project.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
-            {project.description}
-          </p>
-        )}
-        
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Progress</span>
-            <span className="font-medium">{progress}%</span>
-          </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-primary transition-all"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>{project.completed_count || 0} / {project.task_count || 0} tasks</span>
-            {project.end_date && (
-              <span>Due {new Date(project.end_date).toLocaleDateString()}</span>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
