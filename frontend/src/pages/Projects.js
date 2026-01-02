@@ -27,6 +27,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../components/ui/dropdown-menu';
 // Breadcrumb components removed - using header breadcrumbs from DashboardLayout
@@ -63,11 +64,13 @@ import {
   Users,
   CheckCircle2,
   Copy,
-  GripVertical
+  GripVertical,
+  Settings
 } from 'lucide-react';
 import { Checkbox } from '../components/ui/checkbox';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import StatusManagementModal from '../components/StatusManagementModal';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
