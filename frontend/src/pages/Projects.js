@@ -174,11 +174,11 @@ const SortableProjectCard = ({ project, onClick, onEdit, onDelete, onDuplicate }
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2">
-              {/* Drag Handle - Always visible */}
+              {/* Drag Handle - Always visible, touch-none for mobile */}
               <div
                 {...attributes}
                 {...listeners}
-                className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-muted text-muted-foreground"
+                className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-muted text-muted-foreground touch-none"
                 onClick={(e) => e.stopPropagation()}
               >
                 <GripVertical className="h-4 w-4" />
