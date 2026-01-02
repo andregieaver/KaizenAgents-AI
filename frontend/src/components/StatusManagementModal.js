@@ -522,7 +522,7 @@ const StatusManagementModal = ({
               {taskCount > 0 ? (
                 <>
                   <span className="block mb-3">
-                    There are <strong>{taskCount} tasks</strong> using the "{deleteConfirm?.name}" status.
+                    There are <strong>{taskCount} tasks</strong> using the &quot;{deleteConfirm?.name}&quot; status.
                     Please select a status to reassign them to:
                   </span>
                   <Select value={reassignTo} onValueChange={setReassignTo}>
