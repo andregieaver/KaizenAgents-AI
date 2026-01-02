@@ -60,7 +60,7 @@ import {
   RotateCcw,
 } from 'lucide-react';
 
-const API = process.env.REACT_APP_BACKEND_URL;
+const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
 // Predefined color palette
 const COLOR_PALETTE = [
