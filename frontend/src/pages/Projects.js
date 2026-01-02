@@ -149,7 +149,7 @@ const SpaceCard = ({ space, onClick, onEdit, onDelete }) => {
 };
 
 // Sortable Space Card Component
-const SortableSpaceCard = ({ space, onClick, onEdit, onDelete }) => {
+const SortableSpaceCard = ({ space, onClick, onEdit, onDelete, onManageStatuses }) => {
   const {
     attributes,
     listeners,
