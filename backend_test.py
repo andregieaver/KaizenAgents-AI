@@ -1459,8 +1459,11 @@ class AIAgentHubTester:
                 200
             )
             
-            if space_detail_success and space_detail.get("projects"):
-                projects = space_detail["projects"]
+            if space_detail_success:
+                print(f"   Space detail response keys: {list(space_detail.keys())}")
+                projects = space_detail.get("projects", [])
+                print(f"   Found {len(projects)} projects in space")
+                
                 if projects:
                     self.test_project_id = projects[0].get("id")
                     self.test_project_name = projects[0].get("name")
