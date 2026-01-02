@@ -485,7 +485,7 @@ async def get_all_projects(
     projects = await db.projects.find(
         query,
         {"_id": 0}
-    ).sort("created_at", -1).to_list(100)
+    ).sort([("order", 1), ("created_at", -1)]).to_list(100)
     
     # Enrich with task counts
     for project in projects:
@@ -523,11 +523,18 @@ async def create_project(
     
     now = datetime.now(timezone.utc)
     
+    # Get next order position for this space
+    next_order = await get_next_position("projects", {
+        "tenant_id": tenant_id,
+        "space_id": project_data.space_id
+    })
+    
     project = {
         "id": str(uuid4()),
         "tenant_id": tenant_id,
         "space_id": project_data.space_id,
         "name": project_data.name,
+        "order": next_order,
         "description": project_data.description,
         "color": project_data.color,
         "status": "active",
