@@ -527,7 +527,7 @@ async def create_project(
     next_order = await get_next_position("projects", {
         "tenant_id": tenant_id,
         "space_id": project_data.space_id
-    })
+    }, field="order")
     
     project = {
         "id": str(uuid4()),
