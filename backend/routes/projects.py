@@ -60,6 +60,7 @@ class SpaceUpdate(BaseModel):
     description: Optional[str] = None
     color: Optional[str] = None
     icon: Optional[str] = None
+    custom_statuses: Optional[List["ProjectStatusConfig"]] = None
 
 
 # =============================================================================
@@ -81,6 +82,17 @@ DEFAULT_TASK_STATUSES = [
     {"id": "review", "name": "Review", "color": "#F59E0B", "is_final": False, "order": 2},
     {"id": "done", "name": "Done", "color": "#10B981", "is_final": True, "order": 3},
 ]
+
+
+class StatusUpdateRequest(BaseModel):
+    """Request model for updating statuses"""
+    statuses: List[ProjectStatusConfig]
+
+
+class StatusReassignRequest(BaseModel):
+    """Request model for reassigning tasks when deleting a status"""
+    from_status_id: str
+    to_status_id: str
 
 
 class ProjectCreate(BaseModel):
