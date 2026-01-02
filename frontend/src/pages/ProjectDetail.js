@@ -1395,43 +1395,6 @@ const ProjectDetail = () => {
     <div className="h-[calc(100vh-4rem)] flex flex-col">
       {/* Header */}
       <div className="p-4 border-b bg-card">
-        {/* Breadcrumbs */}
-        <Breadcrumb className="mb-3">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/dashboard" className="flex items-center gap-1">
-                  <Home className="h-4 w-4" />
-                  Dashboard
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/dashboard/projects">Projects</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            {project.space_id && project.space_name && (
-              <>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to="/dashboard/projects" className="flex items-center gap-1">
-                      <Folder className="h-3.5 w-3.5" />
-                      {project.space_name}
-                    </Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-              </>
-            )}
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{project.name}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-3">
             <div 
