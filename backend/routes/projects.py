@@ -234,6 +234,11 @@ async def create_space(
     
     now = datetime.now(timezone.utc)
     
+    # Get next order position
+    next_order = await get_next_position("project_spaces", {
+        "tenant_id": tenant_id
+    }, field="order")
+    
     space = {
         "id": str(uuid4()),
         "tenant_id": tenant_id,
@@ -241,6 +246,7 @@ async def create_space(
         "description": space_data.description,
         "color": space_data.color,
         "icon": space_data.icon,
+        "order": next_order,
         "created_by": current_user.get("id"),
         "created_at": now.isoformat(),
         "updated_at": now.isoformat()
