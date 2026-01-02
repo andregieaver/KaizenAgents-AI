@@ -803,6 +803,10 @@ const Projects = () => {
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicatingProject, setDuplicatingProject] = useState(null);
   
+  // Status management modal state
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusModalEntity, setStatusModalEntity] = useState({ type: null, id: null, name: null });
+  
   // Space detail view
   const [selectedSpace, setSelectedSpace] = useState(null);
   const [spaceProjects, setSpaceProjects] = useState([]);
@@ -811,6 +815,12 @@ const Projects = () => {
   // Drag state for visual feedback
   const [activeProject, setActiveProject] = useState(null);
   const [activeSpace, setActiveSpace] = useState(null);
+
+  // Open status management modal
+  const openStatusModal = (type, entity) => {
+    setStatusModalEntity({ type, id: entity.id, name: entity.name });
+    setShowStatusModal(true);
+  };
 
   const fetchSpaces = useCallback(async () => {
     try {
