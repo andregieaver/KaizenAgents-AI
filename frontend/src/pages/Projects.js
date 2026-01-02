@@ -32,6 +32,7 @@ import {
 // Breadcrumb components removed - using header breadcrumbs from DashboardLayout
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   KeyboardSensor,
   PointerSensor,
