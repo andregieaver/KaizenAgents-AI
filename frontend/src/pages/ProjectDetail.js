@@ -436,7 +436,7 @@ const MiniTaskCard = ({ task, onEdit, onStatusChange, projectStatuses }) => {
 };
 
 // Droppable List Component with Status Columns
-const DroppableList = ({ list, search, onEditTask, onStatusChange, taskStatuses, onStatusDragEnd }) => {
+const DroppableList = ({ list, search, onEditTask, onStatusChange, taskStatuses, onStatusDragEnd, onManageStatuses }) => {
   const [isOpen, setIsOpen] = useState(false); // Collapsed by default
   const [listViewMode, setListViewMode] = useState('kanban'); // 'kanban' or 'list'
   
@@ -489,6 +489,18 @@ const DroppableList = ({ list, search, onEditTask, onStatusChange, taskStatuses,
             </div>
           )}
           <Badge variant="secondary">{taskCount}</Badge>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Button variant="ghost" size="icon" className="h-7 w-7">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onManageStatuses?.(list); }}>
+                <Settings className="h-4 w-4 mr-2" /> Manage Statuses
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       
