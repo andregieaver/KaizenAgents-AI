@@ -74,7 +74,6 @@ import {
   Clock,
   Settings,
   X,
-  Home,
   Folder
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInDays, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isWithinInterval, parseISO } from 'date-fns';
