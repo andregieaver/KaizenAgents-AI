@@ -568,6 +568,39 @@ async def create_project(
     return project
 
 
+class ReorderProjectsRequest(BaseModel):
+    """Request model for reordering projects"""
+    project_ids: List[str] = Field(..., description="Ordered list of project IDs")
+
+
+@router.post("/spaces/{space_id}/reorder")
+async def reorder_projects(
+    space_id: str,
+    request: ReorderProjectsRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Reorder projects within a space"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify space exists
+    space = await db.project_spaces.find_one(
+        {"id": space_id, "tenant_id": tenant_id}
+    )
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Update order for each project
+    for index, project_id in enumerate(request.project_ids):
+        await db.projects.update_one(
+            {"id": project_id, "tenant_id": tenant_id, "space_id": space_id},
+            {"$set": {"order": index, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+    
+    return {"message": "Projects reordered successfully"}
+
+
 @router.get("/{project_id}")
 async def get_project(
     project_id: str,
