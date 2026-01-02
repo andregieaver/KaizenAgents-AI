@@ -1207,6 +1207,7 @@ const Projects = () => {
                     onEdit={openEditProject}
                     onDelete={handleDeleteProject}
                     onDuplicate={openDuplicateProject}
+                    onManageStatuses={(p) => openStatusModal('project', p)}
                   />
                 ))}
               </div>
