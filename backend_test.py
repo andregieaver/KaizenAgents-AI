@@ -1396,6 +1396,240 @@ class AIAgentHubTester:
         
         return True
 
+    # ============== PROJECT REORDER FUNCTIONALITY TESTS ==============
+
+    def test_project_reorder_functionality(self):
+        """Test the newly implemented project reorder functionality in the space detail view"""
+        print(f"\n🎯 Testing Project Reorder Functionality")
+        
+        # Test all components from the review request
+        login_test = self.test_super_admin_login()
+        if not login_test:
+            print("❌ Login failed - cannot continue with project reorder tests")
+            return False
+            
+        # Test project reorder functionality
+        spaces_test = self.test_get_spaces_with_projects()
+        reorder_test = self.test_reorder_projects_endpoint()
+        verification_test = self.test_verify_reorder_persistence()
+        
+        # Summary of project reorder tests
+        print(f"\n📋 Project Reorder Functionality Test Results:")
+        print(f"   Super Admin Login: {'✅ PASSED' if login_test else '❌ FAILED'}")
+        print(f"   Get Spaces with Projects: {'✅ PASSED' if spaces_test else '❌ FAILED'}")
+        print(f"   Reorder Projects Endpoint: {'✅ PASSED' if reorder_test else '❌ FAILED'}")
+        print(f"   Verify Reorder Persistence: {'✅ PASSED' if verification_test else '❌ FAILED'}")
+        
+        return all([login_test, spaces_test, reorder_test, verification_test])
+
+    def test_get_spaces_with_projects(self):
+        """Test GET /api/projects/spaces to get a space with projects"""
+        print(f"\n🔧 Testing GET /api/projects/spaces")
+        
+        success, response = self.run_test(
+            "Get Spaces with Projects",
+            "GET",
+            "projects/spaces",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to get spaces")
+            return False
+            
+        if not isinstance(response, list):
+            print(f"❌ Expected array response, got {type(response)}")
+            return False
+            
+        print(f"   ✅ Found {len(response)} spaces")
+        
+        # Find a space with multiple projects for testing
+        target_space = None
+        for space in response:
+            project_count = space.get("project_count", 0)
+            print(f"   Space: '{space.get('name')}' has {project_count} projects")
+            
+            if project_count >= 2:  # Need at least 2 projects to test reordering
+                target_space = space
+                print(f"   ✅ Using space '{space.get('name')}' for reorder testing")
+                break
+        
+        if not target_space:
+            print("   ⚠️ No space with multiple projects found")
+            # Try to find any space and get its details
+            if response:
+                target_space = response[0]
+                print(f"   Using first space '{target_space.get('name')}' for testing")
+            else:
+                print("   ❌ No spaces found at all")
+                return False
+        
+        # Store space info for later tests
+        self.test_space_id = target_space.get("id")
+        self.test_space_name = target_space.get("name")
+        
+        # Get detailed space info with projects
+        success, space_detail = self.run_test(
+            "Get Space Detail with Projects",
+            "GET",
+            f"projects/spaces/{self.test_space_id}",
+            200
+        )
+        
+        if success:
+            projects = space_detail.get("projects", [])
+            print(f"   ✅ Space detail retrieved with {len(projects)} projects")
+            
+            if len(projects) >= 2:
+                # Store project IDs for reordering
+                self.test_project_ids = [p.get("id") for p in projects]
+                self.original_project_order = [p.get("name") for p in projects]
+                print(f"   ✅ Found projects for reordering: {self.original_project_order}")
+                return True
+            else:
+                print(f"   ⚠️ Only {len(projects)} projects found, need at least 2 for reordering")
+                # Create additional projects if needed
+                return self.create_test_projects_for_reorder()
+        else:
+            print("   ❌ Failed to get space details")
+            return False
+
+    def create_test_projects_for_reorder(self):
+        """Create test projects for reorder testing if not enough exist"""
+        print(f"\n🔧 Creating Test Projects for Reorder Testing")
+        
+        if not hasattr(self, 'test_space_id'):
+            print("❌ No test space ID available")
+            return False
+        
+        # Create 4 test projects to ensure we have enough for reordering
+        project_names = [
+            "Reorder Test Project 1",
+            "Reorder Test Project 2", 
+            "Reorder Test Project 3",
+            "Reorder Test Project 4"
+        ]
+        
+        created_projects = []
+        
+        for name in project_names:
+            project_data = {
+                "name": name,
+                "space_id": self.test_space_id,
+                "description": f"Test project created for reorder testing",
+                "color": "#3B82F6"
+            }
+            
+            success, response = self.run_test(
+                f"Create Test Project: {name}",
+                "POST",
+                "projects",
+                200,
+                data=project_data
+            )
+            
+            if success:
+                created_projects.append(response)
+                print(f"   ✅ Created project: {name}")
+            else:
+                print(f"   ❌ Failed to create project: {name}")
+        
+        if len(created_projects) >= 2:
+            self.test_project_ids = [p.get("id") for p in created_projects]
+            self.original_project_order = [p.get("name") for p in created_projects]
+            print(f"   ✅ Created {len(created_projects)} projects for reorder testing")
+            return True
+        else:
+            print(f"   ❌ Only created {len(created_projects)} projects, need at least 2")
+            return False
+
+    def test_reorder_projects_endpoint(self):
+        """Test POST /api/projects/spaces/{space_id}/reorder"""
+        print(f"\n🔧 Testing POST /api/projects/spaces/{self.test_space_id}/reorder")
+        
+        if not hasattr(self, 'test_project_ids') or len(self.test_project_ids) < 2:
+            print("❌ No project IDs available for reordering")
+            return False
+        
+        # Create a new order by reversing the current order
+        original_order = self.test_project_ids.copy()
+        new_order = original_order[::-1]  # Reverse the order
+        
+        print(f"   Original order: {original_order}")
+        print(f"   New order: {new_order}")
+        
+        reorder_data = {
+            "project_ids": new_order
+        }
+        
+        success, response = self.run_test(
+            "Reorder Projects",
+            "POST",
+            f"projects/spaces/{self.test_space_id}/reorder",
+            200,
+            data=reorder_data
+        )
+        
+        if success:
+            print(f"   ✅ Reorder request successful")
+            print(f"   Response: {response.get('message', 'No message')}")
+            
+            # Store the new order for verification
+            self.new_project_order = new_order
+            return True
+        else:
+            print("   ❌ Reorder request failed")
+            return False
+
+    def test_verify_reorder_persistence(self):
+        """Test that the new order persists by fetching the space again"""
+        print(f"\n🔧 Testing Reorder Persistence")
+        
+        if not hasattr(self, 'new_project_order'):
+            print("❌ No new project order to verify")
+            return False
+        
+        # Fetch the space again to verify the order
+        success, response = self.run_test(
+            "Verify Reorder Persistence",
+            "GET",
+            f"projects/spaces/{self.test_space_id}",
+            200
+        )
+        
+        if not success:
+            print("❌ Failed to fetch space for verification")
+            return False
+        
+        projects = response.get("projects", [])
+        if not projects:
+            print("❌ No projects found in space")
+            return False
+        
+        # Check if projects are in the new order
+        current_project_ids = [p.get("id") for p in projects]
+        current_project_names = [p.get("name") for p in projects]
+        
+        print(f"   Expected order: {self.new_project_order}")
+        print(f"   Current order:  {current_project_ids}")
+        print(f"   Project names:  {current_project_names}")
+        
+        # Verify the order matches what we set
+        if current_project_ids == self.new_project_order:
+            print("   ✅ Project order persisted correctly!")
+            print("   ✅ Reorder functionality is working properly")
+            return True
+        else:
+            print("   ❌ Project order does not match expected order")
+            print("   ❌ Reorder functionality may not be working correctly")
+            
+            # Show detailed comparison
+            for i, (expected, actual) in enumerate(zip(self.new_project_order, current_project_ids)):
+                status = "✅" if expected == actual else "❌"
+                print(f"   Position {i}: {status} Expected {expected}, Got {actual}")
+            
+            return False
+
     # ============== AI AGENT PROJECT MANAGEMENT TOOLS TESTS ==============
 
     def test_ai_agent_project_management_tools(self):
