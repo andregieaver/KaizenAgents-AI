@@ -111,7 +111,7 @@ const SpaceCard = ({ space, onClick, onEdit, onDelete }) => {
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100">
+              <Button variant="ghost" size="icon" className="h-8 w-8">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -142,6 +142,94 @@ const SpaceCard = ({ space, onClick, onEdit, onDelete }) => {
         </div>
       </CardContent>
     </Card>
+  );
+};
+
+// Sortable Space Card Component
+const SortableSpaceCard = ({ space, onClick, onEdit, onDelete }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: space.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card 
+        className="group cursor-pointer hover:shadow-lg transition-all border-l-4"
+        style={{ borderLeftColor: space.color || '#6366F1' }}
+        onClick={onClick}
+      >
+        <CardHeader className="pb-2">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              {/* Drag Handle - Always visible */}
+              <div
+                {...attributes}
+                {...listeners}
+                className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground touch-none"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <GripVertical className="h-4 w-4" />
+              </div>
+              <div 
+                className="h-10 w-10 rounded-lg flex items-center justify-center"
+                style={{ backgroundColor: `${space.color}20` || '#6366F120' }}
+              >
+                <Folder className="h-5 w-5" style={{ color: space.color || '#6366F1' }} />
+              </div>
+              <div>
+                <CardTitle className="text-base">{space.name}</CardTitle>
+                {space.description && (
+                  <CardDescription className="text-xs mt-0.5 line-clamp-1">
+                    {space.description}
+                  </CardDescription>
+                )}
+              </div>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(space); }}>
+                  <Pencil className="h-4 w-4 mr-2" /> Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => { e.stopPropagation(); onDelete(space); }}
+                  className="text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <FolderOpen className="h-4 w-4" />
+              <span>{space.project_count || 0} projects</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              <span>{space.created_at && formatDistanceToNow(new Date(space.created_at), { addSuffix: true })}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 
