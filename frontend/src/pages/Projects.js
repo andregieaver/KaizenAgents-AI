@@ -688,6 +688,7 @@ const DuplicateProjectDialog = ({ open, onOpenChange, project, onDuplicate }) =>
 const Projects = () => {
   const { token } = useAuth();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const [spaces, setSpaces] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -713,9 +714,11 @@ const Projects = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       setSpaces(response.data || []);
+      return response.data || [];
     } catch (error) {
       console.error('Failed to fetch spaces:', error);
       toast.error('Failed to load spaces');
+      return [];
     } finally {
       setLoading(false);
     }
@@ -737,9 +740,23 @@ const Projects = () => {
     }
   }, [token]);
 
+  // Load spaces and restore selected space from URL on mount
   useEffect(() => {
-    fetchSpaces();
-  }, [fetchSpaces]);
+    const loadData = async () => {
+      const loadedSpaces = await fetchSpaces();
+      
+      // Restore selected space from URL params
+      const spaceIdFromUrl = searchParams.get('space');
+      if (spaceIdFromUrl && loadedSpaces.length > 0) {
+        const space = loadedSpaces.find(s => s.id === spaceIdFromUrl);
+        if (space) {
+          setSelectedSpace(space);
+          fetchSpaceDetail(spaceIdFromUrl);
+        }
+      }
+    };
+    loadData();
+  }, [fetchSpaces, fetchSpaceDetail, searchParams]);
 
   const handleCreateSpace = async (data) => {
     try {
