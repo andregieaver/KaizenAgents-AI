@@ -275,7 +275,7 @@ async def get_space(
     projects = await db.projects.find(
         {"tenant_id": tenant_id, "space_id": space_id},
         {"_id": 0}
-    ).sort("created_at", -1).to_list(100)
+    ).sort([("order", 1), ("created_at", -1)]).to_list(100)
     
     space["projects"] = projects
     
