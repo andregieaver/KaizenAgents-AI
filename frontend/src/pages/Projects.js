@@ -941,8 +941,15 @@ const Projects = () => {
     })
   );
 
+  // Handle drag start for visual feedback
+  const handleDragStart = (event) => {
+    const project = spaceProjects.find(p => p.id === event.active.id);
+    setActiveProject(project);
+  };
+
   // Handle drag end for project reordering
   const handleDragEnd = async (event) => {
+    setActiveProject(null);
     const { active, over } = event;
 
     if (!over || active.id === over.id) return;
@@ -963,6 +970,7 @@ const Projects = () => {
         { project_ids: newOrder.map(p => p.id) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      toast.success('Projects reordered');
     } catch (error) {
       // Revert on error
       setSpaceProjects(spaceProjects);
