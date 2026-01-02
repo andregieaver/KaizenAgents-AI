@@ -209,6 +209,10 @@ const SortableSpaceCard = ({ space, onClick, onEdit, onDelete, onManageStatuses 
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(space); }}>
                   <Pencil className="h-4 w-4 mr-2" /> Edit
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onManageStatuses(space); }}>
+                  <Settings className="h-4 w-4 mr-2" /> Manage Statuses
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={(e) => { e.stopPropagation(); onDelete(space); }}
                   className="text-destructive"
@@ -237,7 +241,7 @@ const SortableSpaceCard = ({ space, onClick, onEdit, onDelete, onManageStatuses 
 };
 
 // Project Card Component (for Space Detail view) - Sortable
-const SortableProjectCard = ({ project, onClick, onEdit, onDelete, onDuplicate }) => {
+const SortableProjectCard = ({ project, onClick, onEdit, onDelete, onDuplicate, onManageStatuses }) => {
   const {
     attributes,
     listeners,
