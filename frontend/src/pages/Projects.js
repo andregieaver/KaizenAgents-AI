@@ -1306,6 +1306,7 @@ const Projects = () => {
                   onClick={() => handleSpaceClick(space)}
                   onEdit={(s) => { setEditingSpace(s); setShowSpaceDialog(true); }}
                   onDelete={handleDeleteSpace}
+                  onManageStatuses={(s) => openStatusModal('space', s)}
                 />
               ))}
             </div>
@@ -1342,6 +1343,15 @@ const Projects = () => {
         onOpenChange={setShowSpaceDialog}
         space={editingSpace}
         onSave={editingSpace ? handleUpdateSpace : handleCreateSpace}
+      />
+
+      {/* Status Management Modal */}
+      <StatusManagementModal
+        open={showStatusModal}
+        onOpenChange={setShowStatusModal}
+        entityType={statusModalEntity.type}
+        entityId={statusModalEntity.id}
+        entityName={statusModalEntity.name}
       />
     </div>
   );
