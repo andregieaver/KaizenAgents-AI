@@ -44,8 +44,7 @@ import {
   Calendar,
   Users,
   CheckCircle2,
-  Copy,
-  Home
+  Copy
 } from 'lucide-react';
 import { Checkbox } from '../components/ui/checkbox';
 import { formatDistanceToNow } from 'date-fns';
