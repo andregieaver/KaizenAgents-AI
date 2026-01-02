@@ -209,7 +209,7 @@ async def get_spaces(
     spaces = await db.project_spaces.find(
         {"tenant_id": tenant_id},
         {"_id": 0}
-    ).sort("created_at", -1).to_list(100)
+    ).sort([("order", 1), ("created_at", -1)]).to_list(100)
     
     # Get project count for each space
     for space in spaces:
