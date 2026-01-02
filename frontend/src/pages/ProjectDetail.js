@@ -1114,6 +1114,10 @@ const ProjectDetail = () => {
   const [showListDialog, setShowListDialog] = useState(false);
   const [newListName, setNewListName] = useState('');
   
+  // Status management modal state
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusModalEntity, setStatusModalEntity] = useState({ type: null, id: null, name: null });
+  
   // Kanban drag state
   const [activeTask, setActiveTask] = useState(null);
   
@@ -1122,6 +1126,12 @@ const ProjectDetail = () => {
     useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 8 } }),
     useSensor(KeyboardSensor)
   );
+
+  // Open status management modal for list
+  const openListStatusModal = (list) => {
+    setStatusModalEntity({ type: 'list', id: list.id, name: list.name });
+    setShowStatusModal(true);
+  };
 
   const fetchProject = useCallback(async () => {
     try {
