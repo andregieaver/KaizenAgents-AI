@@ -31,6 +31,22 @@ import {
 } from '../components/ui/dropdown-menu';
 // Breadcrumb components removed - using header breadcrumbs from DashboardLayout
 import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   Folder,
   Plus,
   Search,
@@ -44,7 +60,8 @@ import {
   Calendar,
   Users,
   CheckCircle2,
-  Copy
+  Copy,
+  GripVertical
 } from 'lucide-react';
 import { Checkbox } from '../components/ui/checkbox';
 import { formatDistanceToNow } from 'date-fns';
