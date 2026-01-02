@@ -302,6 +302,10 @@ const SortableProjectCard = ({ project, onClick, onEdit, onDelete, onDuplicate, 
                   <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onDuplicate(project); }}>
                     <Copy className="h-4 w-4 mr-2" /> Duplicate
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onManageStatuses(project); }}>
+                    <Settings className="h-4 w-4 mr-2" /> Manage Statuses
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={(e) => { e.stopPropagation(); onDelete(project); }}
                     className="text-destructive"
