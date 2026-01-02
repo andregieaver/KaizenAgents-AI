@@ -174,14 +174,14 @@ const SortableProjectCard = ({ project, onClick, onEdit, onDelete, onDuplicate }
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-2">
-              {/* Drag Handle */}
+              {/* Drag Handle - Always visible */}
               <div
                 {...attributes}
                 {...listeners}
-                className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-muted opacity-0 group-hover:opacity-100 transition-opacity"
+                className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-muted text-muted-foreground"
                 onClick={(e) => e.stopPropagation()}
               >
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                <GripVertical className="h-4 w-4" />
               </div>
               <div 
                 className="h-3 w-3 rounded-full"
@@ -195,7 +195,7 @@ const SortableProjectCard = ({ project, onClick, onEdit, onDelete, onDuplicate }
               </Badge>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100">
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
