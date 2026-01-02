@@ -124,12 +124,14 @@ class ProjectUpdate(BaseModel):
 class ListCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     color: Optional[str] = None
+    custom_statuses: Optional[List[ProjectStatusConfig]] = None
 
 
 class ListUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=100)
     color: Optional[str] = None
     position: Optional[int] = None
+    custom_statuses: Optional[List[ProjectStatusConfig]] = None
 
 
 # =============================================================================
