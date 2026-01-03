@@ -870,9 +870,6 @@ const ListDetail = () => {
           </div>
         </div>
       )}
-          </DndContext>
-        </div>
-      </ScrollArea>
 
       {/* Task Dialog */}
       <TaskDialog
