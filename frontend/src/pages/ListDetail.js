@@ -1016,13 +1016,11 @@ const ListDetail = () => {
       )}
       
       {viewMode === 'gantt' && (
-        <div className="flex-1 flex items-center justify-center text-muted-foreground p-4">
-          <div className="text-center">
-            <GanttChart className="h-12 w-12 mx-auto mb-4 opacity-50" />
-            <p className="font-medium">Gantt View</p>
-            <p className="text-sm">Coming soon - add start and due dates to tasks to use Gantt view</p>
-          </div>
-        </div>
+        <GanttView 
+          tasks={tasks.filter(t => t.title.toLowerCase().includes(search.toLowerCase()))}
+          statuses={statuses}
+          onEditTask={openEditTask}
+        />
       )}
 
       {/* Task Dialog */}
