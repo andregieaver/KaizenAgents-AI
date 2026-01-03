@@ -761,10 +761,10 @@ const ListDetail = () => {
       
       {viewMode === 'list' && (
         <ScrollArea className="flex-1">
-          <div className="p-4">
+          <div className="p-2 sm:p-4">
             <div className="border rounded-lg overflow-hidden">
-              {/* Table Header */}
-              <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-muted/50 text-sm font-medium border-b">
+              {/* Table Header - Desktop */}
+              <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-2 bg-muted/50 text-sm font-medium border-b">
                 <div className="col-span-5">Task</div>
                 <div className="col-span-2">Status</div>
                 <div className="col-span-2">Priority</div>
@@ -783,65 +783,123 @@ const ListDetail = () => {
                   return (
                     <div 
                       key={task.id}
-                      className="grid grid-cols-12 gap-2 px-4 py-3 items-center border-b last:border-b-0 hover:bg-muted/30 cursor-pointer"
+                      className="border-b last:border-b-0 hover:bg-muted/30 cursor-pointer"
                       onClick={() => openEditTask(task)}
                     >
-                      <div className="col-span-5 flex items-center gap-2">
-                        <button 
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            handleUpdateTask({ status: task.status === 'done' ? statuses[0]?.id : 'done' }); 
-                          }}
-                          className="flex-shrink-0"
-                        >
-                          {task.status === 'done' ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
-                          ) : (
-                            <Circle className="h-4 w-4 text-muted-foreground" />
-                          )}
-                        </button>
-                        <span className={`truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
-                          {task.title}
-                        </span>
-                      </div>
-                      <div className="col-span-2">
-                        {taskStatus && (
-                          <Badge 
-                            variant="outline" 
-                            className="text-xs"
-                            style={{ borderColor: taskStatus.color, color: taskStatus.color }}
+                      {/* Mobile Layout */}
+                      <div className="sm:hidden p-3">
+                        <div className="flex items-start gap-2">
+                          <button 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              handleUpdateTask({ status: task.status === 'done' ? statuses[0]?.id : 'done' }); 
+                            }}
+                            className="flex-shrink-0 mt-0.5"
                           >
-                            {taskStatus.name}
+                            {task.status === 'done' ? (
+                              <CheckCircle2 className="h-5 w-5 text-green-500" />
+                            ) : (
+                              <Circle className="h-5 w-5 text-muted-foreground" />
+                            )}
+                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p className={`font-medium text-sm ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+                              {task.title}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-2 mt-2">
+                              {taskStatus && (
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs"
+                                  style={{ borderColor: taskStatus.color, color: taskStatus.color }}
+                                >
+                                  {taskStatus.name}
+                                </Badge>
+                              )}
+                              <Badge variant="secondary" className={`text-xs ${priorityClass}`}>
+                                {task.priority}
+                              </Badge>
+                              {task.due_date && (
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {format(new Date(task.due_date), 'MMM d')}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 flex-shrink-0"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTask(task);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {/* Desktop Layout */}
+                      <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-3 items-center">
+                        <div className="col-span-5 flex items-center gap-2">
+                          <button 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              handleUpdateTask({ status: task.status === 'done' ? statuses[0]?.id : 'done' }); 
+                            }}
+                            className="flex-shrink-0"
+                          >
+                            {task.status === 'done' ? (
+                              <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Circle className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </button>
+                          <span className={`truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+                            {task.title}
+                          </span>
+                        </div>
+                        <div className="col-span-2">
+                          {taskStatus && (
+                            <Badge 
+                              variant="outline" 
+                              className="text-xs"
+                              style={{ borderColor: taskStatus.color, color: taskStatus.color }}
+                            >
+                              {taskStatus.name}
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="col-span-2">
+                          <Badge variant="secondary" className={`text-xs ${priorityClass}`}>
+                            {task.priority}
                           </Badge>
-                        )}
-                      </div>
-                      <div className="col-span-2">
-                        <Badge variant="secondary" className={`text-xs ${priorityClass}`}>
-                          {task.priority}
-                        </Badge>
-                      </div>
-                      <div className="col-span-2 text-sm text-muted-foreground">
-                        {task.due_date ? format(new Date(task.due_date), 'MMM d') : '-'}
-                      </div>
-                      <div className="col-span-1 flex justify-end">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteTask(task);
-                          }}
-                        >
-                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                        </Button>
+                        </div>
+                        <div className="col-span-2 text-sm text-muted-foreground">
+                          {task.due_date ? format(new Date(task.due_date), 'MMM d') : '-'}
+                        </div>
+                        <div className="col-span-1 flex justify-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTask(task);
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               
               {tasks.length === 0 && (
-                <div className="text-center py-12 text-muted-foreground">
+                <div className="text-center py-8 sm:py-12 text-muted-foreground">
                   <Circle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                   <p>No tasks yet</p>
                 </div>
