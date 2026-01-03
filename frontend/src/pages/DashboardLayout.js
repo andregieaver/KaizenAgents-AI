@@ -721,7 +721,8 @@ const Breadcrumb = () => {
       messaging: 'Messaging',
       create: 'Create',
       edit: 'Edit',
-      projects: 'Projects'
+      projects: 'Projects',
+      lists: 'Lists'
     };
     
     // If previous path was 'conversations' and this looks like an ID, show 'Details'
@@ -741,6 +742,7 @@ const Breadcrumb = () => {
       if (parent === 'knowledge-base') return 'Edit Article';
       if (parent === 'edit') return 'Edit Article';
       if (parent === 'projects') return 'Project';
+      if (parent === 'lists') return 'List';
       return 'Details';
     }
     
