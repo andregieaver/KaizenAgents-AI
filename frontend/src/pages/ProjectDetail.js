@@ -1369,36 +1369,6 @@ const ProjectDetail = () => {
           </DragOverlay>
         </DndContext>
       </div>
-              )}
-            </DragOverlay>
-          </DndContext>
-        )}
-
-        {/* Gantt View */}
-        {viewMode === 'gantt' && (
-          <div className="p-4 h-full overflow-auto">
-            <GanttView
-              tasks={filteredTasks.filter(t => !t.parent_task_id)}
-              dependencies={project.dependencies || []}
-              onEdit={openEditTask}
-              projectStatuses={taskStatuses}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Task Dialog */}
-      <TaskDialog
-        open={showTaskDialog}
-        onOpenChange={setShowTaskDialog}
-        task={editingTask}
-        projectId={projectId}
-        lists={lists}
-        statuses={taskStatuses}
-        onSave={editingTask ? handleUpdateTask : handleCreateTask}
-        onDelete={editingTask ? handleDeleteTask : null}
-        token={token}
-      />
 
       {/* Add List Dialog */}
       <Dialog open={showListDialog} onOpenChange={setShowListDialog}>
