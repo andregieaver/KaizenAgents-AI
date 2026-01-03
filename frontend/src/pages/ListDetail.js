@@ -78,6 +78,9 @@ import {
   X,
   Filter,
   SlidersHorizontal,
+  CheckSquare,
+  Square,
+  Minus,
 } from 'lucide-react';
 import { format, differenceInDays, addDays, startOfDay, endOfDay, eachDayOfInterval, isWithinInterval, parseISO, min, max } from 'date-fns';
 import { toast } from 'sonner';
