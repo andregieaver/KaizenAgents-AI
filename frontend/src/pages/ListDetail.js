@@ -555,10 +555,9 @@ const ListDetail = () => {
   const handleCreateTask = async (formData) => {
     try {
       const response = await axios.post(
-        `${API}/projects/tasks`,
+        `${API}/projects/${projectId}/tasks`,
         {
           ...formData,
-          project_id: projectId,
           list_id: listId,
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -576,7 +575,7 @@ const ListDetail = () => {
   const handleUpdateTask = async (formData) => {
     try {
       await axios.put(
-        `${API}/projects/tasks/${editingTask.id}`,
+        `${API}/projects/${projectId}/tasks/${editingTask.id}`,
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -597,7 +596,7 @@ const ListDetail = () => {
     if (!window.confirm(`Delete "${task.title}"?`)) return;
     
     try {
-      await axios.delete(`${API}/projects/tasks/${task.id}`, {
+      await axios.delete(`${API}/projects/${projectId}/tasks/${task.id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setTasks(prev => prev.filter(t => t.id !== task.id));
