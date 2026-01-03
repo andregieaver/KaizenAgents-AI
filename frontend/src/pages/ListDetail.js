@@ -609,89 +609,118 @@ const ListDetail = () => {
     setActiveTask(null);
     const { active, over } = event;
     
-    if (!over) return;
+    if (!over || active.id === over.id) return;
     
     const activeTaskId = active.id;
     const overId = over.id;
     
     // Find the task being dragged
-    const activeTask = tasks.find(t => t.id === activeTaskId);
-    if (!activeTask) return;
+    const draggedTask = tasks.find(t => t.id === activeTaskId);
+    if (!draggedTask) return;
     
-    // Determine target status
-    let targetStatus = overId;
+    // Determine target status and position
+    let targetStatus = draggedTask.status;
     let targetIndex = 0;
     
-    // Check if dropped on another task
+    // Check if dropped on another task or on a status column
     const overTask = tasks.find(t => t.id === overId);
     if (overTask) {
+      // Dropped on another task
       targetStatus = overTask.status;
-      // Get position within status
-      const statusTasks = tasks.filter(t => t.status === targetStatus);
-      targetIndex = statusTasks.findIndex(t => t.id === overId);
-    } else {
-      // Dropped on status column itself
+    } else if (statuses.some(s => s.id === overId)) {
+      // Dropped on status column
       targetStatus = overId;
-      const statusTasks = tasks.filter(t => t.status === targetStatus);
-      targetIndex = statusTasks.length;
     }
     
     // Check if status changed
-    const statusChanged = activeTask.status !== targetStatus;
+    const statusChanged = draggedTask.status !== targetStatus;
     
-    // Update locally first (optimistic)
-    let newTasks = [...tasks];
-    const activeIndex = newTasks.findIndex(t => t.id === activeTaskId);
-    
-    if (statusChanged) {
-      // Update task status
-      newTasks[activeIndex] = { ...newTasks[activeIndex], status: targetStatus };
-    }
-    
-    // Reorder within the status
-    const statusTasks = newTasks
+    // Get tasks in target status (before any updates)
+    let statusTasks = tasks
       .filter(t => t.status === targetStatus)
       .sort((a, b) => (a.order || 0) - (b.order || 0));
     
-    const oldIndexInStatus = statusTasks.findIndex(t => t.id === activeTaskId);
-    if (oldIndexInStatus !== -1 && oldIndexInStatus !== targetIndex) {
-      const reorderedTasks = arrayMove(statusTasks, oldIndexInStatus, targetIndex);
-      // Update order values
-      reorderedTasks.forEach((t, i) => {
-        const idx = newTasks.findIndex(nt => nt.id === t.id);
-        if (idx !== -1) {
-          newTasks[idx] = { ...newTasks[idx], order: i };
-        }
-      });
+    // If moving to a new status, add the dragged task to the list
+    if (statusChanged) {
+      statusTasks = [...statusTasks];
     }
     
-    setTasks(newTasks);
+    // Find indices
+    const oldIndex = statusTasks.findIndex(t => t.id === activeTaskId);
+    let newIndex = overTask 
+      ? statusTasks.findIndex(t => t.id === overId)
+      : statusTasks.length; // Dropped on empty column or end
     
-    // Save to backend
-    try {
-      if (statusChanged) {
+    // If same status reorder
+    if (!statusChanged && oldIndex !== -1) {
+      // Use arrayMove for same-status reordering
+      const reorderedTasks = arrayMove(statusTasks, oldIndex, newIndex);
+      
+      // Update order values
+      const newTasksList = tasks.map(t => {
+        const reorderedIndex = reorderedTasks.findIndex(rt => rt.id === t.id);
+        if (reorderedIndex !== -1) {
+          return { ...t, order: reorderedIndex };
+        }
+        return t;
+      });
+      
+      setTasks(newTasksList);
+      
+      // Save order to backend
+      try {
+        const orderedTaskIds = reorderedTasks.map(t => t.id);
+        await axios.post(
+          `${API}/projects/lists/${listId}/tasks/reorder`,
+          { task_ids: orderedTaskIds, status: targetStatus },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } catch (error) {
+        console.error('Failed to reorder tasks:', error);
+        toast.error('Failed to reorder tasks');
+        fetchListData();
+      }
+    } else if (statusChanged) {
+      // Moving to different status
+      // Update task status locally
+      const newTasksList = tasks.map(t => {
+        if (t.id === activeTaskId) {
+          return { ...t, status: targetStatus, order: newIndex };
+        }
+        // Update order of tasks in target status that come after
+        if (t.status === targetStatus && (t.order || 0) >= newIndex) {
+          return { ...t, order: (t.order || 0) + 1 };
+        }
+        return t;
+      });
+      
+      setTasks(newTasksList);
+      
+      // Save to backend
+      try {
+        // First update the status
         await axios.put(
           `${API}/projects/${projectId}/tasks/${activeTaskId}`,
           { status: targetStatus },
           { headers: { Authorization: `Bearer ${token}` } }
         );
+        
+        // Then reorder
+        const orderedTaskIds = newTasksList
+          .filter(t => t.status === targetStatus)
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+          .map(t => t.id);
+        
+        await axios.post(
+          `${API}/projects/lists/${listId}/tasks/reorder`,
+          { task_ids: orderedTaskIds, status: targetStatus },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } catch (error) {
+        console.error('Failed to update task:', error);
+        toast.error('Failed to update task');
+        fetchListData();
       }
-      
-      // Save order
-      const orderedTaskIds = newTasks
-        .filter(t => t.status === targetStatus)
-        .sort((a, b) => (a.order || 0) - (b.order || 0))
-        .map(t => t.id);
-      
-      await axios.post(
-        `${API}/projects/lists/${listId}/tasks/reorder`,
-        { task_ids: orderedTaskIds, status: targetStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-    } catch (error) {
-      console.error('Failed to update task:', error);
-      toast.error('Failed to update task');
-      fetchListData(); // Revert on error
     }
   };
 
