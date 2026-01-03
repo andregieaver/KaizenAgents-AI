@@ -664,7 +664,7 @@ const ListDetail = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <div className="relative">
+            <div className="relative hidden sm:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search tasks..."
@@ -673,6 +673,38 @@ const ListDetail = () => {
                 className="pl-9 w-[200px]"
               />
             </div>
+            
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+              <Button
+                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('list')}
+                className="h-7 px-2"
+                title="List View"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('kanban')}
+                className="h-7 px-2"
+                title="Kanban View"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button
+                variant={viewMode === 'gantt' ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setViewMode('gantt')}
+                className="h-7 px-2"
+                title="Gantt View"
+              >
+                <GanttChart className="h-4 w-4" />
+              </Button>
+            </div>
+            
             <Button variant="outline" size="icon" onClick={() => setShowStatusModal(true)}>
               <Settings className="h-4 w-4" />
             </Button>
@@ -682,42 +714,162 @@ const ListDetail = () => {
             </Button>
           </div>
         </div>
+        
+        {/* Mobile Search */}
+        <div className="sm:hidden">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search tasks..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Kanban Board */}
-      <ScrollArea className="flex-1">
-        <div className="p-4">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCorners}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="flex gap-4 min-w-max">
-              {statuses.map(status => (
-                <StatusColumn
-                  key={status.id}
-                  status={status}
-                  tasks={tasksByStatus[status.id] || []}
-                  onEditTask={openEditTask}
-                  onDeleteTask={handleDeleteTask}
-                  statuses={statuses}
-                />
-              ))}
-            </div>
-            
-            <DragOverlay>
-              {activeTask && (
-                <Card className="shadow-xl w-[280px]">
-                  <CardContent className="p-3">
-                    <div className="flex items-center gap-2">
-                      <GripVertical className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium text-sm">{activeTask.title}</span>
+      {/* Content based on View Mode */}
+      {viewMode === 'kanban' && (
+        <ScrollArea className="flex-1">
+          <div className="p-4">
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="flex gap-4 min-w-max">
+                {statuses.map(status => (
+                  <StatusColumn
+                    key={status.id}
+                    status={status}
+                    tasks={tasksByStatus[status.id] || []}
+                    onEditTask={openEditTask}
+                    onDeleteTask={handleDeleteTask}
+                    statuses={statuses}
+                  />
+                ))}
+              </div>
+              
+              <DragOverlay>
+                {activeTask && (
+                  <Card className="shadow-xl w-[280px]">
+                    <CardContent className="p-3">
+                      <div className="flex items-center gap-2">
+                        <GripVertical className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-sm">{activeTask.title}</span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </DragOverlay>
+            </DndContext>
+          </div>
+        </ScrollArea>
+      )}
+      
+      {viewMode === 'list' && (
+        <ScrollArea className="flex-1">
+          <div className="p-4">
+            <div className="border rounded-lg overflow-hidden">
+              {/* Table Header */}
+              <div className="grid grid-cols-12 gap-2 px-4 py-2 bg-muted/50 text-sm font-medium border-b">
+                <div className="col-span-5">Task</div>
+                <div className="col-span-2">Status</div>
+                <div className="col-span-2">Priority</div>
+                <div className="col-span-2">Due Date</div>
+                <div className="col-span-1"></div>
+              </div>
+              
+              {/* Task Rows */}
+              {tasks
+                .filter(t => t.title.toLowerCase().includes(search.toLowerCase()))
+                .sort((a, b) => (a.order || 0) - (b.order || 0))
+                .map(task => {
+                  const taskStatus = statuses.find(s => s.id === task.status);
+                  const priorityClass = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
+                  
+                  return (
+                    <div 
+                      key={task.id}
+                      className="grid grid-cols-12 gap-2 px-4 py-3 items-center border-b last:border-b-0 hover:bg-muted/30 cursor-pointer"
+                      onClick={() => openEditTask(task)}
+                    >
+                      <div className="col-span-5 flex items-center gap-2">
+                        <button 
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            handleUpdateTask({ status: task.status === 'done' ? statuses[0]?.id : 'done' }); 
+                          }}
+                          className="flex-shrink-0"
+                        >
+                          {task.status === 'done' ? (
+                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Circle className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </button>
+                        <span className={`truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+                          {task.title}
+                        </span>
+                      </div>
+                      <div className="col-span-2">
+                        {taskStatus && (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs"
+                            style={{ borderColor: taskStatus.color, color: taskStatus.color }}
+                          >
+                            {taskStatus.name}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="col-span-2">
+                        <Badge variant="secondary" className={`text-xs ${priorityClass}`}>
+                          {task.priority}
+                        </Badge>
+                      </div>
+                      <div className="col-span-2 text-sm text-muted-foreground">
+                        {task.due_date ? format(new Date(task.due_date), 'MMM d') : '-'}
+                      </div>
+                      <div className="col-span-1 flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTask(task);
+                          }}
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        </Button>
+                      </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  );
+                })}
+              
+              {tasks.length === 0 && (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Circle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p>No tasks yet</p>
+                </div>
               )}
-            </DragOverlay>
+            </div>
+          </div>
+        </ScrollArea>
+      )}
+      
+      {viewMode === 'gantt' && (
+        <div className="flex-1 flex items-center justify-center text-muted-foreground p-4">
+          <div className="text-center">
+            <GanttChart className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="font-medium">Gantt View</p>
+            <p className="text-sm">Coming soon - add start and due dates to tasks to use Gantt view</p>
+          </div>
+        </div>
+      )}
           </DndContext>
         </div>
       </ScrollArea>
