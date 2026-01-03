@@ -233,35 +233,34 @@ const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses }) => 
 
 // Task Dialog Component
 const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDelete }) => {
-  const getInitialFormData = () => {
-    if (task) {
-      return {
-        title: task.title || '',
-        description: task.description || '',
-        status: task.status || 'todo',
-        priority: task.priority || 'medium',
-        due_date: task.due_date ? task.due_date.split('T')[0] : '',
-        assigned_to: task.assigned_to || '',
-      };
-    }
-    return {
-      title: '',
-      description: '',
-      status: statuses[0]?.id || 'todo',
-      priority: 'medium',
-      due_date: '',
-      assigned_to: '',
-    };
+  // Initialize form data based on task prop
+  const initialFormData = task ? {
+    title: task.title || '',
+    description: task.description || '',
+    status: task.status || 'todo',
+    priority: task.priority || 'medium',
+    due_date: task.due_date ? task.due_date.split('T')[0] : '',
+    assigned_to: task.assigned_to || '',
+  } : {
+    title: '',
+    description: '',
+    status: statuses[0]?.id || 'todo',
+    priority: 'medium',
+    due_date: '',
+    assigned_to: '',
   };
 
-  const [formData, setFormData] = useState(getInitialFormData);
+  const [formData, setFormData] = useState(initialFormData);
 
-  // Reset form when task changes or dialog opens
-  useEffect(() => {
-    if (open) {
-      setFormData(getInitialFormData());
+  // Reset form when dialog opens with different task
+  const prevTaskIdRef = useRef(task?.id);
+  if (prevTaskIdRef.current !== task?.id) {
+    prevTaskIdRef.current = task?.id;
+    // This is safe - we're updating during render based on prop change
+    if (formData.title !== initialFormData.title || formData.status !== initialFormData.status) {
+      setFormData(initialFormData);
     }
-  }, [open, task?.id]);
+  }
 
   const handleSubmit = () => {
     if (!formData.title.trim()) {
