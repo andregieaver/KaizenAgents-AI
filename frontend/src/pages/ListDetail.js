@@ -185,29 +185,29 @@ const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses }) => 
   const taskIds = tasks.map(t => t.id);
 
   return (
-    <div className="flex-1 min-w-[280px] max-w-[350px]">
+    <div className="flex-1 min-w-[240px] sm:min-w-[280px] max-w-[350px]">
       {/* Status Header */}
       <div 
-        className="flex items-center gap-2 mb-3 pb-2 border-b"
+        className="flex items-center gap-2 mb-2 sm:mb-3 pb-2 border-b"
         style={{ borderBottomColor: status.color }}
       >
         <div 
-          className="w-3 h-3 rounded-full"
+          className="w-3 h-3 rounded-full flex-shrink-0"
           style={{ backgroundColor: status.color }}
         />
-        <h3 className="font-medium text-sm">{status.name}</h3>
+        <h3 className="font-medium text-xs sm:text-sm truncate">{status.name}</h3>
         <Badge variant="secondary" className="ml-auto text-xs">
           {tasks.length}
         </Badge>
         {status.is_final && (
-          <CheckCircle2 className="h-4 w-4 text-green-500" />
+          <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
         )}
       </div>
       
       {/* Tasks Container */}
       <div
         ref={setNodeRef}
-        className={`min-h-[200px] p-2 rounded-lg transition-colors ${
+        className={`min-h-[150px] sm:min-h-[200px] p-1.5 sm:p-2 rounded-lg transition-colors ${
           isOver ? 'bg-primary/10 ring-2 ring-primary/30' : 'bg-muted/30'
         }`}
       >
@@ -223,8 +223,8 @@ const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses }) => 
               />
             ))
           ) : (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              <Circle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <div className="text-center py-6 sm:py-8 text-muted-foreground text-xs sm:text-sm">
+              <Circle className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 opacity-50" />
               No tasks
             </div>
           )}
