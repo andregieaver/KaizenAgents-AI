@@ -722,14 +722,14 @@ const ListDetail = () => {
       {/* Content based on View Mode */}
       {viewMode === 'kanban' && (
         <ScrollArea className="flex-1">
-          <div className="p-4">
+          <div className="p-2 sm:p-4">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCorners}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             >
-              <div className="flex gap-4 min-w-max">
+              <div className="flex gap-2 sm:gap-4 min-w-max pb-4">
                 {statuses.map(status => (
                   <StatusColumn
                     key={status.id}
@@ -744,11 +744,11 @@ const ListDetail = () => {
               
               <DragOverlay>
                 {activeTask && (
-                  <Card className="shadow-xl w-[280px]">
-                    <CardContent className="p-3">
+                  <Card className="shadow-xl w-[240px] sm:w-[280px]">
+                    <CardContent className="p-2 sm:p-3">
                       <div className="flex items-center gap-2">
                         <GripVertical className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-sm">{activeTask.title}</span>
+                        <span className="font-medium text-sm truncate">{activeTask.title}</span>
                       </div>
                     </CardContent>
                   </Card>
