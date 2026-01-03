@@ -1195,15 +1195,15 @@ const ListDetail = () => {
 
       {/* Content based on View Mode */}
       {viewMode === 'kanban' && (
-        <ScrollArea className="flex-1">
-          <div className="p-2 sm:p-4">
+        <div className="flex-1 overflow-x-auto overflow-y-auto">
+          <div className="p-2 sm:p-4 min-w-max">
             <DndContext
               sensors={sensors}
               collisionDetection={closestCorners}
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
             >
-              <div className="flex gap-2 sm:gap-4 min-w-max pb-4">
+              <div className="flex gap-2 sm:gap-4 pb-4">
                 {statuses.map(status => (
                   <StatusColumn
                     key={status.id}
@@ -1230,7 +1230,7 @@ const ListDetail = () => {
               </DragOverlay>
             </DndContext>
           </div>
-        </ScrollArea>
+        </div>
       )}
       
       {viewMode === 'list' && (
