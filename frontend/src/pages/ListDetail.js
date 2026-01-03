@@ -2107,6 +2107,116 @@ const ListDetail = () => {
         />
       )}
 
+      {/* Bulk Action Bar */}
+      {selectionMode && selectedTasks.size > 0 && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 bg-background border rounded-lg shadow-xl p-2 sm:p-3 flex items-center gap-2 sm:gap-3 animate-in slide-in-from-bottom-4">
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-sm">
+              {selectedTasks.size} selected
+            </Badge>
+          </div>
+          
+          {/* Change Status Popover */}
+          <Popover open={showBulkStatusPopover} onOpenChange={setShowBulkStatusPopover}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Flag className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Change Status</span>
+                <span className="sm:hidden">Status</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56" align="center">
+              <div className="space-y-1">
+                <h4 className="font-medium text-sm mb-2">Move to status</h4>
+                {statuses.map(status => (
+                  <button
+                    key={status.id}
+                    className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left text-sm"
+                    onClick={() => handleBulkStatusChange(status.id)}
+                  >
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: status.color }}
+                    />
+                    {status.name}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+          
+          {/* Add Tags Popover */}
+          <Popover open={showBulkTagPopover} onOpenChange={setShowBulkTagPopover}>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Tag className="h-4 w-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">Manage Tags</span>
+                <span className="sm:hidden">Tags</span>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64" align="center">
+              <div className="space-y-3">
+                <div>
+                  <h4 className="font-medium text-sm mb-2">Add tag</h4>
+                  {tags.length > 0 ? (
+                    <div className="space-y-1 max-h-[150px] overflow-y-auto">
+                      {tags.map(tag => (
+                        <button
+                          key={tag.id}
+                          className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-muted text-left text-sm"
+                          onClick={() => handleBulkAddTag(tag.id)}
+                        >
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          {tag.name}
+                          <Plus className="h-3 w-3 ml-auto text-muted-foreground" />
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No tags created yet</p>
+                  )}
+                </div>
+                
+                {tags.length > 0 && (
+                  <div className="border-t pt-3">
+                    <h4 className="font-medium text-sm mb-2">Remove tag</h4>
+                    <div className="space-y-1 max-h-[150px] overflow-y-auto">
+                      {tags.map(tag => (
+                        <button
+                          key={tag.id}
+                          className="w-full flex items-center gap-2 p-2 rounded-md hover:bg-destructive/10 text-left text-sm"
+                          onClick={() => handleBulkRemoveTag(tag.id)}
+                        >
+                          <div 
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          {tag.name}
+                          <X className="h-3 w-3 ml-auto text-destructive" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+          
+          {/* Clear Selection Button */}
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={clearSelection}
+          >
+            <X className="h-4 w-4 mr-1" />
+            <span className="hidden sm:inline">Cancel</span>
+          </Button>
+        </div>
+      )}
+
       {/* Task Dialog */}
       <TaskDialog
         open={showTaskDialog}
