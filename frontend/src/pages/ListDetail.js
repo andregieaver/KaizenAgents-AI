@@ -69,7 +69,7 @@ import {
   LayoutGrid,
   GanttChart,
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, differenceInDays, addDays, startOfDay, endOfDay, eachDayOfInterval, isWithinInterval, parseISO, min, max } from 'date-fns';
 import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
