@@ -76,6 +76,8 @@ import {
   GanttChart,
   Tag,
   X,
+  Filter,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { format, differenceInDays, addDays, startOfDay, endOfDay, eachDayOfInterval, isWithinInterval, parseISO, min, max } from 'date-fns';
 import { toast } from 'sonner';
