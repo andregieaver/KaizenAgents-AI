@@ -669,7 +669,7 @@ const GanttView = ({ tasks, statuses, onEditTask, onDragStart, onDragEnd, sensor
 };
 
 // Task Dialog Component
-const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDelete }) => {
+const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDelete, availableTags = [] }) => {
   // Initialize form data based on task prop
   const initialFormData = task ? {
     title: task.title || '',
@@ -679,6 +679,7 @@ const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDele
     start_date: task.start_date ? task.start_date.split('T')[0] : '',
     due_date: task.due_date ? task.due_date.split('T')[0] : '',
     assigned_to: task.assigned_to || '',
+    tags: task.tags || [],
   } : {
     title: '',
     description: '',
@@ -687,6 +688,7 @@ const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDele
     start_date: '',
     due_date: '',
     assigned_to: '',
+    tags: [],
   };
 
   const [formData, setFormData] = useState(initialFormData);
@@ -709,9 +711,18 @@ const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDele
     onSave(formData);
   };
 
+  const toggleTag = (tagId) => {
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.includes(tagId) 
+        ? prev.tags.filter(t => t !== tagId)
+        : [...prev.tags, tagId]
+    }));
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{task ? 'Edit Task' : 'Add Task'}</DialogTitle>
           <DialogDescription>
@@ -805,6 +816,38 @@ const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDele
                 onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
               />
             </div>
+          </div>
+          
+          {/* Tags Section */}
+          <div className="space-y-2">
+            <Label>Tags</Label>
+            {availableTags.length > 0 ? (
+              <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[42px]">
+                {availableTags.map(tag => (
+                  <Badge
+                    key={tag.id}
+                    variant={formData.tags.includes(tag.id) ? "default" : "outline"}
+                    className="cursor-pointer transition-all hover:opacity-80"
+                    style={formData.tags.includes(tag.id) ? { 
+                      backgroundColor: tag.color, 
+                      borderColor: tag.color 
+                    } : { 
+                      borderColor: tag.color,
+                      color: tag.color 
+                    }}
+                    onClick={() => toggleTag(tag.id)}
+                  >
+                    <Tag className="h-3 w-3 mr-1" />
+                    {tag.name}
+                    {formData.tags.includes(tag.id) && (
+                      <X className="h-3 w-3 ml-1" />
+                    )}
+                  </Badge>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No tags available. Create tags from the settings menu.</p>
+            )}
           </div>
         </div>
         
