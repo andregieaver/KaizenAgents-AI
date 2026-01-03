@@ -1460,6 +1460,31 @@ const ProjectDetail = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Edit List Dialog */}
+      <Dialog open={showEditListDialog} onOpenChange={setShowEditListDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit List</DialogTitle>
+            <DialogDescription>Update the list name</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-list-name">Name</Label>
+              <Input
+                id="edit-list-name"
+                value={editListName}
+                onChange={(e) => setEditListName(e.target.value)}
+                placeholder="List name"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditListDialog(false)}>Cancel</Button>
+            <Button onClick={handleUpdateList}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Status Management Modal */}
       <StatusManagementModal
         open={showStatusModal}
