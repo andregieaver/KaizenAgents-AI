@@ -1543,15 +1543,28 @@ const ListDetail = () => {
                             checked={filterStatuses.length === 0 || filterStatuses.includes(status.id)}
                             onCheckedChange={(checked) => {
                               if (checked) {
-                                if (filterStatuses.length === 0) {
-                                  // First selection - select only this one
-                                  setFilterStatuses([status.id]);
+                                // Adding a status back
+                                const newFilters = [...filterStatuses, status.id];
+                                // If all statuses are now selected, reset to empty (show all)
+                                if (newFilters.length >= statuses.length) {
+                                  setFilterStatuses([]);
                                 } else {
-                                  setFilterStatuses([...filterStatuses, status.id]);
+                                  setFilterStatuses(newFilters);
                                 }
                               } else {
-                                const newFilters = filterStatuses.filter(s => s !== status.id);
-                                setFilterStatuses(newFilters);
+                                // Removing a status
+                                if (filterStatuses.length === 0) {
+                                  // Currently showing all - select all EXCEPT this one
+                                  const allExceptThis = statuses.map(s => s.id).filter(id => id !== status.id);
+                                  setFilterStatuses(allExceptThis);
+                                } else {
+                                  // Already have some filters - remove this one
+                                  const newFilters = filterStatuses.filter(s => s !== status.id);
+                                  // Don't allow empty (must have at least one status)
+                                  if (newFilters.length > 0) {
+                                    setFilterStatuses(newFilters);
+                                  }
+                                }
                               }
                             }}
                           />
