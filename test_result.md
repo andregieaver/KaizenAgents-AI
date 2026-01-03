@@ -85,15 +85,18 @@ frontend:
 
   - task: "List Edit and Delete Functionality"
     implemented: true
-    working: "NA"
+    working: false
     file: "/app/frontend/src/pages/ProjectDetail.js"
-    stuck_count: 0
+    stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "testing"
         comment: "New task added for testing list edit and delete functionality in Project Detail page. Need to test dropdown menu on list cards with Edit List, Manage Statuses, and Delete List options. Also need to test the edit dialog and delete confirmation functionality."
+      - working: false
+        agent: "testing"
+        comment: "CRITICAL: Authentication session timeout issues prevent complete UI testing. Code analysis shows list edit/delete functionality is properly implemented: 1) SortableListCard component has dropdown menu with MoreHorizontal icon (lines 493-514), 2) Dropdown contains 'Edit List', 'Manage Statuses', and 'Delete List' options, 3) Edit functionality opens dialog with input field id='edit-list-name' (lines 1463-1486), 4) Delete functionality shows confirmation dialog (lines 1250-1268), 5) Both operations call proper API endpoints and update UI. However, persistent session timeouts during testing prevent verification of actual UI behavior. Session expires within seconds of login, causing redirects to login page."
 
 metadata:
   created_by: "testing_agent"
