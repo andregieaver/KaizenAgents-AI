@@ -232,12 +232,17 @@ const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses, av
 };
 
 // Droppable Status Column Component
-const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses, availableTags = [] }) => {
+const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses, availableTags = [], selectionMode, selectedTasks, onToggleSelect, onSelectAll, onDeselectAll }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
   });
 
   const taskIds = tasks.map(t => t.id);
+  
+  // Calculate selection state for this column
+  const selectedInColumn = tasks.filter(t => selectedTasks.has(t.id)).length;
+  const allSelected = tasks.length > 0 && selectedInColumn === tasks.length;
+  const someSelected = selectedInColumn > 0 && selectedInColumn < tasks.length;
 
   return (
     <div className="flex-1 min-w-[240px] sm:min-w-[280px] max-w-[350px]">
@@ -246,6 +251,27 @@ const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses, avail
         className="flex items-center gap-2 mb-2 sm:mb-3 pb-2 border-b"
         style={{ borderBottomColor: status.color }}
       >
+        {/* Select All Checkbox */}
+        {selectionMode && tasks.length > 0 && (
+          <div 
+            className="cursor-pointer"
+            onClick={() => {
+              if (allSelected) {
+                onDeselectAll(status.id);
+              } else {
+                onSelectAll(status.id);
+              }
+            }}
+          >
+            {allSelected ? (
+              <CheckSquare className="h-4 w-4 text-primary" />
+            ) : someSelected ? (
+              <Minus className="h-4 w-4 text-primary border border-primary rounded" />
+            ) : (
+              <Square className="h-4 w-4 text-muted-foreground" />
+            )}
+          </div>
+        )}
         <div 
           className="w-3 h-3 rounded-full flex-shrink-0"
           style={{ backgroundColor: status.color }}
@@ -276,6 +302,9 @@ const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses, avail
                 onDelete={onDeleteTask}
                 statuses={statuses}
                 availableTags={availableTags}
+                selectionMode={selectionMode}
+                isSelected={selectedTasks.has(task.id)}
+                onToggleSelect={onToggleSelect}
               />
             ))
           ) : (
