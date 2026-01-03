@@ -96,7 +96,7 @@ const PRIORITY_COLORS = {
 };
 
 // Sortable Task Card Component
-const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses, availableTags = [] }) => {
+const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses, availableTags = [], isSelected, onToggleSelect, selectionMode }) => {
   const {
     attributes,
     listeners,
@@ -122,9 +122,25 @@ const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses, av
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className="group hover:shadow-md transition-all cursor-pointer mb-1.5 sm:mb-2">
+      <Card className={`group hover:shadow-md transition-all cursor-pointer mb-1.5 sm:mb-2 ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
         <CardContent className="p-2 sm:p-3">
           <div className="flex items-start gap-1.5 sm:gap-2">
+            {/* Selection Checkbox */}
+            {selectionMode && (
+              <div 
+                className="flex items-center justify-center p-0.5 sm:p-1 mt-0.5"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSelect(task.id);
+                }}
+              >
+                <Checkbox 
+                  checked={isSelected} 
+                  className="h-4 w-4"
+                />
+              </div>
+            )}
+            
             {/* Drag Handle */}
             <div
               {...attributes}
