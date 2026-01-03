@@ -85,7 +85,7 @@ const PRIORITY_COLORS = {
 };
 
 // Sortable Task Card Component
-const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses }) => {
+const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses, availableTags = [] }) => {
   const {
     attributes,
     listeners,
@@ -103,6 +103,11 @@ const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses }) 
 
   const priorityClass = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
   const currentStatus = statuses.find(s => s.id === task.status);
+  
+  // Get tag objects for this task
+  const taskTags = (task.tags || [])
+    .map(tagId => availableTags.find(t => t.id === tagId))
+    .filter(Boolean);
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -148,6 +153,27 @@ const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses }) 
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
+              
+              {/* Tags */}
+              {taskTags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  {taskTags.slice(0, 3).map(tag => (
+                    <Badge 
+                      key={tag.id}
+                      variant="outline"
+                      className="text-[9px] sm:text-[10px] py-0 px-1.5"
+                      style={{ borderColor: tag.color, color: tag.color }}
+                    >
+                      {tag.name}
+                    </Badge>
+                  ))}
+                  {taskTags.length > 3 && (
+                    <Badge variant="outline" className="text-[9px] sm:text-[10px] py-0 px-1.5">
+                      +{taskTags.length - 3}
+                    </Badge>
+                  )}
+                </div>
+              )}
               
               {/* Task metadata */}
               <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 flex-wrap">
