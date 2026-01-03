@@ -1645,7 +1645,9 @@ const ListDetail = () => {
               onDragEnd={handleDragEnd}
             >
               <div className="flex gap-2 sm:gap-4 pb-4">
-                {statuses.map(status => (
+                {statuses
+                  .filter(status => filterStatuses.length === 0 || filterStatuses.includes(status.id))
+                  .map(status => (
                   <StatusColumn
                     key={status.id}
                     status={status}
