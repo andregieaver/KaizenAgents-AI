@@ -8,7 +8,7 @@ import time
 
 class AffiliateSystemTester:
     def __init__(self):
-        self.base_url = "https://projectflow-99.preview.emergentagent.com/api"
+        self.base_url = "https://project-tasks-hub.preview.emergentagent.com/api"
         self.token = None
         self.affiliate_code = None
         self.test_referral_id = None

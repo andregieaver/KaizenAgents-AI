@@ -8,7 +8,7 @@ import requests
 import json
 
 class RAGEnforcementTester:
-    def __init__(self, base_url="https://projectflow-99.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://project-tasks-hub.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.tenant_id = None

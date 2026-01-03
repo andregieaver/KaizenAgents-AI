@@ -12,7 +12,7 @@ from datetime import datetime
 def test_password_reset_endpoints():
     """Test all password reset endpoints as specified in the review request"""
     
-    base_url = "https://projectflow-99.preview.emergentagent.com/api"
+    base_url = "https://project-tasks-hub.preview.emergentagent.com/api"
     
     print("🚀 Testing Password Reset Flow API Endpoints")
     print(f"   Base URL: {base_url}")
