@@ -873,6 +873,211 @@ const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDele
   );
 };
 
+// Tag Management Modal Component
+const TagManagementModal = ({ open, onOpenChange, tags, onTagsUpdated }) => {
+  const { token } = useAuth();
+  const [newTagName, setNewTagName] = useState('');
+  const [newTagColor, setNewTagColor] = useState('#6B7280');
+  const [editingTag, setEditingTag] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  const predefinedColors = [
+    '#EF4444', '#F97316', '#F59E0B', '#EAB308', '#84CC16',
+    '#22C55E', '#10B981', '#14B8A6', '#06B6D4', '#0EA5E9',
+    '#3B82F6', '#6366F1', '#8B5CF6', '#A855F7', '#D946EF',
+    '#EC4899', '#F43F5E', '#6B7280', '#78716C', '#000000',
+  ];
+
+  const handleCreateTag = async () => {
+    if (!newTagName.trim()) {
+      toast.error('Tag name is required');
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      await axios.post(
+        `${API}/projects/tags`,
+        { name: newTagName.trim(), color: newTagColor },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Tag created');
+      setNewTagName('');
+      setNewTagColor('#6B7280');
+      onTagsUpdated();
+    } catch (error) {
+      console.error('Failed to create tag:', error);
+      toast.error(error.response?.data?.detail || 'Failed to create tag');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleUpdateTag = async () => {
+    if (!editingTag || !editingTag.name.trim()) {
+      toast.error('Tag name is required');
+      return;
+    }
+    
+    setSaving(true);
+    try {
+      await axios.put(
+        `${API}/projects/tags/${editingTag.id}`,
+        { name: editingTag.name.trim(), color: editingTag.color },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Tag updated');
+      setEditingTag(null);
+      onTagsUpdated();
+    } catch (error) {
+      console.error('Failed to update tag:', error);
+      toast.error(error.response?.data?.detail || 'Failed to update tag');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteTag = async (tagId) => {
+    if (!window.confirm('Delete this tag? It will be removed from all tasks.')) return;
+    
+    try {
+      await axios.delete(
+        `${API}/projects/tags/${tagId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Tag deleted');
+      onTagsUpdated();
+    } catch (error) {
+      console.error('Failed to delete tag:', error);
+      toast.error('Failed to delete tag');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Manage Tags</DialogTitle>
+          <DialogDescription>
+            Create, edit, and delete tags for your tasks
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          {/* Create new tag */}
+          <div className="space-y-2">
+            <Label>Create New Tag</Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Tag name"
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                className="flex-1"
+              />
+              <div className="relative">
+                <Input
+                  type="color"
+                  value={newTagColor}
+                  onChange={(e) => setNewTagColor(e.target.value)}
+                  className="w-10 h-10 p-1 cursor-pointer"
+                />
+              </div>
+              <Button onClick={handleCreateTag} disabled={saving || !newTagName.trim()}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {/* Color palette */}
+            <div className="flex flex-wrap gap-1">
+              {predefinedColors.map(color => (
+                <button
+                  key={color}
+                  className={`w-5 h-5 rounded-full border-2 transition-all ${
+                    newTagColor === color ? 'border-foreground scale-110' : 'border-transparent'
+                  }`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => setNewTagColor(color)}
+                />
+              ))}
+            </div>
+          </div>
+          
+          {/* Existing tags */}
+          <div className="space-y-2">
+            <Label>Existing Tags ({tags.length})</Label>
+            <div className="max-h-[200px] overflow-y-auto space-y-2">
+              {tags.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No tags created yet
+                </p>
+              ) : (
+                tags.map(tag => (
+                  <div 
+                    key={tag.id} 
+                    className="flex items-center gap-2 p-2 rounded-lg bg-muted/50"
+                  >
+                    {editingTag?.id === tag.id ? (
+                      <>
+                        <Input
+                          value={editingTag.name}
+                          onChange={(e) => setEditingTag({ ...editingTag, name: e.target.value })}
+                          className="flex-1 h-8"
+                        />
+                        <Input
+                          type="color"
+                          value={editingTag.color}
+                          onChange={(e) => setEditingTag({ ...editingTag, color: e.target.value })}
+                          className="w-8 h-8 p-0.5 cursor-pointer"
+                        />
+                        <Button size="sm" variant="ghost" onClick={handleUpdateTag} disabled={saving}>
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => setEditingTag(null)}>
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <div 
+                          className="w-4 h-4 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        <span className="flex-1 text-sm font-medium">{tag.name}</span>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-7 w-7 p-0"
+                          onClick={() => setEditingTag({ ...tag })}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-7 w-7 p-0 text-destructive"
+                          onClick={() => handleDeleteTag(tag.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // Main List Detail Component
 const ListDetail = () => {
   const { projectId, listId } = useParams();
