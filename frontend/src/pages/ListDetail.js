@@ -1474,6 +1474,117 @@ const ListDetail = () => {
               </Button>
             </div>
             
+            {/* Filter Button */}
+            <Popover open={showFilterPopover} onOpenChange={setShowFilterPopover}>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className={`h-8 w-8 ${(filterStatuses.length > 0 || filterTags.length > 0) ? 'border-primary text-primary' : ''}`}
+                  title="Filter Tasks"
+                >
+                  <Filter className="h-4 w-4" />
+                  {(filterStatuses.length > 0 || filterTags.length > 0) && (
+                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] text-primary-foreground flex items-center justify-center">
+                      {filterStatuses.length + filterTags.length}
+                    </span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-72" align="end">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-sm">Filter Tasks</h4>
+                    {(filterStatuses.length > 0 || filterTags.length > 0) && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 text-xs"
+                        onClick={() => {
+                          setFilterStatuses([]);
+                          setFilterTags([]);
+                        }}
+                      >
+                        Clear all
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {/* Status Filter */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">By Status</Label>
+                    <div className="space-y-1.5 max-h-[120px] overflow-y-auto">
+                      {statuses.map(status => (
+                        <div key={status.id} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`status-${status.id}`}
+                            checked={filterStatuses.length === 0 || filterStatuses.includes(status.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                if (filterStatuses.length === 0) {
+                                  // First selection - select only this one
+                                  setFilterStatuses([status.id]);
+                                } else {
+                                  setFilterStatuses([...filterStatuses, status.id]);
+                                }
+                              } else {
+                                const newFilters = filterStatuses.filter(s => s !== status.id);
+                                setFilterStatuses(newFilters);
+                              }
+                            }}
+                          />
+                          <label 
+                            htmlFor={`status-${status.id}`} 
+                            className="flex items-center gap-2 text-sm cursor-pointer flex-1"
+                          >
+                            <div 
+                              className="w-2.5 h-2.5 rounded-full"
+                              style={{ backgroundColor: status.color }}
+                            />
+                            {status.name}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Tag Filter */}
+                  {tags.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">By Tag</Label>
+                      <div className="space-y-1.5 max-h-[120px] overflow-y-auto">
+                        {tags.map(tag => (
+                          <div key={tag.id} className="flex items-center gap-2">
+                            <Checkbox
+                              id={`tag-${tag.id}`}
+                              checked={filterTags.includes(tag.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setFilterTags([...filterTags, tag.id]);
+                                } else {
+                                  setFilterTags(filterTags.filter(t => t !== tag.id));
+                                }
+                              }}
+                            />
+                            <label 
+                              htmlFor={`tag-${tag.id}`} 
+                              className="flex items-center gap-2 text-sm cursor-pointer flex-1"
+                            >
+                              <div 
+                                className="w-2.5 h-2.5 rounded-full"
+                                style={{ backgroundColor: tag.color }}
+                              />
+                              {tag.name}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </PopoverContent>
+            </Popover>
+            
             <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setShowTagModal(true)} title="Manage Tags">
               <Tag className="h-4 w-4" />
             </Button>
