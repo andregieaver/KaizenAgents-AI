@@ -437,7 +437,7 @@ const MiniTaskCard = ({ task, onEdit, onStatusChange, projectStatuses }) => {
 };
 
 // Sortable List Card Component - Navigates to List Detail Page
-const SortableListCard = ({ list, projectId, onManageStatuses }) => {
+const SortableListCard = ({ list, projectId, onManageStatuses, onEditList, onDeleteList }) => {
   const navigate = useNavigate();
   const taskCount = list.tasks?.length || 0;
   const completedCount = list.tasks?.filter(t => t.status === 'done').length || 0;
@@ -497,8 +497,18 @@ const SortableListCard = ({ list, projectId, onManageStatuses }) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEditList?.(list); }}>
+                  <Pencil className="h-4 w-4 mr-2" /> Edit List
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onManageStatuses?.(list); }}>
                   <Settings className="h-4 w-4 mr-2" /> Manage Statuses
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={(e) => { e.stopPropagation(); onDeleteList?.(list); }}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" /> Delete List
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
