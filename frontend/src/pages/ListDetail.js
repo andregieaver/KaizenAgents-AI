@@ -1984,6 +1984,11 @@ const ListDetail = () => {
                     return null;
                   }
                   
+                  // Calculate selection state for this status
+                  const selectedInStatus = statusTasks.filter(t => selectedTasks.has(t.id)).length;
+                  const allSelected = statusTasks.length > 0 && selectedInStatus === statusTasks.length;
+                  const someSelected = selectedInStatus > 0 && selectedInStatus < statusTasks.length;
+                  
                   return (
                     <div key={status.id} className="border overflow-hidden">
                       {/* Status Header */}
@@ -1991,6 +1996,27 @@ const ListDetail = () => {
                         className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-muted/50 border-b"
                         style={{ borderLeftWidth: '4px', borderLeftColor: status.color }}
                       >
+                        {/* Select All Checkbox */}
+                        {selectionMode && statusTasks.length > 0 && (
+                          <div 
+                            className="cursor-pointer"
+                            onClick={() => {
+                              if (allSelected) {
+                                deselectAllInStatus(status.id);
+                              } else {
+                                selectAllInStatus(status.id);
+                              }
+                            }}
+                          >
+                            {allSelected ? (
+                              <CheckSquare className="h-4 w-4 text-primary" />
+                            ) : someSelected ? (
+                              <Minus className="h-4 w-4 text-primary border border-primary rounded" />
+                            ) : (
+                              <Square className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                        )}
                         <div 
                           className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                           style={{ backgroundColor: status.color }}
@@ -2011,6 +2037,9 @@ const ListDetail = () => {
                         onEditTask={openEditTask}
                         onDeleteTask={handleDeleteTask}
                         statuses={statuses}
+                        selectionMode={selectionMode}
+                        selectedTasks={selectedTasks}
+                        onToggleSelect={toggleTaskSelection}
                       />
                     </div>
                   );
