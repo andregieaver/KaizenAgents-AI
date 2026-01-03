@@ -1308,6 +1308,10 @@ const ListDetail = () => {
           tasks={tasks.filter(t => t.title.toLowerCase().includes(search.toLowerCase()))}
           statuses={statuses}
           onEditTask={openEditTask}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          sensors={sensors}
+          activeTask={activeTask}
         />
       )}
 
