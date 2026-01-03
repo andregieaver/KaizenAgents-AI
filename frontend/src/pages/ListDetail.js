@@ -762,149 +762,69 @@ const ListDetail = () => {
       {viewMode === 'list' && (
         <ScrollArea className="flex-1">
           <div className="p-2 sm:p-4">
-            <div className="border rounded-lg overflow-hidden">
-              {/* Table Header - Desktop */}
-              <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-2 bg-muted/50 text-sm font-medium border-b">
-                <div className="col-span-5">Task</div>
-                <div className="col-span-2">Status</div>
-                <div className="col-span-2">Priority</div>
-                <div className="col-span-2">Due Date</div>
-                <div className="col-span-1"></div>
-              </div>
-              
-              {/* Task Rows */}
-              {tasks
-                .filter(t => t.title.toLowerCase().includes(search.toLowerCase()))
-                .sort((a, b) => (a.order || 0) - (b.order || 0))
-                .map(task => {
-                  const taskStatus = statuses.find(s => s.id === task.status);
-                  const priorityClass = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCorners}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <div className="space-y-4">
+                {statuses.map(status => {
+                  const statusTasks = tasks
+                    .filter(t => t.status === status.id && t.title.toLowerCase().includes(search.toLowerCase()))
+                    .sort((a, b) => (a.order || 0) - (b.order || 0));
                   
                   return (
-                    <div 
-                      key={task.id}
-                      className="border-b last:border-b-0 hover:bg-muted/30 cursor-pointer"
-                      onClick={() => openEditTask(task)}
-                    >
-                      {/* Mobile Layout */}
-                      <div className="sm:hidden p-3">
-                        <div className="flex items-start gap-2">
-                          <button 
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              handleUpdateTask({ status: task.status === 'done' ? statuses[0]?.id : 'done' }); 
-                            }}
-                            className="flex-shrink-0 mt-0.5"
-                          >
-                            {task.status === 'done' ? (
-                              <CheckCircle2 className="h-5 w-5 text-green-500" />
-                            ) : (
-                              <Circle className="h-5 w-5 text-muted-foreground" />
-                            )}
-                          </button>
-                          <div className="flex-1 min-w-0">
-                            <p className={`font-medium text-sm ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
-                              {task.title}
-                            </p>
-                            <div className="flex flex-wrap items-center gap-2 mt-2">
-                              {taskStatus && (
-                                <Badge 
-                                  variant="outline" 
-                                  className="text-xs"
-                                  style={{ borderColor: taskStatus.color, color: taskStatus.color }}
-                                >
-                                  {taskStatus.name}
-                                </Badge>
-                              )}
-                              <Badge variant="secondary" className={`text-xs ${priorityClass}`}>
-                                {task.priority}
-                              </Badge>
-                              {task.due_date && (
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Calendar className="h-3 w-3" />
-                                  {format(new Date(task.due_date), 'MMM d')}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 flex-shrink-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteTask(task);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 text-muted-foreground" />
-                          </Button>
-                        </div>
+                    <div key={status.id} className="border rounded-lg overflow-hidden">
+                      {/* Status Header */}
+                      <div 
+                        className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-muted/50 border-b"
+                        style={{ borderLeftWidth: '4px', borderLeftColor: status.color }}
+                      >
+                        <div 
+                          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: status.color }}
+                        />
+                        <h3 className="font-medium text-sm">{status.name}</h3>
+                        <Badge variant="secondary" className="ml-auto text-xs">
+                          {statusTasks.length}
+                        </Badge>
+                        {status.is_final && (
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        )}
                       </div>
                       
-                      {/* Desktop Layout */}
-                      <div className="hidden sm:grid grid-cols-12 gap-2 px-4 py-3 items-center">
-                        <div className="col-span-5 flex items-center gap-2">
-                          <button 
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              handleUpdateTask({ status: task.status === 'done' ? statuses[0]?.id : 'done' }); 
-                            }}
-                            className="flex-shrink-0"
-                          >
-                            {task.status === 'done' ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <Circle className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </button>
-                          <span className={`truncate ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
-                            {task.title}
-                          </span>
-                        </div>
-                        <div className="col-span-2">
-                          {taskStatus && (
-                            <Badge 
-                              variant="outline" 
-                              className="text-xs"
-                              style={{ borderColor: taskStatus.color, color: taskStatus.color }}
-                            >
-                              {taskStatus.name}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="col-span-2">
-                          <Badge variant="secondary" className={`text-xs ${priorityClass}`}>
-                            {task.priority}
-                          </Badge>
-                        </div>
-                        <div className="col-span-2 text-sm text-muted-foreground">
-                          {task.due_date ? format(new Date(task.due_date), 'MMM d') : '-'}
-                        </div>
-                        <div className="col-span-1 flex justify-end">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteTask(task);
-                            }}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-                          </Button>
-                        </div>
-                      </div>
+                      {/* Droppable Task Container */}
+                      <ListStatusDropZone 
+                        status={status} 
+                        tasks={statusTasks}
+                        onEditTask={openEditTask}
+                        onDeleteTask={handleDeleteTask}
+                        statuses={statuses}
+                      />
                     </div>
                   );
                 })}
+              </div>
               
-              {tasks.length === 0 && (
-                <div className="text-center py-8 sm:py-12 text-muted-foreground">
-                  <Circle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>No tasks yet</p>
-                </div>
-              )}
-            </div>
+              <DragOverlay>
+                {activeTask && (
+                  <div className="bg-background border rounded-lg shadow-xl p-3 w-full max-w-md">
+                    <div className="flex items-center gap-2">
+                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium text-sm truncate">{activeTask.title}</span>
+                    </div>
+                  </div>
+                )}
+              </DragOverlay>
+            </DndContext>
+            
+            {tasks.length === 0 && (
+              <div className="text-center py-8 sm:py-12 text-muted-foreground border rounded-lg">
+                <Circle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No tasks yet</p>
+              </div>
+            )}
           </div>
         </ScrollArea>
       )}
