@@ -1138,6 +1138,12 @@ const ListDetail = () => {
   const [filterTags, setFilterTags] = useState([]); // Array of tag IDs to filter by
   const [showFilterPopover, setShowFilterPopover] = useState(false);
   
+  // Selection state for bulk actions
+  const [selectedTasks, setSelectedTasks] = useState(new Set());
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [showBulkStatusPopover, setShowBulkStatusPopover] = useState(false);
+  const [showBulkTagPopover, setShowBulkTagPopover] = useState(false);
+  
   // Dialog states
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
