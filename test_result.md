@@ -106,7 +106,8 @@ metadata:
 test_plan:
   current_focus:
     - "List Edit and Delete Functionality"
-  stuck_tasks: []
+  stuck_tasks:
+    - "List Edit and Delete Functionality"
   test_all: false
   test_priority: "high_first"
 
