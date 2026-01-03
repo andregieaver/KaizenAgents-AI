@@ -1,52 +1,39 @@
 # Test Result File
 
 ## Current Test Focus
-Testing fixes and responsiveness updates for List Detail page:
-1. Create task in list - CRITICAL ISSUE FOUND
-2. All views responsive and mobile friendly - CANNOT TEST
+Testing List View with status grouping and drag-and-drop in both views
 
-## Test Results Summary
-**CRITICAL NAVIGATION ISSUE DISCOVERED**
+## Fixes Applied
+1. **Kanban D&D Bug**: Fixed wrong API endpoint - was `/api/projects/tasks/{id}`, changed to `/api/projects/{projectId}/tasks/{id}`
+2. **List View Grouped by Status**: Implemented status sections with drag-and-drop support
 
-### Test Execution Results:
-1. **List Detail Page Navigation**: ❌ FAILED
-   - Unable to navigate to actual List Detail page
-   - Clicking on lists in project detail page does not navigate to list detail view
-   - URL routing appears broken for list detail pages
-   - Lists are displayed within project detail page instead of having dedicated list detail pages
+## Test Scenarios
 
-2. **Task Creation**: ❌ CANNOT TEST
-   - Cannot access List Detail page to test task creation functionality
-   - Add Task button not found on accessible pages
+### Test 1: List View - Status Groups
+- Navigate to List Detail page
+- Click List View toggle
+- Verify tasks are grouped by status (To Do, In Progress, Review, Done, etc.)
+- Each status section should show task count
+- Each task row should have drag handle
 
-3. **Mobile Responsiveness**: ❌ CANNOT TEST
-   - Cannot test mobile responsiveness of List Detail page due to navigation issues
-   - Project detail page mobile view tested instead (working)
+### Test 2: List View - Drag Between Statuses
+- In List View, drag a task from "To Do" section to "In Progress" section
+- Verify task moves to new status section
+- Verify backend reflects the change
 
-4. **View Toggles**: ❌ CANNOT TEST
-   - Cannot access List Detail page to test view toggle functionality
+### Test 3: Kanban View - Drag Between Columns
+- Switch to Kanban View
+- Drag a task from "To Do" column to "In Progress" column
+- Verify task moves and status updates
 
-## Technical Issues Found:
-1. **Routing Problem**: Direct navigation to list URLs redirects back to dashboard
-2. **UI Structure Issue**: Lists appear to be embedded in project detail rather than separate pages
-3. **Missing List Detail Implementation**: The ListDetail component may not be properly integrated with routing
+### Test 4: Mobile Responsiveness
+- Test both views on mobile viewport (375x667)
+- Verify status groups display correctly
+- Verify drag handles are visible
 
-## Test Credentials Used:
+## Test Credentials
 - Email: andre@humanweb.no
 - Password: Pernilla66!
 
-## Test URLs Attempted:
-- Direct URL: /dashboard/projects/985ac5ab-fe63-4ed2-8946-827f80dabf7b/lists/4acc3652-f5c7-4174-b152-0801259946a9
-- Project Detail: /dashboard/projects/985ac5ab-fe63-4ed2-8946-827f80dabf7b
-
-## Status:
-- **List Detail Navigation**: BROKEN
-- **Task Creation**: UNTESTABLE
-- **Mobile Responsiveness**: UNTESTABLE
-- **View Toggles**: UNTESTABLE
-
-## Next Steps Required:
-1. Fix routing to List Detail pages
-2. Ensure ListDetail component is properly accessible
-3. Verify list navigation from project detail page
-4. Re-test all functionality once navigation is fixed
+## Test URL
+- http://localhost:3000/dashboard/projects/985ac5ab-fe63-4ed2-8946-827f80dabf7b/lists/4acc3652-f5c7-4174-b152-0801259946a9
