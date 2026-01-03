@@ -102,7 +102,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Bulk Task Selection Feature"
+    - "List Edit and Delete Functionality"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
