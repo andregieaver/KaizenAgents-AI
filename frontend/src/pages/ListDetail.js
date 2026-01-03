@@ -1681,9 +1681,12 @@ const ListDetail = () => {
             >
               <div className="space-y-4">
                 {statuses.map(status => {
-                  const statusTasks = tasks
-                    .filter(t => t.status === status.id && t.title.toLowerCase().includes(search.toLowerCase()))
-                    .sort((a, b) => (a.order || 0) - (b.order || 0));
+                  const statusTasks = tasksByStatus[status.id] || [];
+                  
+                  // Skip empty statuses when filtering
+                  if (filterStatuses.length > 0 && !filterStatuses.includes(status.id)) {
+                    return null;
+                  }
                   
                   return (
                     <div key={status.id} className="border overflow-hidden">
