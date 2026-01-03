@@ -576,7 +576,7 @@ const GanttStatusSection = ({ status, tasks, statuses, days, startDate, dayWidth
 };
 
 // Gantt View Component
-const GanttView = ({ tasks, statuses, onEditTask, onDragStart, onDragEnd, sensors, activeTask }) => {
+const GanttView = ({ tasks, statuses, onEditTask, onDragStart, onDragEnd, sensors, activeTask, filterStatuses = [] }) => {
   // Calculate date range for the chart
   const today = startOfDay(new Date());
   const tasksWithDates = tasks.filter(t => t.start_date || t.due_date);
@@ -606,6 +606,11 @@ const GanttView = ({ tasks, statuses, onEditTask, onDragStart, onDragEnd, sensor
       .filter(t => t.status === status.id)
       .sort((a, b) => (a.order || 0) - (b.order || 0));
   });
+  
+  // Filter statuses to show (if filtering is active)
+  const visibleStatuses = filterStatuses.length > 0 
+    ? statuses.filter(s => filterStatuses.includes(s.id))
+    : statuses;
   
   // Check if there are any tasks with dates
   const hasTasksWithDates = tasksWithDates.length > 0;
