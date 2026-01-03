@@ -1249,7 +1249,7 @@ const ListDetail = () => {
                     .sort((a, b) => (a.order || 0) - (b.order || 0));
                   
                   return (
-                    <div key={status.id} className="border rounded-lg overflow-hidden">
+                    <div key={status.id} className="border overflow-hidden">
                       {/* Status Header */}
                       <div 
                         className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-muted/50 border-b"
