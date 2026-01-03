@@ -527,7 +527,7 @@ const ListDetail = () => {
     try {
       if (statusChanged) {
         await axios.put(
-          `${API}/projects/tasks/${activeTaskId}`,
+          `${API}/projects/${projectId}/tasks/${activeTaskId}`,
           { status: targetStatus },
           { headers: { Authorization: `Bearer ${token}` } }
         );
