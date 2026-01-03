@@ -843,6 +843,44 @@ async def reassign_task_status(
     return {"message": f"Reassigned {result.modified_count} tasks"}
 
 
+class ReorderTasksRequest(BaseModel):
+    """Request model for reordering tasks"""
+    task_ids: List[str] = Field(..., description="Ordered list of task IDs")
+    status: Optional[str] = None  # If provided, only reorder within this status
+
+
+@router.post("/lists/{list_id}/tasks/reorder")
+async def reorder_tasks_in_list(
+    list_id: str,
+    request: ReorderTasksRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Reorder tasks within a list (optionally within a specific status)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify list exists
+    list_doc = await db.project_lists.find_one(
+        {"id": list_id, "tenant_id": tenant_id}
+    )
+    if not list_doc:
+        raise HTTPException(status_code=404, detail="List not found")
+    
+    # Update order for each task
+    for index, task_id in enumerate(request.task_ids):
+        update_query = {"id": task_id, "tenant_id": tenant_id, "list_id": list_id}
+        if request.status:
+            update_query["status"] = request.status
+        
+        await db.project_tasks.update_one(
+            update_query,
+            {"$set": {"order": index, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+    
+    return {"message": "Tasks reordered successfully"}
+
+
 # =============================================================================
 # MY TASKS ENDPOINT (Tasks assigned to current user)
 # =============================================================================
