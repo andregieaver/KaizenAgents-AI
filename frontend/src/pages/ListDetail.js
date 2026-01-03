@@ -668,7 +668,7 @@ const GanttView = ({ tasks, statuses, onEditTask, onDragStart, onDragEnd, sensor
             
             {/* Status sections with tasks */}
             <div className="border rounded-b-lg overflow-hidden">
-              {statuses.map(status => (
+              {visibleStatuses.map(status => (
                 <GanttStatusSection
                   key={status.id}
                   status={status}
