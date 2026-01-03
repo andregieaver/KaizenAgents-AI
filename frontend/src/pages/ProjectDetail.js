@@ -1058,7 +1058,6 @@ const ProjectDetail = () => {
   
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('list'); // 'list', 'kanban', 'gantt'
   const [search, setSearch] = useState('');
   
   // Dialog states
@@ -1071,8 +1070,8 @@ const ProjectDetail = () => {
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [statusModalEntity, setStatusModalEntity] = useState({ type: null, id: null, name: null });
   
-  // Kanban drag state
-  const [activeTask, setActiveTask] = useState(null);
+  // List drag state
+  const [activeList, setActiveList] = useState(null);
   
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
