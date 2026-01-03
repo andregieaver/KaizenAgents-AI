@@ -378,12 +378,203 @@ const ListStatusDropZone = ({ status, tasks, onEditTask, onDeleteTask, statuses 
   );
 };
 
-// Gantt View Component
-const GanttView = ({ tasks, statuses, onEditTask }) => {
-  // Filter tasks that have at least start_date or due_date
-  const ganttTasks = tasks.filter(t => t.start_date || t.due_date);
+// Sortable Gantt Row Component
+const SortableGanttRow = ({ task, statuses, days, startDate, dayWidth, today, onEdit }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const taskStart = task.start_date ? parseISO(task.start_date) : (task.due_date ? parseISO(task.due_date) : today);
+  const taskEnd = task.due_date ? parseISO(task.due_date) : taskStart;
   
-  if (ganttTasks.length === 0) {
+  const startOffset = differenceInDays(taskStart, startDate);
+  const duration = Math.max(1, differenceInDays(taskEnd, taskStart) + 1);
+  
+  const priorityClass = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
+  const statusColor = statuses.find(s => s.id === task.status)?.color || '#6B7280';
+
+  return (
+    <div 
+      ref={setNodeRef}
+      style={style}
+      className={`flex border-b last:border-b-0 hover:bg-muted/20 cursor-pointer ${isDragging ? 'bg-muted/30' : ''}`}
+    >
+      {/* Task name with drag handle */}
+      <div className="w-[180px] sm:w-[250px] flex-shrink-0 px-2 sm:px-3 py-2 border-r">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing p-0.5 sm:p-1 rounded hover:bg-muted text-muted-foreground touch-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          </div>
+          <div 
+            className="w-2 h-2 rounded-full flex-shrink-0"
+            style={{ backgroundColor: statusColor }}
+          />
+          <span 
+            className="text-xs sm:text-sm truncate font-medium flex-1 cursor-pointer"
+            onClick={() => onEdit(task)}
+          >
+            {task.title}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 mt-1 ml-6 sm:ml-7">
+          <Badge variant="secondary" className={`text-[9px] sm:text-[10px] py-0 ${priorityClass}`}>
+            {task.priority}
+          </Badge>
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground hidden sm:inline">
+            {task.start_date && format(parseISO(task.start_date), 'MMM d')}
+            {task.start_date && task.due_date && ' - '}
+            {task.due_date && format(parseISO(task.due_date), 'MMM d')}
+          </span>
+        </div>
+      </div>
+      
+      {/* Timeline bar */}
+      <div className="flex-1 relative min-w-0">
+        <div 
+          className="flex h-full items-center" 
+          style={{ minWidth: days.length * dayWidth }}
+        >
+          {/* Background grid */}
+          {days.map((day, i) => {
+            const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
+            const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+            return (
+              <div 
+                key={i}
+                className={`h-full border-r flex-shrink-0 ${
+                  isToday ? 'bg-primary/5' : isWeekend ? 'bg-muted/20' : ''
+                }`}
+                style={{ width: dayWidth, minHeight: 44 }}
+              />
+            );
+          })}
+          
+          {/* Task bar */}
+          <div 
+            className="absolute top-1/2 -translate-y-1/2 h-5 sm:h-6 rounded-md shadow-sm flex items-center px-1.5 sm:px-2 text-white text-[10px] sm:text-xs font-medium overflow-hidden cursor-pointer"
+            style={{
+              left: startOffset * dayWidth + 4,
+              width: Math.max(duration * dayWidth - 8, 24),
+              backgroundColor: statusColor,
+            }}
+            onClick={() => onEdit(task)}
+          >
+            <span className="truncate">{task.title}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Droppable Gantt Status Section
+const GanttStatusSection = ({ status, tasks, statuses, days, startDate, dayWidth, today, onEditTask }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: status.id,
+  });
+
+  const taskIds = tasks.map(t => t.id);
+
+  return (
+    <div className="border-b last:border-b-0">
+      {/* Status Header */}
+      <div 
+        className="flex items-center gap-2 px-2 sm:px-3 py-1.5 bg-muted/50 border-b sticky left-0"
+        style={{ borderLeftWidth: '4px', borderLeftColor: status.color }}
+      >
+        <div 
+          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+          style={{ backgroundColor: status.color }}
+        />
+        <h3 className="font-medium text-xs sm:text-sm">{status.name}</h3>
+        <Badge variant="secondary" className="ml-auto text-[10px] sm:text-xs">
+          {tasks.length}
+        </Badge>
+      </div>
+      
+      {/* Task Rows */}
+      <div
+        ref={setNodeRef}
+        className={`min-h-[40px] transition-colors ${isOver ? 'bg-primary/5' : ''}`}
+      >
+        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+          {tasks.length > 0 ? (
+            tasks.map(task => (
+              <SortableGanttRow
+                key={task.id}
+                task={task}
+                statuses={statuses}
+                days={days}
+                startDate={startDate}
+                dayWidth={dayWidth}
+                today={today}
+                onEdit={onEditTask}
+              />
+            ))
+          ) : (
+            <div className="text-center py-3 text-muted-foreground text-xs">
+              No tasks with dates
+            </div>
+          )}
+        </SortableContext>
+      </div>
+    </div>
+  );
+};
+
+// Gantt View Component
+const GanttView = ({ tasks, statuses, onEditTask, onDragStart, onDragEnd, sensors, activeTask }) => {
+  // Calculate date range for the chart
+  const today = startOfDay(new Date());
+  const tasksWithDates = tasks.filter(t => t.start_date || t.due_date);
+  
+  const allDates = tasksWithDates.flatMap(t => {
+    const dates = [];
+    if (t.start_date) dates.push(parseISO(t.start_date));
+    if (t.due_date) dates.push(parseISO(t.due_date));
+    return dates;
+  });
+  
+  const minDate = allDates.length > 0 ? min([today, ...allDates]) : today;
+  const maxDate = allDates.length > 0 ? max([addDays(today, 14), ...allDates]) : addDays(today, 14);
+  
+  // Add buffer days
+  const startDate = addDays(startOfDay(minDate), -2);
+  const endDate = addDays(endOfDay(maxDate), 5);
+  
+  // Generate array of days for the timeline
+  const days = eachDayOfInterval({ start: startDate, end: endDate });
+  const dayWidth = 36; // pixels per day (slightly smaller for mobile)
+  
+  // Group tasks by status
+  const tasksByStatus = {};
+  statuses.forEach(status => {
+    tasksByStatus[status.id] = tasksWithDates
+      .filter(t => t.status === status.id)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+  });
+  
+  // Check if there are any tasks with dates
+  const hasTasksWithDates = tasksWithDates.length > 0;
+  const tasksWithoutDates = tasks.length - tasksWithDates.length;
+
+  if (!hasTasksWithDates) {
     return (
       <div className="flex-1 flex items-center justify-center text-muted-foreground p-4">
         <div className="text-center">
@@ -395,53 +586,33 @@ const GanttView = ({ tasks, statuses, onEditTask }) => {
     );
   }
   
-  // Calculate date range for the chart
-  const today = startOfDay(new Date());
-  const allDates = ganttTasks.flatMap(t => {
-    const dates = [];
-    if (t.start_date) dates.push(parseISO(t.start_date));
-    if (t.due_date) dates.push(parseISO(t.due_date));
-    return dates;
-  });
-  
-  const minDate = min([today, ...allDates]);
-  const maxDate = max([addDays(today, 14), ...allDates]);
-  
-  // Add buffer days
-  const startDate = addDays(startOfDay(minDate), -2);
-  const endDate = addDays(endOfDay(maxDate), 5);
-  
-  // Generate array of days for the timeline
-  const days = eachDayOfInterval({ start: startDate, end: endDate });
-  const dayWidth = 40; // pixels per day
-  
-  // Get status color
-  const getStatusColor = (statusId) => {
-    const status = statuses.find(s => s.id === statusId);
-    return status?.color || '#6B7280';
-  };
-  
   return (
-    <ScrollArea className="flex-1">
-      <div className="p-2 sm:p-4">
-        <div className="border rounded-lg overflow-hidden">
-          {/* Header with dates */}
-          <div className="flex border-b bg-muted/50">
-            {/* Task name column */}
-            <div className="w-[200px] sm:w-[280px] flex-shrink-0 px-3 py-2 border-r font-medium text-sm">
-              Task
-            </div>
-            {/* Timeline header */}
-            <div className="flex-1 overflow-x-auto">
-              <div className="flex" style={{ minWidth: days.length * dayWidth }}>
+    <div className="flex-1 flex flex-col overflow-hidden">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCorners}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+      >
+        {/* Gantt Container with synchronized scrolling */}
+        <div className="flex-1 overflow-auto">
+          <div className="min-w-max">
+            {/* Header with dates */}
+            <div className="flex border-b bg-muted/50 sticky top-0 z-10">
+              {/* Task name column header */}
+              <div className="w-[180px] sm:w-[250px] flex-shrink-0 px-2 sm:px-3 py-2 border-r font-medium text-xs sm:text-sm bg-muted/50 sticky left-0 z-20">
+                Task
+              </div>
+              {/* Timeline header */}
+              <div className="flex">
                 {days.map((day, i) => {
                   const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
                   const isWeekend = day.getDay() === 0 || day.getDay() === 6;
                   return (
                     <div 
                       key={i} 
-                      className={`flex-shrink-0 text-center text-xs py-1 border-r ${
-                        isToday ? 'bg-primary/10 font-medium' : isWeekend ? 'bg-muted/30' : ''
+                      className={`flex-shrink-0 text-center text-[10px] sm:text-xs py-1 border-r ${
+                        isToday ? 'bg-primary/10 font-medium' : isWeekend ? 'bg-muted/30' : 'bg-muted/50'
                       }`}
                       style={{ width: dayWidth }}
                     >
@@ -452,94 +623,46 @@ const GanttView = ({ tasks, statuses, onEditTask }) => {
                 })}
               </div>
             </div>
+            
+            {/* Status sections with tasks */}
+            <div className="border rounded-b-lg overflow-hidden">
+              {statuses.map(status => (
+                <GanttStatusSection
+                  key={status.id}
+                  status={status}
+                  tasks={tasksByStatus[status.id] || []}
+                  statuses={statuses}
+                  days={days}
+                  startDate={startDate}
+                  dayWidth={dayWidth}
+                  today={today}
+                  onEditTask={onEditTask}
+                />
+              ))}
+            </div>
           </div>
-          
-          {/* Task rows */}
-          {ganttTasks.map(task => {
-            const taskStart = task.start_date ? parseISO(task.start_date) : (task.due_date ? parseISO(task.due_date) : today);
-            const taskEnd = task.due_date ? parseISO(task.due_date) : taskStart;
-            
-            // Calculate position and width
-            const startOffset = differenceInDays(taskStart, startDate);
-            const duration = Math.max(1, differenceInDays(taskEnd, taskStart) + 1);
-            
-            const priorityClass = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
-            const statusColor = getStatusColor(task.status);
-            
-            return (
-              <div 
-                key={task.id} 
-                className="flex border-b last:border-b-0 hover:bg-muted/20 cursor-pointer"
-                onClick={() => onEditTask(task)}
-              >
-                {/* Task name */}
-                <div className="w-[200px] sm:w-[280px] flex-shrink-0 px-3 py-2 border-r">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: statusColor }}
-                    />
-                    <span className="text-sm truncate font-medium">{task.title}</span>
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge variant="secondary" className={`text-[10px] py-0 ${priorityClass}`}>
-                      {task.priority}
-                    </Badge>
-                    <span className="text-[10px] text-muted-foreground">
-                      {task.start_date && format(parseISO(task.start_date), 'MMM d')}
-                      {task.start_date && task.due_date && ' - '}
-                      {task.due_date && format(parseISO(task.due_date), 'MMM d')}
-                    </span>
-                  </div>
-                </div>
-                
-                {/* Timeline bar */}
-                <div className="flex-1 overflow-x-auto relative">
-                  <div 
-                    className="flex h-full items-center" 
-                    style={{ minWidth: days.length * dayWidth }}
-                  >
-                    {/* Background grid */}
-                    {days.map((day, i) => {
-                      const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
-                      const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-                      return (
-                        <div 
-                          key={i}
-                          className={`h-full border-r ${
-                            isToday ? 'bg-primary/5' : isWeekend ? 'bg-muted/20' : ''
-                          }`}
-                          style={{ width: dayWidth, minHeight: 44 }}
-                        />
-                      );
-                    })}
-                    
-                    {/* Task bar */}
-                    <div 
-                      className="absolute top-1/2 -translate-y-1/2 h-6 rounded-md shadow-sm flex items-center px-2 text-white text-xs font-medium overflow-hidden"
-                      style={{
-                        left: startOffset * dayWidth + 4,
-                        width: Math.max(duration * dayWidth - 8, 24),
-                        backgroundColor: statusColor,
-                      }}
-                    >
-                      <span className="truncate">{task.title}</span>
-                    </div>
-                  </div>
-                </div>
+        </div>
+        
+        {/* Drag Overlay */}
+        <DragOverlay>
+          {activeTask && (
+            <div className="bg-background border rounded-lg shadow-xl p-2 sm:p-3 w-[180px] sm:w-[250px]">
+              <div className="flex items-center gap-2">
+                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-xs sm:text-sm truncate">{activeTask.title}</span>
               </div>
-            );
-          })}
-          
-          {/* Empty state for tasks without dates */}
-          {tasks.length > 0 && ganttTasks.length < tasks.length && (
-            <div className="px-4 py-3 bg-muted/30 text-sm text-muted-foreground border-t">
-              <span className="font-medium">{tasks.length - ganttTasks.length}</span> task(s) hidden - add start/due dates to show them
             </div>
           )}
+        </DragOverlay>
+      </DndContext>
+      
+      {/* Hidden tasks message */}
+      {tasksWithoutDates > 0 && (
+        <div className="px-3 sm:px-4 py-2 bg-muted/30 text-xs sm:text-sm text-muted-foreground border-t flex-shrink-0">
+          <span className="font-medium">{tasksWithoutDates}</span> task(s) hidden - add start/due dates to show them
         </div>
-      </div>
-    </ScrollArea>
+      )}
+    </div>
   );
 };
 
