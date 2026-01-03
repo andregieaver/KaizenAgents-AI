@@ -1294,7 +1294,7 @@ const ListDetail = () => {
             </DndContext>
             
             {tasks.length === 0 && (
-              <div className="text-center py-8 sm:py-12 text-muted-foreground border rounded-lg">
+              <div className="text-center py-8 sm:py-12 text-muted-foreground border">
                 <Circle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                 <p>No tasks yet</p>
               </div>
