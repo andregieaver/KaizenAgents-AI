@@ -1206,117 +1206,42 @@ const ProjectDetail = () => {
   };
 
   const handleDragStart = (event) => {
-    const task = project.all_tasks?.find(t => t.id === event.active.id);
-    setActiveTask(task);
+    const list = lists?.find(l => l.id === event.active.id);
+    setActiveList(list);
   };
 
   const handleDragEnd = async (event) => {
     const { active, over } = event;
-    setActiveTask(null);
+    setActiveList(null);
     
-    if (!over) return;
+    if (!over || active.id === over.id) return;
     
-    const taskId = active.id;
-    const newStatus = over.data?.current?.status || over.id;
+    const oldIndex = lists.findIndex(l => l.id === active.id);
+    const newIndex = lists.findIndex(l => l.id === over.id);
     
-    const task = project.all_tasks?.find(t => t.id === taskId);
-    if (!task || task.status === newStatus) return;
+    if (oldIndex === -1 || newIndex === -1) return;
     
-    // Optimistic update
+    // Reorder lists locally (optimistic)
+    const reorderedLists = [...lists];
+    const [movedList] = reorderedLists.splice(oldIndex, 1);
+    reorderedLists.splice(newIndex, 0, movedList);
+    
     setProject(prev => ({
       ...prev,
-      all_tasks: prev.all_tasks.map(t => 
-        t.id === taskId ? { ...t, status: newStatus } : t
-      )
+      lists: reorderedLists
     }));
     
+    // Save to backend
     try {
-      await axios.put(
-        `${API}/projects/${projectId}/tasks/${taskId}`,
-        { status: newStatus },
+      await axios.post(
+        `${API}/projects/${projectId}/lists/reorder`,
+        { list_ids: reorderedLists.map(l => l.id) },
         { headers: { Authorization: `Bearer ${token}` } }
       );
     } catch (error) {
+      console.error('Failed to reorder lists:', error);
+      toast.error('Failed to reorder lists');
       fetchProject(); // Revert on error
-      toast.error('Failed to update task');
-    }
-  };
-
-  // Handler for List View drag and drop (moving tasks between status columns within lists)
-  const handleListDragEnd = async (event) => {
-    const { active, over } = event;
-    setActiveTask(null);
-    
-    if (!over) return;
-    
-    const taskId = active.id;
-    const task = project.all_tasks?.find(t => t.id === taskId);
-    if (!task) return;
-    
-    // Check if dropped on a status column within a list
-    const overData = over.data?.current;
-    
-    if (overData?.type === 'status') {
-      const newStatusId = overData.statusId;
-      const targetListId = overData.listId;
-      
-      // Check if status changed
-      if (task.status === newStatusId && task.list_id === targetListId) return;
-      
-      const oldListId = task.list_id;
-      const updates = { status: newStatusId };
-      
-      // If moving to a different list as well
-      if (task.list_id !== targetListId) {
-        updates.list_id = targetListId;
-      }
-      
-      // Optimistic update
-      setProject(prev => {
-        const updatedTask = { ...task, ...updates };
-        
-        return {
-          ...prev,
-          all_tasks: prev.all_tasks.map(t => 
-            t.id === taskId ? updatedTask : t
-          ),
-          lists: prev.lists.map(list => {
-            if (list.id === oldListId && oldListId !== targetListId) {
-              return {
-                ...list,
-                tasks: (list.tasks || []).filter(t => t.id !== taskId)
-              };
-            }
-            if (list.id === targetListId) {
-              if (oldListId === targetListId) {
-                // Same list, just update the task
-                return {
-                  ...list,
-                  tasks: (list.tasks || []).map(t => t.id === taskId ? updatedTask : t)
-                };
-              } else {
-                // Different list, add the task
-                return {
-                  ...list,
-                  tasks: [...(list.tasks || []), updatedTask]
-                };
-              }
-            }
-            return list;
-          })
-        };
-      });
-      
-      try {
-        await axios.put(
-          `${API}/projects/${projectId}/tasks/${taskId}`,
-          updates,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      } catch (error) {
-        fetchProject();
-        toast.error('Failed to update task');
-      }
     }
   };
 
