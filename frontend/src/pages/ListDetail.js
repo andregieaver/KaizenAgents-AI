@@ -458,7 +458,7 @@ const SortableListRow = ({ task, onEdit, onDelete, statuses, selectionMode, isSe
 };
 
 // Droppable List Status Zone for List View
-const ListStatusDropZone = ({ status, tasks, onEditTask, onDeleteTask, statuses }) => {
+const ListStatusDropZone = ({ status, tasks, onEditTask, onDeleteTask, statuses, selectionMode, selectedTasks, onToggleSelect }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
   });
@@ -481,6 +481,9 @@ const ListStatusDropZone = ({ status, tasks, onEditTask, onDeleteTask, statuses 
               onEdit={onEditTask}
               onDelete={onDeleteTask}
               statuses={statuses}
+              selectionMode={selectionMode}
+              isSelected={selectedTasks.has(task.id)}
+              onToggleSelect={onToggleSelect}
             />
           ))
         ) : (
