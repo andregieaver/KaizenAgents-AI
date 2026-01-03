@@ -1400,6 +1400,32 @@ const ListDetail = () => {
     setShowTaskDialog(true);
   };
 
+  // Filter tasks based on search, status, and tag filters
+  const filteredTasks = tasks.filter(task => {
+    // Search filter
+    const matchesSearch = task.title.toLowerCase().includes(search.toLowerCase());
+    
+    // Status filter (if no filters selected, show all)
+    const matchesStatus = filterStatuses.length === 0 || filterStatuses.includes(task.status);
+    
+    // Tag filter (if any tag filters selected, task must have at least one matching tag)
+    const matchesTags = filterTags.length === 0 || 
+      (task.tags && task.tags.some(tagId => filterTags.includes(tagId)));
+    
+    return matchesSearch && matchesStatus && matchesTags;
+  });
+
+  // Group filtered tasks by status for views
+  const tasksByStatus = statuses.reduce((acc, status) => {
+    acc[status.id] = filteredTasks
+      .filter(t => t.status === status.id)
+      .sort((a, b) => (a.order || 0) - (b.order || 0));
+    return acc;
+  }, {});
+
+  // Count active filters
+  const activeFilterCount = filterStatuses.length + filterTags.length;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
