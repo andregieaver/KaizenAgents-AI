@@ -1128,6 +1128,11 @@ const ListDetail = () => {
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState('kanban'); // 'list', 'kanban', 'gantt'
   
+  // Filter state
+  const [filterStatuses, setFilterStatuses] = useState([]); // Array of status IDs to show
+  const [filterTags, setFilterTags] = useState([]); // Array of tag IDs to filter by
+  const [showFilterPopover, setShowFilterPopover] = useState(false);
+  
   // Dialog states
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
