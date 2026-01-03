@@ -1229,7 +1229,10 @@ const ListDetail = () => {
               </Button>
             </div>
             
-            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setShowStatusModal(true)}>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setShowTagModal(true)} title="Manage Tags">
+              <Tag className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setShowStatusModal(true)} title="Manage Statuses">
               <Settings className="h-4 w-4" />
             </Button>
             <Button size="sm" className="h-8" onClick={openCreateTask}>
