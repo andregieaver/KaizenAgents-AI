@@ -1513,6 +1513,39 @@ async def delete_list(
     return {"message": "List deleted successfully"}
 
 
+class ReorderListsRequest(BaseModel):
+    """Request model for reordering lists"""
+    list_ids: List[str] = Field(..., description="Ordered list of list IDs")
+
+
+@router.post("/{project_id}/lists/reorder")
+async def reorder_lists(
+    project_id: str,
+    request: ReorderListsRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Reorder lists within a project"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Verify project exists
+    project = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id}
+    )
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Update position for each list
+    for index, list_id in enumerate(request.list_ids):
+        await db.project_lists.update_one(
+            {"id": list_id, "tenant_id": tenant_id, "project_id": project_id},
+            {"$set": {"position": index, "updated_at": datetime.now(timezone.utc).isoformat()}}
+        )
+    
+    return {"message": "Lists reordered successfully"}
+
+
 # =============================================================================
 # TASKS ENDPOINTS
 # =============================================================================
