@@ -1077,6 +1077,11 @@ const ProjectDetail = () => {
   const [showListDialog, setShowListDialog] = useState(false);
   const [newListName, setNewListName] = useState('');
   
+  // Edit list dialog state
+  const [showEditListDialog, setShowEditListDialog] = useState(false);
+  const [editingList, setEditingList] = useState(null);
+  const [editListName, setEditListName] = useState('');
+  
   // Status management modal state
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [statusModalEntity, setStatusModalEntity] = useState({ type: null, id: null, name: null });
@@ -1094,6 +1099,13 @@ const ProjectDetail = () => {
   const openListStatusModal = (list) => {
     setStatusModalEntity({ type: 'list', id: list.id, name: list.name });
     setShowStatusModal(true);
+  };
+  
+  // Open edit list dialog
+  const openEditListDialog = (list) => {
+    setEditingList(list);
+    setEditListName(list.name);
+    setShowEditListDialog(true);
   };
 
   const fetchProject = useCallback(async () => {
