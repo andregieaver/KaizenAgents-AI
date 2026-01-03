@@ -320,7 +320,7 @@ const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses, avail
 };
 
 // Sortable List Row Component for List View
-const SortableListRow = ({ task, onEdit, onDelete, statuses }) => {
+const SortableListRow = ({ task, onEdit, onDelete, statuses, selectionMode, isSelected, onToggleSelect }) => {
   const {
     attributes,
     listeners,
@@ -343,12 +343,27 @@ const SortableListRow = ({ task, onEdit, onDelete, statuses }) => {
     <div 
       ref={setNodeRef} 
       style={style}
-      className={`border-b last:border-b-0 hover:bg-muted/30 cursor-pointer ${isDragging ? 'bg-muted/50' : ''}`}
+      className={`border-b last:border-b-0 hover:bg-muted/30 cursor-pointer ${isDragging ? 'bg-muted/50' : ''} ${isSelected ? 'bg-primary/5' : ''}`}
       onClick={() => onEdit(task)}
     >
       {/* Mobile Layout */}
       <div className="sm:hidden p-2.5">
         <div className="flex items-start gap-2">
+          {/* Selection Checkbox */}
+          {selectionMode && (
+            <div 
+              className="flex items-center justify-center p-1 mt-0.5"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleSelect(task.id);
+              }}
+            >
+              <Checkbox 
+                checked={isSelected} 
+                className="h-4 w-4"
+              />
+            </div>
+          )}
           <div
             {...attributes}
             {...listeners}
@@ -389,6 +404,21 @@ const SortableListRow = ({ task, onEdit, onDelete, statuses }) => {
       
       {/* Desktop Layout */}
       <div className="hidden sm:flex items-center gap-3 px-3 py-2.5">
+        {/* Selection Checkbox */}
+        {selectionMode && (
+          <div 
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSelect(task.id);
+            }}
+          >
+            <Checkbox 
+              checked={isSelected} 
+              className="h-4 w-4"
+            />
+          </div>
+        )}
         <div
           {...attributes}
           {...listeners}
