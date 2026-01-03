@@ -395,6 +395,7 @@ const ListDetail = () => {
   const [statuses, setStatuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [viewMode, setViewMode] = useState('kanban'); // 'list', 'kanban', 'gantt'
   
   // Dialog states
   const [showTaskDialog, setShowTaskDialog] = useState(false);
