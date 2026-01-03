@@ -83,6 +83,18 @@ frontend:
         agent: "testing"
         comment: "Code analysis shows bulk selection feature is fully implemented with: 1) Selection mode toggle button (checkbox icon), 2) Task checkboxes when in selection mode, 3) Bulk action bar with selected count, Change Status, Manage Tags, and Cancel buttons, 4) Select All functionality in status column headers, 5) Proper state management with selectedTasks Set and selectionMode boolean. However, authentication session issues prevented full UI testing. All required components are present in the code including SortableTaskCard with selectionMode props, StatusColumn with select all functionality, and bulk action handlers for status changes and tag management."
 
+  - task: "List Edit and Delete Functionality"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ProjectDetail.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "New task added for testing list edit and delete functionality in Project Detail page. Need to test dropdown menu on list cards with Edit List, Manage Statuses, and Delete List options. Also need to test the edit dialog and delete confirmation functionality."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
