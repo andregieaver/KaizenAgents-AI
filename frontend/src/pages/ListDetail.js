@@ -104,24 +104,24 @@ const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses }) 
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className="group hover:shadow-md transition-all cursor-pointer mb-2">
-        <CardContent className="p-3">
-          <div className="flex items-start gap-2">
+      <Card className="group hover:shadow-md transition-all cursor-pointer mb-1.5 sm:mb-2">
+        <CardContent className="p-2 sm:p-3">
+          <div className="flex items-start gap-1.5 sm:gap-2">
             {/* Drag Handle */}
             <div
               {...attributes}
               {...listeners}
-              className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground touch-none mt-0.5"
+              className="cursor-grab active:cursor-grabbing p-0.5 sm:p-1 rounded hover:bg-muted text-muted-foreground touch-none mt-0.5"
             >
-              <GripVertical className="h-4 w-4" />
+              <GripVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
             
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start justify-between gap-1 sm:gap-2">
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm truncate">{task.title}</h4>
+                  <h4 className="font-medium text-xs sm:text-sm truncate">{task.title}</h4>
                   {task.description && (
-                    <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                    <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 sm:mt-1 hidden sm:block">
                       {task.description}
                     </p>
                   )}
@@ -129,7 +129,7 @@ const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses }) 
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
+                    <Button variant="ghost" size="icon" className="h-6 w-6 sm:opacity-0 sm:group-hover:opacity-100">
                       <MoreHorizontal className="h-3.5 w-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -148,22 +148,22 @@ const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses }) 
               </div>
               
               {/* Task metadata */}
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 flex-wrap">
                 {task.priority && (
-                  <Badge variant="secondary" className={`text-xs ${priorityClass}`}>
-                    <Flag className="h-3 w-3 mr-1" />
+                  <Badge variant="secondary" className={`text-[10px] sm:text-xs py-0 ${priorityClass}`}>
+                    <Flag className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                     {task.priority}
                   </Badge>
                 )}
                 {task.due_date && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-0.5 sm:gap-1">
+                    <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                     {format(new Date(task.due_date), 'MMM d')}
                   </span>
                 )}
                 {task.assigned_to_name && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <User className="h-3 w-3" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-0.5 sm:gap-1 hidden sm:flex">
+                    <User className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                     {task.assigned_to_name}
                   </span>
                 )}
