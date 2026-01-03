@@ -1622,14 +1622,60 @@ const ListDetail = () => {
         
         {/* Search - Always visible but responsive */}
         <div className="mt-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search tasks..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 h-9"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search tasks..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 h-9"
+              />
+            </div>
+            
+            {/* Active filters display */}
+            {activeFilterCount > 0 && (
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="text-muted-foreground hidden sm:inline">Filtering:</span>
+                <div className="flex flex-wrap gap-1">
+                  {filterStatuses.map(statusId => {
+                    const status = statuses.find(s => s.id === statusId);
+                    return status ? (
+                      <Badge 
+                        key={statusId} 
+                        variant="outline" 
+                        className="text-[10px] py-0 px-1.5 gap-1"
+                        style={{ borderColor: status.color, color: status.color }}
+                      >
+                        {status.name}
+                        <X 
+                          className="h-2.5 w-2.5 cursor-pointer" 
+                          onClick={() => setFilterStatuses(filterStatuses.filter(s => s !== statusId))}
+                        />
+                      </Badge>
+                    ) : null;
+                  })}
+                  {filterTags.map(tagId => {
+                    const tag = tags.find(t => t.id === tagId);
+                    return tag ? (
+                      <Badge 
+                        key={tagId} 
+                        variant="outline" 
+                        className="text-[10px] py-0 px-1.5 gap-1"
+                        style={{ borderColor: tag.color, color: tag.color }}
+                      >
+                        <Tag className="h-2 w-2" />
+                        {tag.name}
+                        <X 
+                          className="h-2.5 w-2.5 cursor-pointer" 
+                          onClick={() => setFilterTags(filterTags.filter(t => t !== tagId))}
+                        />
+                      </Badge>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
