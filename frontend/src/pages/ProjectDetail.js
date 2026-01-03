@@ -1228,6 +1228,46 @@ const ProjectDetail = () => {
     }
   };
 
+  const handleUpdateList = async () => {
+    if (!editListName.trim() || !editingList) return;
+    try {
+      await axios.put(
+        `${API}/projects/${projectId}/lists/${editingList.id}`,
+        { name: editListName },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setEditListName('');
+      setEditingList(null);
+      setShowEditListDialog(false);
+      toast.success('List updated');
+      fetchProject();
+    } catch (error) {
+      console.error('Failed to update list:', error);
+      toast.error('Failed to update list');
+    }
+  };
+
+  const handleDeleteList = async (list) => {
+    const taskCount = list.tasks?.length || 0;
+    const confirmMessage = taskCount > 0 
+      ? `Delete "${list.name}"? This will also delete ${taskCount} task(s) in this list.`
+      : `Delete "${list.name}"?`;
+    
+    if (!window.confirm(confirmMessage)) return;
+    
+    try {
+      await axios.delete(
+        `${API}/projects/${projectId}/lists/${list.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('List deleted');
+      fetchProject();
+    } catch (error) {
+      console.error('Failed to delete list:', error);
+      toast.error('Failed to delete list');
+    }
+  };
+
   const handleDragStart = (event) => {
     const list = lists?.find(l => l.id === event.active.id);
     setActiveList(list);
