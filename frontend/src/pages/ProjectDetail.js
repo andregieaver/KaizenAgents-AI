@@ -1272,15 +1272,10 @@ const ProjectDetail = () => {
   const lists = project.lists || [];
   const allTasks = project.all_tasks || [];
   
-  // Group tasks by status for Kanban
-  const tasksByStatus = taskStatuses.reduce((acc, status) => {
-    acc[status.id] = allTasks.filter(t => t.status === status.id && !t.parent_task_id);
-    return acc;
-  }, {});
-
-  // Filter tasks by search
-  const filteredTasks = allTasks.filter(task => 
-    task.title.toLowerCase().includes(search.toLowerCase())
+  // Filter lists by search
+  const filteredLists = lists.filter(list =>
+    list.name.toLowerCase().includes(search.toLowerCase()) ||
+    list.tasks?.some(t => t.title.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -1303,121 +1298,77 @@ const ProjectDetail = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-              <Button
-                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-                className="h-7 px-2"
-                title="List View"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('kanban')}
-                className="h-7 px-2"
-                title="Kanban View"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'gantt' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('gantt')}
-                className="h-7 px-2"
-                title="Gantt View"
-              >
-                <GanttChart className="h-4 w-4" />
-              </Button>
-            </div>
-            <Button onClick={openCreateTask}>
+            <Button variant="outline" size="sm" onClick={() => setShowListDialog(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Add Task
+              Add List
             </Button>
           </div>
         </div>
         
-        {/* Search and filters */}
+        {/* Search */}
         <div className="flex items-center gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search tasks..."
+              placeholder="Search lists..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 h-9"
             />
           </div>
-          <Button variant="outline" size="sm" onClick={() => setShowListDialog(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add List
-          </Button>
+          <p className="text-sm text-muted-foreground">
+            {lists.length} {lists.length === 1 ? 'list' : 'lists'}
+          </p>
         </div>
       </div>
 
-      {/* Content */}
+      {/* Content - Lists with Drag and Drop */}
       <div className="flex-1 overflow-hidden">
-        {/* List View */}
-        {viewMode === 'list' && (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleListDragEnd}
-          >
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext items={filteredLists.map(l => l.id)} strategy={verticalListSortingStrategy}>
             <ScrollArea className="h-full">
               <div className="p-4 space-y-3">
-                {lists.map(list => (
-                  <ListCard
-                    key={list.id}
-                    list={list}
-                    projectId={projectId}
-                    onManageStatuses={openListStatusModal}
-                  />
-                ))}
+                {filteredLists.length > 0 ? (
+                  filteredLists.map(list => (
+                    <SortableListCard
+                      key={list.id}
+                      list={list}
+                      projectId={projectId}
+                      onManageStatuses={openListStatusModal}
+                    />
+                  ))
+                ) : (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <List className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p className="font-medium">No lists found</p>
+                    <p className="text-sm">Create a list to start organizing your tasks</p>
+                  </div>
+                )}
               </div>
             </ScrollArea>
-            <DragOverlay>
-              {activeTask && (
-                <div className="bg-background border rounded p-2 shadow-lg w-64">
-                  <div className="flex items-center gap-2">
+          </SortableContext>
+          <DragOverlay>
+            {activeList && (
+              <Card className="shadow-xl cursor-grabbing">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
                     <GripVertical className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm truncate">{activeTask.title}</span>
+                    <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-primary/10">
+                      <List className="h-5 w-5 text-primary" />
+                    </div>
+                    <span className="font-medium">{activeList.name}</span>
                   </div>
-                </div>
-              )}
-            </DragOverlay>
-          </DndContext>
-        )}
-
-        {/* Kanban View */}
-        {viewMode === 'kanban' && (
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="flex gap-4 p-4 overflow-x-auto h-full">
-              {taskStatuses.map(status => (
-                <KanbanColumn
-                  key={status.id}
-                  status={status}
-                  tasks={tasksByStatus[status.id]?.filter(t => 
-                    t.title.toLowerCase().includes(search.toLowerCase())
-                  ) || []}
-                  onEdit={openEditTask}
-                  projectStatuses={taskStatuses}
-                />
-              ))}
-            </div>
-            <DragOverlay>
-              {activeTask && (
-                <div className="w-72">
-                  <KanbanTaskCard task={activeTask} isDragging />
-                </div>
+                </CardContent>
+              </Card>
+            )}
+          </DragOverlay>
+        </DndContext>
+      </div>
               )}
             </DragOverlay>
           </DndContext>
