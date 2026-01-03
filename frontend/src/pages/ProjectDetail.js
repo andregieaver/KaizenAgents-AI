@@ -1420,13 +1420,10 @@ const ProjectDetail = () => {
             <ScrollArea className="h-full">
               <div className="p-4 space-y-3">
                 {lists.map(list => (
-                  <DroppableList
+                  <ListCard
                     key={list.id}
                     list={list}
-                    search={search}
-                    onEditTask={openEditTask}
-                    onStatusChange={handleStatusChange}
-                    taskStatuses={taskStatuses}
+                    projectId={projectId}
                     onManageStatuses={openListStatusModal}
                   />
                 ))}
