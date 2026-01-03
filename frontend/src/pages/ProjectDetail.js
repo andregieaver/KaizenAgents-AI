@@ -1403,6 +1403,8 @@ const ProjectDetail = () => {
                       list={list}
                       projectId={projectId}
                       onManageStatuses={openListStatusModal}
+                      onEditList={openEditListDialog}
+                      onDeleteList={handleDeleteList}
                     />
                   ))
                 ) : (
