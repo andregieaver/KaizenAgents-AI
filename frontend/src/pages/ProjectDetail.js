@@ -435,22 +435,52 @@ const MiniTaskCard = ({ task, onEdit, onStatusChange, projectStatuses }) => {
   );
 };
 
-// Droppable List Component with Status Columns
-const DroppableList = ({ list, search, onEditTask, onStatusChange, taskStatuses, onStatusDragEnd, onManageStatuses }) => {
-  const [isOpen, setIsOpen] = useState(false); // Collapsed by default
-  const [listViewMode, setListViewMode] = useState('kanban'); // 'kanban' or 'list'
+// List Card Component - Navigates to List Detail Page
+const ListCard = ({ list, projectId, onManageStatuses }) => {
+  const navigate = useNavigate();
+  const taskCount = list.tasks?.length || 0;
+  const completedCount = list.tasks?.filter(t => t.status === 'done').length || 0;
   
-  const filteredTasks = list.tasks?.filter(t => 
-    t.title.toLowerCase().includes(search.toLowerCase())
-  ) || [];
-  
-  const taskCount = filteredTasks.length;
-  
-  // Group tasks by status
-  const tasksByStatus = taskStatuses.reduce((acc, status) => {
-    acc[status.id] = filteredTasks.filter(t => t.status === status.id);
-    return acc;
-  }, {});
+  return (
+    <Card 
+      className="group cursor-pointer hover:shadow-md transition-all"
+      onClick={() => navigate(`/dashboard/projects/${projectId}/lists/${list.id}`)}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div 
+              className="h-10 w-10 rounded-lg flex items-center justify-center bg-primary/10"
+            >
+              <List className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-medium">{list.name}</h3>
+              <p className="text-sm text-muted-foreground">
+                {completedCount}/{taskCount} tasks completed
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{taskCount}</Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onManageStatuses?.(list); }}>
+                  <Settings className="h-4 w-4 mr-2" /> Manage Statuses
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
   
   return (
     <Card>
