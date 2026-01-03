@@ -1387,6 +1387,7 @@ const ListDetail = () => {
         statuses={statuses}
         onSave={editingTask ? handleUpdateTask : handleCreateTask}
         onDelete={handleDeleteTask}
+        availableTags={tags}
       />
 
       {/* Status Management Modal */}
@@ -1397,6 +1398,14 @@ const ListDetail = () => {
         entityId={listId}
         entityName={list.name}
         onStatusesUpdated={fetchListData}
+      />
+
+      {/* Tag Management Modal */}
+      <TagManagementModal
+        open={showTagModal}
+        onOpenChange={setShowTagModal}
+        tags={tags}
+        onTagsUpdated={fetchTags}
       />
     </div>
   );
