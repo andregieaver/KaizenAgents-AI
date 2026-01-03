@@ -883,6 +883,7 @@ const ListDetail = () => {
   const [project, setProject] = useState(null);
   const [tasks, setTasks] = useState([]);
   const [statuses, setStatuses] = useState([]);
+  const [tags, setTags] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState('kanban'); // 'list', 'kanban', 'gantt'
@@ -891,6 +892,7 @@ const ListDetail = () => {
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [showTagModal, setShowTagModal] = useState(false);
   
   // Drag state
   const [activeTask, setActiveTask] = useState(null);
@@ -900,6 +902,18 @@ const ListDetail = () => {
     useSensor(TouchSensor, { activationConstraint: { delay: 100, tolerance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
+
+  // Fetch tags
+  const fetchTags = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/projects/tags/all`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTags(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch tags:', error);
+    }
+  }, [token]);
 
   // Fetch list data
   const fetchListData = useCallback(async () => {
@@ -933,7 +947,8 @@ const ListDetail = () => {
 
   useEffect(() => {
     fetchListData();
-  }, [fetchListData]);
+    fetchTags();
+  }, [fetchListData, fetchTags]);
 
   // Group tasks by status
   const tasksByStatus = statuses.reduce((acc, status) => {
