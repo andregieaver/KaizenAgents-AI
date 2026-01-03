@@ -644,42 +644,33 @@ const ListDetail = () => {
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b bg-card">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
+      <div className="p-3 sm:p-4 border-b bg-card">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Button 
               variant="ghost" 
               size="icon"
+              className="h-8 w-8 sm:h-9 sm:w-9"
               onClick={() => navigate(`/dashboard/projects/${projectId}`)}
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
-            <div>
-              <h1 className="text-xl font-semibold">{list.name}</h1>
-              <p className="text-sm text-muted-foreground">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base sm:text-xl font-semibold truncate">{list.name}</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
                 {project?.name} • {tasks.length} tasks
               </p>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <div className="relative hidden sm:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search tasks..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 w-[200px]"
-              />
-            </div>
-            
+          <div className="flex items-center gap-2 flex-wrap">
             {/* View Mode Toggle */}
-            <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+            <div className="flex items-center gap-0.5 sm:gap-1 bg-muted rounded-lg p-0.5 sm:p-1">
               <Button
                 variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('list')}
-                className="h-7 px-2"
+                className="h-7 w-7 sm:h-7 sm:w-auto sm:px-2 p-0"
                 title="List View"
               >
                 <List className="h-4 w-4" />
@@ -688,7 +679,7 @@ const ListDetail = () => {
                 variant={viewMode === 'kanban' ? 'secondary' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('kanban')}
-                className="h-7 px-2"
+                className="h-7 w-7 sm:h-7 sm:w-auto sm:px-2 p-0"
                 title="Kanban View"
               >
                 <LayoutGrid className="h-4 w-4" />
@@ -697,32 +688,32 @@ const ListDetail = () => {
                 variant={viewMode === 'gantt' ? 'secondary' : 'ghost'}
                 size="sm"
                 onClick={() => setViewMode('gantt')}
-                className="h-7 px-2"
+                className="h-7 w-7 sm:h-7 sm:w-auto sm:px-2 p-0"
                 title="Gantt View"
               >
                 <GanttChart className="h-4 w-4" />
               </Button>
             </div>
             
-            <Button variant="outline" size="icon" onClick={() => setShowStatusModal(true)}>
+            <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setShowStatusModal(true)}>
               <Settings className="h-4 w-4" />
             </Button>
-            <Button onClick={openCreateTask}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Task
+            <Button size="sm" className="h-8" onClick={openCreateTask}>
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Add Task</span>
             </Button>
           </div>
         </div>
         
-        {/* Mobile Search */}
-        <div className="sm:hidden">
+        {/* Search - Always visible but responsive */}
+        <div className="mt-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search tasks..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9"
+              className="pl-9 h-9"
             />
           </div>
         </div>
