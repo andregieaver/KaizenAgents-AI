@@ -1733,10 +1733,20 @@ const ListDetail = () => {
               </DragOverlay>
             </DndContext>
             
-            {tasks.length === 0 && (
+            {filteredTasks.length === 0 && (
               <div className="text-center py-8 sm:py-12 text-muted-foreground border">
                 <Circle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No tasks yet</p>
+                <p>{activeFilterCount > 0 ? 'No tasks match the current filters' : 'No tasks yet'}</p>
+                {activeFilterCount > 0 && (
+                  <Button 
+                    variant="link" 
+                    size="sm" 
+                    onClick={() => { setFilterStatuses([]); setFilterTags([]); }}
+                    className="mt-2"
+                  >
+                    Clear filters
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -1745,13 +1755,14 @@ const ListDetail = () => {
       
       {viewMode === 'gantt' && (
         <GanttView 
-          tasks={tasks.filter(t => t.title.toLowerCase().includes(search.toLowerCase()))}
+          tasks={filteredTasks}
           statuses={statuses}
           onEditTask={openEditTask}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
           sensors={sensors}
           activeTask={activeTask}
+          filterStatuses={filterStatuses}
         />
       )}
 
