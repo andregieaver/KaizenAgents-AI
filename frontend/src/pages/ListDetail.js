@@ -386,6 +386,7 @@ const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDele
     description: task.description || '',
     status: task.status || 'todo',
     priority: task.priority || 'medium',
+    start_date: task.start_date ? task.start_date.split('T')[0] : '',
     due_date: task.due_date ? task.due_date.split('T')[0] : '',
     assigned_to: task.assigned_to || '',
   } : {
@@ -393,6 +394,7 @@ const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDele
     description: '',
     status: statuses[0]?.id || 'todo',
     priority: 'medium',
+    start_date: '',
     due_date: '',
     assigned_to: '',
   };
