@@ -1195,15 +1195,6 @@ const ListDetail = () => {
     fetchTags();
   }, [fetchListData, fetchTags]);
 
-  // Group tasks by status
-  const tasksByStatus = statuses.reduce((acc, status) => {
-    acc[status.id] = tasks
-      .filter(t => t.status === status.id)
-      .filter(t => t.title.toLowerCase().includes(search.toLowerCase()))
-      .sort((a, b) => (a.order || 0) - (b.order || 0));
-    return acc;
-  }, {});
-
   // Handle drag start
   const handleDragStart = (event) => {
     const task = tasks.find(t => t.id === event.active.id);
