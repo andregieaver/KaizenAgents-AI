@@ -9,6 +9,12 @@ import { Badge } from '../components/ui/badge';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { ScrollArea } from '../components/ui/scroll-area';
+import { Checkbox } from '../components/ui/checkbox';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '../components/ui/popover';
 import {
   Dialog,
   DialogContent,
