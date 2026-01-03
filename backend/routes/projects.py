@@ -2035,3 +2035,130 @@ async def get_project_dependencies(
     ).to_list(1000)
     
     return dependencies
+
+
+
+# =============================================================================
+# TAG MANAGEMENT ENDPOINTS
+# =============================================================================
+
+@router.get("/tags/all")
+async def get_all_tags(
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all tags for the tenant"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    tags = await db.project_tags.find(
+        {"tenant_id": tenant_id},
+        {"_id": 0}
+    ).sort("name", 1).to_list(500)
+    
+    return tags
+
+
+@router.post("/tags")
+async def create_tag(
+    tag_data: TagCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new tag"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Check for duplicate name
+    existing = await db.project_tags.find_one({
+        "tenant_id": tenant_id,
+        "name": {"$regex": f"^{tag_data.name}$", "$options": "i"}
+    })
+    if existing:
+        raise HTTPException(status_code=400, detail="Tag with this name already exists")
+    
+    tag = {
+        "id": str(uuid4()),
+        "tenant_id": tenant_id,
+        "name": tag_data.name,
+        "color": tag_data.color or "#6B7280",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    
+    await db.project_tags.insert_one(tag)
+    tag.pop("_id", None)
+    
+    return tag
+
+
+@router.put("/tags/{tag_id}")
+async def update_tag(
+    tag_id: str,
+    tag_data: TagUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update a tag"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    existing = await db.project_tags.find_one({
+        "id": tag_id,
+        "tenant_id": tenant_id
+    })
+    if not existing:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    
+    # Check for duplicate name if name is being changed
+    if tag_data.name and tag_data.name.lower() != existing["name"].lower():
+        duplicate = await db.project_tags.find_one({
+            "tenant_id": tenant_id,
+            "name": {"$regex": f"^{tag_data.name}$", "$options": "i"},
+            "id": {"$ne": tag_id}
+        })
+        if duplicate:
+            raise HTTPException(status_code=400, detail="Tag with this name already exists")
+    
+    update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    if tag_data.name is not None:
+        update_data["name"] = tag_data.name
+    if tag_data.color is not None:
+        update_data["color"] = tag_data.color
+    
+    await db.project_tags.update_one(
+        {"id": tag_id, "tenant_id": tenant_id},
+        {"$set": update_data}
+    )
+    
+    updated = await db.project_tags.find_one({"id": tag_id}, {"_id": 0})
+    return updated
+
+
+@router.delete("/tags/{tag_id}")
+async def delete_tag(
+    tag_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete a tag and remove it from all tasks"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    existing = await db.project_tags.find_one({
+        "id": tag_id,
+        "tenant_id": tenant_id
+    })
+    if not existing:
+        raise HTTPException(status_code=404, detail="Tag not found")
+    
+    # Remove tag from all tasks
+    await db.project_tasks.update_many(
+        {"tenant_id": tenant_id, "tags": tag_id},
+        {"$pull": {"tags": tag_id}}
+    )
+    
+    # Delete the tag
+    await db.project_tags.delete_one({"id": tag_id})
+    
+    return {"message": "Tag deleted successfully"}
