@@ -234,6 +234,150 @@ const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses }) => 
   );
 };
 
+// Sortable List Row Component for List View
+const SortableListRow = ({ task, onEdit, onDelete, statuses }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const priorityClass = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
+  const taskStatus = statuses.find(s => s.id === task.status);
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style}
+      className={`border-b last:border-b-0 hover:bg-muted/30 cursor-pointer ${isDragging ? 'bg-muted/50' : ''}`}
+      onClick={() => onEdit(task)}
+    >
+      {/* Mobile Layout */}
+      <div className="sm:hidden p-2.5">
+        <div className="flex items-start gap-2">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground touch-none mt-0.5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <GripVertical className="h-4 w-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={`font-medium text-sm ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+              {task.title}
+            </p>
+            <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+              <Badge variant="secondary" className={`text-xs py-0 ${priorityClass}`}>
+                {task.priority}
+              </Badge>
+              {task.due_date && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  {format(new Date(task.due_date), 'MMM d')}
+                </span>
+              )}
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 flex-shrink-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(task);
+            }}
+          >
+            <Trash2 className="h-4 w-4 text-muted-foreground" />
+          </Button>
+        </div>
+      </div>
+      
+      {/* Desktop Layout */}
+      <div className="hidden sm:flex items-center gap-3 px-3 py-2.5">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground touch-none"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="h-4 w-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <span className={`text-sm ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}>
+            {task.title}
+          </span>
+        </div>
+        <Badge variant="secondary" className={`text-xs ${priorityClass}`}>
+          {task.priority}
+        </Badge>
+        {task.due_date && (
+          <span className="text-xs text-muted-foreground flex items-center gap-1 min-w-[70px]">
+            <Calendar className="h-3 w-3" />
+            {format(new Date(task.due_date), 'MMM d')}
+          </span>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(task);
+          }}
+        >
+          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Droppable List Status Zone for List View
+const ListStatusDropZone = ({ status, tasks, onEditTask, onDeleteTask, statuses }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: status.id,
+  });
+
+  const taskIds = tasks.map(t => t.id);
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`min-h-[40px] transition-colors ${
+        isOver ? 'bg-primary/5' : ''
+      }`}
+    >
+      <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+        {tasks.length > 0 ? (
+          tasks.map(task => (
+            <SortableListRow
+              key={task.id}
+              task={task}
+              onEdit={onEditTask}
+              onDelete={onDeleteTask}
+              statuses={statuses}
+            />
+          ))
+        ) : (
+          <div className="text-center py-4 text-muted-foreground text-xs">
+            No tasks in this status
+          </div>
+        )}
+      </SortableContext>
+    </div>
+  );
+};
+
 // Task Dialog Component
 const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDelete }) => {
   // Initialize form data based on task prop
