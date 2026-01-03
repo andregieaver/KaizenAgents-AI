@@ -1851,6 +1851,22 @@ const ListDetail = () => {
             <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setShowStatusModal(true)} title="Manage Statuses">
               <Settings className="h-4 w-4" />
             </Button>
+            {/* Selection Mode Toggle */}
+            <Button 
+              variant={selectionMode ? "default" : "outline"} 
+              size="icon" 
+              className="h-8 w-8" 
+              onClick={() => {
+                if (selectionMode) {
+                  clearSelection();
+                } else {
+                  setSelectionMode(true);
+                }
+              }}
+              title={selectionMode ? "Exit Selection Mode" : "Select Tasks"}
+            >
+              <CheckSquare className="h-4 w-4" />
+            </Button>
             <Button size="sm" className="h-8" onClick={openCreateTask}>
               <Plus className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Add Task</span>
