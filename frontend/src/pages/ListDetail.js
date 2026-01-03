@@ -1402,6 +1402,144 @@ const ListDetail = () => {
     setShowTaskDialog(true);
   };
 
+  // Selection helpers
+  const toggleTaskSelection = (taskId) => {
+    setSelectedTasks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(taskId)) {
+        newSet.delete(taskId);
+      } else {
+        newSet.add(taskId);
+      }
+      return newSet;
+    });
+  };
+
+  const selectAllInStatus = (statusId) => {
+    const statusTasks = tasks.filter(t => t.status === statusId);
+    setSelectedTasks(prev => {
+      const newSet = new Set(prev);
+      statusTasks.forEach(t => newSet.add(t.id));
+      return newSet;
+    });
+  };
+
+  const deselectAllInStatus = (statusId) => {
+    const statusTaskIds = tasks.filter(t => t.status === statusId).map(t => t.id);
+    setSelectedTasks(prev => {
+      const newSet = new Set(prev);
+      statusTaskIds.forEach(id => newSet.delete(id));
+      return newSet;
+    });
+  };
+
+  const clearSelection = () => {
+    setSelectedTasks(new Set());
+    setSelectionMode(false);
+  };
+
+  // Bulk action handlers
+  const handleBulkStatusChange = async (newStatus) => {
+    if (selectedTasks.size === 0) return;
+    
+    try {
+      const promises = Array.from(selectedTasks).map(taskId =>
+        axios.put(
+          `${API}/projects/${projectId}/tasks/${taskId}`,
+          { status: newStatus },
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+      );
+      
+      await Promise.all(promises);
+      
+      // Update local state
+      setTasks(prev => prev.map(t => 
+        selectedTasks.has(t.id) ? { ...t, status: newStatus } : t
+      ));
+      
+      toast.success(`${selectedTasks.size} task(s) moved to ${statuses.find(s => s.id === newStatus)?.name}`);
+      clearSelection();
+      setShowBulkStatusPopover(false);
+    } catch (error) {
+      console.error('Failed to update tasks:', error);
+      toast.error('Failed to update some tasks');
+    }
+  };
+
+  const handleBulkAddTag = async (tagId) => {
+    if (selectedTasks.size === 0) return;
+    
+    try {
+      const promises = Array.from(selectedTasks).map(taskId => {
+        const task = tasks.find(t => t.id === taskId);
+        const currentTags = task?.tags || [];
+        if (currentTags.includes(tagId)) return Promise.resolve(); // Already has tag
+        
+        return axios.put(
+          `${API}/projects/${projectId}/tasks/${taskId}`,
+          { tags: [...currentTags, tagId] },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      });
+      
+      await Promise.all(promises);
+      
+      // Update local state
+      setTasks(prev => prev.map(t => {
+        if (selectedTasks.has(t.id)) {
+          const currentTags = t.tags || [];
+          if (!currentTags.includes(tagId)) {
+            return { ...t, tags: [...currentTags, tagId] };
+          }
+        }
+        return t;
+      }));
+      
+      const tagName = tags.find(t => t.id === tagId)?.name;
+      toast.success(`Added "${tagName}" tag to ${selectedTasks.size} task(s)`);
+      setShowBulkTagPopover(false);
+    } catch (error) {
+      console.error('Failed to add tags:', error);
+      toast.error('Failed to add tag to some tasks');
+    }
+  };
+
+  const handleBulkRemoveTag = async (tagId) => {
+    if (selectedTasks.size === 0) return;
+    
+    try {
+      const promises = Array.from(selectedTasks).map(taskId => {
+        const task = tasks.find(t => t.id === taskId);
+        const currentTags = task?.tags || [];
+        if (!currentTags.includes(tagId)) return Promise.resolve(); // Doesn't have tag
+        
+        return axios.put(
+          `${API}/projects/${projectId}/tasks/${taskId}`,
+          { tags: currentTags.filter(t => t !== tagId) },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      });
+      
+      await Promise.all(promises);
+      
+      // Update local state
+      setTasks(prev => prev.map(t => {
+        if (selectedTasks.has(t.id) && t.tags) {
+          return { ...t, tags: t.tags.filter(tid => tid !== tagId) };
+        }
+        return t;
+      }));
+      
+      const tagName = tags.find(t => t.id === tagId)?.name;
+      toast.success(`Removed "${tagName}" tag from ${selectedTasks.size} task(s)`);
+      setShowBulkTagPopover(false);
+    } catch (error) {
+      console.error('Failed to remove tags:', error);
+      toast.error('Failed to remove tag from some tasks');
+    }
+  };
+
   // Filter tasks based on search, status, and tag filters
   const filteredTasks = tasks.filter(task => {
     // Search filter
