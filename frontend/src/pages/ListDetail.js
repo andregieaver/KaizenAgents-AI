@@ -1507,6 +1507,7 @@ const ListDetail = () => {
                     onEditTask={openEditTask}
                     onDeleteTask={handleDeleteTask}
                     statuses={statuses}
+                    availableTags={tags}
                   />
                 ))}
               </div>
