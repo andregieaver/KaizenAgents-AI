@@ -205,7 +205,7 @@ const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses, av
 };
 
 // Droppable Status Column Component
-const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses }) => {
+const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses, availableTags = [] }) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
   });
@@ -248,6 +248,7 @@ const StatusColumn = ({ status, tasks, onEditTask, onDeleteTask, statuses }) => 
                 onEdit={onEditTask}
                 onDelete={onDeleteTask}
                 statuses={statuses}
+                availableTags={availableTags}
               />
             ))
           ) : (
