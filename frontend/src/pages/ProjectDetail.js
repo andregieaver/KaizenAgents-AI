@@ -435,20 +435,46 @@ const MiniTaskCard = ({ task, onEdit, onStatusChange, projectStatuses }) => {
   );
 };
 
-// List Card Component - Navigates to List Detail Page
-const ListCard = ({ list, projectId, onManageStatuses }) => {
+// Sortable List Card Component - Navigates to List Detail Page
+const SortableListCard = ({ list, projectId, onManageStatuses }) => {
   const navigate = useNavigate();
   const taskCount = list.tasks?.length || 0;
   const completedCount = list.tasks?.filter(t => t.status === 'done').length || 0;
   
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: list.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+  
   return (
     <Card 
-      className="group cursor-pointer hover:shadow-md transition-all"
+      ref={setNodeRef}
+      style={style}
+      className={`group cursor-pointer hover:shadow-md transition-all ${isDragging ? 'shadow-lg ring-2 ring-primary/30' : ''}`}
       onClick={() => navigate(`/dashboard/projects/${projectId}/lists/${list.id}`)}
     >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
+            {/* Drag Handle */}
+            <div
+              {...attributes}
+              {...listeners}
+              className="flex items-center justify-center w-8 h-8 cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground hover:bg-muted rounded touch-none"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <GripVertical className="h-4 w-4" />
+            </div>
             <div 
               className="h-10 w-10 rounded-lg flex items-center justify-center bg-primary/10"
             >
