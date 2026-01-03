@@ -187,6 +187,20 @@ class DependencyCreate(BaseModel):
 
 
 # =============================================================================
+# PYDANTIC MODELS - TAGS
+# =============================================================================
+
+class TagCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=50)
+    color: Optional[str] = "#6B7280"
+
+
+class TagUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=50)
+    color: Optional[str] = None
+
+
+# =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
 
