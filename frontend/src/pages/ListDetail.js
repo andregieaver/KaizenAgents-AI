@@ -1940,6 +1940,11 @@ const ListDetail = () => {
                     onDeleteTask={handleDeleteTask}
                     statuses={statuses}
                     availableTags={tags}
+                    selectionMode={selectionMode}
+                    selectedTasks={selectedTasks}
+                    onToggleSelect={toggleTaskSelection}
+                    onSelectAll={selectAllInStatus}
+                    onDeselectAll={deselectAllInStatus}
                   />
                 ))}
               </div>
