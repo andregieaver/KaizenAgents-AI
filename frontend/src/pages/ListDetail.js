@@ -2474,7 +2474,7 @@ const ListDetail = () => {
         onSave={editingTask ? handleUpdateTask : handleCreateTask}
         onDelete={handleDeleteTask}
         availableTags={tags}
-        onSubtaskUpdate={fetchTasks}
+        onSubtaskUpdate={fetchListData}
       />
 
       {/* Status Management Modal */}
