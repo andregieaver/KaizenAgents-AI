@@ -469,6 +469,13 @@ const SortableListRow = ({ task, onEdit, onDelete, statuses, selectionMode, isSe
             {task.title}
           </span>
         </div>
+        {subtaskCount > 0 && (
+          <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <ListChecks className="h-3.5 w-3.5" />
+            {completedSubtasks}/{subtaskCount}
+            <span className="text-primary font-medium">{subtaskProgress}%</span>
+          </span>
+        )}
         <Badge variant="secondary" className={`text-xs ${priorityClass}`}>
           {task.priority}
         </Badge>
