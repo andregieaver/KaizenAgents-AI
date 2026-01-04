@@ -101,13 +101,15 @@ frontend:
 metadata:
   created_by: "testing_agent"
   version: "1.0"
-  test_sequence: 2
+  test_sequence: 3
 
 test_plan:
   current_focus:
     - "List Edit and Delete Functionality"
+    - "Subtask Functionality in Task Dialog"
   stuck_tasks:
     - "List Edit and Delete Functionality"
+    - "Subtask Functionality in Task Dialog"
   test_all: false
   test_priority: "high_first"
 
