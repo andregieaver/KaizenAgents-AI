@@ -930,7 +930,7 @@ const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onS
       const newStatus = subtask.status === 'done' ? 'todo' : 'done';
       
       await axios.put(
-        `${API}/api/projects/tasks/${subtask.id}`,
+        `${API}/api/projects/${projectId}/tasks/${subtask.id}`,
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
