@@ -1731,7 +1731,7 @@ async def update_task(
     
     update_data = {"updated_at": datetime.now(timezone.utc).isoformat()}
     
-    for field in ["title", "description", "list_id", "status", "priority", 
+    for field in ["title", "description", "list_id", "status", "phase", "priority", 
                   "assignee_id", "due_date", "start_date", "estimated_hours", 
                   "tags", "position"]:
         value = getattr(task_data, field, None)
