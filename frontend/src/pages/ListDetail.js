@@ -917,7 +917,8 @@ const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onS
       setSubtasks(prev => [...prev, newSubtask]);
       setNewSubtaskTitle('');
       toast.success('Subtask added');
-      onSubtaskUpdate?.();
+      // Update parent state for real-time UI update
+      onSubtaskChange?.(task.id, prev => [...prev, newSubtask]);
     } catch (error) {
       console.error('Failed to add subtask:', error);
       toast.error('Failed to add subtask');
@@ -935,10 +936,14 @@ const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onS
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
+      const updatedSubtask = { ...subtask, status: newStatus, completed: newStatus === 'done' };
       setSubtasks(prev => prev.map(st => 
-        st.id === subtask.id ? { ...st, status: newStatus, completed: newStatus === 'done' } : st
+        st.id === subtask.id ? updatedSubtask : st
       ));
-      onSubtaskUpdate?.();
+      // Update parent state for real-time UI update
+      onSubtaskChange?.(task.id, prev => prev.map(st => 
+        st.id === subtask.id ? updatedSubtask : st
+      ));
     } catch (error) {
       console.error('Failed to toggle subtask:', error);
       toast.error('Failed to update subtask');
