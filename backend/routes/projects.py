@@ -162,6 +162,7 @@ class TaskCreate(BaseModel):
     description: Optional[str] = None
     list_id: str
     status: Optional[str] = "todo"
+    phase: Optional[str] = "planning"  # Project-level phase
     priority: Optional[str] = "medium"
     assignee_id: Optional[str] = None
     due_date: Optional[str] = None
@@ -176,6 +177,7 @@ class TaskUpdate(BaseModel):
     description: Optional[str] = None
     list_id: Optional[str] = None
     status: Optional[str] = None
+    phase: Optional[str] = None  # Project-level phase
     priority: Optional[str] = None
     assignee_id: Optional[str] = None
     due_date: Optional[str] = None
