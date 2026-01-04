@@ -961,13 +961,17 @@ const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onS
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
+      const newTitle = editingSubtaskTitle.trim();
       setSubtasks(prev => prev.map(st => 
-        st.id === subtaskId ? { ...st, title: editingSubtaskTitle.trim() } : st
+        st.id === subtaskId ? { ...st, title: newTitle } : st
       ));
       setEditingSubtaskId(null);
       setEditingSubtaskTitle('');
       toast.success('Subtask updated');
-      onSubtaskUpdate?.();
+      // Update parent state for real-time UI update
+      onSubtaskChange?.(task.id, prev => prev.map(st => 
+        st.id === subtaskId ? { ...st, title: newTitle } : st
+      ));
     } catch (error) {
       console.error('Failed to edit subtask:', error);
       toast.error('Failed to update subtask');
@@ -984,7 +988,8 @@ const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onS
       
       setSubtasks(prev => prev.filter(st => st.id !== subtaskId));
       toast.success('Subtask deleted');
-      onSubtaskUpdate?.();
+      // Update parent state for real-time UI update
+      onSubtaskChange?.(task.id, prev => prev.filter(st => st.id !== subtaskId));
     } catch (error) {
       console.error('Failed to delete subtask:', error);
       toast.error('Failed to delete subtask');
