@@ -1082,6 +1082,20 @@ const ProjectDetail = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   
+  // Main view mode: 'lists' or 'tasks'
+  const [mainView, setMainView] = useState('lists');
+  
+  // Task view mode for tasks view
+  const [taskViewMode, setTaskViewMode] = useState('kanban');
+  
+  // All tasks data (for project-level views)
+  const [allTasks, setAllTasks] = useState([]);
+  const [phases, setPhases] = useState([]);
+  const [projectLists, setProjectLists] = useState([]);
+  
+  // Task drag state (for project-level D&D)
+  const [activeTask, setActiveTask] = useState(null);
+  
   // Dialog states
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
@@ -1092,6 +1106,9 @@ const ProjectDetail = () => {
   const [showEditListDialog, setShowEditListDialog] = useState(false);
   const [editingList, setEditingList] = useState(null);
   const [editListName, setEditListName] = useState('');
+  
+  // Phase management modal state
+  const [showPhaseModal, setShowPhaseModal] = useState(false);
   
   // Status management modal state
   const [showStatusModal, setShowStatusModal] = useState(false);
