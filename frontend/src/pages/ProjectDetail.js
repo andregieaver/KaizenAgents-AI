@@ -1576,10 +1576,74 @@ const ProjectDetail = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setShowListDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add List
-            </Button>
+            {/* Main View Toggle */}
+            <div className="flex items-center border rounded-lg p-0.5">
+              <Button 
+                variant={mainView === 'lists' ? 'default' : 'ghost'} 
+                size="sm" 
+                className="h-7 px-3"
+                onClick={() => setMainView('lists')}
+              >
+                <Layers className="h-4 w-4 mr-1.5" />
+                Lists
+              </Button>
+              <Button 
+                variant={mainView === 'tasks' ? 'default' : 'ghost'} 
+                size="sm" 
+                className="h-7 px-3"
+                onClick={() => setMainView('tasks')}
+              >
+                <CheckCircle2 className="h-4 w-4 mr-1.5" />
+                All Tasks
+              </Button>
+            </div>
+            
+            {mainView === 'lists' && (
+              <Button variant="outline" size="sm" onClick={() => setShowListDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add List
+              </Button>
+            )}
+            
+            {mainView === 'tasks' && (
+              <>
+                {/* Task View Mode Toggle */}
+                <div className="flex items-center border rounded-lg p-0.5">
+                  <Button 
+                    variant={taskViewMode === 'kanban' ? 'default' : 'ghost'} 
+                    size="sm" 
+                    className="h-7 px-2"
+                    onClick={() => setTaskViewMode('kanban')}
+                    title="Kanban View"
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant={taskViewMode === 'list' ? 'default' : 'ghost'} 
+                    size="sm" 
+                    className="h-7 px-2"
+                    onClick={() => setTaskViewMode('list')}
+                    title="List View"
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant={taskViewMode === 'gantt' ? 'default' : 'ghost'} 
+                    size="sm" 
+                    className="h-7 px-2"
+                    onClick={() => setTaskViewMode('gantt')}
+                    title="Gantt View"
+                  >
+                    <GanttChart className="h-4 w-4" />
+                  </Button>
+                </div>
+                
+                <Button variant="outline" size="sm" onClick={() => setShowPhaseModal(true)}>
+                  <Settings className="h-4 w-4 mr-2" />
+                  Phases
+                </Button>
+              </>
+            )}
           </div>
         </div>
         
@@ -1588,66 +1652,152 @@ const ProjectDetail = () => {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search lists..."
+              placeholder={mainView === 'lists' ? "Search lists..." : "Search tasks..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9 h-9"
             />
           </div>
           <p className="text-sm text-muted-foreground">
-            {lists.length} {lists.length === 1 ? 'list' : 'lists'}
+            {mainView === 'lists' 
+              ? `${lists.length} ${lists.length === 1 ? 'list' : 'lists'}`
+              : `${filteredTasks.length} ${filteredTasks.length === 1 ? 'task' : 'tasks'}`
+            }
           </p>
         </div>
       </div>
 
-      {/* Content - Lists with Drag and Drop */}
+      {/* Content */}
       <div className="flex-1 overflow-hidden">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext items={filteredLists.map(l => l.id)} strategy={verticalListSortingStrategy}>
+        {/* Lists View */}
+        {mainView === 'lists' && (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext items={filteredLists.map(l => l.id)} strategy={verticalListSortingStrategy}>
+              <ScrollArea className="h-full">
+                <div className="p-4 space-y-3">
+                  {filteredLists.length > 0 ? (
+                    filteredLists.map(list => (
+                      <SortableListCard
+                        key={list.id}
+                        list={list}
+                        projectId={projectId}
+                        onManageStatuses={openListStatusModal}
+                        onEditList={openEditListDialog}
+                        onDeleteList={handleDeleteList}
+                      />
+                    ))
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <List className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p className="font-medium">No lists found</p>
+                      <p className="text-sm">Create a list to start organizing your tasks</p>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </SortableContext>
+            <DragOverlay>
+              {activeList && (
+                <Card className="shadow-xl cursor-grabbing">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                      <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-primary/10">
+                        <List className="h-5 w-5 text-primary" />
+                      </div>
+                      <span className="font-medium">{activeList.name}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </DragOverlay>
+          </DndContext>
+        )}
+
+        {/* Tasks View - Kanban */}
+        {mainView === 'tasks' && taskViewMode === 'kanban' && (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleTaskDragStart}
+            onDragEnd={handleTaskDragEnd}
+          >
             <ScrollArea className="h-full">
-              <div className="p-4 space-y-3">
-                {filteredLists.length > 0 ? (
-                  filteredLists.map(list => (
-                    <SortableListCard
-                      key={list.id}
-                      list={list}
-                      projectId={projectId}
-                      onManageStatuses={openListStatusModal}
-                      onEditList={openEditListDialog}
-                      onDeleteList={handleDeleteList}
-                    />
-                  ))
-                ) : (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <List className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="font-medium">No lists found</p>
-                    <p className="text-sm">Create a list to start organizing your tasks</p>
-                  </div>
-                )}
+              <div className="flex gap-4 p-4 min-w-max">
+                {phases.map(phase => (
+                  <PhaseColumn
+                    key={phase.id}
+                    phase={phase}
+                    tasks={filteredTasksByPhase[phase.id] || []}
+                    onEditTask={openProjectTaskEdit}
+                    onDeleteTask={handleProjectTaskDelete}
+                    phases={phases}
+                    projectLists={projectLists}
+                  />
+                ))}
               </div>
             </ScrollArea>
-          </SortableContext>
-          <DragOverlay>
-            {activeList && (
-              <Card className="shadow-xl cursor-grabbing">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <GripVertical className="h-4 w-4 text-muted-foreground" />
-                    <div className="h-10 w-10 rounded-lg flex items-center justify-center bg-primary/10">
-                      <List className="h-5 w-5 text-primary" />
-                    </div>
-                    <span className="font-medium">{activeList.name}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </DragOverlay>
-        </DndContext>
+            <DragOverlay>
+              {activeTask && (
+                <Card className="shadow-xl w-[280px]">
+                  <CardContent className="p-3">
+                    <h4 className="font-medium text-sm">{activeTask.title}</h4>
+                  </CardContent>
+                </Card>
+              )}
+            </DragOverlay>
+          </DndContext>
+        )}
+
+        {/* Tasks View - List */}
+        {mainView === 'tasks' && taskViewMode === 'list' && (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCorners}
+            onDragStart={handleTaskDragStart}
+            onDragEnd={handleTaskDragEnd}
+          >
+            <ScrollArea className="h-full">
+              <div className="p-4 space-y-4">
+                {phases.map(phase => {
+                  const phaseTasks = filteredTasksByPhase[phase.id] || [];
+                  return (
+                    <PhaseListSection
+                      key={phase.id}
+                      phase={phase}
+                      tasks={phaseTasks}
+                      onEditTask={openProjectTaskEdit}
+                      onDeleteTask={handleProjectTaskDelete}
+                      projectLists={projectLists}
+                    />
+                  );
+                })}
+              </div>
+            </ScrollArea>
+            <DragOverlay>
+              {activeTask && (
+                <div className="bg-background border rounded-md shadow-xl p-3">
+                  <span className="text-sm font-medium">{activeTask.title}</span>
+                </div>
+              )}
+            </DragOverlay>
+          </DndContext>
+        )}
+
+        {/* Tasks View - Gantt */}
+        {mainView === 'tasks' && taskViewMode === 'gantt' && (
+          <ProjectGanttView
+            tasks={filteredTasks}
+            phases={phases}
+            onEditTask={openProjectTaskEdit}
+            projectLists={projectLists}
+          />
+        )}
       </div>
 
       {/* Add List Dialog */}
