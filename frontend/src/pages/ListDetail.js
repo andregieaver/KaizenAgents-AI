@@ -902,7 +902,7 @@ const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onS
     try {
       const API = process.env.REACT_APP_BACKEND_URL;
       const response = await axios.post(
-        `${API}/api/projects/tasks`,
+        `${API}/api/projects/${projectId}/tasks`,
         {
           title: newSubtaskTitle.trim(),
           list_id: listId,
