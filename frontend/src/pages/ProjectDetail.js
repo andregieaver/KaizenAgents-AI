@@ -2716,12 +2716,12 @@ const ProjectDetail = () => {
                   />
                 ))}
               </div>
-            </ScrollArea>
+            </div>
             <DragOverlay>
               {activeTask && (
-                <Card className="shadow-xl w-[280px]">
-                  <CardContent className="p-3">
-                    <h4 className="font-medium text-sm">{activeTask.title}</h4>
+                <Card className="shadow-xl w-[240px] sm:w-[280px]">
+                  <CardContent className="p-2 sm:p-3">
+                    <h4 className="font-medium text-xs sm:text-sm">{activeTask.title}</h4>
                   </CardContent>
                 </Card>
               )}
@@ -2738,7 +2738,7 @@ const ProjectDetail = () => {
             onDragEnd={handleTaskDragEnd}
           >
             <ScrollArea className="h-full">
-              <div className="p-4 space-y-4">
+              <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
                 {phases.map(phase => {
                   const phaseTasks = filteredTasksByPhase[phase.id] || [];
                   return (
@@ -2756,8 +2756,8 @@ const ProjectDetail = () => {
             </ScrollArea>
             <DragOverlay>
               {activeTask && (
-                <div className="bg-background border rounded-md shadow-xl p-3">
-                  <span className="text-sm font-medium">{activeTask.title}</span>
+                <div className="bg-background border rounded-md shadow-xl p-2 sm:p-3">
+                  <span className="text-xs sm:text-sm font-medium">{activeTask.title}</span>
                 </div>
               )}
             </DragOverlay>
