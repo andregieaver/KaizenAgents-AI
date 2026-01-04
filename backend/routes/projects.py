@@ -1642,6 +1642,7 @@ async def create_task(
         "title": task_data.title,
         "description": task_data.description,
         "status": task_data.status or "todo",
+        "phase": task_data.phase or "planning",  # Project-level phase
         "priority": task_data.priority or "medium",
         "assignee_id": task_data.assignee_id,
         "due_date": task_data.due_date,
