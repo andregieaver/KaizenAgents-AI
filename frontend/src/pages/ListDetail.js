@@ -973,7 +973,7 @@ const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onS
     try {
       const API = process.env.REACT_APP_BACKEND_URL;
       await axios.delete(
-        `${API}/api/projects/tasks/${subtaskId}`,
+        `${API}/api/projects/${projectId}/tasks/${subtaskId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       
