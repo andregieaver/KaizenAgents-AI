@@ -10,6 +10,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Checkbox } from '../components/ui/checkbox';
+import { Progress } from '../components/ui/progress';
 import {
   Popover,
   PopoverContent,
