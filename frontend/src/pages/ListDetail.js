@@ -122,6 +122,12 @@ const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses, av
     .map(tagId => availableTags.find(t => t.id === tagId))
     .filter(Boolean);
 
+  // Calculate subtask progress
+  const subtasks = task.subtasks || [];
+  const subtaskCount = subtasks.length;
+  const completedSubtasks = subtasks.filter(st => st.status === 'done' || st.completed).length;
+  const subtaskProgress = subtaskCount > 0 ? Math.round((completedSubtasks / subtaskCount) * 100) : 0;
+
   return (
     <div ref={setNodeRef} style={style}>
       <Card className={`group hover:shadow-md transition-all cursor-pointer mb-1.5 sm:mb-2 ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
@@ -182,6 +188,22 @@ const SortableTaskCard = ({ task, onEdit, onDelete, onStatusChange, statuses, av
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
+              
+              {/* Subtask Progress */}
+              {subtaskCount > 0 && (
+                <div className="mt-1.5 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <ListChecks className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">
+                      {completedSubtasks}/{subtaskCount} subtasks
+                    </span>
+                    <span className="text-[10px] sm:text-xs font-medium text-primary ml-auto">
+                      {subtaskProgress}%
+                    </span>
+                  </div>
+                  <Progress value={subtaskProgress} className="h-1.5" />
+                </div>
+              )}
               
               {/* Tags */}
               {taskTags.length > 0 && (
