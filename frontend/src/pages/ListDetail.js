@@ -878,6 +878,13 @@ const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onS
     setEditingSubtaskId(null);
   }
 
+  // Sync subtasks when task prop updates (e.g., after fetch)
+  useEffect(() => {
+    if (task?.subtasks) {
+      setSubtasks(task.subtasks);
+    }
+  }, [task?.subtasks]);
+
   const handleSubmit = () => {
     if (!formData.title.trim()) {
       toast.error('Task title is required');
