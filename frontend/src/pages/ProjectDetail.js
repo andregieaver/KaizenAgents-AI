@@ -1151,9 +1151,30 @@ const ProjectDetail = () => {
     }
   }, [projectId, token, navigate]);
 
+  // Fetch all tasks for project-level views
+  const fetchAllTasks = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API}/projects/${projectId}/all-tasks`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAllTasks(response.data.tasks || []);
+      setPhases(response.data.phases || []);
+      setProjectLists(response.data.lists || []);
+    } catch (error) {
+      console.error('Failed to fetch all tasks:', error);
+    }
+  }, [projectId, token]);
+
   useEffect(() => {
     fetchProject();
   }, [fetchProject]);
+
+  // Fetch all tasks when switching to tasks view
+  useEffect(() => {
+    if (mainView === 'tasks') {
+      fetchAllTasks();
+    }
+  }, [mainView, fetchAllTasks]);
 
   const handleCreateTask = async (formData, checklists) => {
     try {
@@ -1162,6 +1183,7 @@ const ProjectDetail = () => {
         title: formData.title,
         list_id: formData.list_id,
         status: formData.status || 'todo',
+        phase: formData.phase || 'planning',
         priority: formData.priority || 'medium',
       };
       
