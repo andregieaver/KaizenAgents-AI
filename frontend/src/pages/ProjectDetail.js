@@ -2446,6 +2446,36 @@ const ProjectDetail = () => {
         entityName={statusModalEntity.name}
         onStatusesUpdated={fetchProject}
       />
+      
+      {/* Phase Management Modal */}
+      <PhaseManagementModal
+        open={showPhaseModal}
+        onOpenChange={setShowPhaseModal}
+        projectId={projectId}
+        phases={phases}
+        onPhasesUpdated={(newPhases) => {
+          setPhases(newPhases);
+          fetchAllTasks();
+        }}
+      />
+      
+      {/* Project-level Task Dialog */}
+      {mainView === 'tasks' && editingTask && (
+        <ProjectTaskDialog
+          open={showTaskDialog}
+          onOpenChange={(open) => {
+            setShowTaskDialog(open);
+            if (!open) setEditingTask(null);
+          }}
+          task={editingTask}
+          projectId={projectId}
+          phases={phases}
+          projectLists={projectLists}
+          onSave={handleProjectTaskUpdate}
+          onDelete={handleProjectTaskDelete}
+          onSubtaskChange={updateTaskSubtasks}
+        />
+      )}
     </div>
   );
 };
