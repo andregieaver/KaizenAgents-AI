@@ -11,6 +11,12 @@ import { Textarea } from '../components/ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../components/ui/tabs';
 import { Checkbox } from '../components/ui/checkbox';
 import { ScrollArea } from '../components/ui/scroll-area';
+import { Progress } from '../components/ui/progress';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '../components/ui/popover';
 // Breadcrumb components removed - using header breadcrumbs from DashboardLayout
 import {
   Dialog,
@@ -39,6 +45,7 @@ import {
   DndContext,
   DragOverlay,
   closestCenter,
+  closestCorners,
   KeyboardSensor,
   PointerSensor,
   TouchSensor,
