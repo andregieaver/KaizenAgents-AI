@@ -1261,6 +1261,123 @@ const ProjectDetail = () => {
     }
   };
 
+  // Handle phase change for project-level views
+  const handlePhaseChange = async (taskId, newPhase) => {
+    try {
+      await axios.put(
+        `${API}/projects/${projectId}/tasks/${taskId}`,
+        { phase: newPhase },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Optimistic update
+      setAllTasks(prev => prev.map(t => 
+        t.id === taskId ? { ...t, phase: newPhase } : t
+      ));
+      setEditingTask(prev => 
+        prev && prev.id === taskId ? { ...prev, phase: newPhase } : prev
+      );
+    } catch (error) {
+      toast.error('Failed to update task phase');
+      fetchAllTasks(); // Revert on error
+    }
+  };
+
+  // Handle task D&D in project-level views
+  const handleTaskDragStart = (event) => {
+    const task = allTasks.find(t => t.id === event.active.id);
+    setActiveTask(task);
+  };
+
+  const handleTaskDragEnd = async (event) => {
+    const { active, over } = event;
+    setActiveTask(null);
+    
+    if (!over) return;
+    
+    const taskId = active.id;
+    const overId = over.id;
+    
+    // Find the task and check if dropping on a phase
+    const draggedTask = allTasks.find(t => t.id === taskId);
+    if (!draggedTask) return;
+    
+    // Check if dropping on a phase column
+    const targetPhase = phases.find(p => p.id === overId);
+    if (targetPhase && draggedTask.phase !== targetPhase.id) {
+      await handlePhaseChange(taskId, targetPhase.id);
+      return;
+    }
+    
+    // Check if dropping on another task (reordering within same phase)
+    const targetTask = allTasks.find(t => t.id === overId);
+    if (targetTask && targetTask.phase !== draggedTask.phase) {
+      // Moving to different phase
+      await handlePhaseChange(taskId, targetTask.phase);
+    }
+  };
+
+  // Open task dialog for editing from project-level view
+  const openProjectTaskEdit = (task) => {
+    setEditingTask(task);
+    setShowTaskDialog(true);
+  };
+
+  // Handle task update from project-level dialog
+  const handleProjectTaskUpdate = async (formData) => {
+    try {
+      await axios.put(
+        `${API}/projects/${projectId}/tasks/${editingTask.id}`,
+        formData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Task updated');
+      fetchAllTasks();
+      setShowTaskDialog(false);
+      setEditingTask(null);
+    } catch (error) {
+      toast.error('Failed to update task');
+    }
+  };
+
+  // Handle task delete from project-level view
+  const handleProjectTaskDelete = async (task) => {
+    if (!confirm('Delete this task?')) return;
+    try {
+      await axios.delete(
+        `${API}/projects/${projectId}/tasks/${task.id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Task deleted');
+      setAllTasks(prev => prev.filter(t => t.id !== task.id));
+      setShowTaskDialog(false);
+      setEditingTask(null);
+    } catch (error) {
+      toast.error('Failed to delete task');
+    }
+  };
+
+  // Update task subtasks for real-time UI updates
+  const updateTaskSubtasks = useCallback((taskId, subtasksUpdater) => {
+    setAllTasks(prev => prev.map(t => {
+      if (t.id === taskId) {
+        const newSubtasks = typeof subtasksUpdater === 'function' 
+          ? subtasksUpdater(t.subtasks || [])
+          : subtasksUpdater;
+        return { ...t, subtasks: newSubtasks };
+      }
+      return t;
+    }));
+    setEditingTask(prev => {
+      if (prev && prev.id === taskId) {
+        const newSubtasks = typeof subtasksUpdater === 'function' 
+          ? subtasksUpdater(prev.subtasks || [])
+          : subtasksUpdater;
+        return { ...prev, subtasks: newSubtasks };
+      }
+      return prev;
+    });
+  }, []);
+
   const handleCreateList = async () => {
     if (!newListName.trim()) return;
     try {
