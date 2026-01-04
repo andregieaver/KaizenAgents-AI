@@ -416,6 +416,13 @@ const SortableListRow = ({ task, onEdit, onDelete, statuses, selectionMode, isSe
                   {format(new Date(task.due_date), 'MMM d')}
                 </span>
               )}
+              {subtaskCount > 0 && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <ListChecks className="h-3 w-3" />
+                  {completedSubtasks}/{subtaskCount}
+                  <span className="text-primary font-medium">({subtaskProgress}%)</span>
+                </span>
+              )}
             </div>
           </div>
           <Button
