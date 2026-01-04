@@ -1543,17 +1543,7 @@ const ListDetail = () => {
       const currentList = projectResponse.data.lists?.find(l => l.id === listId);
       if (currentList) {
         setList(currentList);
-        const newTasks = currentList.tasks || [];
-        setTasks(newTasks);
-        
-        // Update editingTask if it exists to reflect new subtask data
-        setEditingTask(prev => {
-          if (prev) {
-            const updatedTask = newTasks.find(t => t.id === prev.id);
-            return updatedTask || prev;
-          }
-          return prev;
-        });
+        setTasks(currentList.tasks || []);
       }
       
       // Fetch statuses for this list (with inheritance)
