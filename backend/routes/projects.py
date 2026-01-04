@@ -211,6 +211,23 @@ class TagUpdate(BaseModel):
 
 
 # =============================================================================
+# PYDANTIC MODELS - PHASES
+# =============================================================================
+
+class PhaseConfig(BaseModel):
+    id: str
+    name: str
+    color: str
+    is_final: bool = False
+    order: int = 0
+
+
+class PhaseUpdateRequest(BaseModel):
+    """Request model for updating project phases"""
+    phases: List[PhaseConfig]
+
+
+# =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
 
