@@ -83,6 +83,14 @@ DEFAULT_TASK_STATUSES = [
     {"id": "done", "name": "Done", "color": "#10B981", "is_final": True, "order": 3},
 ]
 
+# Default project phases for project-level task views
+DEFAULT_PROJECT_PHASES = [
+    {"id": "planning", "name": "Planning", "color": "#6B7280", "is_final": False, "order": 0},
+    {"id": "in_progress", "name": "In Progress", "color": "#3B82F6", "is_final": False, "order": 1},
+    {"id": "review", "name": "Review", "color": "#F59E0B", "is_final": False, "order": 2},
+    {"id": "completed", "name": "Completed", "color": "#10B981", "is_final": True, "order": 3},
+]
+
 
 class StatusUpdateRequest(BaseModel):
     """Request model for updating statuses"""
