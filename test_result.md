@@ -105,11 +105,13 @@ metadata:
 
 test_plan:
   current_focus:
+    - "Project-Level Task Views with Phases"
     - "List Edit and Delete Functionality"
     - "Subtask Functionality in Task Dialog"
   stuck_tasks:
     - "List Edit and Delete Functionality"
     - "Subtask Functionality in Task Dialog"
+    - "Project-Level Task Views with Phases"
   test_all: false
   test_priority: "high_first"
 
