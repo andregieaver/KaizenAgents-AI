@@ -2190,3 +2190,140 @@ async def delete_tag(
     await db.project_tags.delete_one({"id": tag_id})
     
     return {"message": "Tag deleted successfully"}
+
+
+# =============================================================================
+# PHASE ENDPOINTS (Project-level task organization)
+# =============================================================================
+
+@router.get("/{project_id}/phases")
+async def get_project_phases(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get phases for a project"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    project = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id}
+    )
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Return custom phases or default
+    phases = project.get("phases") or DEFAULT_PROJECT_PHASES
+    return {"phases": phases}
+
+
+@router.put("/{project_id}/phases")
+async def update_project_phases(
+    project_id: str,
+    request: PhaseUpdateRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update phases for a project"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    project = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id}
+    )
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Validate phases
+    if len(request.phases) == 0:
+        raise HTTPException(status_code=400, detail="At least one phase is required")
+    
+    # Convert to dicts
+    phases = [phase.model_dump() for phase in request.phases]
+    
+    await db.projects.update_one(
+        {"id": project_id},
+        {"$set": {"phases": phases}}
+    )
+    
+    return {"phases": phases}
+
+
+@router.post("/{project_id}/phases/reassign")
+async def reassign_task_phases(
+    project_id: str,
+    from_phase: str = Query(..., description="Phase ID to reassign from"),
+    to_phase: str = Query(..., description="Phase ID to reassign to"),
+    current_user: dict = Depends(get_current_user)
+):
+    """Reassign all tasks from one phase to another (used before deleting a phase)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    # Update all tasks with the old phase to the new phase
+    result = await db.project_tasks.update_many(
+        {"project_id": project_id, "tenant_id": tenant_id, "phase": from_phase},
+        {"$set": {"phase": to_phase}}
+    )
+    
+    return {"message": f"Reassigned {result.modified_count} tasks"}
+
+
+@router.get("/{project_id}/all-tasks")
+async def get_all_project_tasks(
+    project_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Get all tasks from all lists in a project (for project-level views)"""
+    tenant_id = current_user.get("tenant_id")
+    if not tenant_id:
+        raise HTTPException(status_code=404, detail="No tenant associated")
+    
+    project = await db.projects.find_one(
+        {"id": project_id, "tenant_id": tenant_id}
+    )
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    
+    # Get all tasks (excluding subtasks for main view)
+    tasks = await db.project_tasks.find(
+        {
+            "project_id": project_id,
+            "tenant_id": tenant_id,
+            "parent_task_id": None  # Only top-level tasks
+        },
+        {"_id": 0}
+    ).to_list(10000)
+    
+    # Get all subtasks
+    all_subtasks = await db.project_tasks.find(
+        {
+            "project_id": project_id,
+            "tenant_id": tenant_id,
+            "parent_task_id": {"$ne": None}
+        },
+        {"_id": 0}
+    ).to_list(10000)
+    
+    # Attach subtasks to their parent tasks
+    for task in tasks:
+        task["subtasks"] = [st for st in all_subtasks if st.get("parent_task_id") == task["id"]]
+        # Ensure phase field exists
+        if "phase" not in task:
+            task["phase"] = "planning"
+    
+    # Get phases
+    phases = project.get("phases") or DEFAULT_PROJECT_PHASES
+    
+    # Get lists for reference
+    lists = await db.project_lists.find(
+        {"project_id": project_id, "tenant_id": tenant_id},
+        {"_id": 0}
+    ).to_list(100)
+    
+    return {
+        "tasks": tasks,
+        "phases": phases,
+        "lists": lists
+    }
