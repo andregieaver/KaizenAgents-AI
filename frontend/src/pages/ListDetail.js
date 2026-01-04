@@ -363,6 +363,12 @@ const SortableListRow = ({ task, onEdit, onDelete, statuses, selectionMode, isSe
   const priorityClass = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
   const taskStatus = statuses.find(s => s.id === task.status);
 
+  // Calculate subtask progress
+  const subtasks = task.subtasks || [];
+  const subtaskCount = subtasks.length;
+  const completedSubtasks = subtasks.filter(st => st.status === 'done' || st.completed).length;
+  const subtaskProgress = subtaskCount > 0 ? Math.round((completedSubtasks / subtaskCount) * 100) : 0;
+
   return (
     <div 
       ref={setNodeRef} 
