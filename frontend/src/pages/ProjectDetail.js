@@ -1423,9 +1423,13 @@ const SortableProjectListRow = ({ task, onEdit, onDelete, projectLists }) => {
 // Project Gantt View
 const ProjectGanttView = ({ tasks, phases, onEditTask, projectLists }) => {
   const today = new Date();
-  const startDate = startOfWeek(addDays(today, -7));
-  const endDate = endOfWeek(addDays(today, 28));
+  // Start from today and show 5 weeks ahead
+  const startDate = today;
+  const endDate = addDays(today, 35);
   const days = eachDayOfInterval({ start: startDate, end: endDate });
+  
+  // Reference for synchronized scrolling
+  const scrollContainerRef = useRef(null);
   
   // Group tasks by phase
   const tasksByPhase = useMemo(() => {
@@ -1437,14 +1441,14 @@ const ProjectGanttView = ({ tasks, phases, onEditTask, projectLists }) => {
   }, [tasks, phases]);
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {/* Timeline Header */}
-      <div className="flex border-b bg-muted/30 sticky top-0 z-10">
-        <div className="w-[150px] sm:w-[200px] min-w-[150px] sm:min-w-[200px] p-1.5 sm:p-2 border-r font-medium text-xs sm:text-sm flex-shrink-0">
-          Task
-        </div>
-        <div className="flex-1 overflow-x-auto">
-          <div className="flex min-w-max">
+    <div className="h-full overflow-auto" ref={scrollContainerRef}>
+      <div className="min-w-max">
+        {/* Timeline Header - Sticky */}
+        <div className="flex border-b bg-muted/30 sticky top-0 z-10">
+          <div className="w-[150px] sm:w-[200px] min-w-[150px] sm:min-w-[200px] p-1.5 sm:p-2 border-r font-medium text-xs sm:text-sm flex-shrink-0 bg-muted/30">
+            Task
+          </div>
+          <div className="flex">
             {days.map((day, i) => (
               <div
                 key={i}
@@ -1460,89 +1464,83 @@ const ProjectGanttView = ({ tasks, phases, onEditTask, projectLists }) => {
             ))}
           </div>
         </div>
-      </div>
-      
-      {/* Tasks by Phase - Scrollable container */}
-      <div className="flex-1 overflow-auto">
-        <div className="min-w-max">
-          {phases.map(phase => {
-            const phaseTasks = tasksByPhase[phase.id] || [];
-            if (phaseTasks.length === 0) return null;
-            
-            return (
-              <div key={phase.id}>
-                {/* Phase Header */}
+        
+        {/* Tasks by Phase */}
+        {phases.map(phase => {
+          const phaseTasks = tasksByPhase[phase.id] || [];
+          if (phaseTasks.length === 0) return null;
+          
+          return (
+            <div key={phase.id}>
+              {/* Phase Header */}
+              <div 
+                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-muted/50 border-b sticky top-[41px] sm:top-[45px] z-[5]"
+                style={{ borderLeftWidth: '3px', borderLeftColor: phase.color }}
+              >
                 <div 
-                  className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-muted/50 border-b sticky top-0"
-                  style={{ borderLeftWidth: '3px', borderLeftColor: phase.color }}
-                >
-                  <div 
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: phase.color }}
-                  />
-                  <span className="text-xs font-medium">{phase.name}</span>
-                  <Badge variant="secondary" className="text-xs ml-auto">
-                    {phaseTasks.length}
-                  </Badge>
-                </div>
-                
-                {/* Phase Tasks */}
-                {phaseTasks.map(task => {
-                  const taskStart = task.start_date ? parseISO(task.start_date) : null;
-                  const taskEnd = task.due_date ? parseISO(task.due_date) : null;
-                  const listName = projectLists.find(l => l.id === task.list_id)?.name || '';
-                  
-                  return (
-                    <div 
-                      key={task.id} 
-                      className="flex border-b hover:bg-muted/30 cursor-pointer"
-                      onClick={() => onEditTask(task)}
-                    >
-                      <div className="w-[150px] sm:w-[200px] min-w-[150px] sm:min-w-[200px] p-1.5 sm:p-2 border-r flex-shrink-0">
-                        <p className="text-xs sm:text-sm font-medium truncate">{task.title}</p>
-                        <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{listName}</p>
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex min-w-max relative h-full items-center">
-                          {days.map((day, i) => {
-                            const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
-                            const isInRange = taskStart && taskEnd && isWithinInterval(day, { 
-                              start: taskStart, 
-                              end: taskEnd 
-                            });
-                            const isStart = taskStart && format(day, 'yyyy-MM-dd') === format(taskStart, 'yyyy-MM-dd');
-                            const isEnd = taskEnd && format(day, 'yyyy-MM-dd') === format(taskEnd, 'yyyy-MM-dd');
-                            
-                            return (
-                              <div
-                                key={i}
-                                className={`w-8 sm:w-10 min-w-[32px] sm:min-w-[40px] h-7 sm:h-8 border-r flex items-center justify-center ${
-                                  isToday ? 'bg-primary/5' : ''
-                                }`}
-                              >
-                                {isInRange && (
-                                  <div 
-                                    className={`h-4 sm:h-5 ${
-                                      isStart && isEnd ? 'w-5 sm:w-6 rounded' :
-                                      isStart ? 'w-full rounded-l ml-0.5 sm:ml-1' : 
-                                      isEnd ? 'w-full rounded-r mr-0.5 sm:mr-1' : 
-                                      'w-full'
-                                    }`}
-                                    style={{ backgroundColor: phase.color }}
-                                  />
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                  className="w-2 h-2 rounded-full"
+                  style={{ backgroundColor: phase.color }}
+                />
+                <span className="text-xs font-medium">{phase.name}</span>
+                <Badge variant="secondary" className="text-xs ml-auto">
+                  {phaseTasks.length}
+                </Badge>
               </div>
-            );
-          })}
-        </div>
+              
+              {/* Phase Tasks */}
+              {phaseTasks.map(task => {
+                const taskStart = task.start_date ? parseISO(task.start_date) : null;
+                const taskEnd = task.due_date ? parseISO(task.due_date) : null;
+                const listName = projectLists.find(l => l.id === task.list_id)?.name || '';
+                
+                return (
+                  <div 
+                    key={task.id} 
+                    className="flex border-b hover:bg-muted/30 cursor-pointer"
+                    onClick={() => onEditTask(task)}
+                  >
+                    <div className="w-[150px] sm:w-[200px] min-w-[150px] sm:min-w-[200px] p-1.5 sm:p-2 border-r flex-shrink-0">
+                      <p className="text-xs sm:text-sm font-medium truncate">{task.title}</p>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{listName}</p>
+                    </div>
+                    <div className="flex">
+                      {days.map((day, i) => {
+                        const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
+                        const isInRange = taskStart && taskEnd && isWithinInterval(day, { 
+                          start: taskStart, 
+                          end: taskEnd 
+                        });
+                        const isStart = taskStart && format(day, 'yyyy-MM-dd') === format(taskStart, 'yyyy-MM-dd');
+                        const isEnd = taskEnd && format(day, 'yyyy-MM-dd') === format(taskEnd, 'yyyy-MM-dd');
+                        
+                        return (
+                          <div
+                            key={i}
+                            className={`w-8 sm:w-10 min-w-[32px] sm:min-w-[40px] h-7 sm:h-8 border-r flex items-center justify-center ${
+                              isToday ? 'bg-primary/5' : ''
+                            }`}
+                          >
+                            {isInRange && (
+                              <div 
+                                className={`h-4 sm:h-5 ${
+                                  isStart && isEnd ? 'w-5 sm:w-6 rounded' :
+                                  isStart ? 'w-full rounded-l ml-0.5 sm:ml-1' : 
+                                  isEnd ? 'w-full rounded-r mr-0.5 sm:mr-1' : 
+                                  'w-full'
+                                }`}
+                                style={{ backgroundColor: phase.color }}
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
