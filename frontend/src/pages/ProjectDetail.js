@@ -1190,29 +1190,29 @@ const PhaseColumn = ({ phase, tasks, onEditTask, onDeleteTask, phases, projectLi
   const taskIds = tasks.map(t => t.id);
 
   return (
-    <div className="flex-shrink-0 w-[300px]">
+    <div className="flex-shrink-0 w-[260px] sm:w-[300px]">
       {/* Phase Header */}
       <div 
-        className="flex items-center gap-2 mb-3 pb-2 border-b"
+        className="flex items-center gap-2 mb-2 sm:mb-3 pb-2 border-b"
         style={{ borderBottomColor: phase.color }}
       >
         <div 
-          className="w-3 h-3 rounded-full flex-shrink-0"
+          className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
           style={{ backgroundColor: phase.color }}
         />
-        <h3 className="font-medium text-sm truncate">{phase.name}</h3>
+        <h3 className="font-medium text-xs sm:text-sm truncate">{phase.name}</h3>
         <Badge variant="secondary" className="ml-auto text-xs">
           {tasks.length}
         </Badge>
         {phase.is_final && (
-          <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+          <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-500 flex-shrink-0" />
         )}
       </div>
       
       {/* Tasks Container */}
       <div
         ref={setNodeRef}
-        className={`min-h-[200px] p-2 rounded-lg transition-colors ${
+        className={`min-h-[150px] sm:min-h-[200px] p-1.5 sm:p-2 rounded-lg transition-colors ${
           isOver ? 'bg-primary/10 ring-2 ring-primary/30' : 'bg-muted/30'
         }`}
       >
@@ -1228,8 +1228,8 @@ const PhaseColumn = ({ phase, tasks, onEditTask, onDeleteTask, phases, projectLi
               />
             ))
           ) : (
-            <div className="text-center py-8 text-muted-foreground text-sm">
-              <Circle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <div className="text-center py-6 sm:py-8 text-muted-foreground text-xs sm:text-sm">
+              <Circle className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2 opacity-50" />
               No tasks
             </div>
           )}
