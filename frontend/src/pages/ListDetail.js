@@ -834,7 +834,7 @@ const GanttView = ({ tasks, statuses, onEditTask, onDragStart, onDragEnd, sensor
 };
 
 // Task Dialog Component
-const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onSave, onDelete, availableTags = [], onSubtaskUpdate }) => {
+const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onSave, onDelete, availableTags = [], onSubtaskChange }) => {
   const { token } = useAuth();
   
   // Initialize form data based on task prop
