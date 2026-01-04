@@ -864,14 +864,10 @@ const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onS
   const [editingSubtaskId, setEditingSubtaskId] = useState(null);
   const [editingSubtaskTitle, setEditingSubtaskTitle] = useState('');
 
-  // Track task subtasks to sync when they change
-  const prevSubtasksRef = useRef(task?.subtasks);
-  
   // Reset form when dialog opens with different task
   const prevTaskIdRef = useRef(task?.id);
   if (prevTaskIdRef.current !== task?.id) {
     prevTaskIdRef.current = task?.id;
-    prevSubtasksRef.current = task?.subtasks;
     // This is safe - we're updating during render based on prop change
     if (formData.title !== initialFormData.title || formData.status !== initialFormData.status) {
       setFormData(initialFormData);
@@ -880,15 +876,6 @@ const TaskDialog = ({ open, onOpenChange, task, listId, projectId, statuses, onS
     setSubtasks(task?.subtasks || []);
     setNewSubtaskTitle('');
     setEditingSubtaskId(null);
-  }
-  
-  // Sync subtasks when task prop updates (same task, new subtask data from refetch)
-  if (task?.subtasks && prevSubtasksRef.current !== task.subtasks && prevTaskIdRef.current === task?.id) {
-    prevSubtasksRef.current = task.subtasks;
-    // Only update if subtask count changed (to avoid infinite loops)
-    if (subtasks.length !== task.subtasks.length) {
-      setSubtasks(task.subtasks);
-    }
   }
 
   const handleSubmit = () => {
