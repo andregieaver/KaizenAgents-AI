@@ -1748,6 +1748,31 @@ const ListDetail = () => {
     }
   };
 
+  // Update task subtasks in state (for real-time UI updates)
+  const updateTaskSubtasks = useCallback((taskId, subtasksUpdater) => {
+    // Update in tasks array
+    setTasks(prev => prev.map(t => {
+      if (t.id === taskId) {
+        const newSubtasks = typeof subtasksUpdater === 'function' 
+          ? subtasksUpdater(t.subtasks || [])
+          : subtasksUpdater;
+        return { ...t, subtasks: newSubtasks };
+      }
+      return t;
+    }));
+    
+    // Update editingTask if it's the same task
+    setEditingTask(prev => {
+      if (prev && prev.id === taskId) {
+        const newSubtasks = typeof subtasksUpdater === 'function' 
+          ? subtasksUpdater(prev.subtasks || [])
+          : subtasksUpdater;
+        return { ...prev, subtasks: newSubtasks };
+      }
+      return prev;
+    });
+  }, []);
+
   // Open edit task dialog
   const openEditTask = (task) => {
     setEditingTask(task);
