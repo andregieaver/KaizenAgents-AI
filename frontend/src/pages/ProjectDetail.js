@@ -1105,25 +1105,25 @@ const SortableProjectTaskCard = ({ task, onEdit, onDelete, projectLists }) => {
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className="group hover:shadow-md transition-all cursor-pointer mb-2">
-        <CardContent className="p-3">
-          <div className="flex items-start gap-2">
+      <Card className="group hover:shadow-md transition-all cursor-pointer mb-1.5 sm:mb-2">
+        <CardContent className="p-2 sm:p-3">
+          <div className="flex items-start gap-1.5 sm:gap-2">
             <div
               {...attributes}
               {...listeners}
-              className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground touch-none mt-0.5"
+              className="cursor-grab active:cursor-grabbing p-0.5 sm:p-1 rounded hover:bg-muted text-muted-foreground touch-none mt-0.5"
             >
-              <GripVertical className="h-4 w-4" />
+              <GripVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </div>
             
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <h4 className="font-medium text-sm truncate" onClick={() => onEdit(task)}>
+              <div className="flex items-start justify-between gap-1 sm:gap-2">
+                <h4 className="font-medium text-xs sm:text-sm truncate" onClick={() => onEdit(task)}>
                   {task.title}
                 </h4>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
+                    <Button variant="ghost" size="icon" className="h-6 w-6 sm:opacity-0 sm:group-hover:opacity-100">
                       <MoreHorizontal className="h-3.5 w-3.5" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -1139,36 +1139,36 @@ const SortableProjectTaskCard = ({ task, onEdit, onDelete, projectLists }) => {
               </div>
               
               {/* List indicator */}
-              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                <Layers className="h-3 w-3" />
-                {listName}
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 flex items-center gap-1">
+                <Layers className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                <span className="truncate">{listName}</span>
               </p>
               
               {/* Subtask Progress */}
               {subtaskCount > 0 && (
-                <div className="mt-2 space-y-1">
+                <div className="mt-1.5 sm:mt-2 space-y-1">
                   <div className="flex items-center gap-1.5">
-                    <ListChecks className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-xs text-muted-foreground">
+                    <ListChecks className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-muted-foreground" />
+                    <span className="text-[10px] sm:text-xs text-muted-foreground">
                       {completedSubtasks}/{subtaskCount}
                     </span>
-                    <span className="text-xs font-medium text-primary ml-auto">
+                    <span className="text-[10px] sm:text-xs font-medium text-primary ml-auto">
                       {subtaskProgress}%
                     </span>
                   </div>
-                  <Progress value={subtaskProgress} className="h-1.5" />
+                  <Progress value={subtaskProgress} className="h-1 sm:h-1.5" />
                 </div>
               )}
               
               {/* Metadata */}
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <Badge variant="secondary" className={`text-xs py-0 ${priorityClass.text} ${priorityClass.bg}`}>
-                  <Flag className="h-3 w-3 mr-1" />
+              <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 flex-wrap">
+                <Badge variant="secondary" className={`text-[10px] sm:text-xs py-0 ${priorityClass.text} ${priorityClass.bg}`}>
+                  <Flag className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5 sm:mr-1" />
                   {task.priority}
                 </Badge>
                 {task.due_date && (
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
+                  <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-0.5 sm:gap-1">
+                    <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                     {format(new Date(task.due_date), 'MMM d')}
                   </span>
                 )}
