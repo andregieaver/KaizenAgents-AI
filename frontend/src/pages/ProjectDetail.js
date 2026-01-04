@@ -1072,6 +1072,593 @@ const TaskDialog = ({ open, onOpenChange, task, projectId, lists, statuses, onSa
   );
 };
 
+
+// =============================================================================
+// PROJECT-LEVEL TASK VIEW COMPONENTS
+// =============================================================================
+
+// Sortable Task Card for Project-level Kanban
+const SortableProjectTaskCard = ({ task, onEdit, onDelete, projectLists }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const priorityClass = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
+  const listName = projectLists.find(l => l.id === task.list_id)?.name || 'Unknown List';
+  
+  // Calculate subtask progress
+  const subtasks = task.subtasks || [];
+  const subtaskCount = subtasks.length;
+  const completedSubtasks = subtasks.filter(st => st.status === 'done' || st.completed).length;
+  const subtaskProgress = subtaskCount > 0 ? Math.round((completedSubtasks / subtaskCount) * 100) : 0;
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <Card className="group hover:shadow-md transition-all cursor-pointer mb-2">
+        <CardContent className="p-3">
+          <div className="flex items-start gap-2">
+            <div
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground touch-none mt-0.5"
+            >
+              <GripVertical className="h-4 w-4" />
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <h4 className="font-medium text-sm truncate" onClick={() => onEdit(task)}>
+                  {task.title}
+                </h4>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
+                      <MoreHorizontal className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onEdit(task)}>
+                      <Pencil className="h-4 w-4 mr-2" /> Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onDelete(task)} className="text-destructive">
+                      <Trash2 className="h-4 w-4 mr-2" /> Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              
+              {/* List indicator */}
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                <Layers className="h-3 w-3" />
+                {listName}
+              </p>
+              
+              {/* Subtask Progress */}
+              {subtaskCount > 0 && (
+                <div className="mt-2 space-y-1">
+                  <div className="flex items-center gap-1.5">
+                    <ListChecks className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      {completedSubtasks}/{subtaskCount}
+                    </span>
+                    <span className="text-xs font-medium text-primary ml-auto">
+                      {subtaskProgress}%
+                    </span>
+                  </div>
+                  <Progress value={subtaskProgress} className="h-1.5" />
+                </div>
+              )}
+              
+              {/* Metadata */}
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                <Badge variant="secondary" className={`text-xs py-0 ${priorityClass.text} ${priorityClass.bg}`}>
+                  <Flag className="h-3 w-3 mr-1" />
+                  {task.priority}
+                </Badge>
+                {task.due_date && (
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {format(new Date(task.due_date), 'MMM d')}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
+// Phase Column for Kanban View
+const PhaseColumn = ({ phase, tasks, onEditTask, onDeleteTask, phases, projectLists }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: phase.id,
+  });
+
+  const taskIds = tasks.map(t => t.id);
+
+  return (
+    <div className="flex-shrink-0 w-[300px]">
+      {/* Phase Header */}
+      <div 
+        className="flex items-center gap-2 mb-3 pb-2 border-b"
+        style={{ borderBottomColor: phase.color }}
+      >
+        <div 
+          className="w-3 h-3 rounded-full flex-shrink-0"
+          style={{ backgroundColor: phase.color }}
+        />
+        <h3 className="font-medium text-sm truncate">{phase.name}</h3>
+        <Badge variant="secondary" className="ml-auto text-xs">
+          {tasks.length}
+        </Badge>
+        {phase.is_final && (
+          <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+        )}
+      </div>
+      
+      {/* Tasks Container */}
+      <div
+        ref={setNodeRef}
+        className={`min-h-[200px] p-2 rounded-lg transition-colors ${
+          isOver ? 'bg-primary/10 ring-2 ring-primary/30' : 'bg-muted/30'
+        }`}
+      >
+        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+          {tasks.length > 0 ? (
+            tasks.map(task => (
+              <SortableProjectTaskCard
+                key={task.id}
+                task={task}
+                onEdit={onEditTask}
+                onDelete={onDeleteTask}
+                projectLists={projectLists}
+              />
+            ))
+          ) : (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              <Circle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              No tasks
+            </div>
+          )}
+        </SortableContext>
+      </div>
+    </div>
+  );
+};
+
+// Phase List Section for List View
+const PhaseListSection = ({ phase, tasks, onEditTask, onDeleteTask, projectLists }) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: phase.id,
+  });
+
+  const taskIds = tasks.map(t => t.id);
+
+  return (
+    <div className="border rounded-lg overflow-hidden">
+      {/* Phase Header */}
+      <div 
+        className="flex items-center gap-2 px-4 py-2 bg-muted/50 border-b"
+        style={{ borderLeftWidth: '4px', borderLeftColor: phase.color }}
+      >
+        <div 
+          className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+          style={{ backgroundColor: phase.color }}
+        />
+        <h3 className="font-medium text-sm">{phase.name}</h3>
+        <Badge variant="secondary" className="ml-auto text-xs">
+          {tasks.length}
+        </Badge>
+        {phase.is_final && (
+          <CheckCircle2 className="h-4 w-4 text-green-500" />
+        )}
+      </div>
+      
+      {/* Tasks List */}
+      <div
+        ref={setNodeRef}
+        className={`min-h-[40px] transition-colors ${isOver ? 'bg-primary/5' : ''}`}
+      >
+        <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+          {tasks.length > 0 ? (
+            tasks.map(task => (
+              <SortableProjectListRow
+                key={task.id}
+                task={task}
+                onEdit={onEditTask}
+                onDelete={onDeleteTask}
+                projectLists={projectLists}
+              />
+            ))
+          ) : (
+            <div className="text-center py-4 text-muted-foreground text-xs">
+              No tasks in this phase
+            </div>
+          )}
+        </SortableContext>
+      </div>
+    </div>
+  );
+};
+
+// Sortable List Row for Project List View
+const SortableProjectListRow = ({ task, onEdit, onDelete, projectLists }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const priorityClass = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.medium;
+  const listName = projectLists.find(l => l.id === task.list_id)?.name || 'Unknown';
+  
+  const subtasks = task.subtasks || [];
+  const subtaskCount = subtasks.length;
+  const completedSubtasks = subtasks.filter(st => st.status === 'done' || st.completed).length;
+  const subtaskProgress = subtaskCount > 0 ? Math.round((completedSubtasks / subtaskCount) * 100) : 0;
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style}
+      className={`border-b last:border-b-0 hover:bg-muted/30 cursor-pointer ${isDragging ? 'bg-muted/50' : ''}`}
+      onClick={() => onEdit(task)}
+    >
+      <div className="flex items-center gap-3 px-4 py-2.5">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted text-muted-foreground touch-none"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <GripVertical className="h-4 w-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <span className="text-sm font-medium">{task.title}</span>
+        </div>
+        <Badge variant="outline" className="text-xs">
+          {listName}
+        </Badge>
+        {subtaskCount > 0 && (
+          <span className="text-xs text-muted-foreground flex items-center gap-1">
+            <ListChecks className="h-3.5 w-3.5" />
+            {completedSubtasks}/{subtaskCount}
+            <span className="text-primary font-medium">{subtaskProgress}%</span>
+          </span>
+        )}
+        <Badge variant="secondary" className={`text-xs ${priorityClass.text} ${priorityClass.bg}`}>
+          {task.priority}
+        </Badge>
+        {task.due_date && (
+          <span className="text-xs text-muted-foreground flex items-center gap-1 min-w-[70px]">
+            <Calendar className="h-3 w-3" />
+            {format(new Date(task.due_date), 'MMM d')}
+          </span>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(task);
+          }}
+        >
+          <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Project Gantt View
+const ProjectGanttView = ({ tasks, phases, onEditTask, projectLists }) => {
+  const today = new Date();
+  const startDate = startOfWeek(addDays(today, -7));
+  const endDate = endOfWeek(addDays(today, 28));
+  const days = eachDayOfInterval({ start: startDate, end: endDate });
+  
+  // Group tasks by phase
+  const tasksByPhase = useMemo(() => {
+    const grouped = {};
+    phases.forEach(phase => {
+      grouped[phase.id] = tasks.filter(t => (t.phase || 'planning') === phase.id);
+    });
+    return grouped;
+  }, [tasks, phases]);
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Timeline Header */}
+      <div className="flex border-b bg-muted/30 sticky top-0 z-10">
+        <div className="w-[250px] min-w-[250px] p-2 border-r font-medium text-sm">
+          Task
+        </div>
+        <div className="flex-1 overflow-x-auto">
+          <div className="flex min-w-max">
+            {days.map((day, i) => (
+              <div
+                key={i}
+                className={`w-10 min-w-[40px] p-1 text-center text-xs border-r ${
+                  format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')
+                    ? 'bg-primary/10 font-medium'
+                    : ''
+                }`}
+              >
+                <div className="text-muted-foreground">{format(day, 'EEE')}</div>
+                <div>{format(day, 'd')}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {/* Tasks by Phase */}
+      <ScrollArea className="flex-1">
+        <div>
+          {phases.map(phase => {
+            const phaseTasks = tasksByPhase[phase.id] || [];
+            if (phaseTasks.length === 0) return null;
+            
+            return (
+              <div key={phase.id}>
+                {/* Phase Header */}
+                <div 
+                  className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 border-b sticky top-0"
+                  style={{ borderLeftWidth: '3px', borderLeftColor: phase.color }}
+                >
+                  <div 
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: phase.color }}
+                  />
+                  <span className="text-xs font-medium">{phase.name}</span>
+                  <Badge variant="secondary" className="text-xs ml-auto">
+                    {phaseTasks.length}
+                  </Badge>
+                </div>
+                
+                {/* Phase Tasks */}
+                {phaseTasks.map(task => {
+                  const taskStart = task.start_date ? parseISO(task.start_date) : null;
+                  const taskEnd = task.due_date ? parseISO(task.due_date) : null;
+                  const listName = projectLists.find(l => l.id === task.list_id)?.name || '';
+                  
+                  return (
+                    <div 
+                      key={task.id} 
+                      className="flex border-b hover:bg-muted/30 cursor-pointer"
+                      onClick={() => onEditTask(task)}
+                    >
+                      <div className="w-[250px] min-w-[250px] p-2 border-r">
+                        <p className="text-sm font-medium truncate">{task.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">{listName}</p>
+                      </div>
+                      <div className="flex-1 overflow-x-auto">
+                        <div className="flex min-w-max relative h-full items-center">
+                          {days.map((day, i) => {
+                            const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
+                            const isInRange = taskStart && taskEnd && isWithinInterval(day, { 
+                              start: taskStart, 
+                              end: taskEnd 
+                            });
+                            const isStart = taskStart && format(day, 'yyyy-MM-dd') === format(taskStart, 'yyyy-MM-dd');
+                            const isEnd = taskEnd && format(day, 'yyyy-MM-dd') === format(taskEnd, 'yyyy-MM-dd');
+                            
+                            return (
+                              <div
+                                key={i}
+                                className={`w-10 min-w-[40px] h-8 border-r flex items-center justify-center ${
+                                  isToday ? 'bg-primary/5' : ''
+                                }`}
+                              >
+                                {isInRange && (
+                                  <div 
+                                    className={`h-5 ${
+                                      isStart && isEnd ? 'w-6 rounded' :
+                                      isStart ? 'w-full rounded-l ml-1' : 
+                                      isEnd ? 'w-full rounded-r mr-1' : 
+                                      'w-full'
+                                    }`}
+                                    style={{ backgroundColor: phase.color }}
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </ScrollArea>
+    </div>
+  );
+};
+
+
+// =============================================================================
+// PHASE MANAGEMENT MODAL
+// =============================================================================
+
+const PhaseManagementModal = ({ open, onOpenChange, projectId, phases, onPhasesUpdated }) => {
+  const { token } = useAuth();
+  const [localPhases, setLocalPhases] = useState(phases);
+  const [newPhaseName, setNewPhaseName] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setLocalPhases(phases);
+  }, [phases]);
+
+  const handleAddPhase = () => {
+    if (!newPhaseName.trim()) return;
+    const newPhase = {
+      id: `phase_${Date.now()}`,
+      name: newPhaseName.trim(),
+      color: '#6B7280',
+      is_final: false,
+      order: localPhases.length
+    };
+    setLocalPhases([...localPhases, newPhase]);
+    setNewPhaseName('');
+  };
+
+  const handleUpdatePhase = (index, field, value) => {
+    const updated = [...localPhases];
+    updated[index] = { ...updated[index], [field]: value };
+    setLocalPhases(updated);
+  };
+
+  const handleDeletePhase = (index) => {
+    if (localPhases.length <= 1) {
+      toast.error('At least one phase is required');
+      return;
+    }
+    setLocalPhases(localPhases.filter((_, i) => i !== index));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await axios.put(
+        `${API}/projects/${projectId}/phases`,
+        { phases: localPhases },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success('Phases updated');
+      onPhasesUpdated(localPhases);
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Failed to save phases:', error);
+      toast.error('Failed to save phases');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const colorOptions = [
+    '#6B7280', '#3B82F6', '#10B981', '#F59E0B', 
+    '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4'
+  ];
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>Manage Phases</DialogTitle>
+          <DialogDescription>
+            Customize project phases for organizing tasks
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-4">
+          {/* Existing Phases */}
+          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+            {localPhases.map((phase, index) => (
+              <div key={phase.id} className="flex items-center gap-2 p-2 border rounded-md">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="w-6 h-6 rounded-full border-2 flex-shrink-0"
+                      style={{ backgroundColor: phase.color }}
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-2">
+                    <div className="grid grid-cols-4 gap-1">
+                      {colorOptions.map(color => (
+                        <button
+                          key={color}
+                          className={`w-6 h-6 rounded-full ${phase.color === color ? 'ring-2 ring-offset-2' : ''}`}
+                          style={{ backgroundColor: color }}
+                          onClick={() => handleUpdatePhase(index, 'color', color)}
+                        />
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                
+                <Input
+                  value={phase.name}
+                  onChange={(e) => handleUpdatePhase(index, 'name', e.target.value)}
+                  className="h-8 flex-1"
+                />
+                
+                <div className="flex items-center gap-1">
+                  <Checkbox
+                    checked={phase.is_final}
+                    onCheckedChange={(checked) => handleUpdatePhase(index, 'is_final', checked)}
+                  />
+                  <span className="text-xs text-muted-foreground">Final</span>
+                </div>
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={() => handleDeletePhase(index)}
+                >
+                  <Trash2 className="h-4 w-4 text-muted-foreground" />
+                </Button>
+              </div>
+            ))}
+          </div>
+          
+          {/* Add New Phase */}
+          <div className="flex items-center gap-2">
+            <Input
+              placeholder="New phase name..."
+              value={newPhaseName}
+              onChange={(e) => setNewPhaseName(e.target.value)}
+              className="h-9"
+              onKeyDown={(e) => e.key === 'Enter' && handleAddPhase()}
+            />
+            <Button variant="outline" size="sm" onClick={handleAddPhase}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={saving}>
+            {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+            Save Changes
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+
 // Main Project Detail Component
 const ProjectDetail = () => {
   const { projectId } = useParams();
