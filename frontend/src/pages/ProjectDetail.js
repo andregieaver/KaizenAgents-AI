@@ -1666,7 +1666,7 @@ const PhaseManagementModal = ({ open, onOpenChange, projectId, phases, onPhasesU
 const ProjectTaskDialog = ({ open, onOpenChange, task, projectId, phases, projectLists, onSave, onDelete, onSubtaskChange }) => {
   const { token } = useAuth();
   
-  const [formData, setFormData] = useState({
+  const initialFormData = {
     title: task?.title || '',
     description: task?.description || '',
     phase: task?.phase || 'planning',
@@ -1674,28 +1674,29 @@ const ProjectTaskDialog = ({ open, onOpenChange, task, projectId, phases, projec
     priority: task?.priority || 'medium',
     start_date: task?.start_date ? task.start_date.split('T')[0] : '',
     due_date: task?.due_date ? task.due_date.split('T')[0] : '',
-  });
+  };
   
+  const [formData, setFormData] = useState(initialFormData);
   const [subtasks, setSubtasks] = useState(task?.subtasks || []);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [editingSubtaskId, setEditingSubtaskId] = useState(null);
   const [editingSubtaskTitle, setEditingSubtaskTitle] = useState('');
 
-  // Reset form when task changes
-  useEffect(() => {
-    if (task) {
-      setFormData({
-        title: task.title || '',
-        description: task.description || '',
-        phase: task.phase || 'planning',
-        status: task.status || 'todo',
-        priority: task.priority || 'medium',
-        start_date: task.start_date ? task.start_date.split('T')[0] : '',
-        due_date: task.due_date ? task.due_date.split('T')[0] : '',
-      });
-      setSubtasks(task.subtasks || []);
-    }
-  }, [task]);
+  // Reset form when task changes using ref pattern
+  const prevTaskIdRef = useRef(task?.id);
+  if (prevTaskIdRef.current !== task?.id) {
+    prevTaskIdRef.current = task?.id;
+    setFormData({
+      title: task?.title || '',
+      description: task?.description || '',
+      phase: task?.phase || 'planning',
+      status: task?.status || 'todo',
+      priority: task?.priority || 'medium',
+      start_date: task?.start_date ? task.start_date.split('T')[0] : '',
+      due_date: task?.due_date ? task.due_date.split('T')[0] : '',
+    });
+    setSubtasks(task?.subtasks || []);
+  }
 
   const handleSubmit = () => {
     if (!formData.title.trim()) {
