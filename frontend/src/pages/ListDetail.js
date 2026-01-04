@@ -2490,6 +2490,7 @@ const ListDetail = () => {
         onOpenChange={setShowTaskDialog}
         task={editingTask}
         listId={listId}
+        projectId={projectId}
         statuses={statuses}
         onSave={editingTask ? handleUpdateTask : handleCreateTask}
         onDelete={handleDeleteTask}
