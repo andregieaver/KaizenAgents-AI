@@ -2540,7 +2540,7 @@ const ListDetail = () => {
         onSave={editingTask ? handleUpdateTask : handleCreateTask}
         onDelete={handleDeleteTask}
         availableTags={tags}
-        onSubtaskUpdate={fetchListData}
+        onSubtaskChange={updateTaskSubtasks}
       />
 
       {/* Status Management Modal */}
