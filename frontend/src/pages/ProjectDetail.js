@@ -2528,96 +2528,102 @@ const ProjectDetail = () => {
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b bg-card">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
+      <div className="p-3 sm:p-4 border-b bg-card">
+        {/* Top Row - Title and Main Actions */}
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div 
-              className="h-10 w-10 rounded-lg flex items-center justify-center"
+              className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg flex items-center justify-center flex-shrink-0"
               style={{ backgroundColor: project.color ? `${project.color}20` : '#6366F120' }}
             >
-              <Folder className="h-5 w-5" style={{ color: project.color || '#6366F1' }} />
+              <Folder className="h-4 w-4 sm:h-5 sm:w-5" style={{ color: project.color || '#6366F1' }} />
             </div>
-            <div>
-              <h1 className="text-xl font-semibold">{project.name}</h1>
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-xl font-semibold truncate">{project.name}</h1>
               {project.description && (
-                <p className="text-sm text-muted-foreground">{project.description}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate hidden sm:block">{project.description}</p>
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {/* Main View Toggle */}
-            <div className="flex items-center border rounded-lg p-0.5">
-              <Button 
-                variant={mainView === 'lists' ? 'default' : 'ghost'} 
-                size="sm" 
-                className="h-7 px-3"
-                onClick={() => setMainView('lists')}
-              >
-                <Layers className="h-4 w-4 mr-1.5" />
-                Lists
-              </Button>
-              <Button 
-                variant={mainView === 'tasks' ? 'default' : 'ghost'} 
-                size="sm" 
-                className="h-7 px-3"
-                onClick={() => setMainView('tasks')}
-              >
-                <CheckCircle2 className="h-4 w-4 mr-1.5" />
-                All Tasks
-              </Button>
-            </div>
-            
+          
+          {/* Action Buttons - Show Add List or Phases button */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
             {mainView === 'lists' && (
-              <Button variant="outline" size="sm" onClick={() => setShowListDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add List
+              <Button variant="outline" size="sm" className="h-8 px-2 sm:px-3" onClick={() => setShowListDialog(true)}>
+                <Plus className="h-4 w-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">Add List</span>
               </Button>
             )}
             
             {mainView === 'tasks' && (
-              <>
-                {/* Task View Mode Toggle */}
-                <div className="flex items-center border rounded-lg p-0.5">
-                  <Button 
-                    variant={taskViewMode === 'kanban' ? 'default' : 'ghost'} 
-                    size="sm" 
-                    className="h-7 px-2"
-                    onClick={() => setTaskViewMode('kanban')}
-                    title="Kanban View"
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant={taskViewMode === 'list' ? 'default' : 'ghost'} 
-                    size="sm" 
-                    className="h-7 px-2"
-                    onClick={() => setTaskViewMode('list')}
-                    title="List View"
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant={taskViewMode === 'gantt' ? 'default' : 'ghost'} 
-                    size="sm" 
-                    className="h-7 px-2"
-                    onClick={() => setTaskViewMode('gantt')}
-                    title="Gantt View"
-                  >
-                    <GanttChart className="h-4 w-4" />
-                  </Button>
-                </div>
-                
-                <Button variant="outline" size="sm" onClick={() => setShowPhaseModal(true)}>
-                  <Settings className="h-4 w-4 mr-2" />
-                  Phases
-                </Button>
-              </>
+              <Button variant="outline" size="sm" className="h-8 px-2 sm:px-3" onClick={() => setShowPhaseModal(true)}>
+                <Settings className="h-4 w-4 sm:mr-1.5" />
+                <span className="hidden sm:inline">Phases</span>
+              </Button>
             )}
           </div>
         </div>
         
+        {/* View Toggles Row */}
+        <div className="flex items-center gap-2 mb-3 overflow-x-auto pb-1 -mx-1 px-1">
+          {/* Main View Toggle */}
+          <div className="flex items-center border rounded-lg p-0.5 flex-shrink-0">
+            <Button 
+              variant={mainView === 'lists' ? 'default' : 'ghost'} 
+              size="sm" 
+              className="h-7 px-2 sm:px-3"
+              onClick={() => setMainView('lists')}
+            >
+              <Layers className="h-4 w-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">Lists</span>
+            </Button>
+            <Button 
+              variant={mainView === 'tasks' ? 'default' : 'ghost'} 
+              size="sm" 
+              className="h-7 px-2 sm:px-3"
+              onClick={() => setMainView('tasks')}
+            >
+              <CheckCircle2 className="h-4 w-4 sm:mr-1.5" />
+              <span className="hidden sm:inline">All Tasks</span>
+            </Button>
+          </div>
+          
+          {/* Task View Mode Toggle - Only shown when in tasks view */}
+          {mainView === 'tasks' && (
+            <div className="flex items-center border rounded-lg p-0.5 flex-shrink-0">
+              <Button 
+                variant={taskViewMode === 'kanban' ? 'default' : 'ghost'} 
+                size="sm" 
+                className="h-7 px-2"
+                onClick={() => setTaskViewMode('kanban')}
+                title="Kanban View"
+              >
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant={taskViewMode === 'list' ? 'default' : 'ghost'} 
+                size="sm" 
+                className="h-7 px-2"
+                onClick={() => setTaskViewMode('list')}
+                title="List View"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant={taskViewMode === 'gantt' ? 'default' : 'ghost'} 
+                size="sm" 
+                className="h-7 px-2"
+                onClick={() => setTaskViewMode('gantt')}
+                title="Gantt View"
+              >
+                <GanttChart className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+        
         {/* Search */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
