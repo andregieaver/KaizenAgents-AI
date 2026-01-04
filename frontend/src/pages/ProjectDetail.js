@@ -1500,13 +1500,61 @@ const ProjectDetail = () => {
 
   const taskStatuses = project.task_statuses || [];
   const lists = project.lists || [];
-  const allTasks = project.all_tasks || [];
+  const projectAllTasks = project.all_tasks || [];
   
   // Filter lists by search
   const filteredLists = lists.filter(list =>
     list.name.toLowerCase().includes(search.toLowerCase()) ||
     list.tasks?.some(t => t.title.toLowerCase().includes(search.toLowerCase()))
   );
+  
+  // Group tasks by phase for project-level views
+  const tasksByPhase = useMemo(() => {
+    const grouped = {};
+    phases.forEach(phase => {
+      grouped[phase.id] = [];
+    });
+    allTasks.forEach(task => {
+      const phaseId = task.phase || 'planning';
+      if (grouped[phaseId]) {
+        grouped[phaseId].push(task);
+      } else {
+        // If phase doesn't exist, put in first phase
+        const firstPhase = phases[0]?.id || 'planning';
+        if (!grouped[firstPhase]) grouped[firstPhase] = [];
+        grouped[firstPhase].push(task);
+      }
+    });
+    return grouped;
+  }, [allTasks, phases]);
+  
+  // Filter tasks by search for project-level views
+  const filteredTasks = useMemo(() => {
+    if (!search) return allTasks;
+    return allTasks.filter(task =>
+      task.title.toLowerCase().includes(search.toLowerCase()) ||
+      task.description?.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [allTasks, search]);
+  
+  // Group filtered tasks by phase
+  const filteredTasksByPhase = useMemo(() => {
+    const grouped = {};
+    phases.forEach(phase => {
+      grouped[phase.id] = [];
+    });
+    filteredTasks.forEach(task => {
+      const phaseId = task.phase || 'planning';
+      if (grouped[phaseId]) {
+        grouped[phaseId].push(task);
+      } else {
+        const firstPhase = phases[0]?.id || 'planning';
+        if (!grouped[firstPhase]) grouped[firstPhase] = [];
+        grouped[firstPhase].push(task);
+      }
+    });
+    return grouped;
+  }, [filteredTasks, phases]);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col">
