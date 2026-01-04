@@ -2702,8 +2702,8 @@ const ProjectDetail = () => {
             onDragStart={handleTaskDragStart}
             onDragEnd={handleTaskDragEnd}
           >
-            <ScrollArea className="h-full">
-              <div className="flex gap-4 p-4 min-w-max">
+            <div className="h-full overflow-x-auto">
+              <div className="flex gap-3 sm:gap-4 p-3 sm:p-4 min-w-max pb-4">
                 {phases.map(phase => (
                   <PhaseColumn
                     key={phase.id}
