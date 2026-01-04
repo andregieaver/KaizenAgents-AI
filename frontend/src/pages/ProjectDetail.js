@@ -83,7 +83,11 @@ import {
   Clock,
   Settings,
   X,
-  Folder
+  Folder,
+  ListChecks,
+  Tag,
+  Filter,
+  Layers
 } from 'lucide-react';
 import { format, formatDistanceToNow, differenceInDays, addDays, startOfWeek, endOfWeek, eachDayOfInterval, isWithinInterval, parseISO } from 'date-fns';
 import { toast } from 'sonner';
