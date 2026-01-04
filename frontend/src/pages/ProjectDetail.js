@@ -1390,10 +1390,10 @@ const ProjectGanttView = ({ tasks, phases, onEditTask, projectLists }) => {
   }, [tasks, phases]);
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Timeline Header */}
       <div className="flex border-b bg-muted/30 sticky top-0 z-10">
-        <div className="w-[250px] min-w-[250px] p-2 border-r font-medium text-sm">
+        <div className="w-[150px] sm:w-[200px] min-w-[150px] sm:min-w-[200px] p-1.5 sm:p-2 border-r font-medium text-xs sm:text-sm flex-shrink-0">
           Task
         </div>
         <div className="flex-1 overflow-x-auto">
@@ -1401,7 +1401,7 @@ const ProjectGanttView = ({ tasks, phases, onEditTask, projectLists }) => {
             {days.map((day, i) => (
               <div
                 key={i}
-                className={`w-10 min-w-[40px] p-1 text-center text-xs border-r ${
+                className={`w-8 sm:w-10 min-w-[32px] sm:min-w-[40px] p-0.5 sm:p-1 text-center text-[10px] sm:text-xs border-r ${
                   format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd')
                     ? 'bg-primary/10 font-medium'
                     : ''
@@ -1415,9 +1415,9 @@ const ProjectGanttView = ({ tasks, phases, onEditTask, projectLists }) => {
         </div>
       </div>
       
-      {/* Tasks by Phase */}
-      <ScrollArea className="flex-1">
-        <div>
+      {/* Tasks by Phase - Scrollable container */}
+      <div className="flex-1 overflow-auto">
+        <div className="min-w-max">
           {phases.map(phase => {
             const phaseTasks = tasksByPhase[phase.id] || [];
             if (phaseTasks.length === 0) return null;
@@ -1426,7 +1426,7 @@ const ProjectGanttView = ({ tasks, phases, onEditTask, projectLists }) => {
               <div key={phase.id}>
                 {/* Phase Header */}
                 <div 
-                  className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 border-b sticky top-0"
+                  className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-muted/50 border-b sticky top-0"
                   style={{ borderLeftWidth: '3px', borderLeftColor: phase.color }}
                 >
                   <div 
@@ -1451,11 +1451,11 @@ const ProjectGanttView = ({ tasks, phases, onEditTask, projectLists }) => {
                       className="flex border-b hover:bg-muted/30 cursor-pointer"
                       onClick={() => onEditTask(task)}
                     >
-                      <div className="w-[250px] min-w-[250px] p-2 border-r">
-                        <p className="text-sm font-medium truncate">{task.title}</p>
-                        <p className="text-xs text-muted-foreground truncate">{listName}</p>
+                      <div className="w-[150px] sm:w-[200px] min-w-[150px] sm:min-w-[200px] p-1.5 sm:p-2 border-r flex-shrink-0">
+                        <p className="text-xs sm:text-sm font-medium truncate">{task.title}</p>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground truncate">{listName}</p>
                       </div>
-                      <div className="flex-1 overflow-x-auto">
+                      <div className="flex-1">
                         <div className="flex min-w-max relative h-full items-center">
                           {days.map((day, i) => {
                             const isToday = format(day, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd');
@@ -1469,16 +1469,16 @@ const ProjectGanttView = ({ tasks, phases, onEditTask, projectLists }) => {
                             return (
                               <div
                                 key={i}
-                                className={`w-10 min-w-[40px] h-8 border-r flex items-center justify-center ${
+                                className={`w-8 sm:w-10 min-w-[32px] sm:min-w-[40px] h-7 sm:h-8 border-r flex items-center justify-center ${
                                   isToday ? 'bg-primary/5' : ''
                                 }`}
                               >
                                 {isInRange && (
                                   <div 
-                                    className={`h-5 ${
-                                      isStart && isEnd ? 'w-6 rounded' :
-                                      isStart ? 'w-full rounded-l ml-1' : 
-                                      isEnd ? 'w-full rounded-r mr-1' : 
+                                    className={`h-4 sm:h-5 ${
+                                      isStart && isEnd ? 'w-5 sm:w-6 rounded' :
+                                      isStart ? 'w-full rounded-l ml-0.5 sm:ml-1' : 
+                                      isEnd ? 'w-full rounded-r mr-0.5 sm:mr-1' : 
                                       'w-full'
                                     }`}
                                     style={{ backgroundColor: phase.color }}
@@ -1496,7 +1496,7 @@ const ProjectGanttView = ({ tasks, phases, onEditTask, projectLists }) => {
             );
           })}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 };
