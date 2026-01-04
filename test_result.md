@@ -125,6 +125,18 @@ test_plan:
         agent: "testing"
         comment: "Code analysis shows comprehensive subtask implementation: 1) Subtasks section appears only when editing existing tasks (line 1102), 2) Progress bar with real-time percentage calculation (lines 1000-1001, 1114-1122), 3) Add subtask with input field and Enter key support (lines 1186-1205), 4) Toggle completion with checkboxes (lines 1131-1135), 5) Edit functionality with pencil icon and inline editing (lines 1137-1155), 6) Delete functionality with trash icon (lines 1170-1177), 7) Progress display on task cards in all views (lines 192-206), 8) Real-time progress updates via onSubtaskUpdate callback. Authentication session timeouts prevented complete UI testing, but all required components are properly implemented including: subtask input with placeholder 'Add a subtask...', progress bars, completion tracking, and cross-view compatibility."
 
+  - task: "Project-Level Task Views with Phases"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/pages/ProjectDetail.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "testing"
+        comment: "CRITICAL AUTHENTICATION ISSUE: Project-level task views with phases are fully implemented but cannot be completely tested due to persistent session timeouts. Code analysis confirms comprehensive implementation: 1) View toggle between 'Lists' and 'All Tasks' (lines 2550-2567), 2) Task view mode toggles for Kanban/List/Gantt (lines 2580-2608), 3) PhaseManagementModal with add/edit/delete/color functionality (lines 1509-1659), 4) PhaseColumn for Kanban view (lines 1185-1240), 5) PhaseListSection for List view (lines 1243+), 6) ProjectGanttView for timeline (lines 1377-1500), 7) Proper phase organization and drag-drop functionality. Session expires within seconds of login, preventing navigation to project pages for UI verification. All required components are properly implemented with correct state management (mainView, taskViewMode, phases) and API integration."
+
 agent_communication:
   - agent: "testing"
     message: "Filter system testing completed successfully. All filter functionality is properly implemented and working. Code review shows comprehensive implementation with proper state management, UI components, and cross-view compatibility. Authentication session issues prevented full automated testing, but code analysis confirms all requirements are met."
@@ -134,3 +146,5 @@ agent_communication:
     message: "CRITICAL ISSUE: List Edit and Delete functionality testing blocked by persistent authentication session timeouts. Session expires within seconds of login, preventing navigation to Projects page and testing of list functionality. Code analysis confirms proper implementation: dropdown menus with Edit/Manage/Delete options, edit dialog with proper form handling, delete confirmation dialogs, and API integration. However, UI testing cannot be completed due to authentication issues. Main agent should investigate session management and authentication timeout settings."
   - agent: "testing"
     message: "Subtask functionality testing attempted but blocked by persistent authentication session timeouts. Successfully logged in and navigated to Projects page, Space detail, and Project detail page, but session expired before reaching List Detail page for complete testing. Code analysis shows comprehensive subtask implementation with all required features: progress tracking, add/edit/delete operations, real-time updates, and cross-view compatibility. The implementation includes proper state management, UI components, and API integration. Authentication session management needs to be fixed to enable complete UI testing."
+  - agent: "testing"
+    message: "CRITICAL AUTHENTICATION ISSUE: Project-level task views with phases testing blocked by persistent session timeouts. Successfully logged in multiple times but session expires within seconds, preventing navigation to project detail pages. Code analysis confirms complete implementation of all required features: view toggles, task view modes (Kanban/List/Gantt), phase management modal, and proper phase organization. All components are properly implemented with correct state management and API integration. URGENT: Main agent must investigate and fix authentication session management before UI testing can be completed."
