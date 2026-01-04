@@ -814,7 +814,9 @@ const GanttView = ({ tasks, statuses, onEditTask, onDragStart, onDragEnd, sensor
 };
 
 // Task Dialog Component
-const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDelete, availableTags = [] }) => {
+const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDelete, availableTags = [], onSubtaskUpdate }) => {
+  const { token } = useAuth();
+  
   // Initialize form data based on task prop
   const initialFormData = task ? {
     title: task.title || '',
@@ -837,6 +839,10 @@ const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDele
   };
 
   const [formData, setFormData] = useState(initialFormData);
+  const [subtasks, setSubtasks] = useState(task?.subtasks || []);
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [editingSubtaskId, setEditingSubtaskId] = useState(null);
+  const [editingSubtaskTitle, setEditingSubtaskTitle] = useState('');
 
   // Reset form when dialog opens with different task
   const prevTaskIdRef = useRef(task?.id);
@@ -846,6 +852,10 @@ const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDele
     if (formData.title !== initialFormData.title || formData.status !== initialFormData.status) {
       setFormData(initialFormData);
     }
+    // Also reset subtasks
+    setSubtasks(task?.subtasks || []);
+    setNewSubtaskTitle('');
+    setEditingSubtaskId(null);
   }
 
   const handleSubmit = () => {
@@ -865,9 +875,114 @@ const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDele
     }));
   };
 
+  // Subtask handlers
+  const handleAddSubtask = async () => {
+    if (!newSubtaskTitle.trim() || !task?.id) return;
+    
+    try {
+      const API = process.env.REACT_APP_BACKEND_URL;
+      const response = await axios.post(
+        `${API}/api/projects/tasks`,
+        {
+          title: newSubtaskTitle.trim(),
+          list_id: listId,
+          parent_task_id: task.id,
+          status: 'todo',
+          priority: 'medium',
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      const newSubtask = response.data;
+      setSubtasks(prev => [...prev, newSubtask]);
+      setNewSubtaskTitle('');
+      toast.success('Subtask added');
+      onSubtaskUpdate?.();
+    } catch (error) {
+      console.error('Failed to add subtask:', error);
+      toast.error('Failed to add subtask');
+    }
+  };
+
+  const handleToggleSubtaskComplete = async (subtask) => {
+    try {
+      const API = process.env.REACT_APP_BACKEND_URL;
+      const newStatus = subtask.status === 'done' ? 'todo' : 'done';
+      
+      await axios.put(
+        `${API}/api/projects/tasks/${subtask.id}`,
+        { status: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      setSubtasks(prev => prev.map(st => 
+        st.id === subtask.id ? { ...st, status: newStatus, completed: newStatus === 'done' } : st
+      ));
+      onSubtaskUpdate?.();
+    } catch (error) {
+      console.error('Failed to toggle subtask:', error);
+      toast.error('Failed to update subtask');
+    }
+  };
+
+  const handleEditSubtask = async (subtaskId) => {
+    if (!editingSubtaskTitle.trim()) return;
+    
+    try {
+      const API = process.env.REACT_APP_BACKEND_URL;
+      await axios.put(
+        `${API}/api/projects/tasks/${subtaskId}`,
+        { title: editingSubtaskTitle.trim() },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      setSubtasks(prev => prev.map(st => 
+        st.id === subtaskId ? { ...st, title: editingSubtaskTitle.trim() } : st
+      ));
+      setEditingSubtaskId(null);
+      setEditingSubtaskTitle('');
+      toast.success('Subtask updated');
+      onSubtaskUpdate?.();
+    } catch (error) {
+      console.error('Failed to edit subtask:', error);
+      toast.error('Failed to update subtask');
+    }
+  };
+
+  const handleDeleteSubtask = async (subtaskId) => {
+    try {
+      const API = process.env.REACT_APP_BACKEND_URL;
+      await axios.delete(
+        `${API}/api/projects/tasks/${subtaskId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      setSubtasks(prev => prev.filter(st => st.id !== subtaskId));
+      toast.success('Subtask deleted');
+      onSubtaskUpdate?.();
+    } catch (error) {
+      console.error('Failed to delete subtask:', error);
+      toast.error('Failed to delete subtask');
+    }
+  };
+
+  const startEditSubtask = (subtask) => {
+    setEditingSubtaskId(subtask.id);
+    setEditingSubtaskTitle(subtask.title);
+  };
+
+  const cancelEditSubtask = () => {
+    setEditingSubtaskId(null);
+    setEditingSubtaskTitle('');
+  };
+
+  // Calculate subtask progress
+  const completedCount = subtasks.filter(st => st.status === 'done' || st.completed).length;
+  const progress = subtasks.length > 0 ? Math.round((completedCount / subtasks.length) * 100) : 0;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[550px]">
         <DialogHeader>
           <DialogTitle>{task ? 'Edit Task' : 'Add Task'}</DialogTitle>
           <DialogDescription>
@@ -962,6 +1077,114 @@ const TaskDialog = ({ open, onOpenChange, task, listId, statuses, onSave, onDele
               />
             </div>
           </div>
+          
+          {/* Subtasks Section - Only show for existing tasks */}
+          {task && (
+            <div className="space-y-3 border rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <Label className="flex items-center gap-2">
+                  <ListChecks className="h-4 w-4" />
+                  Subtasks
+                  {subtasks.length > 0 && (
+                    <Badge variant="secondary" className="ml-1">
+                      {completedCount}/{subtasks.length}
+                    </Badge>
+                  )}
+                </Label>
+                {subtasks.length > 0 && (
+                  <span className="text-sm font-medium text-primary">{progress}%</span>
+                )}
+              </div>
+              
+              {/* Progress Bar */}
+              {subtasks.length > 0 && (
+                <Progress value={progress} className="h-2" />
+              )}
+              
+              {/* Subtask List */}
+              <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                {subtasks.map(subtask => (
+                  <div 
+                    key={subtask.id} 
+                    className="flex items-center gap-2 p-2 rounded-md bg-muted/50 group"
+                  >
+                    <Checkbox
+                      checked={subtask.status === 'done' || subtask.completed}
+                      onCheckedChange={() => handleToggleSubtaskComplete(subtask)}
+                      className="h-4 w-4"
+                    />
+                    
+                    {editingSubtaskId === subtask.id ? (
+                      <div className="flex-1 flex items-center gap-2">
+                        <Input
+                          value={editingSubtaskTitle}
+                          onChange={(e) => setEditingSubtaskTitle(e.target.value)}
+                          className="h-7 text-sm"
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleEditSubtask(subtask.id);
+                            if (e.key === 'Escape') cancelEditSubtask();
+                          }}
+                        />
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => handleEditSubtask(subtask.id)}>
+                          <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={cancelEditSubtask}>
+                          <X className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className={`flex-1 text-sm ${(subtask.status === 'done' || subtask.completed) ? 'line-through text-muted-foreground' : ''}`}>
+                          {subtask.title}
+                        </span>
+                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-6 w-6"
+                            onClick={() => startEditSubtask(subtask)}
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-6 w-6 text-destructive hover:text-destructive"
+                            onClick={() => handleDeleteSubtask(subtask.id)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Add New Subtask */}
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Add a subtask..."
+                  value={newSubtaskTitle}
+                  onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                  className="h-8 text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleAddSubtask();
+                  }}
+                />
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="h-8 px-3"
+                  onClick={handleAddSubtask}
+                  disabled={!newSubtaskTitle.trim()}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
           
           {/* Tags Section */}
           <div className="space-y-2">
