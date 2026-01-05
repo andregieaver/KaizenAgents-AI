@@ -273,8 +273,8 @@ const AgentToolsTab = ({ agent, setAgent, token, isNew }) => {
             <div>
               <p className="font-medium text-blue-800 dark:text-blue-400">About Capabilities</p>
               <p className="text-sm text-blue-700 dark:text-blue-500">
-                The agent's AI will decide when to use enabled capabilities during conversations. 
-                Only enable what's appropriate for this agent's purpose. 
+                The agent&apos;s AI will decide when to use enabled capabilities during conversations. 
+                Only enable what&apos;s appropriate for this agent&apos;s purpose. 
                 Authentication credentials are managed in the Credentials Manager.
               </p>
             </div>
