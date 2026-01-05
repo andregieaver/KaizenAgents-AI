@@ -223,12 +223,13 @@ const AgentToolsTab = ({ agent, setAgent, token, isNew }) => {
                     </button>
                     <div className="flex items-center gap-2">
                       <Label htmlFor={`category-${category}`} className="text-sm font-medium">
-                        Enable
+                        {saving ? 'Saving...' : 'Enable'}
                       </Label>
                       <Switch
                         id={`category-${category}`}
                         checked={isEnabled}
                         onCheckedChange={() => toggleCategory(category)}
+                        disabled={saving || isNew}
                       />
                     </div>
                   </div>
