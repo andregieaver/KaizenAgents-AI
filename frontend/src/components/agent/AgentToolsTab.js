@@ -71,11 +71,17 @@ const AgentToolsTab = ({ agent, setAgent, token, isNew }) => {
     const init = async () => {
       setLoading(true);
       await fetchAvailableTools();
-      await fetchAgentToolConfig();
       setLoading(false);
     };
     init();
-  }, [fetchAvailableTools, fetchAgentToolConfig]);
+  }, [fetchAvailableTools]);
+
+  // Separate effect for fetching tool config when agent.id becomes available
+  useEffect(() => {
+    if (agent.id && !isNew) {
+      fetchAgentToolConfig();
+    }
+  }, [agent.id, isNew, fetchAgentToolConfig]);
 
   // Save tool configuration to backend
   const saveToolConfig = async (newEnabledTools) => {
