@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 
 class DiscountCodeTester:
-    def __init__(self, base_url="https://project-tasks-hub.preview.emergentagent.com/api"):
+    def __init__(self, base_url="https://task-manager-265.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.user_data = None

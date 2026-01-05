@@ -76,7 +76,7 @@ After redeployment, check the browser console:
 ### Current Development Environment:
 Your local development environment is correctly configured:
 ```
-REACT_APP_BACKEND_URL=https://project-tasks-hub.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://task-manager-265.preview.emergentagent.com
 ```
 
 This is why you don't see the issue locally - only in production.
