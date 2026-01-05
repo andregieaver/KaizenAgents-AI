@@ -352,7 +352,7 @@ async def activate_agent(
     agent_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Set agent as active (deactivates all others)"""
+    """Set agent as active (allows multiple active agents)"""
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
         raise HTTPException(status_code=404, detail="No tenant associated")
@@ -366,20 +366,14 @@ async def activate_agent(
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
     
-    # Deactivate all agents for this tenant
-    await db.user_agents.update_many(
-        {"tenant_id": tenant_id},
-        {"$set": {"is_active": False}}
-    )
-    
-    # Activate this agent
+    # Activate this agent (no longer deactivates others)
     now = datetime.now(timezone.utc).isoformat()
     await db.user_agents.update_one(
         {"id": agent_id, "tenant_id": tenant_id},
         {"$set": {"is_active": True, "activated_at": now, "updated_at": now}}
     )
     
-    # Update settings to reference this agent
+    # Update settings to reference this agent as the most recently activated
     await db.settings.update_one(
         {"tenant_id": tenant_id},
         {"$set": {
