@@ -170,9 +170,14 @@ const AgentToolsTab = ({ agent, setAgent, token, isNew }) => {
             <Badge variant={enabledCategoriesCount > 0 ? "default" : "secondary"} className="text-sm">
               {enabledCategoriesCount} / {totalCategories} capabilities enabled
             </Badge>
-            {enabledCategoriesCount === 0 && (
+            {enabledCategoriesCount === 0 && !isNew && (
               <span className="text-sm text-muted-foreground">
                 No capabilities enabled - agent cannot perform automated actions
+              </span>
+            )}
+            {isNew && (
+              <span className="text-sm text-amber-600">
+                Save the agent first to enable capabilities
               </span>
             )}
           </div>
