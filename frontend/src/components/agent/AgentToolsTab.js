@@ -160,7 +160,7 @@ const AgentToolsTab = ({ agent, setAgent, token, isNew }) => {
                 Enable the capabilities this agent needs. Each capability includes all related functions.
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm" onClick={fetchAvailableTools}>
+            <Button variant="outline" size="sm" onClick={async () => { await fetchAvailableTools(); await fetchAgentToolConfig(); }}>
               <RefreshCw className="h-4 w-4 mr-2" /> Refresh
             </Button>
           </div>
