@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Switch } from '../ui/switch';
@@ -6,6 +6,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Label } from '../ui/label';
 import { Loader2, RefreshCw, Globe, Search, Shield, Key, Clock, FileText, ChevronDown, ChevronUp } from 'lucide-react';
+import { toast } from 'sonner';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -35,14 +36,13 @@ const toolCategoryNames = {
 
 const AgentToolsTab = ({ agent, setAgent, token, isNew }) => {
   const [availableTools, setAvailableTools] = useState({});
+  const [enabledTools, setEnabledTools] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState(null);
 
-  useEffect(() => {
-    fetchAvailableTools();
-  }, []);
-
-  const fetchAvailableTools = async () => {
+  // Fetch available tools catalog
+  const fetchAvailableTools = useCallback(async () => {
     try {
       const response = await axios.get(`${API}/agent-tools/available`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -50,16 +50,69 @@ const AgentToolsTab = ({ agent, setAgent, token, isNew }) => {
       setAvailableTools(response.data.tools_by_category || {});
     } catch (error) {
       console.error('Failed to fetch tools:', error);
-    } finally {
+    }
+  }, [token]);
+
+  // Fetch agent's current tool configuration
+  const fetchAgentToolConfig = useCallback(async () => {
+    if (isNew || !agent.id) return;
+    
+    try {
+      const response = await axios.get(`${API}/agent-tools/agents/${agent.id}/config`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEnabledTools(response.data.enabled_tools || []);
+    } catch (error) {
+      console.error('Failed to fetch agent tool config:', error);
+    }
+  }, [agent.id, token, isNew]);
+
+  useEffect(() => {
+    const init = async () => {
+      setLoading(true);
+      await fetchAvailableTools();
+      await fetchAgentToolConfig();
       setLoading(false);
+    };
+    init();
+  }, [fetchAvailableTools, fetchAgentToolConfig]);
+
+  // Save tool configuration to backend
+  const saveToolConfig = async (newEnabledTools) => {
+    if (isNew || !agent.id) {
+      toast.error('Please save the agent first before configuring tools');
+      return false;
+    }
+
+    setSaving(true);
+    try {
+      await axios.put(
+        `${API}/agent-tools/agents/${agent.id}/config`,
+        { enabled_tools: newEnabledTools },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setEnabledTools(newEnabledTools);
+      toast.success('Tools configuration saved');
+      return true;
+    } catch (error) {
+      console.error('Failed to save tool config:', error);
+      toast.error('Failed to save tools configuration');
+      return false;
+    } finally {
+      setSaving(false);
     }
   };
 
   const getEnabledTools = () => {
-    return agent.config?.enabled_tools || [];
+    return enabledTools;
   };
 
-  const toggleCategory = (category) => {
+  const toggleCategory = async (category) => {
+    if (isNew) {
+      toast.error('Please save the agent first before configuring tools');
+      return;
+    }
+
     const categoryTools = availableTools[category]?.map(t => t.name) || [];
     const currentEnabled = getEnabledTools();
     const allEnabled = categoryTools.every(t => currentEnabled.includes(t));
@@ -74,13 +127,8 @@ const AgentToolsTab = ({ agent, setAgent, token, isNew }) => {
       newEnabled = [...currentEnabled, ...toAdd];
     }
     
-    setAgent(prev => ({
-      ...prev,
-      config: {
-        ...prev.config,
-        enabled_tools: newEnabled
-      }
-    }));
+    // Save immediately to backend
+    await saveToolConfig(newEnabled);
   };
 
   const isCategoryEnabled = (category) => {
