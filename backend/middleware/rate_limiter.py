@@ -132,21 +132,57 @@ async def rate_limit_middleware(request: Request, call_next):
     """
     Middleware to enforce rate limits on API requests
     """
-    # Skip rate limiting for certain paths
-    skip_paths = ["/api/auth/login", "/api/auth/register", "/docs", "/openapi.json", "/api/media"]
-    
+    # Skip rate limiting only for docs and static assets
+    skip_paths = ["/docs", "/openapi.json", "/api/media"]
+
     if any(request.url.path.startswith(path) for path in skip_paths):
         response = await call_next(request)
         return response
-    
+
+    # Apply stricter rate limiting for auth endpoints (by IP address)
+    auth_paths = ["/api/auth/login", "/api/auth/register", "/api/auth/forgot-password", "/api/auth/reset-password"]
+    is_auth_endpoint = any(request.url.path.startswith(path) for path in auth_paths)
+
+    if is_auth_endpoint:
+        # Use IP address for auth endpoints to prevent brute force attacks
+        client_ip = request.client.host if request.client else "unknown"
+        identifier = f"auth:{client_ip}"
+
+        # Stricter limits for auth endpoints: 5 per minute, 20 per hour
+        async with rate_limiter.lock:
+            now = datetime.now(timezone.utc)
+            await rate_limiter.remove_old_requests(identifier, now - timedelta(hours=1))
+
+            # Check minute limit (5 requests)
+            minute_count = await rate_limiter.count_requests(identifier, now - timedelta(minutes=1))
+            if minute_count >= 5:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Too many authentication attempts. Please try again in 1 minute."
+                )
+
+            # Check hour limit (20 requests)
+            hour_count = await rate_limiter.count_requests(identifier, now - timedelta(hours=1))
+            if hour_count >= 20:
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Too many authentication attempts. Please try again later."
+                )
+
+            # Record this request
+            rate_limiter.requests[identifier].append((now, 1))
+
+        response = await call_next(request)
+        return response
+
     # Get tenant_id from request state (set by auth middleware)
     tenant_id = getattr(request.state, "tenant_id", None)
-    
+
     if not tenant_id:
         # If no tenant_id, allow request (e.g., public endpoints)
         response = await call_next(request)
         return response
-    
+
     # Check rate limit
     allowed, info = await rate_limiter.check_rate_limit(tenant_id)
     

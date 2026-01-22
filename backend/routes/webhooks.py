@@ -37,22 +37,29 @@ async def stripe_webhook(request: Request, stripe_signature: Optional[str] = Hea
         log_error("Failed to load Stripe settings from database", error=e)
         webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
     
+    # SECURITY: Always require webhook signature verification
     if not webhook_secret:
-        log_info("Stripe webhook secret not configured, processing without verification")
-    
+        log_error("Stripe webhook secret not configured - rejecting webhook")
+        raise HTTPException(
+            status_code=500,
+            detail="Webhook secret not configured. Configure STRIPE_WEBHOOK_SECRET in environment or platform settings."
+        )
+
+    if not stripe_signature:
+        log_error("Missing Stripe signature header")
+        raise HTTPException(
+            status_code=400,
+            detail="Missing Stripe-Signature header"
+        )
+
     # Get raw body
     payload = await request.body()
-    
+
     try:
-        if webhook_secret and stripe_signature:
-            # Verify webhook signature
-            event = stripe.Webhook.construct_event(
-                payload, stripe_signature, webhook_secret
-            )
-        else:
-            # Parse event without verification (development only)
-            import json
-            event = json.loads(payload)
+        # Always verify webhook signature - NEVER skip verification
+        event = stripe.Webhook.construct_event(
+            payload, stripe_signature, webhook_secret
+        )
         
         event_type = event["type"]
         log_info(f"Received Stripe webhook: {event_type}")

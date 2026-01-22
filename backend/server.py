@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFile, File, Request
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
+from middleware.security_headers import SecurityHeadersMiddleware
 import os
 import logging
 from pathlib import Path
@@ -17,6 +18,7 @@ from middleware import get_current_user, get_super_admin_user, get_admin_or_owne
 from middleware.database import db
 from middleware.auth import create_token, hash_password, verify_password, is_super_admin, JWT_SECRET, JWT_ALGORITHM
 from utils import mask_api_key, get_provider_models
+from utils.password_validator import validate_password
 
 ROOT_DIR = Path(__file__).parent
 UPLOADS_DIR = ROOT_DIR / "uploads"
@@ -3777,8 +3779,9 @@ async def change_password(
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     
     # Validate new password
-    if len(password_data.new_password) < 6:
-        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+    is_valid, error_message = validate_password(password_data.new_password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error_message)
     
     # Update password
     new_hash = hash_password(password_data.new_password)
@@ -4034,13 +4037,25 @@ async def set_tenant_context(request: Request, call_next):
     response = await call_next(request)
     return response
 
+# CORS Configuration - CORS_ORIGINS is required and must be explicitly set
+cors_origins = os.environ.get('CORS_ORIGINS')
+if not cors_origins:
+    raise RuntimeError("CORS_ORIGINS environment variable must be set. Never use '*' in production with credentials enabled. Check .env.example for setup instructions.")
+
+# Validate that wildcard is not used with credentials
+if cors_origins == '*':
+    raise RuntimeError("CORS_ORIGINS cannot be '*' when allow_credentials=True. This is a critical security vulnerability.")
+
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=cors_origins.split(','),
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Add security headers middleware
+app.add_middleware(SecurityHeadersMiddleware)
 
 @app.on_event("startup")
 async def startup_load_rate_limits():

@@ -8,7 +8,9 @@ from datetime import datetime, timezone, timedelta
 from .database import get_db
 
 # JWT Config
-JWT_SECRET = os.environ.get('JWT_SECRET', 'your-super-secret-key-change-in-production')
+JWT_SECRET = os.environ.get('JWT_SECRET')
+if not JWT_SECRET:
+    raise RuntimeError("JWT_SECRET environment variable must be set. Check .env.example for setup instructions.")
 JWT_ALGORITHM = 'HS256'
 JWT_EXPIRATION_HOURS = 24
 
@@ -62,7 +64,9 @@ async def get_current_user(
         )
     return user
 
-SUPER_ADMIN_EMAIL = os.environ.get("SUPER_ADMIN_EMAIL", "andre@humanweb.no")
+SUPER_ADMIN_EMAIL = os.environ.get("SUPER_ADMIN_EMAIL")
+if not SUPER_ADMIN_EMAIL:
+    raise RuntimeError("SUPER_ADMIN_EMAIL environment variable must be set. Check .env.example for setup instructions.")
 
 def is_super_admin(user: dict) -> bool:
     """Check if user is a super admin"""

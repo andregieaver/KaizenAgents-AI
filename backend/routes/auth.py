@@ -12,6 +12,7 @@ from models import UserCreate, UserLogin
 from middleware import get_current_user
 from middleware.database import db
 from middleware.auth import create_token, hash_password, verify_password, is_super_admin
+from utils.password_validator import validate_password
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
@@ -189,8 +190,9 @@ async def reset_password(request: ResetPasswordRequest):
         raise HTTPException(status_code=400, detail="Reset token has expired")
     
     # Validate password
-    if len(request.new_password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    is_valid, error_message = validate_password(request.new_password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error_message)
     
     # Update user password
     email = reset_record["email"]

@@ -11,6 +11,7 @@ from models import *
 from middleware import get_current_user, get_super_admin_user
 from middleware.database import db
 from middleware.auth import is_super_admin, hash_password, verify_password
+from utils.password_validator import validate_password
 
 # Profile models
 class ProfileUpdate(BaseModel):
@@ -99,8 +100,9 @@ async def change_password(
         raise HTTPException(status_code=400, detail="Current password is incorrect")
     
     # Validate new password
-    if len(password_data.new_password) < 6:
-        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+    is_valid, error_message = validate_password(password_data.new_password)
+    if not is_valid:
+        raise HTTPException(status_code=400, detail=error_message)
     
     # Update password
     new_hash = hash_password(password_data.new_password)
