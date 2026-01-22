@@ -8,8 +8,7 @@ import { Badge } from '../components/ui/badge';
 import { MessageSquare, Bot, Clock, CheckCircle, ArrowRight, Users } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import OnboardingProgress from '../components/OnboardingProgress';
-
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+import { API_BASE_URL } from '@/config/constants';
 
 const Dashboard = () => {
   const { token, user } = useAuth();
@@ -19,7 +18,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get(`${API}/stats`, {
+        const response = await axios.get(`${API_BASE_URL}/stats`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStats(response.data);

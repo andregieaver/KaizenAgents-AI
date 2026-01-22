@@ -1,50 +1,60 @@
 import "@/App.css";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { Toaster } from "./components/ui/sonner";
 import ErrorBoundary from "./components/ErrorBoundary";
 
-// Pages
-import HomePage from "./pages/HomePage";
-import PricingPage from "./pages/PricingPage";
+// Loading component for Suspense fallback
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+);
+
+// Eager load auth-related pages for better UX (users need these immediately)
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import EmailTemplates from "./pages/EmailTemplates";
-import DashboardLayout from "./pages/DashboardLayout";
-import Dashboard from "./pages/Dashboard";
-import Conversations from "./pages/Conversations";
-import ConversationDetail from "./pages/ConversationDetail";
-import Settings from "./pages/Settings";
-import WidgetDemo from "./pages/WidgetDemo";
-import SuperAdmin from "./pages/SuperAdmin";
-import Team from "./pages/Team";
-import Profile from "./pages/Profile";
-import Providers from "./pages/Providers";
-import Agents from "./pages/Agents";
-import StorageConfig from "./pages/StorageConfig";
-import Analytics from "./pages/Analytics";
-import RateLimits from "./pages/RateLimits";
-import Marketplace from "./pages/Marketplace";
-import Observability from "./pages/Observability";
-import Billing from "./pages/Billing";
-import Pricing from "./pages/Pricing";
-import PlanManagement from "./pages/PlanManagement";
-import Integrations from "./pages/Integrations";
-import DiscountCodes from "./pages/DiscountCodes";
-import Affiliates from "./pages/Affiliates";
-import AdminPagesList from "./pages/AdminPagesList";
-import PageEditor from "./pages/PageEditor";
-import CustomPage from "./pages/CustomPage";
-import GlobalComponents from "./pages/GlobalComponents";
-import ComponentEditor from "./pages/ComponentEditor";
-import MenusList from "./pages/MenusList";
-import MenuEditor from "./pages/MenuEditor";
-import FeatureGatesAdmin from "./pages/FeatureGatesAdmin";
-import WaitlistAdmin from "./pages/WaitlistAdmin";
-import CustomEmailsAdmin from "./pages/CustomEmailsAdmin";
+import HomePage from "./pages/HomePage";
+import PricingPage from "./pages/PricingPage";
+
+// Lazy load dashboard and protected pages (loaded on demand)
+const DashboardLayout = lazy(() => import("./pages/DashboardLayout"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Conversations = lazy(() => import("./pages/Conversations"));
+const ConversationDetail = lazy(() => import("./pages/ConversationDetail"));
+const Settings = lazy(() => import("./pages/Settings"));
+const WidgetDemo = lazy(() => import("./pages/WidgetDemo"));
+const SuperAdmin = lazy(() => import("./pages/SuperAdmin"));
+const Team = lazy(() => import("./pages/Team"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Providers = lazy(() => import("./pages/Providers"));
+const Agents = lazy(() => import("./pages/Agents"));
+const StorageConfig = lazy(() => import("./pages/StorageConfig"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const RateLimits = lazy(() => import("./pages/RateLimits"));
+const Marketplace = lazy(() => import("./pages/Marketplace"));
+const Observability = lazy(() => import("./pages/Observability"));
+const Billing = lazy(() => import("./pages/Billing"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const PlanManagement = lazy(() => import("./pages/PlanManagement"));
+const Integrations = lazy(() => import("./pages/Integrations"));
+const DiscountCodes = lazy(() => import("./pages/DiscountCodes"));
+const Affiliates = lazy(() => import("./pages/Affiliates"));
+const EmailTemplates = lazy(() => import("./pages/EmailTemplates"));
+const AdminPagesList = lazy(() => import("./pages/AdminPagesList"));
+const PageEditor = lazy(() => import("./pages/PageEditor"));
+const CustomPage = lazy(() => import("./pages/CustomPage"));
+const GlobalComponents = lazy(() => import("./pages/GlobalComponents"));
+const ComponentEditor = lazy(() => import("./pages/ComponentEditor"));
+const MenusList = lazy(() => import("./pages/MenusList"));
+const MenuEditor = lazy(() => import("./pages/MenuEditor"));
+const FeatureGatesAdmin = lazy(() => import("./pages/FeatureGatesAdmin"));
+const WaitlistAdmin = lazy(() => import("./pages/WaitlistAdmin"));
+const CustomEmailsAdmin = lazy(() => import("./pages/CustomEmailsAdmin"));
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -84,7 +94,8 @@ const PublicRoute = ({ children }) => {
 
 function AppRoutes() {
   return (
-    <Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route
@@ -165,6 +176,7 @@ function AppRoutes() {
       {/* Catch all */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 }
 

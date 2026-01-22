@@ -2,6 +2,7 @@ from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, UploadFi
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.cors import CORSMiddleware
 from middleware.security_headers import SecurityHeadersMiddleware
+from middleware.input_validation import input_validation_middleware
 import os
 import logging
 from pathlib import Path
@@ -4056,6 +4057,9 @@ app.add_middleware(
 
 # Add security headers middleware
 app.add_middleware(SecurityHeadersMiddleware)
+
+# Add input validation middleware (validates and sanitizes user input)
+app.middleware("http")(input_validation_middleware)
 
 @app.on_event("startup")
 async def startup_load_rate_limits():

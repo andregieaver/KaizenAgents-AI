@@ -87,6 +87,14 @@ const ConversationDetail = () => {
   const [sentiment, setSentiment] = useState({ engagement: 5, tone: 0 });
   const [analyzingSentiment, setAnalyzingSentiment] = useState(false);
   const messagesEndRef = useRef(null);
+  // Track component mount status to prevent state updates after unmount
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -102,14 +110,21 @@ const ConversationDetail = () => {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
+
+        // Only update state if component is still mounted
+        if (!isMountedRef.current) return;
+
         setConversation(convRes.data);
         setMessages(msgsRes.data);
         setConversations(convsRes.data);
       } catch (error) {
+        if (!isMountedRef.current) return;
         console.error('Error fetching conversation:', error);
         toast.error('Failed to load conversation');
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
     };
 

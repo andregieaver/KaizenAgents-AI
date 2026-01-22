@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -64,6 +64,15 @@ const DashboardLayout = () => {
   const [showTransferPopup, setShowTransferPopup] = useState(false);
   const [currentTransfer, setCurrentTransfer] = useState(null);
 
+  // Track component mount status to prevent state updates after unmount
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   useEffect(() => {
     const fetchBrandSettings = async () => {
       try {
@@ -114,9 +123,13 @@ const DashboardLayout = () => {
         const response = await axios.get(`${API}/transfers/pending`, {
           headers: { Authorization: `Bearer ${token}` }
         });
+
+        // Only update state if component is still mounted
+        if (!isMountedRef.current) return;
+
         const transfers = response.data.transfers || [];
         setPendingTransfers(transfers);
-        
+
         // Show popup for new transfer
         if (transfers.length > 0 && !currentTransfer) {
           setCurrentTransfer(transfers[0]);
